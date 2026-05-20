@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+dist/
+.env*.local
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+.DS_Store
+
+.omx/
