@@ -4,23 +4,30 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { buildItinerary } from "@/lib/itinerary";
 import { toggleSelectedId } from "@/lib/selection";
-import type { PlannerSnapshot, Place, TravelMode } from "@/lib/types";
+import type { ItineraryItem, PlannerSnapshot, Place, TravelMode } from "@/lib/types";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
+import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { LeftPanel } from "./LeftPanel";
 import { MapPanel } from "./MapPanel";
 
-const EMPTY_SNAPSHOT: PlannerSnapshot = { places: [], routeSegments: [] };
+const EMPTY_SNAPSHOT: PlannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
 
 export function TripPlannerApp() {
   const [snapshot, setSnapshot] = useState<PlannerSnapshot>(EMPTY_SNAPSHOT);
-  const [activePlaceId, setActivePlaceId] = useState<number | null>(null);
+  const [activeItemId, setActiveItemId] = useState<number | null>(null);
   const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
+  const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
+  const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const itinerary = useMemo(() => buildItinerary(snapshot.places, snapshot.routeSegments), [snapshot]);
+  const itinerary = useMemo(
+    () => buildItinerary(snapshot.itineraryItems, snapshot.routeSegments, snapshot.places),
+    [snapshot],
+  );
 
   const reload = useCallback(async () => {
     const response = await fetch("/api/places");
@@ -55,6 +62,27 @@ export function TripPlannerApp() {
     setSnapshot(data);
     setIsAdding(false);
     setEditingPlace(null);
+    setEditingItem(null);
+    setAddingVisitPlace(null);
+    setError(null);
+  }
+
+  async function saveItineraryItem(payload: Record<string, unknown>, id: number) {
+    const response = await fetch(`/api/itinerary-items/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      const message = typeof data?.error === "string" ? data.error : "Failed to save visit.";
+      setError(message);
+      throw new Error(message);
+    }
+
+    setSnapshot(data);
+    setEditingItem(null);
     setError(null);
   }
 
@@ -66,7 +94,13 @@ export function TripPlannerApp() {
     }
 
     setSnapshot(data);
-    setActivePlaceId((current) => (current === id ? null : current));
+    setActiveItemId((current) => {
+      const deletedItemIds = snapshot.itineraryItems
+        .filter((item) => item.place_id === id)
+        .map((item) => item.id);
+
+      return deletedItemIds.includes(current ?? -1) ? null : current;
+    });
     setActiveSegmentId(null);
     setError(null);
   }
@@ -84,6 +118,54 @@ export function TripPlannerApp() {
     }
 
     setSnapshot(data);
+    setError(null);
+  }
+
+  async function createItineraryItem(placeId: number, payload: Record<string, unknown>) {
+    const response = await fetch(`/api/places/${placeId}/schedule`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      const message = typeof data?.error === "string" ? data.error : "Failed to add visit.";
+      setError(message);
+      throw new Error(message);
+    }
+
+    setSnapshot(data);
+    setAddingVisitPlace(null);
+    setError(null);
+  }
+
+  async function scheduleItineraryItem(id: number, visitDate: string | null, visitTime: string | null) {
+    const response = await fetch(`/api/itinerary-items/${id}/schedule`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ visit_date: visitDate, visit_time: visitTime }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(typeof data?.error === "string" ? data.error : "Failed to schedule itinerary item.");
+    }
+
+    setSnapshot(data);
+    setError(null);
+  }
+
+  async function deleteItineraryItem(id: number) {
+    const response = await fetch(`/api/itinerary-items/${id}`, { method: "DELETE" });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(typeof data?.error === "string" ? data.error : "Failed to delete itinerary item.");
+    }
+
+    setSnapshot(data);
+    setActiveItemId((current) => (current === id ? null : current));
+    setActiveSegmentId(null);
     setError(null);
   }
 
@@ -106,18 +188,40 @@ export function TripPlannerApp() {
   function openAddModal() {
     setError(null);
     setEditingPlace(null);
+    setEditingItem(null);
+    setAddingVisitPlace(null);
     setIsAdding(true);
   }
 
   function openEditModal(place: Place) {
     setError(null);
     setEditingPlace(place);
+    setEditingItem(null);
+    setAddingVisitPlace(null);
     setIsAdding(true);
+  }
+
+  function openEditItemModal(item: ItineraryItem) {
+    setError(null);
+    setEditingPlace(null);
+    setEditingItem(item);
+    setAddingVisitPlace(null);
+    setIsAdding(false);
+  }
+
+  function openAddVisitModal(place: Place) {
+    setError(null);
+    setEditingPlace(null);
+    setEditingItem(null);
+    setAddingVisitPlace(place);
+    setIsAdding(false);
   }
 
   function closeModal() {
     setIsAdding(false);
     setEditingPlace(null);
+    setEditingItem(null);
+    setAddingVisitPlace(null);
   }
 
   function toggleSegmentSelection(id: number | null) {
@@ -130,25 +234,39 @@ export function TripPlannerApp() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${isLeftPanelExpanded ? "left-panel-expanded" : ""}`}>
       <LeftPanel
         itinerary={itinerary}
         places={snapshot.places}
-        activePlaceId={activePlaceId}
+        activePlaceId={activeItemId}
         activeSegmentId={activeSegmentId}
         error={error}
+        isExpanded={isLeftPanelExpanded}
+        onToggleExpanded={() => setIsLeftPanelExpanded((value) => !value)}
         onAdd={openAddModal}
+        onAddVisit={openAddVisitModal}
         onEdit={openEditModal}
+        onEditItem={openEditItemModal}
         onDelete={(id) =>
           deletePlace(id).catch((reason) => {
             setError(reason instanceof Error ? reason.message : "Failed to delete place.");
           })
         }
-        onSelectPlace={setActivePlaceId}
+        onSelectPlace={setActiveItemId}
         onSelectSegment={toggleSegmentSelection}
         onSchedulePlace={(id, date, time) =>
           schedulePlace(id, date, time).catch((reason) => {
             setError(reason instanceof Error ? reason.message : "Failed to schedule place.");
+          })
+        }
+        onScheduleItem={(id, date, time) =>
+          scheduleItineraryItem(id, date, time).catch((reason) => {
+            setError(reason instanceof Error ? reason.message : "Failed to schedule itinerary item.");
+          })
+        }
+        onDeleteItem={(id) =>
+          deleteItineraryItem(id).catch((reason) => {
+            setError(reason instanceof Error ? reason.message : "Failed to delete itinerary item.");
           })
         }
         onModeChange={(id, mode) =>
@@ -158,12 +276,12 @@ export function TripPlannerApp() {
         }
       />
       <MapPanel
-        places={snapshot.places}
         itinerary={itinerary}
         routeSegments={snapshot.routeSegments}
-        activePlaceId={activePlaceId}
+        activePlaceId={activeItemId}
         activeSegmentId={activeSegmentId}
-        onSelectPlace={setActivePlaceId}
+        hidden={isLeftPanelExpanded}
+        onSelectPlace={setActiveItemId}
         onSelectSegment={toggleSegmentSelection}
       />
       {(isAdding || editingPlace) && (
@@ -171,6 +289,20 @@ export function TripPlannerApp() {
           place={editingPlace}
           onCancel={closeModal}
           onSave={(payload) => savePlace(payload, editingPlace?.id)}
+        />
+      )}
+      {editingItem && (
+        <EditItineraryItemModal
+          item={editingItem}
+          onCancel={closeModal}
+          onSave={(payload) => saveItineraryItem(payload, editingItem.id)}
+        />
+      )}
+      {addingVisitPlace && (
+        <EditItineraryItemModal
+          place={addingVisitPlace}
+          onCancel={closeModal}
+          onSave={(payload) => createItineraryItem(addingVisitPlace.id, payload)}
         />
       )}
     </main>

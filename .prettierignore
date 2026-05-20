@@ -1,0 +1,17 @@
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build & runtime output
+.next/
+dist/
+build/
+coverage/
+
+# Dependency directories
+node_modules/
+
+# Local data & temp files
+data/
+.omx/

@@ -1,4 +1,4 @@
-import type { ItineraryView, Place } from "@/lib/types";
+import type { ItineraryItem, ItineraryView } from "@/lib/types";
 
 export type MarkerSizing = {
   size: number;
@@ -13,12 +13,12 @@ export function buildTimedMarkerLabels(itinerary: ItineraryView): Map<number, st
   for (const day of itinerary.days) {
     let order = 1;
 
-    for (const place of day.places) {
-      if (!hasVisitTime(place)) {
+    for (const item of day.items) {
+      if (!hasVisitTime(item)) {
         continue;
       }
 
-      labels.set(place.id, String(order));
+      labels.set(item.id, String(order));
       order += 1;
     }
   }
@@ -55,6 +55,6 @@ export function getMarkerSizing(zoom: number | undefined): MarkerSizing {
   };
 }
 
-function hasVisitTime(place: Place): boolean {
-  return typeof place.visit_time === "string" && place.visit_time.length > 0;
+function hasVisitTime(item: ItineraryItem): boolean {
+  return typeof item.visit_time === "string" && item.visit_time.length > 0;
 }

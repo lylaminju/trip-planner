@@ -1,4 +1,4 @@
-import type { Place } from "@/lib/types";
+import type { ItineraryItem } from "@/lib/types";
 
 export type MapPosition = {
   lat: number;
@@ -6,13 +6,13 @@ export type MapPosition = {
 };
 
 export function getSelectedPlacePosition(
-  places: Place[],
-  activePlaceId: number | null,
+  items: ItineraryItem[],
+  activeItemId: number | null,
 ): MapPosition | null {
-  if (activePlaceId === null) {
+  if (activeItemId === null) {
     return null;
   }
 
-  const place = places.find((item) => item.id === activePlaceId);
-  return place ? { lat: place.latitude, lng: place.longitude } : null;
+  const item = items.find((row) => row.id === activeItemId);
+  return item ? { lat: item.place.latitude, lng: item.place.longitude } : null;
 }

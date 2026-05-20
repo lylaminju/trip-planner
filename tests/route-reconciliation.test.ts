@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { reconcileRouteSegments } from "@/lib/route-reconciliation";
-import type { Place, RouteSegment } from "@/lib/types";
+import type { ItineraryItem, RouteSegment } from "@/lib/types";
 
 const stamp = "2026-05-19 00:00:00";
 
@@ -9,8 +9,8 @@ function place(
   name: string,
   visit_date: string | null,
   visit_time: string | null,
-): Place {
-  return {
+): ItineraryItem {
+  const place = {
     id,
     name,
     address: null,
@@ -21,21 +21,30 @@ function place(
     source_list_url: null,
     latitude: 40 + id,
     longitude: -73 - id,
+    notes: null,
+    created_at: stamp,
+    updated_at: stamp,
+  };
+
+  return {
+    id,
+    place_id: id,
     visit_date,
     visit_time,
     notes: null,
     created_at: stamp,
     updated_at: stamp,
+    place,
   };
 }
 
 function segment(
   id: number,
-  from_place_id: number,
-  to_place_id: number,
+  from_item_id: number,
+  to_item_id: number,
   mode: RouteSegment["mode"],
 ): RouteSegment {
-  return { id, from_place_id, to_place_id, mode, created_at: stamp, updated_at: stamp };
+  return { id, from_item_id, to_item_id, mode, created_at: stamp, updated_at: stamp };
 }
 
 describe("reconcileRouteSegments", () => {
@@ -50,7 +59,7 @@ describe("reconcileRouteSegments", () => {
       [],
     );
 
-    expect(result.toInsert).toEqual([{ from_place_id: 1, to_place_id: 2, mode: "walking" }]);
+    expect(result.toInsert).toEqual([{ from_item_id: 1, to_item_id: 2, mode: "walking" }]);
     expect(result.toDeleteIds).toEqual([]);
     expect(result.toKeepIds).toEqual([]);
   });
@@ -79,7 +88,7 @@ describe("reconcileRouteSegments", () => {
 
     expect(result.toDeleteIds).toEqual([1]);
     expect(result.toKeepIds).toEqual([2]);
-    expect(result.toInsert).toEqual([{ from_place_id: 3, to_place_id: 1, mode: "walking" }]);
+    expect(result.toInsert).toEqual([{ from_item_id: 3, to_item_id: 1, mode: "walking" }]);
   });
 
   it("deduplicates repeated existing rows for the same valid pair", () => {
@@ -103,7 +112,7 @@ describe("reconcileRouteSegments", () => {
       [],
     );
 
-    expect(result.toInsert).toEqual([{ from_place_id: 1, to_place_id: 3, mode: "walking" }]);
+    expect(result.toInsert).toEqual([{ from_item_id: 1, to_item_id: 3, mode: "walking" }]);
     expect(result.toKeepIds).toEqual([]);
     expect(result.toDeleteIds).toEqual([]);
   });

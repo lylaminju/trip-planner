@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildItinerary, compareScheduledPlaces } from "@/lib/itinerary";
-import type { Place, RouteSegment } from "@/lib/types";
+import type { ItineraryItem, Place, RouteSegment } from "@/lib/types";
 
 const basePlace = {
   address: null,
@@ -16,12 +16,25 @@ const basePlace = {
   updated_at: "2026-05-19 00:00:00",
 };
 
-function place(overrides: Partial<Place> & Pick<Place, "id" | "name">): Place {
-  return {
+function place(
+  overrides: Partial<Place> &
+    Partial<Pick<ItineraryItem, "visit_date" | "visit_time" | "notes">> &
+    Pick<Place, "id" | "name">,
+): ItineraryItem {
+  const canonicalPlace: Place = {
     ...basePlace,
-    visit_date: null,
-    visit_time: null,
     ...overrides,
+  };
+
+  return {
+    id: overrides.id,
+    place_id: overrides.id,
+    visit_date: overrides.visit_date ?? null,
+    visit_time: overrides.visit_time ?? null,
+    notes: overrides.notes ?? null,
+    created_at: canonicalPlace.created_at,
+    updated_at: canonicalPlace.updated_at,
+    place: canonicalPlace,
   };
 }
 
@@ -103,7 +116,7 @@ describe("buildItinerary", () => {
     );
 
     expect(result.days).toHaveLength(1);
-    expect(result.days[0].places.map((item) => item.name)).toEqual([
+    expect(result.days[0].items.map((item) => item.place.name)).toEqual([
       "B Stop",
       "A Stop",
       "Central Park",
@@ -121,7 +134,7 @@ describe("buildItinerary", () => {
       [],
     );
 
-    expect(result.days[0].places.map((item) => item.name)).toEqual([
+    expect(result.days[0].items.map((item) => item.place.name)).toEqual([
       "Aquarium",
       "Zoo",
       "Museum",
@@ -129,59 +142,54 @@ describe("buildItinerary", () => {
   });
 
   it("keeps unscheduled places separate and alphabetized", () => {
+    const zoo = place({ id: 1, name: "Zoo" });
+    const aquarium = place({ id: 2, name: "Aquarium" });
+    const museum = place({ id: 3, name: "Museum", visit_date: "2026-06-02", visit_time: "10:00" });
     const result = buildItinerary(
-      [
-        place({ id: 1, name: "Zoo" }),
-        place({ id: 2, name: "Aquarium" }),
-        place({ id: 3, name: "Museum", visit_date: "2026-06-02", visit_time: "10:00" }),
-      ],
+      [museum],
       [],
+      [zoo.place, aquarium.place, museum.place],
     );
 
     expect(result.unscheduled.map((item) => item.name)).toEqual(["Aquarium", "Zoo"]);
     expect(result.days[0].date).toBe("2026-06-02");
   });
 
-  it("keeps existing day colors stable when a date is inserted between them", () => {
-    const initial = buildItinerary(
+  it("assigns sorted dates a capped curated rainbow ramp from red to purple", () => {
+    const result = buildItinerary(
       [
         place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-03", visit_time: "10:00" }),
+        place({ id: 2, name: "B", visit_date: "2026-06-05", visit_time: "10:00" }),
+        place({ id: 3, name: "C", visit_date: "2026-06-03", visit_time: "11:00" }),
+        place({ id: 4, name: "D", visit_date: "2026-06-02", visit_time: "12:00" }),
+        place({ id: 5, name: "E", visit_date: "2026-06-04", visit_time: "13:00" }),
       ],
       [],
     );
 
-    const updated = buildItinerary(
-      [
-        place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-03", visit_time: "10:00" }),
-        place({ id: 3, name: "C", visit_date: "2026-06-02", visit_time: "11:00" }),
-      ],
-      [],
-    );
-
-    const initialColors = new Map(initial.days.map((day) => [day.date, day.color]));
-    const updatedColors = new Map(updated.days.map((day) => [day.date, day.color]));
-
-    expect(updated.days.map((day) => day.date)).toEqual(["2026-06-01", "2026-06-02", "2026-06-03"]);
-    expect(updatedColors.get("2026-06-01")).toBe(initialColors.get("2026-06-01"));
-    expect(updatedColors.get("2026-06-03")).toBe(initialColors.get("2026-06-03"));
+    expect(result.days.map((day) => [day.date, day.color])).toEqual([
+      ["2026-06-01", "hsl(0 85% 50%)"],
+      ["2026-06-02", "hsl(60 85% 50%)"],
+      ["2026-06-03", "hsl(120 85% 45%)"],
+      ["2026-06-04", "hsl(210 85% 50%)"],
+      ["2026-06-05", "hsl(280 80% 52%)"],
+    ]);
   });
 
   it("attaches route segments for matching consecutive timed place pairs", () => {
     const segments: RouteSegment[] = [
       {
         id: 20,
-        from_place_id: 1,
-        to_place_id: 2,
+        from_item_id: 1,
+        to_item_id: 2,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
       },
       {
         id: 21,
-        from_place_id: 2,
-        to_place_id: 3,
+        from_item_id: 2,
+        to_item_id: 3,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
@@ -199,13 +207,13 @@ describe("buildItinerary", () => {
 
     expect(result.days[0].segments).toEqual([
       {
-        fromPlaceId: 1,
-        toPlaceId: 2,
+        fromItemId: 1,
+        toItemId: 2,
         segment: segments[0],
       },
       {
-        fromPlaceId: 2,
-        toPlaceId: 3,
+        fromItemId: 2,
+        toItemId: 3,
         segment: segments[1],
       },
     ]);
@@ -215,16 +223,16 @@ describe("buildItinerary", () => {
     const segments: RouteSegment[] = [
       {
         id: 20,
-        from_place_id: 1,
-        to_place_id: 2,
+        from_item_id: 1,
+        to_item_id: 2,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
       },
       {
         id: 21,
-        from_place_id: 1,
-        to_place_id: 3,
+        from_item_id: 1,
+        to_item_id: 3,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
@@ -242,14 +250,14 @@ describe("buildItinerary", () => {
 
     expect(result.days[0].segments).toEqual([
       {
-        fromPlaceId: 1,
-        toPlaceId: 2,
+        fromItemId: 1,
+        toItemId: 2,
         segment: segments[0],
       },
     ]);
     expect(result.days[0].segments).not.toContainEqual({
-      fromPlaceId: 1,
-      toPlaceId: 3,
+      fromItemId: 1,
+      toItemId: 3,
       segment: segments[1],
     });
   });
@@ -258,32 +266,32 @@ describe("buildItinerary", () => {
     const segments: RouteSegment[] = [
       {
         id: 20,
-        from_place_id: 1,
-        to_place_id: 2,
+        from_item_id: 1,
+        to_item_id: 2,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
       },
       {
         id: 21,
-        from_place_id: 2,
-        to_place_id: 3,
+        from_item_id: 2,
+        to_item_id: 3,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
       },
       {
         id: 22,
-        from_place_id: 1,
-        to_place_id: 3,
+        from_item_id: 1,
+        to_item_id: 3,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
       },
       {
         id: 23,
-        from_place_id: 3,
-        to_place_id: 2,
+        from_item_id: 3,
+        to_item_id: 2,
         mode: "walking",
         created_at: "2026-05-19 00:00:00",
         updated_at: "2026-05-19 00:00:00",
@@ -301,14 +309,14 @@ describe("buildItinerary", () => {
 
     expect(result.days[0].segments).toEqual([
       {
-        fromPlaceId: 1,
-        toPlaceId: 3,
+        fromItemId: 1,
+        toItemId: 3,
         segment: segments[2],
       },
     ]);
     expect(result.days[0].segments).not.toContainEqual({
-      fromPlaceId: 3,
-      toPlaceId: 2,
+      fromItemId: 3,
+      toItemId: 2,
       segment: segments[3],
     });
   });

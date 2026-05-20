@@ -9,7 +9,8 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "import:google-list": "node scripts/import-google-list.mjs"
+    "import:google-list": "node scripts/import-google-list.mjs",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
@@ -23,6 +24,7 @@
     "@types/node": "^25.9.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"
   }

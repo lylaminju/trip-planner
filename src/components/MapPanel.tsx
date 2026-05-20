@@ -5,14 +5,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { decodePolyline, type LatLngLiteral } from "@/lib/encoded-polyline";
 import { buildTimedMarkerLabels, getMarkerSizing } from "@/lib/map-marker-labels";
 import { getSelectedPlacePosition } from "@/lib/map-viewport";
-import type { ItineraryView, Place, RouteGeometry, RouteSegment, TravelMode } from "@/lib/types";
+import type { ItineraryItem, ItineraryView, Place, RouteGeometry, RouteSegment, TravelMode } from "@/lib/types";
 
 type Props = {
-  places: Place[];
   itinerary: ItineraryView;
   routeSegments: RouteSegment[];
   activePlaceId: number | null;
   activeSegmentId: number | null;
+  hidden?: boolean;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
 };
@@ -36,7 +36,7 @@ type RouteGeometryFetchResult = {
 export function MapPanel(props: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
-  const markerRecordsRef = useRef<Map<number, MarkerRecord>>(new Map());
+  const markerRecordsRef = useRef<Map<string, MarkerRecord>>(new Map());
   const polylinesRef = useRef<Map<number, PolylineRecord>>(new Map());
   const routeGeometrySignaturesRef = useRef<Map<number, string>>(new Map());
   const boundsSignatureRef = useRef<string>("");
@@ -46,7 +46,17 @@ export function MapPanel(props: Props) {
   const [routeGeometries, setRouteGeometries] = useState<Map<number, RouteGeometry>>(new Map());
   const [routeGeometryError, setRouteGeometryError] = useState<string | null>(null);
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const placeColors = useMemo(() => buildPlaceColors(props.itinerary), [props.itinerary]);
+  const itineraryItems = useMemo(() => getItineraryItems(props.itinerary), [props.itinerary]);
+  const itineraryItemsSignature = useMemo(() => buildItineraryItemsSignature(itineraryItems), [itineraryItems]);
+  const unscheduledPlacesSignature = useMemo(
+    () => buildPlacesSignature(props.itinerary.unscheduled),
+    [props.itinerary.unscheduled],
+  );
+  const routeSegmentsSignature = useMemo(
+    () => buildRouteSegmentsSignature(props.routeSegments),
+    [props.routeSegments],
+  );
+  const itemColors = useMemo(() => buildItemColors(props.itinerary), [props.itinerary]);
   const markerLabels = useMemo(() => buildTimedMarkerLabels(props.itinerary), [props.itinerary]);
   const showRouteQualityWarning = useMemo(
     () => props.routeSegments.some((segment) => isBetaRouteMode(segment.mode)),
@@ -68,7 +78,7 @@ export function MapPanel(props: Props) {
         }
 
         if (!mapInstanceRef.current) {
-          mapInstanceRef.current = createMap(mapRef.current, props.places);
+          mapInstanceRef.current = createMap(mapRef.current, itineraryItems, props.itinerary.unscheduled);
         }
         setIsMapReady(true);
       })
@@ -81,7 +91,7 @@ export function MapPanel(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [apiKey, props.places]);
+  }, [apiKey, itineraryItemsSignature, unscheduledPlacesSignature]);
 
   useEffect(() => {
     if (!apiKey || loadFailed || !isMapReady) {
@@ -89,17 +99,17 @@ export function MapPanel(props: Props) {
     }
 
     let cancelled = false;
-    const placesById = new Map(props.places.map((place) => [place.id, place]));
+    const itemsById = new Map(itineraryItems.map((item) => [item.id, item]));
     const nextSegmentIds = new Set(props.routeSegments.map((segment) => segment.id));
     const changedSegmentIds = new Set<number>();
     const requests: Promise<RouteGeometryFetchResult>[] = [];
 
     for (const segment of props.routeSegments) {
-      const from = placesById.get(segment.from_place_id);
-      const to = placesById.get(segment.to_place_id);
+      const from = itemsById.get(segment.from_item_id);
+      const to = itemsById.get(segment.to_item_id);
       if (!from || !to) continue;
 
-      const signature = routeGeometryRequestSignature(segment, from, to);
+      const signature = routeGeometryRequestSignature(segment, from.place, to.place);
       if (routeGeometrySignaturesRef.current.get(segment.id) === signature) {
         continue;
       }
@@ -157,7 +167,7 @@ export function MapPanel(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [apiKey, isMapReady, loadFailed, props.places, props.routeSegments]);
+  }, [apiKey, isMapReady, itineraryItemsSignature, loadFailed, routeSegmentsSignature]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -167,10 +177,11 @@ export function MapPanel(props: Props) {
 
     renderOverlays({
       map,
-      places: props.places,
+      items: itineraryItems,
+      unscheduledPlaces: props.itinerary.unscheduled,
       routeSegments: props.routeSegments,
       routeGeometries,
-      placeColors,
+      itemColors,
       markerLabels,
       markerRecords: markerRecordsRef.current,
       polylines: polylinesRef.current,
@@ -188,12 +199,13 @@ export function MapPanel(props: Props) {
     updateMarkerSizes(markerRecordsRef.current, map.getZoom?.());
   }, [
     apiKey,
+    itineraryItemsSignature,
     isMapReady,
     loadFailed,
-    props.places,
-    props.routeSegments,
+    unscheduledPlacesSignature,
+    routeSegmentsSignature,
     routeGeometries,
-    placeColors,
+    itemColors,
     markerLabels,
     props.onSelectPlace,
     props.onSelectSegment,
@@ -230,18 +242,33 @@ export function MapPanel(props: Props) {
       return;
     }
 
-    const position = getSelectedPlacePosition(props.places, props.activePlaceId);
+    if (!props.hidden) {
+      window.google?.maps?.event?.trigger?.(map, "resize");
+    }
+  }, [apiKey, isMapReady, itineraryItemsSignature, loadFailed, props.hidden]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!apiKey || loadFailed || !isMapReady || !map || props.hidden) {
+      return;
+    }
+
+    const position = getSelectedPlacePosition(itineraryItems, props.activePlaceId);
     if (position) {
       map.panTo(position);
     }
-  }, [apiKey, isMapReady, loadFailed, props.activePlaceId, props.places]);
+  }, [apiKey, isMapReady, itineraryItemsSignature, loadFailed, props.activePlaceId, props.hidden]);
 
   if (!apiKey || loadFailed) {
-    return <CoordinateFallback places={props.places} />;
+    return <CoordinateFallback items={itineraryItems} unscheduledPlaces={props.itinerary.unscheduled} />;
   }
 
   return (
-    <section className="panel panel-map" aria-label="Google map">
+    <section
+      className={`panel panel-map ${props.hidden ? "panel-map-hidden" : ""}`}
+      aria-label="Google map"
+      aria-hidden={props.hidden}
+    >
       <div className="map-canvas" ref={mapRef} />
       {(routeGeometryError || showRouteQualityWarning) && (
         <div className="map-route-warning">
@@ -255,11 +282,16 @@ export function MapPanel(props: Props) {
   );
 }
 
-function CoordinateFallback({ places }: { places: Place[] }) {
+function CoordinateFallback({ items, unscheduledPlaces }: { items: ItineraryItem[]; unscheduledPlaces: Place[] }) {
   return (
     <section className="panel panel-map map-fallback">
       <h2>Coordinates</h2>
-      {places.map((place) => (
+      {items.map((item) => (
+        <p key={item.id}>
+          <strong>{item.place.name}</strong>: {item.place.latitude}, {item.place.longitude}
+        </p>
+      ))}
+      {unscheduledPlaces.map((place) => (
         <p key={place.id}>
           <strong>{place.name}</strong>: {place.latitude}, {place.longitude}
         </p>
@@ -268,22 +300,23 @@ function CoordinateFallback({ places }: { places: Place[] }) {
   );
 }
 
-function buildPlaceColors(itinerary: ItineraryView): Map<number, string> {
+function buildItemColors(itinerary: ItineraryView): Map<number, string> {
   const colors = new Map<number, string>();
 
   for (const day of itinerary.days) {
-    for (const place of day.places) {
-      colors.set(place.id, day.color);
+    for (const item of day.items) {
+      colors.set(item.id, day.color);
     }
   }
 
   return colors;
 }
 
-function createMap(container: HTMLElement, places: Place[]): any {
+function createMap(container: HTMLElement, items: ItineraryItem[], unscheduledPlaces: Place[]): any {
   const googleMaps = window.google;
-  const center = places[0]
-    ? { lat: places[0].latitude, lng: places[0].longitude }
+  const firstPlace = items[0]?.place ?? unscheduledPlaces[0] ?? null;
+  const center = firstPlace
+    ? { lat: firstPlace.latitude, lng: firstPlace.longitude }
     : { lat: 40.7128, lng: -74.006 };
 
   return new googleMaps.maps.Map(container, { center, zoom: 12, mapId: "trip-planner-map" });
@@ -341,12 +374,13 @@ async function fetchRouteGeometry(segmentId: number): Promise<RouteGeometryFetch
 
 function renderOverlays(input: {
   map: any;
-  places: Place[];
+  items: ItineraryItem[];
+  unscheduledPlaces: Place[];
   routeSegments: RouteSegment[];
   routeGeometries: Map<number, RouteGeometry>;
-  placeColors: Map<number, string>;
+  itemColors: Map<number, string>;
   markerLabels: Map<number, string>;
-  markerRecords: Map<number, MarkerRecord>;
+  markerRecords: Map<string, MarkerRecord>;
   polylines: Map<number, PolylineRecord>;
   boundsSignatureRef: { current: string };
   infoWindowRef: { current: any };
@@ -359,17 +393,20 @@ function renderOverlays(input: {
   }
 
   const bounds = new googleMaps.maps.LatLngBounds();
-  const placesById = new Map(input.places.map((place) => [place.id, place]));
-  const nextPlaceIds = new Set(input.places.map((place) => place.id));
+  const itemsById = new Map(input.items.map((item) => [item.id, item]));
+  const nextMarkerKeys = new Set<string>();
   const infoWindow = getInfoWindow(input.infoWindowRef);
 
-  for (const place of input.places) {
+  for (const item of input.items) {
+    const place = item.place;
     const position = { lat: place.latitude, lng: place.longitude };
     bounds.extend(position);
-    const color = input.placeColors.get(place.id) ?? "#64748b";
-    const label = input.markerLabels.get(place.id) ?? null;
-    const signature = markerSignature(place, color, label);
-    const existing = input.markerRecords.get(place.id);
+    const color = input.itemColors.get(item.id) ?? "#64748b";
+    const label = input.markerLabels.get(item.id) ?? null;
+    const markerKey = itemMarkerKey(item.id);
+    nextMarkerKeys.add(markerKey);
+    const signature = markerSignature(item, color, label, "scheduled");
+    const existing = input.markerRecords.get(markerKey);
 
     if (existing?.signature === signature) {
       continue;
@@ -385,28 +422,56 @@ function renderOverlays(input: {
       content: element,
     });
     marker.addListener("click", () => {
-      input.onSelectPlace(place.id);
+      input.onSelectPlace(item.id);
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
-    input.markerRecords.set(place.id, { marker, element, signature });
+    input.markerRecords.set(markerKey, { marker, element, signature });
   }
 
-  for (const [placeId, record] of input.markerRecords) {
-    if (!nextPlaceIds.has(placeId)) {
+  for (const place of input.unscheduledPlaces) {
+    const position = { lat: place.latitude, lng: place.longitude };
+    bounds.extend(position);
+    const color = "#94a3b8";
+    const markerKey = placeMarkerKey(place.id);
+    nextMarkerKeys.add(markerKey);
+    const signature = markerSignature(place, color, null, "unscheduled");
+    const existing = input.markerRecords.get(markerKey);
+
+    if (existing?.signature === signature) {
+      continue;
+    }
+
+    if (existing) existing.marker.map = null;
+
+    const element = markerContent(color, null);
+    const marker = new googleMaps.maps.marker.AdvancedMarkerElement({
+      map: input.map,
+      position,
+      title: place.name,
+      content: element,
+    });
+    marker.addListener("click", () => {
+      openPlaceInfoWindow(input.map, marker, infoWindow, place);
+    });
+    input.markerRecords.set(markerKey, { marker, element, signature });
+  }
+
+  for (const [markerKey, record] of input.markerRecords) {
+    if (!nextMarkerKeys.has(markerKey)) {
       record.marker.map = null;
-      input.markerRecords.delete(placeId);
+      input.markerRecords.delete(markerKey);
     }
   }
 
   const nextSegmentIds = new Set(input.routeSegments.map((segment) => segment.id));
   for (const segment of input.routeSegments) {
-    const from = placesById.get(segment.from_place_id);
-    const to = placesById.get(segment.to_place_id);
+    const from = itemsById.get(segment.from_item_id);
+    const to = itemsById.get(segment.to_item_id);
     if (!from || !to) continue;
 
-    const color = input.placeColors.get(from.id) ?? "#64748b";
+    const color = input.itemColors.get(from.id) ?? "#64748b";
     const routeGeometry = input.routeGeometries.get(segment.id);
-    const signature = polylineSignature(segment, from, to, color, routeGeometry?.encoded_polyline);
+    const signature = polylineSignature(segment, from.place, to.place, color, routeGeometry?.encoded_polyline);
     const existing = input.polylines.get(segment.id);
 
     if (existing?.signature === signature) {
@@ -417,7 +482,7 @@ function renderOverlays(input: {
 
     const polyline = new googleMaps.maps.Polyline({
       map: input.map,
-      path: routePath(from, to, routeGeometry),
+      path: routePath(from.place, to.place, routeGeometry),
       strokeColor: color,
       strokeOpacity: 0.55,
       strokeWeight: 3,
@@ -434,15 +499,29 @@ function renderOverlays(input: {
     }
   }
 
-  const nextBoundsSignature = boundsSignature(input.places);
+  const nextBoundsSignature = boundsSignature(input.items, input.unscheduledPlaces);
   if (!bounds.isEmpty() && nextBoundsSignature !== input.boundsSignatureRef.current) {
     input.boundsSignatureRef.current = nextBoundsSignature;
     input.map.fitBounds(bounds, 48);
   }
 }
 
-function markerSignature(place: Place, color: string, label: string | null): string {
-  return [place.name, place.google_maps_url, place.latitude, place.longitude, color, label ?? ""].join("|");
+function markerSignature(
+  item: ItineraryItem | Place,
+  color: string,
+  label: string | null,
+  variant: "scheduled" | "unscheduled",
+): string {
+  return [
+    variant,
+    item.id,
+    "place" in item ? item.place.name : item.name,
+    "place" in item ? item.place.google_maps_url : item.google_maps_url,
+    "place" in item ? item.place.latitude : item.latitude,
+    "place" in item ? item.place.longitude : item.longitude,
+    color,
+    label ?? "",
+  ].join("|");
 }
 
 function polylineSignature(
@@ -453,8 +532,8 @@ function polylineSignature(
   encodedPolyline?: string,
 ): string {
   return [
-    segment.from_place_id,
-    segment.to_place_id,
+    segment.from_item_id,
+    segment.to_item_id,
     segment.mode,
     from.latitude,
     from.longitude,
@@ -505,21 +584,23 @@ function isBetaRouteMode(mode: TravelMode): boolean {
   return mode === "walking" || mode === "bicycling";
 }
 
-function boundsSignature(places: Place[]): string {
-  return places
-    .map((place) => `${place.id}:${place.latitude},${place.longitude}`)
+function boundsSignature(items: ItineraryItem[], unscheduledPlaces: Place[]): string {
+  return [
+    ...items.map((item) => `item:${item.id}:${item.place.latitude},${item.place.longitude}`),
+    ...unscheduledPlaces.map((place) => `place:${place.id}:${place.latitude},${place.longitude}`),
+  ]
     .sort()
     .join(";");
 }
 
 function updateOverlaySelection(
-  markerRecords: Map<number, MarkerRecord>,
+  markerRecords: Map<string, MarkerRecord>,
   polylines: Map<number, PolylineRecord>,
   activePlaceId: number | null,
   activeSegmentId: number | null,
 ): void {
-  for (const [placeId, { element }] of markerRecords) {
-    element.classList.toggle("active", placeId === activePlaceId);
+  for (const [markerKey, { element }] of markerRecords) {
+    element.classList.toggle("active", markerKey === itemMarkerKey(activePlaceId));
   }
 
   for (const [segmentId, { polyline }] of polylines) {
@@ -531,7 +612,30 @@ function updateOverlaySelection(
   }
 }
 
-function updateMarkerSizes(markerRecords: Map<number, MarkerRecord>, zoom: number | undefined): void {
+function getItineraryItems(itinerary: ItineraryView): ItineraryItem[] {
+  return itinerary.days.flatMap((day) => day.items);
+}
+
+function buildItineraryItemsSignature(items: ItineraryItem[]): string {
+  return items
+    .map(
+      (item) =>
+        `item:${item.id}:${item.place.latitude},${item.place.longitude}:${item.visit_date ?? ""}:${item.visit_time ?? ""}`,
+    )
+    .join(";");
+}
+
+function buildPlacesSignature(places: Place[]): string {
+  return places
+    .map((place) => `place:${place.id}:${place.latitude},${place.longitude}`)
+    .join(";");
+}
+
+function buildRouteSegmentsSignature(segments: RouteSegment[]): string {
+  return segments.map((segment) => `segment:${segment.id}:${segment.from_item_id}->${segment.to_item_id}:${segment.mode}`).join(";");
+}
+
+function updateMarkerSizes(markerRecords: Map<string, MarkerRecord>, zoom: number | undefined): void {
   const sizing = getMarkerSizing(zoom);
 
   for (const { element } of markerRecords.values()) {
@@ -551,6 +655,14 @@ function markerContent(color: string, label: string | null): HTMLElement {
   }
 
   return element;
+}
+
+function itemMarkerKey(itemId: number | null): string {
+  return `item:${itemId ?? "none"}`;
+}
+
+function placeMarkerKey(placeId: number): string {
+  return `place:${placeId}`;
 }
 
 function getInfoWindow(infoWindowRef: { current: any }): any {

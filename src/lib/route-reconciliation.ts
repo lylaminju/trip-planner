@@ -1,9 +1,9 @@
-import { compareScheduledPlaces } from "./itinerary";
-import type { Place, RouteSegment, TravelMode } from "./types";
+import { compareScheduledItems } from "./itinerary";
+import type { ItineraryItem, RouteSegment, TravelMode } from "./types";
 
 export type SegmentInsert = {
-  from_place_id: number;
-  to_place_id: number;
+  from_item_id: number;
+  to_item_id: number;
   mode: TravelMode;
 };
 
@@ -15,11 +15,11 @@ export type ReconciliationPlan = {
 };
 
 export function reconcileRouteSegments(
-  places: Place[],
+  items: ItineraryItem[],
   existingSegments: RouteSegment[],
 ): ReconciliationPlan {
-  const desiredPairs = buildDesiredPairs(places);
-  const desiredKeys = new Set(desiredPairs.map(([fromPlaceId, toPlaceId]) => pairKey(fromPlaceId, toPlaceId)));
+  const desiredPairs = buildDesiredPairs(items);
+  const desiredKeys = new Set(desiredPairs.map(([fromItemId, toItemId]) => pairKey(fromItemId, toItemId)));
   const keptPairKeys = new Set<string>();
 
   const toKeepIds: number[] = [];
@@ -27,7 +27,7 @@ export function reconcileRouteSegments(
   const preservedModes = new Map<string, TravelMode>();
 
   for (const segment of existingSegments) {
-    const key = pairKey(segment.from_place_id, segment.to_place_id);
+    const key = pairKey(segment.from_item_id, segment.to_item_id);
 
     if (!desiredKeys.has(key) || keptPairKeys.has(key)) {
       toDeleteIds.push(segment.id);
@@ -40,56 +40,56 @@ export function reconcileRouteSegments(
   }
 
   const toInsert: SegmentInsert[] = desiredPairs
-    .filter(([fromPlaceId, toPlaceId]) => !keptPairKeys.has(pairKey(fromPlaceId, toPlaceId)))
-    .map(([fromPlaceId, toPlaceId]) => ({
-      from_place_id: fromPlaceId,
-      to_place_id: toPlaceId,
+    .filter(([fromItemId, toItemId]) => !keptPairKeys.has(pairKey(fromItemId, toItemId)))
+    .map(([fromItemId, toItemId]) => ({
+      from_item_id: fromItemId,
+      to_item_id: toItemId,
       mode: "walking",
     }));
 
   return { toKeepIds, toDeleteIds, toInsert, preservedModes };
 }
 
-function buildDesiredPairs(places: Place[]): Array<[number, number]> {
-  const placesByDate = new Map<string, Place[]>();
+function buildDesiredPairs(items: ItineraryItem[]): Array<[number, number]> {
+  const itemsByDate = new Map<string, ItineraryItem[]>();
 
-  for (const place of places) {
-    if (!isRoutablePlace(place)) {
+  for (const item of items) {
+    if (!isRoutableItem(item)) {
       continue;
     }
 
-    const dayPlaces = placesByDate.get(place.visit_date) ?? [];
-    dayPlaces.push(place);
-    placesByDate.set(place.visit_date, dayPlaces);
+    const dayItems = itemsByDate.get(item.visit_date) ?? [];
+    dayItems.push(item);
+    itemsByDate.set(item.visit_date, dayItems);
   }
 
   const desiredPairs: Array<[number, number]> = [];
 
-  for (const dayPlaces of placesByDate.values()) {
-    const sortedPlaces = [...dayPlaces].sort(compareScheduledPlaces);
+  for (const dayItems of itemsByDate.values()) {
+    const sortedItems = [...dayItems].sort(compareScheduledItems);
 
-    for (let index = 0; index < sortedPlaces.length - 1; index += 1) {
-      desiredPairs.push([sortedPlaces[index].id, sortedPlaces[index + 1].id]);
+    for (let index = 0; index < sortedItems.length - 1; index += 1) {
+      desiredPairs.push([sortedItems[index].id, sortedItems[index + 1].id]);
     }
   }
 
   return desiredPairs;
 }
 
-function isRoutablePlace(place: Place): place is Place & { visit_date: string; visit_time: string } {
-  return hasVisitDate(place) && hasValidVisitTime(place);
+function isRoutableItem(item: ItineraryItem): item is ItineraryItem & { visit_date: string; visit_time: string } {
+  return hasVisitDate(item) && hasValidVisitTime(item);
 }
 
-function hasVisitDate(place: Place): place is Place & { visit_date: string } {
-  return typeof place.visit_date === "string" && place.visit_date.length > 0;
+function hasVisitDate(item: ItineraryItem): item is ItineraryItem & { visit_date: string } {
+  return typeof item.visit_date === "string" && item.visit_date.length > 0;
 }
 
-function hasVisitTimeText(place: Place): place is Place & { visit_time: string } {
-  return typeof place.visit_time === "string" && place.visit_time.length > 0;
+function hasVisitTimeText(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+  return typeof item.visit_time === "string" && item.visit_time.length > 0;
 }
 
-function hasValidVisitTime(place: Place): place is Place & { visit_time: string } {
-  return hasVisitTimeText(place) && parseVisitTime(place.visit_time) !== null;
+function hasValidVisitTime(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+  return hasVisitTimeText(item) && parseVisitTime(item.visit_time) !== null;
 }
 
 function parseVisitTime(value: string): number | null {
@@ -113,6 +113,6 @@ function parseVisitTime(value: string): number | null {
   return hours * 60 + minutes;
 }
 
-function pairKey(fromPlaceId: number, toPlaceId: number): string {
-  return `${fromPlaceId}->${toPlaceId}`;
+function pairKey(fromItemId: number, toItemId: number): string {
+  return `${fromItemId}->${toItemId}`;
 }

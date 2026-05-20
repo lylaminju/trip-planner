@@ -56,8 +56,6 @@ const importRows = db.transaction(() => {
       source_list_url,
       latitude,
       longitude,
-      visit_date,
-      visit_time,
       notes
     ) VALUES (
       @name,
@@ -69,12 +67,9 @@ const importRows = db.transaction(() => {
       @sourceListUrl,
       @latitude,
       @longitude,
-      NULL,
-      NULL,
       @notes
     )
   `);
-
   for (const place of places) {
     const existing = findExistingPlace(place, existingRows);
     if (existing) {
@@ -135,6 +130,14 @@ function migrate(database) {
       source_list_url TEXT,
       latitude REAL NOT NULL,
       longitude REAL NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS itinerary_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
       visit_date TEXT,
       visit_time TEXT,
       notes TEXT,
@@ -144,8 +147,8 @@ function migrate(database) {
 
     CREATE TABLE IF NOT EXISTS route_segments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      from_place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-      to_place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+      from_item_id INTEGER NOT NULL REFERENCES itinerary_items(id) ON DELETE CASCADE,
+      to_item_id INTEGER NOT NULL REFERENCES itinerary_items(id) ON DELETE CASCADE,
       mode TEXT NOT NULL DEFAULT 'walking' CHECK (mode IN ('walking', 'transit', 'bicycling', 'driving')),
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -165,6 +168,9 @@ function migrate(database) {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE INDEX IF NOT EXISTS idx_itinerary_items_visit_date_time ON itinerary_items (visit_date, visit_time, place_id);
+    CREATE INDEX IF NOT EXISTS idx_route_segments_from_to ON route_segments (from_item_id, to_item_id);
   `);
 }
 

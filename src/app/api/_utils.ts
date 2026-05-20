@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   GoogleRoutesConfigError,
   GoogleRoutesUpstreamError,
+  ItineraryItemNotFoundError,
   GoogleMapsUrlUpstreamError,
   GoogleMapsUrlValidationError,
   PlaceNotFoundError,
@@ -29,7 +30,11 @@ export function jsonError(error: string, status: number): NextResponse {
 }
 
 export function mapRouteError(error: unknown): NextResponse | null {
-  if (error instanceof PlaceNotFoundError || error instanceof RouteSegmentNotFoundError) {
+  if (
+    error instanceof PlaceNotFoundError ||
+    error instanceof RouteSegmentNotFoundError ||
+    error instanceof ItineraryItemNotFoundError
+  ) {
     return jsonError(error.message, 404);
   }
 

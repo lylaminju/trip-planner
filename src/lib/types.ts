@@ -11,17 +11,26 @@ export type Place = {
   source_list_url: string | null;
   latitude: number;
   longitude: number;
-  visit_date: string | null;
-  visit_time: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
 };
 
+export type ItineraryItem = {
+  id: number;
+  place_id: number;
+  visit_date: string | null;
+  visit_time: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  place: Place;
+};
+
 export type RouteSegment = {
   id: number;
-  from_place_id: number;
-  to_place_id: number;
+  from_item_id: number;
+  to_item_id: number;
   mode: TravelMode;
   created_at: string;
   updated_at: string;
@@ -34,15 +43,15 @@ export type RouteGeometry = {
 };
 
 export type SegmentView = {
-  fromPlaceId: number;
-  toPlaceId: number;
+  fromItemId: number;
+  toItemId: number;
   segment: RouteSegment;
 };
 
 export type ItineraryDay = {
   date: string;
   color: string;
-  places: Place[];
+  items: ItineraryItem[];
   segments: SegmentView[];
 };
 
@@ -53,5 +62,6 @@ export type ItineraryView = {
 
 export type PlannerSnapshot = {
   places: Place[];
+  itineraryItems: ItineraryItem[];
   routeSegments: RouteSegment[];
 };

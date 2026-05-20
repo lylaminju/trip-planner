@@ -8,16 +8,16 @@ import {
   mapRouteError,
   readJsonBody,
 } from "@/app/api/_utils";
-import { schedulePlace } from "@/server/place-service";
+import { scheduleItineraryItem } from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
   const { id } = await params;
-  const placeId = Number(id);
+  const itemId = Number(id);
 
-  if (!Number.isInteger(placeId)) {
-    return jsonError("Invalid place id.", 400);
+  if (!Number.isInteger(itemId)) {
+    return jsonError("Invalid itinerary item id.", 400);
   }
 
   const parsedBody = await readJsonBody(request);
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(schedulePlace(placeId, visitDate, visitTime, stringOrNull(body.notes)));
+    return NextResponse.json(scheduleItineraryItem(itemId, visitDate, visitTime));
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {
@@ -46,10 +46,6 @@ export async function PATCH(request: Request, { params }: Params) {
 
     throw error;
   }
-}
-
-function stringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function parseDate(body: Record<string, unknown>): string | NextResponse | null {

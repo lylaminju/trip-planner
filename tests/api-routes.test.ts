@@ -231,7 +231,7 @@ describe("API routes transport behavior", () => {
         error: "Visit date must be YYYY-MM-DD.",
       });
 
-      expect(service.getPlannerSnapshot().places[0]).toMatchObject({
+      expect(service.getPlannerSnapshot().itineraryItems[0]).toMatchObject({
         visit_date: "2026-06-01",
         visit_time: "09:00",
       });
@@ -331,9 +331,40 @@ describe("API routes transport behavior", () => {
 
       expect(response.status).toBe(200);
       const payload = await response.json();
-      expect(payload.places[0]).toMatchObject({
+      expect(payload.itineraryItems[0]).toMatchObject({
         visit_date: "2026-06-02",
         visit_time: "09:00",
+      });
+    });
+  });
+
+  it("edits itinerary item schedule and notes independently from place notes", async () => {
+    await withFreshTestEnv(async () => {
+      const service = await import("@/server/place-service");
+      const created = service.createPlace({
+        ...baseInput,
+        notes: "Place note",
+        visit_date: "2026-06-01",
+        visit_time: "09:00",
+      });
+      const { PATCH } = await import("@/app/api/itinerary-items/[id]/route");
+
+      const response = await PATCH(
+        jsonRequest("PATCH", {
+          visit_date: "2026-06-02",
+          visit_time: "10:00",
+          notes: "Visit note",
+        }),
+        params(String(created.itineraryItems[0].id)),
+      );
+
+      expect(response.status).toBe(200);
+      const payload = await response.json();
+      expect(payload.places[0]).toMatchObject({ notes: "Place note" });
+      expect(payload.itineraryItems[0]).toMatchObject({
+        visit_date: "2026-06-02",
+        visit_time: "10:00",
+        notes: "Visit note",
       });
     });
   });

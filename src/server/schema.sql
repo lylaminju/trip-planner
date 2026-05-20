@@ -11,6 +11,14 @@ CREATE TABLE IF NOT EXISTS places (
   source_list_url TEXT,
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS itinerary_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
   visit_date TEXT,
   visit_time TEXT,
   notes TEXT,
@@ -20,8 +28,8 @@ CREATE TABLE IF NOT EXISTS places (
 
 CREATE TABLE IF NOT EXISTS route_segments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  from_place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
-  to_place_id INTEGER NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  from_item_id INTEGER NOT NULL REFERENCES itinerary_items(id) ON DELETE CASCADE,
+  to_item_id INTEGER NOT NULL REFERENCES itinerary_items(id) ON DELETE CASCADE,
   mode TEXT NOT NULL DEFAULT 'walking' CHECK (mode IN ('walking', 'transit', 'bicycling', 'driving')),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -42,6 +50,6 @@ CREATE TABLE IF NOT EXISTS route_geometry_cache (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_places_visit_date_time ON places (visit_date, visit_time, name);
-CREATE INDEX IF NOT EXISTS idx_route_segments_from_to ON route_segments (from_place_id, to_place_id);
+CREATE INDEX IF NOT EXISTS idx_itinerary_items_visit_date_time ON itinerary_items (visit_date, visit_time, place_id);
+CREATE INDEX IF NOT EXISTS idx_route_segments_from_to ON route_segments (from_item_id, to_item_id);
 CREATE INDEX IF NOT EXISTS idx_route_geometry_cache_places ON route_geometry_cache (from_place_id, to_place_id, mode);

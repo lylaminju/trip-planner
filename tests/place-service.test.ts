@@ -48,7 +48,7 @@ async function withFreshPlaceService(
 }
 
 describe("place-service scheduling normalization", () => {
-  it("clears visit_time on create when visit_date is null", async () => {
+  it("does not create an itinerary item when a new place has no visit date", async () => {
     await withFreshPlaceService(({ createPlace }) => {
       const snapshot = createPlace({
         ...baseInput,
@@ -57,14 +57,11 @@ describe("place-service scheduling normalization", () => {
       });
 
       expect(snapshot.places).toHaveLength(1);
-      expect(snapshot.places[0]).toMatchObject({
-        visit_date: null,
-        visit_time: null,
-      });
+      expect(snapshot.itineraryItems).toEqual([]);
     });
   });
 
-  it("clears visit_time on edit when visit_date is set to null", async () => {
+  it("deletes the first visit when legacy place edit clears visit_date", async () => {
     await withFreshPlaceService(({ createPlace, editPlace }) => {
       const created = createPlace({
         ...baseInput,
@@ -77,15 +74,12 @@ describe("place-service scheduling normalization", () => {
         visit_time: "10:00",
       });
 
-      expect(snapshot.places[0]).toMatchObject({
-        visit_date: null,
-        visit_time: null,
-      });
+      expect(snapshot.itineraryItems).toEqual([]);
       expect(snapshot.routeSegments).toEqual([]);
     });
   });
 
-  it("clears visit_time on edit when only visit_time changes for an unscheduled place", async () => {
+  it("does not create an itinerary item when only visit_time changes for an unscheduled place", async () => {
     await withFreshPlaceService(({ createPlace, editPlace }) => {
       const created = createPlace(baseInput);
 
@@ -93,15 +87,27 @@ describe("place-service scheduling normalization", () => {
         visit_time: "10:00",
       });
 
-      expect(snapshot.places[0]).toMatchObject({
-        visit_date: null,
-        visit_time: null,
-      });
+      expect(snapshot.itineraryItems).toEqual([]);
       expect(snapshot.routeSegments).toEqual([]);
     });
   });
 
-  it("clears visit_time when schedulePlace unschedules a place", async () => {
+  it("deletes an itinerary item when scheduleItineraryItem moves it to unscheduled", async () => {
+    await withFreshPlaceService(({ createPlace, scheduleItineraryItem }) => {
+      const created = createPlace({
+        ...baseInput,
+        visit_date: "2026-06-01",
+        visit_time: "09:00",
+      });
+
+      const snapshot = scheduleItineraryItem(created.itineraryItems[0].id, null, "11:00");
+
+      expect(snapshot.itineraryItems).toEqual([]);
+      expect(snapshot.routeSegments).toEqual([]);
+    });
+  });
+
+  it("can create multiple visits for the same canonical place", async () => {
     await withFreshPlaceService(({ createPlace, schedulePlace }) => {
       const created = createPlace({
         ...baseInput,
@@ -109,13 +115,43 @@ describe("place-service scheduling normalization", () => {
         visit_time: "09:00",
       });
 
-      const snapshot = schedulePlace(created.places[0].id, null, "11:00");
+      const snapshot = schedulePlace(created.places[0].id, "2026-06-01", "10:00");
 
-      expect(snapshot.places[0]).toMatchObject({
-        visit_date: null,
-        visit_time: null,
+      expect(snapshot.places).toHaveLength(1);
+      expect(snapshot.itineraryItems).toMatchObject([
+        { place_id: created.places[0].id, visit_time: "09:00" },
+        { place_id: created.places[0].id, visit_time: "10:00" },
+      ]);
+      expect(snapshot.routeSegments).toMatchObject([
+        {
+          from_item_id: snapshot.itineraryItems[0].id,
+          to_item_id: snapshot.itineraryItems[1].id,
+        },
+      ]);
+    });
+  });
+
+  it("edits itinerary item fields without changing the canonical place note", async () => {
+    await withFreshPlaceService(({ createPlace, editItineraryItem }) => {
+      const created = createPlace({
+        ...baseInput,
+        notes: "Place note",
+        visit_date: "2026-06-01",
+        visit_time: "09:00",
       });
-      expect(snapshot.routeSegments).toEqual([]);
+
+      const snapshot = editItineraryItem(created.itineraryItems[0].id, {
+        visit_date: "2026-06-02",
+        visit_time: "10:00",
+        notes: "Visit note",
+      });
+
+      expect(snapshot.places[0]).toMatchObject({ notes: "Place note" });
+      expect(snapshot.itineraryItems[0]).toMatchObject({
+        visit_date: "2026-06-02",
+        visit_time: "10:00",
+        notes: "Visit note",
+      });
     });
   });
 });

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { getSelectedPlacePosition } from "@/lib/map-viewport";
-import type { Place } from "@/lib/types";
+import type { ItineraryItem, Place } from "@/lib/types";
 
 describe("getSelectedPlacePosition", () => {
   it("returns the selected place coordinates for map centering", () => {
     expect(
       getSelectedPlacePosition(
         [
-          place({ id: 1, latitude: 40.7, longitude: -73.9 }),
-          place({ id: 2, latitude: 40.76, longitude: -73.98 }),
+          item({ id: 1, place: place({ id: 1, latitude: 40.7, longitude: -73.9 }) }),
+          item({ id: 2, place: place({ id: 2, latitude: 40.76, longitude: -73.98 }) }),
         ],
         2,
       ),
@@ -17,7 +17,7 @@ describe("getSelectedPlacePosition", () => {
   });
 
   it("returns null when there is no selected place", () => {
-    expect(getSelectedPlacePosition([place({ id: 1 })], null)).toBeNull();
+    expect(getSelectedPlacePosition([item({ id: 1 })], null)).toBeNull();
   });
 });
 
@@ -33,11 +33,23 @@ function place(overrides: Partial<Place>): Place {
     source_list_url: null,
     latitude: 40,
     longitude: -74,
+    notes: null,
+    created_at: "2026-05-20 00:00:00",
+    updated_at: "2026-05-20 00:00:00",
+    ...overrides,
+  };
+}
+
+function item(overrides: Partial<ItineraryItem>): ItineraryItem {
+  return {
+    id: 1,
+    place_id: 1,
     visit_date: null,
     visit_time: null,
     notes: null,
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",
+    place: place({ id: 1 }),
     ...overrides,
   };
 }

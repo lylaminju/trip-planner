@@ -13,7 +13,8 @@ type Props = {
 export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [visitTimeHour, visitTimeMinute] = splitVisitTime(place?.visit_time ?? null);
+  const [visitTimeHour, visitTimeMinute] = splitVisitTime(null);
+  const isEditing = place !== null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,14 +22,16 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
     setError(null);
 
     const form = new FormData(event.currentTarget);
-    const payload = {
+    const payload: Record<string, unknown> = {
       google_maps_url: stringValue(form, "google_maps_url"),
       name: stringValue(form, "name"),
       address: nullableValue(form, "address"),
       notes: nullableValue(form, "notes"),
-      visit_date: nullableValue(form, "visit_date"),
-      visit_time: composeVisitTime(form),
     };
+    if (!isEditing) {
+      payload.visit_date = nullableValue(form, "visit_date");
+      payload.visit_time = composeVisitTime(form);
+    }
 
     try {
       await onSave(payload);
@@ -42,7 +45,7 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
     <div className="modal-backdrop" role="presentation">
       <form className="modal" onSubmit={submit}>
         <header className="modal-header">
-          <h2>{place ? "Edit Place" : "Add Place"}</h2>
+          <h2>{isEditing ? "Edit Place" : "Add Place"}</h2>
           <button type="button" className="icon-button" onClick={onCancel} aria-label="Close">
             X
           </button>
@@ -68,35 +71,37 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
           <input name="address" defaultValue={place?.address ?? ""} />
         </label>
 
-        <div className="form-grid">
-          <label>
-            Date
-            <input type="date" name="visit_date" defaultValue={place?.visit_date ?? ""} />
-          </label>
-          <div className="time-picker">
-            <span className="field-label">Time</span>
-            <div className="time-picker-grid">
-              <select name="visit_time_hour" defaultValue={visitTimeHour}>
-                <option value="">Hour</option>
-                {HOUR_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-              <select name="visit_time_minute" defaultValue={visitTimeMinute || "00"}>
-                {MINUTE_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+        {!isEditing && (
+          <div className="form-grid">
+            <label>
+              Initial visit date
+              <input type="date" name="visit_date" />
+            </label>
+            <div className="time-picker">
+              <span className="field-label">Initial visit time</span>
+              <div className="time-picker-grid">
+                <select name="visit_time_hour" defaultValue={visitTimeHour}>
+                  <option value="">Hour</option>
+                  {HOUR_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+                <select name="visit_time_minute" defaultValue={visitTimeMinute || "00"}>
+                  {MINUTE_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <label>
-          Notes
+          Place notes
           <textarea name="notes" rows={5} defaultValue={place?.notes ?? ""} />
         </label>
 

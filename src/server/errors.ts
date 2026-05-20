@@ -12,6 +12,13 @@ export class RouteSegmentNotFoundError extends Error {
   }
 }
 
+export class ItineraryItemNotFoundError extends Error {
+  constructor(id: number) {
+    super(`Itinerary item ${id} not found`);
+    this.name = "ItineraryItemNotFoundError";
+  }
+}
+
 export class GoogleMapsUrlValidationError extends Error {
   constructor(message: string) {
     super(message);

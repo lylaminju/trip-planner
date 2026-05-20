@@ -68,8 +68,10 @@ function getSegmentRouteRow(db: Database.Database, segmentId: number): SegmentRo
         to_places.latitude AS to_latitude,
         to_places.longitude AS to_longitude
       FROM route_segments
-      JOIN places AS from_places ON from_places.id = route_segments.from_place_id
-      JOIN places AS to_places ON to_places.id = route_segments.to_place_id
+      JOIN itinerary_items AS from_items ON from_items.id = route_segments.from_item_id
+      JOIN itinerary_items AS to_items ON to_items.id = route_segments.to_item_id
+      JOIN places AS from_places ON from_places.id = from_items.place_id
+      JOIN places AS to_places ON to_places.id = to_items.place_id
       WHERE route_segments.id = ?`,
     )
     .get(segmentId) as SegmentRouteRow | undefined;

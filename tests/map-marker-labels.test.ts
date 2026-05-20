@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildTimedMarkerLabels, getMarkerSizing } from "@/lib/map-marker-labels";
-import type { ItineraryView, Place } from "@/lib/types";
+import type { ItineraryItem, ItineraryView, Place } from "@/lib/types";
 
 describe("buildTimedMarkerLabels", () => {
   it("labels timed places by their order in each itinerary day", () => {
@@ -10,7 +10,7 @@ describe("buildTimedMarkerLabels", () => {
         {
           date: "2026-06-01",
           color: "#111111",
-          places: [
+          items: [
             place({ id: 10, visit_time: "09:00" }),
             place({ id: 11, visit_time: "10:00" }),
             place({ id: 12, visit_time: null }),
@@ -20,14 +20,14 @@ describe("buildTimedMarkerLabels", () => {
         {
           date: "2026-06-02",
           color: "#222222",
-          places: [
+          items: [
             place({ id: 20, visit_time: "08:00" }),
             place({ id: 21, visit_time: null }),
           ],
           segments: [],
         },
       ],
-      unscheduled: [place({ id: 30 })],
+      unscheduled: [canonicalPlace({ id: 30 })],
     });
 
     expect(Object.fromEntries(labels)).toEqual({
@@ -55,7 +55,35 @@ describe("getMarkerSizing", () => {
   });
 });
 
-function place(overrides: Partial<Place>): Place {
+function place(overrides: Partial<ItineraryItem>): ItineraryItem {
+  return {
+    id: 1,
+    place_id: 1,
+    visit_date: "2026-06-01",
+    visit_time: null,
+    notes: null,
+    created_at: "2026-05-20 00:00:00",
+    updated_at: "2026-05-20 00:00:00",
+    place: {
+      id: 1,
+      name: "Place",
+      address: null,
+      google_maps_url: "https://www.google.com/maps",
+      place_id: null,
+      google_place_token: null,
+      google_internal_ids: null,
+      source_list_url: null,
+      latitude: 40,
+      longitude: -74,
+      notes: null,
+      created_at: "2026-05-20 00:00:00",
+      updated_at: "2026-05-20 00:00:00",
+    },
+    ...overrides,
+  };
+}
+
+function canonicalPlace(overrides: Partial<Place>): Place {
   return {
     id: 1,
     name: "Place",
@@ -67,8 +95,6 @@ function place(overrides: Partial<Place>): Place {
     source_list_url: null,
     latitude: 40,
     longitude: -74,
-    visit_date: "2026-06-01",
-    visit_time: null,
     notes: null,
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",

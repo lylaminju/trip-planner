@@ -1,47 +1,55 @@
 import type {
   ItineraryDay,
+  ItineraryItem,
   ItineraryView,
   Place,
   RouteSegment,
   SegmentView,
 } from "./types";
 
-const DAY_COLORS = [
-  "#0f766e",
-  "#2563eb",
-  "#b45309",
-  "#7c3aed",
-  "#be123c",
-  "#15803d",
-  "#0369a1",
-];
+const RAINBOW_RAMP = [
+  { stop: 0, hue: 0, saturation: 85, lightness: 50 },
+  { stop: 0.125, hue: 30, saturation: 90, lightness: 50 },
+  { stop: 0.25, hue: 60, saturation: 85, lightness: 50 },
+  { stop: 0.5, hue: 120, saturation: 85, lightness: 45 },
+  { stop: 0.625, hue: 180, saturation: 85, lightness: 45 },
+  { stop: 0.75, hue: 210, saturation: 85, lightness: 50 },
+  { stop: 1, hue: 280, saturation: 80, lightness: 52 },
+] as const;
 
-export function buildItinerary(places: Place[], routeSegments: RouteSegment[]): ItineraryView {
-  const scheduled = places.filter(hasVisitDate);
-  const unscheduled = places.filter((place) => !hasVisitDate(place)).sort(compareByName);
+export function buildItinerary(
+  items: ItineraryItem[],
+  routeSegments: RouteSegment[],
+  places: Place[] = [],
+): ItineraryView {
+  const scheduled = items.filter(hasVisitDate);
+  const scheduledPlaceIds = new Set(scheduled.map((item) => item.place_id));
+  const unscheduled = places
+    .filter((place) => !scheduledPlaceIds.has(place.id))
+    .sort(comparePlacesByName);
 
-  const dates = Array.from(new Set(scheduled.map((place) => place.visit_date))).sort();
+  const dates = Array.from(new Set(scheduled.map((item) => item.visit_date))).sort();
   const segmentsByPair = new Map(
-    routeSegments.map((segment) => [pairKey(segment.from_place_id, segment.to_place_id), segment]),
+    routeSegments.map((segment) => [pairKey(segment.from_item_id, segment.to_item_id), segment]),
   );
 
   const days: ItineraryDay[] = dates.map((date, index) => {
-    const dayPlaces = scheduled
-      .filter((place) => place.visit_date === date)
-      .sort(compareScheduledPlaces);
+    const dayItems = scheduled
+      .filter((item) => item.visit_date === date)
+      .sort(compareScheduledItems);
 
     return {
       date,
-      color: getDayColor(date),
-      places: dayPlaces,
-      segments: buildSegmentViews(dayPlaces, segmentsByPair),
+      color: getDayColor(index, dates.length),
+      items: dayItems,
+      segments: buildSegmentViews(dayItems, segmentsByPair),
     };
   });
 
   return { days, unscheduled };
 }
 
-export function compareScheduledPlaces(a: Place, b: Place): number {
+export function compareScheduledItems(a: ItineraryItem, b: ItineraryItem): number {
   const aTimed = hasValidVisitTime(a);
   const bTimed = hasValidVisitTime(b);
 
@@ -60,43 +68,53 @@ export function compareScheduledPlaces(a: Place, b: Place): number {
   return compareByName(a, b);
 }
 
+const compareScheduledPlaces = compareScheduledItems;
+export { compareScheduledPlaces };
+
 function buildSegmentViews(
-  places: Place[],
+  items: ItineraryItem[],
   segmentsByPair: Map<string, RouteSegment>,
 ): SegmentView[] {
-  const timedPlaces = places.filter(hasValidVisitTime);
+  const timedItems = items.filter(hasValidVisitTime);
   const views: SegmentView[] = [];
 
-  for (let index = 0; index < timedPlaces.length - 1; index += 1) {
-    const from = timedPlaces[index];
-    const to = timedPlaces[index + 1];
+  for (let index = 0; index < timedItems.length - 1; index += 1) {
+    const from = timedItems[index];
+    const to = timedItems[index + 1];
     const segment = segmentsByPair.get(pairKey(from.id, to.id));
 
     if (segment) {
-      views.push({ fromPlaceId: from.id, toPlaceId: to.id, segment });
+      views.push({ fromItemId: from.id, toItemId: to.id, segment });
     }
   }
 
   return views;
 }
 
-function compareByName(a: Place, b: Place): number {
+function compareByName(a: ItineraryItem, b: ItineraryItem): number {
+  return a.place.name.localeCompare(b.place.name, undefined, { sensitivity: "base" });
+}
+
+function comparePlacesByName(a: Place, b: Place): number {
   return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
 
-function hasVisitDate(place: Place): place is Place & { visit_date: string } {
-  return typeof place.visit_date === "string" && place.visit_date.length > 0;
+function hasVisitDate(item: ItineraryItem): item is ItineraryItem & { visit_date: string } {
+  return typeof item.visit_date === "string" && item.visit_date.length > 0;
 }
 
-function hasVisitTimeText(place: Place): place is Place & { visit_time: string } {
-  return typeof place.visit_time === "string" && place.visit_time.length > 0;
+function hasVisitTimeText(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+  return typeof item.visit_time === "string" && item.visit_time.length > 0;
 }
 
-function hasValidVisitTime(place: Place): place is Place & { visit_time: string } {
-  return hasVisitTimeText(place) && getVisitTimeMinutes(place) !== null;
+function hasValidVisitTime(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+  return hasVisitTimeText(item) && getVisitTimeMinutes(item) !== null;
 }
 
-function compareVisitTimes(a: Place & { visit_time: string }, b: Place & { visit_time: string }): number {
+function compareVisitTimes(
+  a: ItineraryItem & { visit_time: string },
+  b: ItineraryItem & { visit_time: string },
+): number {
   if (a.visit_time === b.visit_time) {
     return 0;
   }
@@ -119,8 +137,8 @@ function compareVisitTimes(a: Place & { visit_time: string }, b: Place & { visit
   return a.visit_time.localeCompare(b.visit_time, undefined, { sensitivity: "base" });
 }
 
-function getVisitTimeMinutes(place: Place & { visit_time: string }): number | null {
-  return parseVisitTime(place.visit_time);
+function getVisitTimeMinutes(item: ItineraryItem & { visit_time: string }): number | null {
+  return parseVisitTime(item.visit_time);
 }
 
 function parseVisitTime(value: string): number | null {
@@ -144,55 +162,34 @@ function parseVisitTime(value: string): number | null {
   return hours * 60 + minutes;
 }
 
-function pairKey(fromPlaceId: number, toPlaceId: number): string {
-  return `${fromPlaceId}->${toPlaceId}`;
+function pairKey(fromItemId: number, toItemId: number): string {
+  return `${fromItemId}->${toItemId}`;
 }
 
-function getDayColor(date: string): string {
-  const epochDay = getEpochDay(date);
-
-  if (epochDay !== null) {
-    return DAY_COLORS[Math.abs(epochDay) % DAY_COLORS.length];
+function getDayColor(index: number, totalDays: number): string {
+  if (totalDays <= 1) {
+    const first = RAINBOW_RAMP[0];
+    return toHsl(first);
   }
 
-  return DAY_COLORS[Math.abs(hashString(date)) % DAY_COLORS.length];
+  const position = index / (totalDays - 1);
+  const endIndex = RAINBOW_RAMP.findIndex((color) => color.stop >= position);
+  const start = RAINBOW_RAMP[Math.max(0, endIndex - 1)];
+  const end = RAINBOW_RAMP[endIndex === -1 ? RAINBOW_RAMP.length - 1 : endIndex];
+  const span = end.stop - start.stop;
+  const amount = span === 0 ? 0 : (position - start.stop) / span;
+
+  return toHsl({
+    hue: interpolate(start.hue, end.hue, amount),
+    saturation: interpolate(start.saturation, end.saturation, amount),
+    lightness: interpolate(start.lightness, end.lightness, amount),
+  });
 }
 
-function getEpochDay(date: string): number | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
-
-  if (!match) {
-    return null;
-  }
-
-  const year = Number(match[1]);
-  const monthIndex = Number(match[2]) - 1;
-  const day = Number(match[3]);
-
-  if (!Number.isInteger(year) || !Number.isInteger(monthIndex) || !Number.isInteger(day)) {
-    return null;
-  }
-
-  const utcTime = Date.UTC(year, monthIndex, day);
-  const parsed = new Date(utcTime);
-
-  if (
-    parsed.getUTCFullYear() !== year ||
-    parsed.getUTCMonth() !== monthIndex ||
-    parsed.getUTCDate() !== day
-  ) {
-    return null;
-  }
-
-  return Math.trunc(utcTime / 86_400_000);
+function interpolate(start: number, end: number, amount: number): number {
+  return Math.round(start + (end - start) * amount);
 }
 
-function hashString(value: string): number {
-  let hash = 0;
-
-  for (const char of value) {
-    hash = (hash * 31 + char.charCodeAt(0)) | 0;
-  }
-
-  return hash;
+function toHsl(color: { hue: number; saturation: number; lightness: number }): string {
+  return `hsl(${color.hue} ${color.saturation}% ${color.lightness}%)`;
 }
