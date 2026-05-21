@@ -17,6 +17,7 @@ export function TripPlannerApp() {
   const [snapshot, setSnapshot] = useState<PlannerSnapshot>(EMPTY_SNAPSHOT);
   const [activeItemId, setActiveItemId] = useState<number | null>(null);
   const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
+  const [activeDate, setActiveDate] = useState<string | null>(null);
   const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
@@ -166,6 +167,7 @@ export function TripPlannerApp() {
     setSnapshot(data);
     setActiveItemId((current) => (current === id ? null : current));
     setActiveSegmentId(null);
+    setActiveDate(null);
     setError(null);
   }
 
@@ -230,7 +232,14 @@ export function TripPlannerApp() {
       return;
     }
 
+    setActiveDate(null);
+    setActiveItemId(null);
     setActiveSegmentId((current) => toggleSelectedId(current, id));
+  }
+
+  function selectItem(id: number | null) {
+    setActiveDate(null);
+    setActiveItemId(id);
   }
 
   return (
@@ -240,6 +249,7 @@ export function TripPlannerApp() {
         places={snapshot.places}
         activePlaceId={activeItemId}
         activeSegmentId={activeSegmentId}
+        activeDate={activeDate}
         error={error}
         isExpanded={isLeftPanelExpanded}
         onToggleExpanded={() => setIsLeftPanelExpanded((value) => !value)}
@@ -252,8 +262,13 @@ export function TripPlannerApp() {
             setError(reason instanceof Error ? reason.message : "Failed to delete place.");
           })
         }
-        onSelectPlace={setActiveItemId}
+        onSelectPlace={selectItem}
         onSelectSegment={toggleSegmentSelection}
+        onSelectDate={(date) => {
+          setActiveDate((current) => (current === date ? null : date));
+          setActiveItemId(null);
+          setActiveSegmentId(null);
+        }}
         onSchedulePlace={(id, date, time) =>
           schedulePlace(id, date, time).catch((reason) => {
             setError(reason instanceof Error ? reason.message : "Failed to schedule place.");
@@ -280,8 +295,9 @@ export function TripPlannerApp() {
         routeSegments={snapshot.routeSegments}
         activePlaceId={activeItemId}
         activeSegmentId={activeSegmentId}
+        activeDate={activeDate}
         hidden={isLeftPanelExpanded}
-        onSelectPlace={setActiveItemId}
+        onSelectPlace={selectItem}
         onSelectSegment={toggleSegmentSelection}
       />
       {(isAdding || editingPlace) && (

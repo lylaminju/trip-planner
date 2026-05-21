@@ -12,6 +12,7 @@ type Props = {
   routeSegments: RouteSegment[];
   activePlaceId: number | null;
   activeSegmentId: number | null;
+  activeDate: string | null;
   hidden?: boolean;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
@@ -21,11 +22,13 @@ type MarkerRecord = {
   marker: any;
   element: HTMLElement;
   signature: string;
+  date: string | null;
 };
 
 type PolylineRecord = {
   polyline: any;
   signature: string;
+  date: string | null;
 };
 
 type RouteGeometryFetchResult = {
@@ -195,6 +198,7 @@ export function MapPanel(props: Props) {
       polylinesRef.current,
       props.activePlaceId,
       props.activeSegmentId,
+      props.activeDate,
     );
     updateMarkerSizes(markerRecordsRef.current, map.getZoom?.());
   }, [
@@ -209,6 +213,7 @@ export function MapPanel(props: Props) {
     markerLabels,
     props.onSelectPlace,
     props.onSelectSegment,
+    props.activeDate,
   ]);
 
   useEffect(() => {
@@ -233,8 +238,9 @@ export function MapPanel(props: Props) {
       polylinesRef.current,
       props.activePlaceId,
       props.activeSegmentId,
+      props.activeDate,
     );
-  }, [props.activePlaceId, props.activeSegmentId]);
+  }, [props.activePlaceId, props.activeSegmentId, props.activeDate]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -409,6 +415,7 @@ function renderOverlays(input: {
     const existing = input.markerRecords.get(markerKey);
 
     if (existing?.signature === signature) {
+      existing.date = item.visit_date;
       continue;
     }
 
@@ -425,7 +432,7 @@ function renderOverlays(input: {
       input.onSelectPlace(item.id);
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
-    input.markerRecords.set(markerKey, { marker, element, signature });
+    input.markerRecords.set(markerKey, { marker, element, signature, date: item.visit_date });
   }
 
   for (const place of input.unscheduledPlaces) {
@@ -438,6 +445,7 @@ function renderOverlays(input: {
     const existing = input.markerRecords.get(markerKey);
 
     if (existing?.signature === signature) {
+      existing.date = null;
       continue;
     }
 
@@ -453,7 +461,7 @@ function renderOverlays(input: {
     marker.addListener("click", () => {
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
-    input.markerRecords.set(markerKey, { marker, element, signature });
+    input.markerRecords.set(markerKey, { marker, element, signature, date: null });
   }
 
   for (const [markerKey, record] of input.markerRecords) {
@@ -475,6 +483,7 @@ function renderOverlays(input: {
     const existing = input.polylines.get(segment.id);
 
     if (existing?.signature === signature) {
+      existing.date = from.visit_date;
       continue;
     }
 
@@ -489,7 +498,7 @@ function renderOverlays(input: {
     });
 
     polyline.addListener("click", () => input.onSelectSegment(segment.id));
-    input.polylines.set(segment.id, { polyline, signature });
+    input.polylines.set(segment.id, { polyline, signature, date: from.visit_date });
   }
 
   for (const [segmentId, record] of input.polylines) {
@@ -598,16 +607,23 @@ function updateOverlaySelection(
   polylines: Map<number, PolylineRecord>,
   activePlaceId: number | null,
   activeSegmentId: number | null,
+  activeDate: string | null,
 ): void {
-  for (const [markerKey, { element }] of markerRecords) {
+  for (const [markerKey, { element, marker, date }] of markerRecords) {
     element.classList.toggle("active", markerKey === itemMarkerKey(activePlaceId));
+    element.classList.toggle("date-active", activeDate !== null && date === activeDate);
+    marker.zIndex = activeDate !== null && date === activeDate ? 100 : 1;
   }
 
-  for (const [segmentId, { polyline }] of polylines) {
+  for (const [segmentId, { polyline, date }] of polylines) {
     const active = segmentId === activeSegmentId;
+    const dimmed = activeDate !== null && date !== activeDate;
+    const dateSelected = activeDate !== null && date === activeDate;
+
     polyline.setOptions({
-      strokeOpacity: active ? 0.95 : 0.55,
-      strokeWeight: active ? 5 : 3,
+      strokeOpacity: active ? 0.95 : dimmed ? 0.16 : dateSelected ? 0.82 : 0.55,
+      strokeWeight: active ? 5 : dateSelected ? 4 : 3,
+      zIndex: active ? 3 : dateSelected ? 2 : 1,
     });
   }
 }

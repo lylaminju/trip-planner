@@ -21,6 +21,7 @@ type Props = {
   places: Place[];
   activePlaceId: number | null;
   activeSegmentId: number | null;
+  activeDate: string | null;
   error: string | null;
   isExpanded: boolean;
   onToggleExpanded: () => void;
@@ -31,6 +32,7 @@ type Props = {
   onDelete: (id: number) => void;
   onSelectPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
+  onSelectDate: (date: string) => void;
   onSchedulePlace: (
     id: number,
     visitDate: string | null,
@@ -115,7 +117,9 @@ export function LeftPanel(props: Props) {
             {props.itinerary.days.map((day) => (
               <div
                 key={day.date}
-                className={`day-block ${dropTargetKey === day.date ? "drop-target" : ""}`}
+                className={`day-block ${dropTargetKey === day.date ? "drop-target" : ""} ${
+                  props.activeDate === day.date ? "active" : ""
+                }`}
                 onDragEnter={(event) => activateDropTarget(event, day.date)}
                 onDragOver={(event) => activateDropTarget(event, day.date)}
                 onDragLeave={leaveDropTarget}
@@ -138,8 +142,16 @@ export function LeftPanel(props: Props) {
                   }
                 }}
               >
-                <h3 style={{ borderColor: day.color }}>
-                  {formatItineraryDateHeading(day.date)}
+                <h3>
+                  <button
+                    type="button"
+                    className="day-heading-button"
+                    style={{ borderColor: day.color }}
+                    aria-pressed={props.activeDate === day.date}
+                    onClick={() => props.onSelectDate(day.date)}
+                  >
+                    {formatItineraryDateHeading(day.date)}
+                  </button>
                 </h3>
                 {day.items.map((item, index) => {
                   const nextItem = day.items[index + 1];
