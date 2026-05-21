@@ -305,6 +305,7 @@ function createMap(
   unscheduledPlaces: Place[],
 ): any {
   const googleMaps = window.google;
+  const isMobile = window.matchMedia("(max-width: 900px)").matches;
   const firstPlace = items[0]?.place ?? unscheduledPlaces[0] ?? null;
   const center = firstPlace
     ? { lat: firstPlace.latitude, lng: firstPlace.longitude }
@@ -312,6 +313,7 @@ function createMap(
 
   return new googleMaps.maps.Map(container, {
     center,
+    mapTypeControl: !isMobile,
     zoom: 12,
     mapId: "trip-planner-map",
   });
