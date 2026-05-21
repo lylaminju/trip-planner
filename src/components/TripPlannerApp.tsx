@@ -32,6 +32,8 @@ export function TripPlannerApp() {
   const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(false);
+  const [mobileSheetState, setMobileSheetState] =
+    useState<MobileSheetState>("half");
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
   const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
@@ -410,7 +412,9 @@ export function TripPlannerApp() {
 
   return (
     <main
-      className={`app-shell ${isLeftPanelExpanded ? "left-panel-expanded" : ""}`}
+      className={`app-shell mobile-sheet-${mobileSheetState} ${
+        isLeftPanelExpanded ? "left-panel-expanded" : ""
+      }`}
     >
       <LeftPanel
         itinerary={itinerary}
@@ -422,7 +426,9 @@ export function TripPlannerApp() {
         routeGeometries={routeGeometries}
         error={error}
         isExpanded={isLeftPanelExpanded}
+        mobileSheetState={mobileSheetState}
         onToggleExpanded={() => setIsLeftPanelExpanded((value) => !value)}
+        onMobileSheetStateChange={setMobileSheetState}
         onAdd={openAddModal}
         onAddVisit={openAddVisitModal}
         onEdit={openEditModal}
@@ -526,6 +532,8 @@ type RouteGeometryFetchResult = {
   geometry: RouteGeometry | null;
   error: string | null;
 };
+
+type MobileSheetState = "collapsed" | "half" | "full";
 
 async function fetchRouteGeometry(
   segmentId: number,

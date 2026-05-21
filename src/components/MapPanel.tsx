@@ -14,7 +14,6 @@ import type {
   Place,
   RouteGeometry,
   RouteSegment,
-  TravelMode,
 } from "@/lib/types";
 
 type Props = {
@@ -81,11 +80,6 @@ export function MapPanel(props: Props) {
     () => buildTimedMarkerLabels(props.itinerary),
     [props.itinerary],
   );
-  const showRouteQualityWarning = useMemo(
-    () => props.routeSegments.some((segment) => isBetaRouteMode(segment.mode)),
-    [props.routeSegments],
-  );
-
   useEffect(() => {
     if (!apiKey || !mapRef.current) {
       return;
@@ -252,15 +246,9 @@ export function MapPanel(props: Props) {
       aria-hidden={props.hidden}
     >
       <div className="map-canvas" ref={mapRef} />
-      {(props.routeGeometryError || showRouteQualityWarning) && (
+      {props.routeGeometryError && (
         <div className="map-route-warning">
-          {props.routeGeometryError && <p>{props.routeGeometryError}</p>}
-          {showRouteQualityWarning && (
-            <p>
-              Walking and bicycling routes may be missing sidewalks, pedestrian
-              paths, or bike paths.
-            </p>
-          )}
+          <p>{props.routeGeometryError}</p>
         </div>
       )}
     </section>
@@ -611,10 +599,6 @@ function straightRoutePath(from: Place, to: Place): LatLngLiteral[] {
     { lat: from.latitude, lng: from.longitude },
     { lat: to.latitude, lng: to.longitude },
   ];
-}
-
-function isBetaRouteMode(mode: TravelMode): boolean {
-  return mode === "walking" || mode === "bicycling";
 }
 
 function updateOverlaySelection(
