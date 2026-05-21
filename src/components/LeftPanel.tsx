@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, type DragEvent } from "react";
+import { useMemo, useState, type CSSProperties, type DragEvent, type MouseEvent } from "react";
+import { createPortal } from "react-dom";
 
 import {
   formatItineraryDateHeading,
@@ -48,12 +49,19 @@ type Props = {
   onDeleteItem: (id: number) => void;
 };
 
+type PickerState = {
+  date: string;
+  left: number;
+  top: number;
+};
+
 export function LeftPanel(props: Props) {
   const [isItinerariesOpen, setIsItinerariesOpen] = useState(true);
   const [isUnscheduledOpen, setIsUnscheduledOpen] = useState(false);
   const [isPlacesOpen, setIsPlacesOpen] = useState(true);
   const [showRouteSegments, setShowRouteSegments] = useState(true);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const [picker, setPicker] = useState<PickerState | null>(null);
   const markerLabels = useMemo(
     () => buildTimedMarkerLabels(props.itinerary),
     [props.itinerary],
@@ -71,6 +79,26 @@ export function LeftPanel(props: Props) {
     if (isLeavingCurrentTarget(event)) {
       setDropTargetKey(null);
     }
+  }
+
+  function toggleDatePlacePicker(event: MouseEvent<HTMLButtonElement>, date: string) {
+    const bucket = event.currentTarget.closest(".day-block");
+    const rect = (bucket ?? event.currentTarget).getBoundingClientRect();
+    const width = 320;
+    const gap = 10;
+    const left = Math.min(rect.right + gap, window.innerWidth - width - 16);
+    const maxTop = Math.max(16, window.innerHeight - 380);
+    const top = Math.min(Math.max(rect.top + 10, 16), maxTop);
+
+    setPicker((current) => {
+      if (current?.date === date) return null;
+
+      return {
+        date,
+        left: Math.max(16, left),
+        top,
+      };
+    });
   }
 
   return (
@@ -147,7 +175,7 @@ export function LeftPanel(props: Props) {
                   }
                 }}
               >
-                <h3>
+                <h3 className="day-heading">
                   <button
                     type="button"
                     className="day-heading-button"
@@ -156,6 +184,15 @@ export function LeftPanel(props: Props) {
                     onClick={() => props.onSelectDate(day.date)}
                   >
                     {formatItineraryDateHeading(day.date)}
+                  </button>
+                  <button
+                    type="button"
+                    className="day-add-place-button"
+                    aria-label={`Add place to ${formatItineraryDateHeading(day.date)}`}
+                    title={`Add place to ${formatItineraryDateHeading(day.date)}`}
+                    onClick={(event) => toggleDatePlacePicker(event, day.date)}
+                  >
+                    <PlusIcon />
                   </button>
                 </h3>
                 {day.items.map((item, index) => {
@@ -322,7 +359,80 @@ export function LeftPanel(props: Props) {
           </div>
         )}
       </section>
+      {picker &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <DatePlacePicker
+            dateHeading={formatItineraryDateHeading(picker.date)}
+            places={props.places}
+            style={{ left: picker.left, top: picker.top }}
+            onClose={() => setPicker(null)}
+            onSelect={(place) => {
+              props.onSchedulePlace(place.id, picker.date, null);
+            }}
+          />,
+          document.body,
+        )}
     </section>
+  );
+}
+
+function DatePlacePicker(props: {
+  dateHeading: string;
+  places: Place[];
+  style: CSSProperties;
+  onClose: () => void;
+  onSelect: (place: Place) => void;
+}) {
+  return (
+    <aside
+      className="date-place-picker"
+      style={props.style}
+      aria-label={`Add place to ${props.dateHeading}`}
+    >
+      <div className="date-place-picker-header">
+        <strong>{props.dateHeading}</strong>
+        <button
+          type="button"
+          className="icon-button"
+          aria-label="Close place picker"
+          title="Close place picker"
+          onClick={props.onClose}
+        >
+          <CloseIcon />
+        </button>
+      </div>
+      <div className="date-place-picker-list">
+        {props.places.length === 0 ? (
+          <p className="date-place-picker-empty">No places yet.</p>
+        ) : (
+          props.places.map((place) => (
+            <DatePlacePickerRow
+              key={place.id}
+              place={place}
+              onSelect={() => props.onSelect(place)}
+            />
+          ))
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function DatePlacePickerRow(props: { place: Place; onSelect: () => void }) {
+  const display = formatPlaceRow(props.place);
+
+  return (
+    <button
+      type="button"
+      className="date-place-picker-row"
+      onClick={props.onSelect}
+    >
+      <span className="date-place-picker-row-main">
+        <strong>{display.title}</strong>
+        {display.detail && <span>{display.detail}</span>}
+      </span>
+    </button>
   );
 }
 
@@ -531,6 +641,24 @@ function CalendarPlusIcon() {
       <path d="M3 11h18" />
       <path d="M12 14v5" />
       <path d="M9.5 16.5h5" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 6l12 12" />
+      <path d="M18 6 6 18" />
     </svg>
   );
 }

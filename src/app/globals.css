@@ -57,6 +57,7 @@ textarea {
   border-right: 1px solid var(--line);
   overflow: auto;
   padding: 16px;
+  position: relative;
   transition: opacity 260ms ease;
 }
 
@@ -117,6 +118,10 @@ textarea {
 
 .app-header {
   justify-content: space-between;
+}
+
+.app-header h1 {
+  margin: 0;
 }
 
 .app-header-actions {
@@ -190,6 +195,7 @@ textarea {
   border-radius: 8px;
   margin: 12px 0;
   padding: 10px;
+  position: relative;
 }
 
 .day-block.active {
@@ -197,7 +203,10 @@ textarea {
   box-shadow: inset 0 0 0 1px var(--active-line);
 }
 
-.day-block h3 {
+.day-heading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
   margin: 0 0 8px;
 }
 
@@ -209,7 +218,9 @@ textarea {
   color: inherit;
   cursor: pointer;
   display: block;
+  flex: 1;
   font: inherit;
+  min-width: 0;
   padding: 4px 8px;
   padding-left: 8px;
   text-align: left;
@@ -217,8 +228,106 @@ textarea {
   width: 100%;
 }
 
+.day-add-place-button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--active-line);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 28px;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+
+.day-add-place-button:hover {
+  background: #f1f5f9;
+  border-color: #b9c5d1;
+}
+
+.day-add-place-button svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 15px;
+}
+
 .day-heading-button:hover {
   background: #f1f5f9;
+}
+
+.date-place-picker {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+  margin-top: 0;
+  padding: 10px;
+  position: fixed;
+  width: 320px;
+  z-index: 30;
+}
+
+.date-place-picker-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.date-place-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: 340px;
+  overflow: auto;
+}
+
+.date-place-picker-empty {
+  color: var(--muted);
+  margin: 4px 0;
+}
+
+.date-place-picker-row {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  text-align: left;
+}
+
+.date-place-picker-row:hover {
+  background: #f8fafc;
+  border-color: #b9c5d1;
+}
+
+.date-place-picker-row-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.date-place-picker-row-main strong,
+.date-place-picker-row-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-place-picker-row-main span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .unscheduled-block {
@@ -711,5 +820,10 @@ button:focus-visible {
 
   .panel-map {
     min-height: clamp(240px, 52dvh, 360px);
+  }
+
+  .date-place-picker {
+    max-width: calc(100vw - 32px);
+    width: calc(100vw - 32px);
   }
 }
