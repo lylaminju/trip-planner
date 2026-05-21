@@ -7,14 +7,14 @@ import type {
   SegmentView,
 } from "./types";
 
-const RAINBOW_RAMP = [
-  { stop: 0, hue: 0, saturation: 85, lightness: 50 },
-  { stop: 0.125, hue: 30, saturation: 90, lightness: 50 },
-  { stop: 0.25, hue: 60, saturation: 85, lightness: 50 },
-  { stop: 0.5, hue: 120, saturation: 85, lightness: 45 },
-  { stop: 0.625, hue: 180, saturation: 85, lightness: 45 },
-  { stop: 0.75, hue: 210, saturation: 85, lightness: 50 },
-  { stop: 1, hue: 280, saturation: 80, lightness: 52 },
+const DAY_COLOR_PALETTE = [
+  "#dc2626",
+  "#d6a100",
+  "#15803d",
+  "#2563eb",
+  "#7c3aed",
+  "#0f766e",
+  "#be185d",
 ] as const;
 
 export function buildItinerary(
@@ -166,30 +166,6 @@ function pairKey(fromItemId: number, toItemId: number): string {
   return `${fromItemId}->${toItemId}`;
 }
 
-function getDayColor(index: number, totalDays: number): string {
-  if (totalDays <= 1) {
-    const first = RAINBOW_RAMP[0];
-    return toHsl(first);
-  }
-
-  const position = index / (totalDays - 1);
-  const endIndex = RAINBOW_RAMP.findIndex((color) => color.stop >= position);
-  const start = RAINBOW_RAMP[Math.max(0, endIndex - 1)];
-  const end = RAINBOW_RAMP[endIndex === -1 ? RAINBOW_RAMP.length - 1 : endIndex];
-  const span = end.stop - start.stop;
-  const amount = span === 0 ? 0 : (position - start.stop) / span;
-
-  return toHsl({
-    hue: interpolate(start.hue, end.hue, amount),
-    saturation: interpolate(start.saturation, end.saturation, amount),
-    lightness: interpolate(start.lightness, end.lightness, amount),
-  });
-}
-
-function interpolate(start: number, end: number, amount: number): number {
-  return Math.round(start + (end - start) * amount);
-}
-
-function toHsl(color: { hue: number; saturation: number; lightness: number }): string {
-  return `hsl(${color.hue} ${color.saturation}% ${color.lightness}%)`;
+function getDayColor(index: number, _totalDays: number): string {
+  return DAY_COLOR_PALETTE[index % DAY_COLOR_PALETTE.length];
 }

@@ -155,24 +155,30 @@ describe("buildItinerary", () => {
     expect(result.days[0].date).toBe("2026-06-02");
   });
 
-  it("assigns sorted dates a capped curated rainbow ramp from red to purple", () => {
+  it("assigns sorted dates a fixed accessible palette that cycles after seven days", () => {
     const result = buildItinerary(
       [
         place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-05", visit_time: "10:00" }),
+        place({ id: 2, name: "B", visit_date: "2026-06-08", visit_time: "10:00" }),
         place({ id: 3, name: "C", visit_date: "2026-06-03", visit_time: "11:00" }),
         place({ id: 4, name: "D", visit_date: "2026-06-02", visit_time: "12:00" }),
         place({ id: 5, name: "E", visit_date: "2026-06-04", visit_time: "13:00" }),
+        place({ id: 6, name: "F", visit_date: "2026-06-05", visit_time: "14:00" }),
+        place({ id: 7, name: "G", visit_date: "2026-06-06", visit_time: "15:00" }),
+        place({ id: 8, name: "H", visit_date: "2026-06-07", visit_time: "16:00" }),
       ],
       [],
     );
 
     expect(result.days.map((day) => [day.date, day.color])).toEqual([
-      ["2026-06-01", "hsl(0 85% 50%)"],
-      ["2026-06-02", "hsl(60 85% 50%)"],
-      ["2026-06-03", "hsl(120 85% 45%)"],
-      ["2026-06-04", "hsl(210 85% 50%)"],
-      ["2026-06-05", "hsl(280 80% 52%)"],
+      ["2026-06-01", "#dc2626"],
+      ["2026-06-02", "#d6a100"],
+      ["2026-06-03", "#15803d"],
+      ["2026-06-04", "#2563eb"],
+      ["2026-06-05", "#7c3aed"],
+      ["2026-06-06", "#0f766e"],
+      ["2026-06-07", "#be185d"],
+      ["2026-06-08", "#dc2626"],
     ]);
   });
 
