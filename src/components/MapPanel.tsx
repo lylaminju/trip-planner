@@ -36,6 +36,9 @@ type RouteGeometryFetchResult = {
   error: string | null;
 };
 
+const GOOGLE_MAPS_CALLBACK = "__tripPlannerGoogleMapsReady";
+let googleMapsLoadPromise: Promise<void> | null = null;
+
 export function MapPanel(props: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -329,27 +332,65 @@ function createMap(container: HTMLElement, items: ItineraryItem[], unscheduledPl
 }
 
 function loadGoogleMaps(apiKey: string): Promise<void> {
-  if (window.google?.maps) return Promise.resolve();
+  if (isGoogleMapsReady()) return Promise.resolve();
+  if (googleMapsLoadPromise) return googleMapsLoadPromise;
 
-  const existing = document.querySelector<HTMLScriptElement>("script[data-google-maps]");
-  if (existing) {
-    return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Google Maps failed to load")), {
-        once: true,
-      });
-    });
-  }
+  googleMapsLoadPromise = new Promise((resolve, reject) => {
+    let settled = false;
+    let pollId: number | null = null;
+    let timeoutId: number | null = null;
 
-  return new Promise((resolve, reject) => {
+    function cleanup() {
+      if (pollId !== null) {
+        window.clearInterval(pollId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+      delete window[GOOGLE_MAPS_CALLBACK];
+    }
+
+    function finish() {
+      if (settled || !isGoogleMapsReady()) return;
+
+      settled = true;
+      cleanup();
+      resolve();
+    }
+
+    function fail() {
+      if (settled) return;
+
+      settled = true;
+      googleMapsLoadPromise = null;
+      cleanup();
+      reject(new Error("Google Maps failed to load"));
+    }
+
+    window[GOOGLE_MAPS_CALLBACK] = finish;
+    pollId = window.setInterval(finish, 50);
+    timeoutId = window.setTimeout(fail, 10000);
+
+    const existing = document.querySelector<HTMLScriptElement>("script[data-google-maps]");
+    if (existing) {
+      existing.addEventListener("load", finish, { once: true });
+      existing.addEventListener("error", fail, { once: true });
+      return;
+    }
+
     const script = document.createElement("script");
     script.dataset.googleMaps = "true";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly&libraries=marker`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly&libraries=marker&loading=async&callback=${GOOGLE_MAPS_CALLBACK}`;
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Google Maps failed to load"));
+    script.onerror = fail;
     document.head.appendChild(script);
   });
+
+  return googleMapsLoadPromise;
+}
+
+function isGoogleMapsReady(): boolean {
+  return Boolean(window.google?.maps?.Map && window.google.maps.marker?.AdvancedMarkerElement);
 }
 
 async function fetchRouteGeometry(segmentId: number): Promise<RouteGeometryFetchResult> {
@@ -428,7 +469,7 @@ function renderOverlays(input: {
       title: place.name,
       content: element,
     });
-    marker.addListener("click", () => {
+    marker.addEventListener("gmp-click", () => {
       input.onSelectPlace(item.id);
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
@@ -458,7 +499,7 @@ function renderOverlays(input: {
       title: place.name,
       content: element,
     });
-    marker.addListener("click", () => {
+    marker.addEventListener("gmp-click", () => {
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
     input.markerRecords.set(markerKey, { marker, element, signature, date: null });
@@ -716,5 +757,6 @@ function placeInfoWindowContent(place: Place): HTMLElement {
 declare global {
   interface Window {
     google?: any;
+    __tripPlannerGoogleMapsReady?: () => void;
   }
 }
