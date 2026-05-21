@@ -4,7 +4,9 @@ import { parseGoogleMapsUrl } from "@/lib/google-maps-url";
 describe("parseGoogleMapsUrl", () => {
   it("parses canonical maps URLs on google.com", () => {
     expect(
-      parseGoogleMapsUrl("https://google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
@@ -14,7 +16,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("extracts coordinates from @lat,lng URLs", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://www.google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
@@ -24,7 +28,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("parses canonical maps URLs on maps.google.com", () => {
     expect(
-      parseGoogleMapsUrl("https://maps.google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://maps.google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
@@ -34,7 +40,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("parses canonical maps URLs on Google country domains", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.ca/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://www.google.ca/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
@@ -44,7 +52,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("parses canonical maps URLs on bare google.ca", () => {
     expect(
-      parseGoogleMapsUrl("https://google.ca/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://google.ca/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
@@ -54,7 +64,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("parses canonical maps URLs on maps.google.ca", () => {
     expect(
-      parseGoogleMapsUrl("https://maps.google.ca/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://maps.google.ca/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
@@ -64,7 +76,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("extracts coordinates from !3dlat!4dlng URLs", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.com/maps/place/Times+Square/data=!3d40.7579747!4d-73.9855426"),
+      parseGoogleMapsUrl(
+        "https://www.google.com/maps/place/Times+Square/data=!3d40.7579747!4d-73.9855426",
+      ),
     ).toMatchObject({
       latitude: 40.7579747,
       longitude: -73.9855426,
@@ -86,7 +100,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("decodes percent-encoded place names", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.com/maps/place/S%C3%A3o+Paulo/@-23.55052,-46.633308,12z"),
+      parseGoogleMapsUrl(
+        "https://www.google.com/maps/place/S%C3%A3o+Paulo/@-23.55052,-46.633308,12z",
+      ),
     ).toMatchObject({
       latitude: -23.55052,
       longitude: -46.633308,
@@ -96,7 +112,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("returns null coordinates for malformed @lat,lng token suffixes", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.com/maps/place/Oculus/@40.7118042,-74.0118498abc"),
+      parseGoogleMapsUrl(
+        "https://www.google.com/maps/place/Oculus/@40.7118042,-74.0118498abc",
+      ),
     ).toEqual({
       name: "Oculus",
       latitude: null,
@@ -142,7 +160,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("rejects bare google.foo.bar hosts", () => {
     expect(
-      parseGoogleMapsUrl("https://google.foo.bar/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://google.foo.bar/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toEqual({
       name: null,
       latitude: null,
@@ -152,7 +172,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("rejects www.google.foo.bar hosts", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.foo.bar/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://www.google.foo.bar/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toEqual({
       name: null,
       latitude: null,
@@ -162,7 +184,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("rejects maps.google.foo.bar hosts", () => {
     expect(
-      parseGoogleMapsUrl("https://maps.google.foo.bar/maps/place/Oculus/@40.7118042,-74.0118498,17z"),
+      parseGoogleMapsUrl(
+        "https://maps.google.foo.bar/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
     ).toEqual({
       name: null,
       latitude: null,

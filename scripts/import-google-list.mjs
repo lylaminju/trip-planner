@@ -10,7 +10,9 @@ const dbPath = path.join(process.cwd(), "data", "trip-planner.sqlite");
 
 const response = await fetch(endpoint);
 if (!response.ok) {
-  throw new Error(`Google saved-list request failed: ${response.status} ${response.statusText}`);
+  throw new Error(
+    `Google saved-list request failed: ${response.status} ${response.statusText}`,
+  );
 }
 
 const text = await response.text();
@@ -22,7 +24,12 @@ if (!Array.isArray(rows)) {
   throw new Error("Could not find place rows at payload[0][8].");
 }
 
-const places = rows.map(parsePlace).filter((place) => place.name && place.latitude !== null && place.longitude !== null);
+const places = rows
+  .map(parsePlace)
+  .filter(
+    (place) =>
+      place.name && place.latitude !== null && place.longitude !== null,
+  );
 
 mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new Database(dbPath);
@@ -110,8 +117,11 @@ function cleanString(value) {
 }
 
 function buildGoogleMapsUrl(name, latitude, longitude) {
-  if (typeof latitude !== "number" || typeof longitude !== "number") return null;
-  const query = encodeURIComponent(`${cleanString(name)} ${latitude},${longitude}`);
+  if (typeof latitude !== "number" || typeof longitude !== "number")
+    return null;
+  const query = encodeURIComponent(
+    `${cleanString(name)} ${latitude},${longitude}`,
+  );
   return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
@@ -181,12 +191,16 @@ function findExistingPlace(imported, existingRows) {
   }
 
   if (imported.googlePlaceToken) {
-    const match = existingRows.find((row) => row.google_place_token === imported.googlePlaceToken);
+    const match = existingRows.find(
+      (row) => row.google_place_token === imported.googlePlaceToken,
+    );
     if (match) return match;
   }
 
   if (imported.googleInternalIds) {
-    const match = existingRows.find((row) => row.google_internal_ids === imported.googleInternalIds);
+    const match = existingRows.find(
+      (row) => row.google_internal_ids === imported.googleInternalIds,
+    );
     if (match) return match;
   }
 

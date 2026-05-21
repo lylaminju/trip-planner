@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTimedMarkerLabels, getMarkerSizing } from "@/lib/map-marker-labels";
+import {
+  buildTimedMarkerLabels,
+  getMarkerSizing,
+} from "@/lib/map-marker-labels";
 import type { ItineraryItem, ItineraryView, Place } from "@/lib/types";
 
 describe("buildTimedMarkerLabels", () => {

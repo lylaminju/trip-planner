@@ -60,16 +60,16 @@ The interface is a two-pane layout: a **Left Panel** (Controls & Lists) and a **
 ### Left Panel
 
 - **Add Place button and Add Place Form Modal:**
-    - Inputs for Name (required), Date, Time, Google Maps URL (required), and Notes.
-    - Submit button (shows saving state).
+  - Inputs for Name (required), Date, Time, Google Maps URL (required), and Notes.
+  - Submit button (shows saving state).
 - **Itineraries List (Collapsible):**
-    - Groups places by day.
-    - Each day gets a unique color dot.
-    - Displays the consecutive stops in order.
-    - Between consecutive stops, it displays a dropdown `<select>` allowing users to pick the Travel Mode (Walk, Transit, Bike, Car) for that `route_segment`.
+  - Groups places by day.
+  - Each day gets a unique color dot.
+  - Displays the consecutive stops in order.
+  - Between consecutive stops, it displays a dropdown `<select>` allowing users to pick the Travel Mode (Walk, Transit, Bike, Car) for that `route_segment`.
 - **Places List (Collapsible):**
-    - Displays a raw list of all saved places, showing Name, Address, and formatted Date/Time.
-    - Clicking a row triggers the active state and pans/selects the map marker.
+  - Displays a raw list of all saved places, showing Name, Address, and formatted Date/Time.
+  - Clicking a row triggers the active state and pans/selects the map marker.
 
 ### Right Panel
 

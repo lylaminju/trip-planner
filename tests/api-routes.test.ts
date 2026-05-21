@@ -17,10 +17,13 @@ const baseInput: PlaceInsert = {
   notes: "Existing notes",
 };
 
-async function withFreshTestEnv(run: () => Promise<void> | void): Promise<void> {
+async function withFreshTestEnv(
+  run: () => Promise<void> | void,
+): Promise<void> {
   vi.resetModules();
   vi.doMock("@/server/supabase-place-service", async () => {
-    const { createFakeSupabasePlaceService } = await import("./fake-supabase-place-service");
+    const { createFakeSupabasePlaceService } =
+      await import("./fake-supabase-place-service");
     return createFakeSupabasePlaceService();
   });
 
@@ -31,7 +34,6 @@ async function withFreshTestEnv(run: () => Promise<void> | void): Promise<void> 
     vi.doUnmock("@/server/supabase-place-service");
     vi.restoreAllMocks();
     vi.resetModules();
-
   }
 }
 
@@ -40,7 +42,8 @@ describe("API routes transport behavior", () => {
     await withFreshTestEnv(async () => {
       const placesRoute = await import("@/app/api/places/route");
       const placeRoute = await import("@/app/api/places/[id]/route");
-      const scheduleRoute = await import("@/app/api/places/[id]/schedule/route");
+      const scheduleRoute =
+        await import("@/app/api/places/[id]/schedule/route");
       const segmentRoute = await import("@/app/api/route-segments/[id]/route");
 
       const cases = [
@@ -53,7 +56,9 @@ describe("API routes transport behavior", () => {
       const responses = await Promise.all(cases);
       for (const response of responses) {
         expect(response.status).toBe(400);
-        await expect(response.json()).resolves.toEqual({ error: "Invalid JSON body." });
+        await expect(response.json()).resolves.toEqual({
+          error: "Invalid JSON body.",
+        });
       }
     });
   });
@@ -63,21 +68,27 @@ describe("API routes transport behavior", () => {
       const { GoogleMapsUrlValidationError } = await import("@/server/errors");
 
       vi.doMock("@/server/place-service", async () => {
-        const actual = await vi.importActual<typeof import("@/server/place-service")>(
-          "@/server/place-service",
-        );
+        const actual = await vi.importActual<
+          typeof import("@/server/place-service")
+        >("@/server/place-service");
 
         return {
           ...actual,
           resolvePlaceUrl: vi
             .fn()
-            .mockRejectedValue(new GoogleMapsUrlValidationError("Unsupported Google Maps URL host")),
+            .mockRejectedValue(
+              new GoogleMapsUrlValidationError(
+                "Unsupported Google Maps URL host",
+              ),
+            ),
         };
       });
 
       const { POST } = await import("@/app/api/places/route");
       const response = await POST(
-        jsonRequest("POST", { google_maps_url: "https://example.com/maps/place/Bad" }),
+        jsonRequest("POST", {
+          google_maps_url: "https://example.com/maps/place/Bad",
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -94,23 +105,28 @@ describe("API routes transport behavior", () => {
       const created = await service.createPlace(baseInput);
 
       vi.doMock("@/server/place-service", async () => {
-        const actual = await vi.importActual<typeof import("@/server/place-service")>(
-          "@/server/place-service",
-        );
+        const actual = await vi.importActual<
+          typeof import("@/server/place-service")
+        >("@/server/place-service");
 
         return {
           ...actual,
           resolvePlaceUrl: vi
             .fn()
             .mockRejectedValue(
-              new GoogleMapsUrlUpstreamError("Google Maps URL resolution timed out", 504),
+              new GoogleMapsUrlUpstreamError(
+                "Google Maps URL resolution timed out",
+                504,
+              ),
             ),
         };
       });
 
       const { PATCH } = await import("@/app/api/places/[id]/route");
       const response = await PATCH(
-        jsonRequest("PATCH", { google_maps_url: "https://maps.app.goo.gl/timeout" }),
+        jsonRequest("PATCH", {
+          google_maps_url: "https://maps.app.goo.gl/timeout",
+        }),
         params(String(created.places[0].id)),
       );
 
@@ -126,21 +142,28 @@ describe("API routes transport behavior", () => {
       const { GoogleMapsUrlUpstreamError } = await import("@/server/errors");
 
       vi.doMock("@/server/place-service", async () => {
-        const actual = await vi.importActual<typeof import("@/server/place-service")>(
-          "@/server/place-service",
-        );
+        const actual = await vi.importActual<
+          typeof import("@/server/place-service")
+        >("@/server/place-service");
 
         return {
           ...actual,
           resolvePlaceUrl: vi
             .fn()
-            .mockRejectedValue(new GoogleMapsUrlUpstreamError("Google Maps upstream failed", 502)),
+            .mockRejectedValue(
+              new GoogleMapsUrlUpstreamError(
+                "Google Maps upstream failed",
+                502,
+              ),
+            ),
         };
       });
 
       const { POST } = await import("@/app/api/places/route");
       const response = await POST(
-        jsonRequest("POST", { google_maps_url: "https://maps.app.goo.gl/unavailable" }),
+        jsonRequest("POST", {
+          google_maps_url: "https://maps.app.goo.gl/unavailable",
+        }),
       );
 
       expect(response.status).toBe(502);
@@ -205,7 +228,10 @@ describe("API routes transport behavior", () => {
       const placeId = String(created.places[0].id);
       const { PATCH } = await import("@/app/api/places/[id]/schedule/route");
 
-      const missingDateResponse = await PATCH(jsonRequest("PATCH", { visit_time: null }), params(placeId));
+      const missingDateResponse = await PATCH(
+        jsonRequest("PATCH", { visit_time: null }),
+        params(placeId),
+      );
       expect(missingDateResponse.status).toBe(400);
       await expect(missingDateResponse.json()).resolves.toEqual({
         error: "Visit date is required.",
@@ -223,8 +249,8 @@ describe("API routes transport behavior", () => {
       await expect(service.getPlannerSnapshot()).resolves.toMatchObject({
         itineraryItems: [
           expect.objectContaining({
-        visit_date: "2026-06-01",
-        visit_time: "09:00",
+            visit_date: "2026-06-01",
+            visit_time: "09:00",
           }),
         ],
       });
@@ -234,30 +260,45 @@ describe("API routes transport behavior", () => {
   it("returns 404 for unknown ids across mutation routes", async () => {
     await withFreshTestEnv(async () => {
       const placeRoute = await import("@/app/api/places/[id]/route");
-      const scheduleRoute = await import("@/app/api/places/[id]/schedule/route");
+      const scheduleRoute =
+        await import("@/app/api/places/[id]/schedule/route");
       const segmentRoute = await import("@/app/api/route-segments/[id]/route");
 
-      const editResponse = await placeRoute.PATCH(jsonRequest("PATCH", { name: "Updated" }), params("999"));
+      const editResponse = await placeRoute.PATCH(
+        jsonRequest("PATCH", { name: "Updated" }),
+        params("999"),
+      );
       expect(editResponse.status).toBe(404);
-      await expect(editResponse.json()).resolves.toEqual({ error: "Place 999 not found" });
+      await expect(editResponse.json()).resolves.toEqual({
+        error: "Place 999 not found",
+      });
 
-      const deleteResponse = await placeRoute.DELETE(new Request("http://localhost/api/places/999", { method: "DELETE" }), params("999"));
+      const deleteResponse = await placeRoute.DELETE(
+        new Request("http://localhost/api/places/999", { method: "DELETE" }),
+        params("999"),
+      );
       expect(deleteResponse.status).toBe(404);
-      await expect(deleteResponse.json()).resolves.toEqual({ error: "Place 999 not found" });
+      await expect(deleteResponse.json()).resolves.toEqual({
+        error: "Place 999 not found",
+      });
 
       const scheduleResponse = await scheduleRoute.PATCH(
         jsonRequest("PATCH", { visit_date: null, visit_time: null }),
         params("999"),
       );
       expect(scheduleResponse.status).toBe(404);
-      await expect(scheduleResponse.json()).resolves.toEqual({ error: "Place 999 not found" });
+      await expect(scheduleResponse.json()).resolves.toEqual({
+        error: "Place 999 not found",
+      });
 
       const segmentResponse = await segmentRoute.PATCH(
         jsonRequest("PATCH", { mode: "walking" }),
         params("999"),
       );
       expect(segmentResponse.status).toBe(404);
-      await expect(segmentResponse.json()).resolves.toEqual({ error: "Route segment 999 not found" });
+      await expect(segmentResponse.json()).resolves.toEqual({
+        error: "Route segment 999 not found",
+      });
     });
   });
 
@@ -271,8 +312,12 @@ describe("API routes transport behavior", () => {
         }),
       }));
 
-      const { GET } = await import("@/app/api/route-segments/[id]/geometry/route");
-      const response = await GET(new Request("http://localhost/api/route-segments/12/geometry"), params("12"));
+      const { GET } =
+        await import("@/app/api/route-segments/[id]/geometry/route");
+      const response = await GET(
+        new Request("http://localhost/api/route-segments/12/geometry"),
+        params("12"),
+      );
 
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual({
@@ -308,14 +353,16 @@ describe("API routes transport behavior", () => {
       const service = await import("@/server/place-service");
       const created = await service.createPlace({
         ...baseInput,
-        google_maps_url: "https://www.google.com/maps/search/?api=1&query=JGSTAY%20-%20Times%20Square",
+        google_maps_url:
+          "https://www.google.com/maps/search/?api=1&query=JGSTAY%20-%20Times%20Square",
       });
       const placeId = String(created.places[0].id);
       const { PATCH } = await import("@/app/api/places/[id]/route");
 
       const response = await PATCH(
         jsonRequest("PATCH", {
-          google_maps_url: "https://www.google.com/maps/search/?api=1&query=JGSTAY%20-%20Times%20Square",
+          google_maps_url:
+            "https://www.google.com/maps/search/?api=1&query=JGSTAY%20-%20Times%20Square",
           visit_date: "2026-06-02",
           visit_time: "09:00",
         }),

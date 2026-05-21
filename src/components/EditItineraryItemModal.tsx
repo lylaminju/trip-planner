@@ -11,7 +11,12 @@ type Props = {
   onSave: (payload: Record<string, unknown>) => Promise<void>;
 };
 
-export function EditItineraryItemModal({ item, place, onCancel, onSave }: Props) {
+export function EditItineraryItemModal({
+  item,
+  place,
+  onCancel,
+  onSave,
+}: Props) {
   const displayPlace = item?.place ?? place;
   if (!displayPlace) {
     throw new Error("EditItineraryItemModal requires an item or place.");
@@ -19,7 +24,9 @@ export function EditItineraryItemModal({ item, place, onCancel, onSave }: Props)
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [visitTimeHour, visitTimeMinute] = splitVisitTime(item?.visit_time ?? null);
+  const [visitTimeHour, visitTimeMinute] = splitVisitTime(
+    item?.visit_time ?? null,
+  );
   const isCreating = !item;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -37,7 +44,9 @@ export function EditItineraryItemModal({ item, place, onCancel, onSave }: Props)
     try {
       await onSave(payload);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Failed to save visit.");
+      setError(
+        reason instanceof Error ? reason.message : "Failed to save visit.",
+      );
       setIsSaving(false);
     }
   }
@@ -47,7 +56,12 @@ export function EditItineraryItemModal({ item, place, onCancel, onSave }: Props)
       <form className="modal" onSubmit={submit}>
         <header className="modal-header">
           <h2>{isCreating ? "Add Visit" : "Edit Visit"}</h2>
-          <button type="button" className="icon-button" onClick={onCancel} aria-label="Close">
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onCancel}
+            aria-label="Close"
+          >
             X
           </button>
         </header>
@@ -57,7 +71,11 @@ export function EditItineraryItemModal({ item, place, onCancel, onSave }: Props)
         <div className="form-grid">
           <label>
             Visit date
-            <input type="date" name="visit_date" defaultValue={item?.visit_date ?? ""} />
+            <input
+              type="date"
+              name="visit_date"
+              defaultValue={item?.visit_date ?? ""}
+            />
           </label>
           <div className="time-picker">
             <span className="field-label">Visit time</span>
@@ -70,7 +88,10 @@ export function EditItineraryItemModal({ item, place, onCancel, onSave }: Props)
                   </option>
                 ))}
               </select>
-              <select name="visit_time_minute" defaultValue={visitTimeMinute || "00"}>
+              <select
+                name="visit_time_minute"
+                defaultValue={visitTimeMinute || "00"}
+              >
                 {MINUTE_OPTIONS.map((value) => (
                   <option key={value} value={value}>
                     {value}
@@ -134,5 +155,7 @@ function splitVisitTime(value: string | null): [string, string] {
   return [match[1], match[2]];
 }
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) =>
+  String(hour).padStart(2, "0"),
+);
 const MINUTE_OPTIONS = ["00", "10", "20", "30", "40", "50"] as const;

@@ -44,7 +44,14 @@ function segment(
   to_item_id: number,
   mode: RouteSegment["mode"],
 ): RouteSegment {
-  return { id, from_item_id, to_item_id, mode, created_at: stamp, updated_at: stamp };
+  return {
+    id,
+    from_item_id,
+    to_item_id,
+    mode,
+    created_at: stamp,
+    updated_at: stamp,
+  };
 }
 
 describe("reconcileRouteSegments", () => {
@@ -59,7 +66,9 @@ describe("reconcileRouteSegments", () => {
       [],
     );
 
-    expect(result.toInsert).toEqual([{ from_item_id: 1, to_item_id: 2, mode: "walking" }]);
+    expect(result.toInsert).toEqual([
+      { from_item_id: 1, to_item_id: 2, mode: "walking" },
+    ]);
     expect(result.toDeleteIds).toEqual([]);
     expect(result.toKeepIds).toEqual([]);
   });
@@ -67,7 +76,10 @@ describe("reconcileRouteSegments", () => {
   it("preserves mode for unchanged valid pairs", () => {
     const existing = segment(8, 1, 2, "transit");
     const result = reconcileRouteSegments(
-      [place(1, "A", "2026-06-01", "09:00"), place(2, "B", "2026-06-01", "10:00")],
+      [
+        place(1, "A", "2026-06-01", "09:00"),
+        place(2, "B", "2026-06-01", "10:00"),
+      ],
       [existing],
     );
 
@@ -88,12 +100,17 @@ describe("reconcileRouteSegments", () => {
 
     expect(result.toDeleteIds).toEqual([1]);
     expect(result.toKeepIds).toEqual([2]);
-    expect(result.toInsert).toEqual([{ from_item_id: 3, to_item_id: 1, mode: "walking" }]);
+    expect(result.toInsert).toEqual([
+      { from_item_id: 3, to_item_id: 1, mode: "walking" },
+    ]);
   });
 
   it("deduplicates repeated existing rows for the same valid pair", () => {
     const result = reconcileRouteSegments(
-      [place(1, "A", "2026-06-01", "09:00"), place(2, "B", "2026-06-01", "10:00")],
+      [
+        place(1, "A", "2026-06-01", "09:00"),
+        place(2, "B", "2026-06-01", "10:00"),
+      ],
       [segment(1, 1, 2, "driving"), segment(2, 1, 2, "walking")],
     );
 
@@ -112,7 +129,9 @@ describe("reconcileRouteSegments", () => {
       [],
     );
 
-    expect(result.toInsert).toEqual([{ from_item_id: 1, to_item_id: 3, mode: "walking" }]);
+    expect(result.toInsert).toEqual([
+      { from_item_id: 1, to_item_id: 3, mode: "walking" },
+    ]);
     expect(result.toKeepIds).toEqual([]);
     expect(result.toDeleteIds).toEqual([]);
   });

@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { asObject, jsonError, mapRouteError, readJsonBody } from "@/app/api/_utils";
+import {
+  asObject,
+  jsonError,
+  mapRouteError,
+  readJsonBody,
+} from "@/app/api/_utils";
 import type { TravelMode } from "@/lib/types";
 import { setRouteSegmentModeForRequest } from "@/server/place-service";
 
-const MODES = new Set<TravelMode>(["walking", "transit", "bicycling", "driving"]);
+const MODES = new Set<TravelMode>([
+  "walking",
+  "transit",
+  "bicycling",
+  "driving",
+]);
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -27,7 +37,9 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(await setRouteSegmentModeForRequest(segmentId, body.mode as TravelMode));
+    return NextResponse.json(
+      await setRouteSegmentModeForRequest(segmentId, body.mode as TravelMode),
+    );
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

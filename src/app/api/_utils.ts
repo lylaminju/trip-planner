@@ -17,7 +17,9 @@ const TIME_24_HOUR_PATTERN = /^(\d{2}):(\d{2})$/;
 
 export async function readJsonBody(
   request: Request,
-): Promise<{ ok: true; body: unknown } | { ok: false; response: NextResponse }> {
+): Promise<
+  { ok: true; body: unknown } | { ok: false; response: NextResponse }
+> {
   try {
     return { ok: true, body: await request.json() };
   } catch {
@@ -58,7 +60,9 @@ export function mapRouteError(error: unknown): NextResponse | null {
 }
 
 export function asObject(value: unknown): JsonObject {
-  return typeof value === "object" && value !== null ? (value as JsonObject) : {};
+  return typeof value === "object" && value !== null
+    ? (value as JsonObject)
+    : {};
 }
 
 export function isValidIsoDate(value: string): boolean {

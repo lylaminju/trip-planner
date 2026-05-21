@@ -27,7 +27,10 @@ export function decodePolyline(encoded: string): LatLngLiteral[] {
   return points;
 }
 
-function decodeCoordinate(encoded: string, startIndex: number): { delta: number; nextIndex: number } {
+function decodeCoordinate(
+  encoded: string,
+  startIndex: number,
+): { delta: number; nextIndex: number } {
   let result = 0;
   let shift = 0;
   let index = startIndex;

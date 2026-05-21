@@ -2,10 +2,14 @@ import type { RouteGeometry } from "@/lib/types";
 import { GoogleRoutesConfigError } from "@/server/errors";
 import { getRouteGeometry as getSupabaseRouteGeometry } from "@/server/supabase-route-geometry-service";
 
-export async function getRouteGeometry(segmentId: number): Promise<RouteGeometry> {
+export async function getRouteGeometry(
+  segmentId: number,
+): Promise<RouteGeometry> {
   const apiKey = getRoutesApiKey();
   if (!apiKey) {
-    throw new GoogleRoutesConfigError("Google Maps Routes API key is not configured.");
+    throw new GoogleRoutesConfigError(
+      "Google Maps Routes API key is not configured.",
+    );
   }
 
   return getSupabaseRouteGeometry(segmentId, apiKey);

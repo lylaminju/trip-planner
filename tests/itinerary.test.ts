@@ -40,7 +40,12 @@ function place(
 
 describe("compareScheduledPlaces", () => {
   it("sorts timed places before untimed places", () => {
-    const timed = place({ id: 1, name: "Timed", visit_date: "2026-06-01", visit_time: "09:00" });
+    const timed = place({
+      id: 1,
+      name: "Timed",
+      visit_date: "2026-06-01",
+      visit_time: "09:00",
+    });
     const untimed = place({ id: 2, name: "Untimed", visit_date: "2026-06-01" });
 
     expect(compareScheduledPlaces(timed, untimed)).toBeLessThan(0);
@@ -48,7 +53,12 @@ describe("compareScheduledPlaces", () => {
   });
 
   it("falls back to name ordering for equal times", () => {
-    const zoo = place({ id: 1, name: "Zoo", visit_date: "2026-06-01", visit_time: "09:00" });
+    const zoo = place({
+      id: 1,
+      name: "Zoo",
+      visit_date: "2026-06-01",
+      visit_time: "09:00",
+    });
     const aquarium = place({
       id: 2,
       name: "Aquarium",
@@ -61,15 +71,30 @@ describe("compareScheduledPlaces", () => {
   });
 
   it("treats non-padded times as their parsed local time values", () => {
-    const nine = place({ id: 1, name: "Nine", visit_date: "2026-06-01", visit_time: "9:00" });
-    const ten = place({ id: 2, name: "Ten", visit_date: "2026-06-01", visit_time: "10:00" });
+    const nine = place({
+      id: 1,
+      name: "Nine",
+      visit_date: "2026-06-01",
+      visit_time: "9:00",
+    });
+    const ten = place({
+      id: 2,
+      name: "Ten",
+      visit_date: "2026-06-01",
+      visit_time: "10:00",
+    });
 
     expect(compareScheduledPlaces(nine, ten)).toBeLessThan(0);
     expect(compareScheduledPlaces(ten, nine)).toBeGreaterThan(0);
   });
 
   it("sorts valid times before malformed times", () => {
-    const valid = place({ id: 1, name: "Valid", visit_date: "2026-06-01", visit_time: "09:00" });
+    const valid = place({
+      id: 1,
+      name: "Valid",
+      visit_date: "2026-06-01",
+      visit_time: "09:00",
+    });
     const invalid = place({
       id: 2,
       name: "Invalid",
@@ -88,15 +113,29 @@ describe("compareScheduledPlaces", () => {
       visit_date: "2026-06-01",
       visit_time: "foo",
     });
-    const untimed = place({ id: 2, name: "Aquarium", visit_date: "2026-06-01" });
+    const untimed = place({
+      id: 2,
+      name: "Aquarium",
+      visit_date: "2026-06-01",
+    });
 
     expect(compareScheduledPlaces(invalid, untimed)).toBeGreaterThan(0);
     expect(compareScheduledPlaces(untimed, invalid)).toBeLessThan(0);
   });
 
   it("falls back deterministically when both times are malformed", () => {
-    const zebra = place({ id: 1, name: "Zebra", visit_date: "2026-06-01", visit_time: "bar" });
-    const alpha = place({ id: 2, name: "Alpha", visit_date: "2026-06-01", visit_time: "foo" });
+    const zebra = place({
+      id: 1,
+      name: "Zebra",
+      visit_date: "2026-06-01",
+      visit_time: "bar",
+    });
+    const alpha = place({
+      id: 2,
+      name: "Alpha",
+      visit_date: "2026-06-01",
+      visit_time: "foo",
+    });
 
     expect(compareScheduledPlaces(zebra, alpha)).toBeGreaterThan(0);
     expect(compareScheduledPlaces(alpha, zebra)).toBeLessThan(0);
@@ -108,8 +147,18 @@ describe("buildItinerary", () => {
     const result = buildItinerary(
       [
         place({ id: 1, name: "Guggenheim", visit_date: "2026-06-01" }),
-        place({ id: 2, name: "A Stop", visit_date: "2026-06-01", visit_time: "11:00" }),
-        place({ id: 3, name: "B Stop", visit_date: "2026-06-01", visit_time: "09:00" }),
+        place({
+          id: 2,
+          name: "A Stop",
+          visit_date: "2026-06-01",
+          visit_time: "11:00",
+        }),
+        place({
+          id: 3,
+          name: "B Stop",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
         place({ id: 4, name: "Central Park", visit_date: "2026-06-01" }),
       ],
       [],
@@ -127,9 +176,24 @@ describe("buildItinerary", () => {
   it("sorts timed places with the same time by name", () => {
     const result = buildItinerary(
       [
-        place({ id: 1, name: "Zoo", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "Aquarium", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 3, name: "Museum", visit_date: "2026-06-01", visit_time: "10:00" }),
+        place({
+          id: 1,
+          name: "Zoo",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 2,
+          name: "Aquarium",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 3,
+          name: "Museum",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
       ],
       [],
     );
@@ -144,28 +208,76 @@ describe("buildItinerary", () => {
   it("keeps unscheduled places separate and alphabetized", () => {
     const zoo = place({ id: 1, name: "Zoo" });
     const aquarium = place({ id: 2, name: "Aquarium" });
-    const museum = place({ id: 3, name: "Museum", visit_date: "2026-06-02", visit_time: "10:00" });
+    const museum = place({
+      id: 3,
+      name: "Museum",
+      visit_date: "2026-06-02",
+      visit_time: "10:00",
+    });
     const result = buildItinerary(
       [museum],
       [],
       [zoo.place, aquarium.place, museum.place],
     );
 
-    expect(result.unscheduled.map((item) => item.name)).toEqual(["Aquarium", "Zoo"]);
+    expect(result.unscheduled.map((item) => item.name)).toEqual([
+      "Aquarium",
+      "Zoo",
+    ]);
     expect(result.days[0].date).toBe("2026-06-02");
   });
 
   it("assigns sorted dates a fixed accessible palette that cycles after seven days", () => {
     const result = buildItinerary(
       [
-        place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-08", visit_time: "10:00" }),
-        place({ id: 3, name: "C", visit_date: "2026-06-03", visit_time: "11:00" }),
-        place({ id: 4, name: "D", visit_date: "2026-06-02", visit_time: "12:00" }),
-        place({ id: 5, name: "E", visit_date: "2026-06-04", visit_time: "13:00" }),
-        place({ id: 6, name: "F", visit_date: "2026-06-05", visit_time: "14:00" }),
-        place({ id: 7, name: "G", visit_date: "2026-06-06", visit_time: "15:00" }),
-        place({ id: 8, name: "H", visit_date: "2026-06-07", visit_time: "16:00" }),
+        place({
+          id: 1,
+          name: "A",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 2,
+          name: "B",
+          visit_date: "2026-06-08",
+          visit_time: "10:00",
+        }),
+        place({
+          id: 3,
+          name: "C",
+          visit_date: "2026-06-03",
+          visit_time: "11:00",
+        }),
+        place({
+          id: 4,
+          name: "D",
+          visit_date: "2026-06-02",
+          visit_time: "12:00",
+        }),
+        place({
+          id: 5,
+          name: "E",
+          visit_date: "2026-06-04",
+          visit_time: "13:00",
+        }),
+        place({
+          id: 6,
+          name: "F",
+          visit_date: "2026-06-05",
+          visit_time: "14:00",
+        }),
+        place({
+          id: 7,
+          name: "G",
+          visit_date: "2026-06-06",
+          visit_time: "15:00",
+        }),
+        place({
+          id: 8,
+          name: "H",
+          visit_date: "2026-06-07",
+          visit_time: "16:00",
+        }),
       ],
       [],
     );
@@ -204,9 +316,24 @@ describe("buildItinerary", () => {
 
     const result = buildItinerary(
       [
-        place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-01", visit_time: "10:00" }),
-        place({ id: 3, name: "C", visit_date: "2026-06-01", visit_time: "11:00" }),
+        place({
+          id: 1,
+          name: "A",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 2,
+          name: "B",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
+        place({
+          id: 3,
+          name: "C",
+          visit_date: "2026-06-01",
+          visit_time: "11:00",
+        }),
       ],
       segments,
     );
@@ -247,9 +374,24 @@ describe("buildItinerary", () => {
 
     const result = buildItinerary(
       [
-        place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-01", visit_time: "10:00" }),
-        place({ id: 3, name: "C", visit_date: "2026-06-01", visit_time: "11:00" }),
+        place({
+          id: 1,
+          name: "A",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 2,
+          name: "B",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
+        place({
+          id: 3,
+          name: "C",
+          visit_date: "2026-06-01",
+          visit_time: "11:00",
+        }),
       ],
       segments,
     );
@@ -306,9 +448,24 @@ describe("buildItinerary", () => {
 
     const result = buildItinerary(
       [
-        place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-01", visit_time: "foo" }),
-        place({ id: 3, name: "C", visit_date: "2026-06-01", visit_time: "10:00" }),
+        place({
+          id: 1,
+          name: "A",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 2,
+          name: "B",
+          visit_date: "2026-06-01",
+          visit_time: "foo",
+        }),
+        place({
+          id: 3,
+          name: "C",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
       ],
       segments,
     );

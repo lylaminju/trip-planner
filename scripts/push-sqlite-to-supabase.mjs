@@ -8,13 +8,18 @@ loadEnvFile(".env");
 
 const args = new Set(process.argv.slice(2));
 const replaceRemote = args.has("--replace");
-const dbPath = process.env.TRIP_PLANNER_DB_PATH ?? path.join(process.cwd(), "data", "trip-planner.sqlite");
+const dbPath =
+  process.env.TRIP_PLANNER_DB_PATH ??
+  path.join(process.cwd(), "data", "trip-planner.sqlite");
 const supabaseUrl = process.env.SUPABASE_URL?.trim();
 const supabaseKey =
-  process.env.SUPABASE_SECRET_KEY?.trim() ?? process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  process.env.SUPABASE_SECRET_KEY?.trim() ??
+  process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Set SUPABASE_URL and SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY before running this script.");
+  throw new Error(
+    "Set SUPABASE_URL and SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY before running this script.",
+  );
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -69,7 +74,11 @@ try {
   await upsertRows("places", rows.places, "id");
   await upsertRows("itinerary_items", rows.itinerary_items, "id");
   await upsertRows("route_segments", rows.route_segments, "id");
-  await upsertRows("route_geometry_cache", rows.route_geometry_cache, "cache_key");
+  await upsertRows(
+    "route_geometry_cache",
+    rows.route_geometry_cache,
+    "cache_key",
+  );
   await resetSequences();
 
   console.log(
@@ -77,7 +86,12 @@ try {
       {
         dbPath,
         replaceRemote,
-        imported: Object.fromEntries(Object.entries(rows).map(([table, tableRows]) => [table, tableRows.length])),
+        imported: Object.fromEntries(
+          Object.entries(rows).map(([table, tableRows]) => [
+            table,
+            tableRows.length,
+          ]),
+        ),
       },
       null,
       2,
@@ -97,7 +111,9 @@ async function deleteRemoteData() {
 async function deleteWhere(table, column, value) {
   const query = supabase.from(table).delete();
   const { error } =
-    typeof value === "number" ? await query.gte(column, value) : await query.neq(column, value);
+    typeof value === "number"
+      ? await query.gte(column, value)
+      : await query.neq(column, value);
 
   if (error) {
     throw new Error(`Failed to clear ${table}: ${error.message}`);

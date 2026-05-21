@@ -14,7 +14,14 @@ type Props = {
   onModeChange: (mode: TravelMode) => void;
 };
 
-export function SegmentRow({ segment, from, to, active, onSelect, onModeChange }: Props) {
+export function SegmentRow({
+  segment,
+  from,
+  to,
+  active,
+  onSelect,
+  onModeChange,
+}: Props) {
   const url = buildGoogleMapsDirectionsUrl({
     origin: { latitude: from.latitude, longitude: from.longitude },
     destination: { latitude: to.latitude, longitude: to.longitude },
@@ -28,7 +35,9 @@ export function SegmentRow({ segment, from, to, active, onSelect, onModeChange }
         aria-label={`Travel mode from ${from.name} to ${to.name}`}
         value={segment.mode}
         onClick={(event) => event.stopPropagation()}
-        onChange={(event) => onModeChange(event.currentTarget.value as TravelMode)}
+        onChange={(event) =>
+          onModeChange(event.currentTarget.value as TravelMode)
+        }
       >
         {MODES.map((mode) => (
           <option key={mode} value={mode}>

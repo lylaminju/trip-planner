@@ -1,5 +1,11 @@
 import { reconcileRouteSegments } from "@/lib/route-reconciliation";
-import type { ItineraryItem, Place, PlannerSnapshot, RouteSegment, TravelMode } from "@/lib/types";
+import type {
+  ItineraryItem,
+  Place,
+  PlannerSnapshot,
+  RouteSegment,
+  TravelMode,
+} from "@/lib/types";
 import {
   ItineraryItemNotFoundError,
   PlaceNotFoundError,
@@ -40,7 +46,11 @@ const PLACE_UPDATE_COLUMNS = [
   "longitude",
   "notes",
 ] as const satisfies readonly (keyof PlaceUpdate)[];
-const ITEM_UPDATE_COLUMNS = ["visit_date", "visit_time", "notes"] as const satisfies readonly (keyof ItineraryItemUpdate)[];
+const ITEM_UPDATE_COLUMNS = [
+  "visit_date",
+  "visit_time",
+  "notes",
+] as const satisfies readonly (keyof ItineraryItemUpdate)[];
 
 export async function getPlannerSnapshot(): Promise<PlannerSnapshot> {
   const [places, itineraryItems, routeSegments] = await Promise.all([
@@ -64,7 +74,9 @@ export async function getPlaceById(id: number): Promise<Place> {
   return data as Place;
 }
 
-export async function createPlace(input: PlaceCreateInput): Promise<PlannerSnapshot> {
+export async function createPlace(
+  input: PlaceCreateInput,
+): Promise<PlannerSnapshot> {
   const place = await insertPlace(toPlaceInsert(input));
 
   if (input.visit_date !== undefined && input.visit_date !== null) {
@@ -82,10 +94,17 @@ export async function createPlace(input: PlaceCreateInput): Promise<PlannerSnaps
   return getPlannerSnapshot();
 }
 
-export async function editPlace(id: number, input: PlaceEditInput): Promise<PlannerSnapshot> {
+export async function editPlace(
+  id: number,
+  input: PlaceEditInput,
+): Promise<PlannerSnapshot> {
   await updatePlace(id, toPlaceUpdate(input));
 
-  if (input.visit_date !== undefined || input.visit_time !== undefined || input.itinerary_notes !== undefined) {
+  if (
+    input.visit_date !== undefined ||
+    input.visit_time !== undefined ||
+    input.itinerary_notes !== undefined
+  ) {
     const item = (await listItineraryItemsByPlaceId(id))[0];
     const currentVisitDate = item?.visit_date;
     const normalizedInput = normalizeItineraryItemUpdate(
@@ -103,7 +122,10 @@ export async function editPlace(id: number, input: PlaceEditInput): Promise<Plan
       } else {
         await updateItineraryItem(item.id, normalizedInput);
       }
-    } else if (normalizedInput.visit_date !== undefined && normalizedInput.visit_date !== null) {
+    } else if (
+      normalizedInput.visit_date !== undefined &&
+      normalizedInput.visit_date !== null
+    ) {
       await insertItineraryItem(
         normalizeItineraryItemInput({
           place_id: id,
@@ -153,7 +175,10 @@ export async function scheduleItineraryItem(
   visit_date: string | null,
   visit_time: string | null,
 ): Promise<PlannerSnapshot> {
-  const normalizedInput = normalizeItineraryItemUpdate({ visit_date, visit_time });
+  const normalizedInput = normalizeItineraryItemUpdate({
+    visit_date,
+    visit_time,
+  });
 
   if (visit_date === null) {
     await deleteItineraryItem(id);
@@ -169,8 +194,13 @@ export async function editItineraryItem(
   id: number,
   input: ItineraryItemUpdate,
 ): Promise<PlannerSnapshot> {
-  const currentItem = (await listItineraryItems()).find((item) => item.id === id);
-  const normalizedInput = normalizeItineraryItemUpdate(input, currentItem?.visit_date);
+  const currentItem = (await listItineraryItems()).find(
+    (item) => item.id === id,
+  );
+  const normalizedInput = normalizeItineraryItemUpdate(
+    input,
+    currentItem?.visit_date,
+  );
 
   if (normalizedInput.visit_date === null) {
     await deleteItineraryItem(id);
@@ -182,13 +212,18 @@ export async function editItineraryItem(
   return getPlannerSnapshot();
 }
 
-export async function removeItineraryItem(id: number): Promise<PlannerSnapshot> {
+export async function removeItineraryItem(
+  id: number,
+): Promise<PlannerSnapshot> {
   await deleteItineraryItem(id);
   await reconcileAllRoutes();
   return getPlannerSnapshot();
 }
 
-export async function setRouteSegmentMode(id: number, mode: TravelMode): Promise<PlannerSnapshot> {
+export async function setRouteSegmentMode(
+  id: number,
+  mode: TravelMode,
+): Promise<PlannerSnapshot> {
   await updateRouteSegmentMode(id, mode);
   return getPlannerSnapshot();
 }
@@ -215,7 +250,9 @@ async function listItineraryItems(): Promise<ItineraryItem[]> {
   return ((data ?? []) as SupabaseItineraryItemRow[]).map(toItineraryItem);
 }
 
-async function listItineraryItemsByPlaceId(placeId: number): Promise<ItineraryItem[]> {
+async function listItineraryItemsByPlaceId(
+  placeId: number,
+): Promise<ItineraryItem[]> {
   const { data, error } = await getSupabaseClient()
     .from("itinerary_items")
     .select(ITINERARY_ITEM_COLUMNS)
@@ -247,7 +284,9 @@ async function insertPlace(input: PlaceInsert): Promise<Place> {
   return data as Place;
 }
 
-async function insertItineraryItem(input: ItineraryItemInsert): Promise<ItineraryItem> {
+async function insertItineraryItem(
+  input: ItineraryItemInsert,
+): Promise<ItineraryItem> {
   const { data, error } = await getSupabaseClient()
     .from("itinerary_items")
     .insert(input)
@@ -280,7 +319,10 @@ async function updatePlace(id: number, input: PlaceUpdate): Promise<Place> {
   return data as Place;
 }
 
-async function updateItineraryItem(id: number, input: ItineraryItemUpdate): Promise<ItineraryItem> {
+async function updateItineraryItem(
+  id: number,
+  input: ItineraryItemUpdate,
+): Promise<ItineraryItem> {
   const fields = ITEM_UPDATE_COLUMNS.filter((key) => input[key] !== undefined);
   if (fields.length === 0) return getItineraryItemById(id);
 
@@ -334,7 +376,10 @@ async function deleteItineraryItem(id: number): Promise<void> {
   if (count === 0) throw new ItineraryItemNotFoundError(id);
 }
 
-async function updateRouteSegmentMode(id: number, mode: TravelMode): Promise<RouteSegment> {
+async function updateRouteSegmentMode(
+  id: number,
+  mode: TravelMode,
+): Promise<RouteSegment> {
   const { data, error } = await getSupabaseClient()
     .from("route_segments")
     .update({ mode, updated_at: new Date().toISOString() })
@@ -347,11 +392,17 @@ async function updateRouteSegmentMode(id: number, mode: TravelMode): Promise<Rou
   return data as RouteSegment;
 }
 
-async function replaceSegments(deleteIds: number[], inserts: RouteSegmentInsert[]): Promise<void> {
+async function replaceSegments(
+  deleteIds: number[],
+  inserts: RouteSegmentInsert[],
+): Promise<void> {
   const client = getSupabaseClient();
 
   if (deleteIds.length > 0) {
-    const { error } = await client.from("route_segments").delete().in("id", deleteIds);
+    const { error } = await client
+      .from("route_segments")
+      .delete()
+      .in("id", deleteIds);
     if (error) throwSupabaseError(error);
   }
 
@@ -369,7 +420,9 @@ async function reconcileAllRoutes(): Promise<void> {
   await replaceSegments(plan.toDeleteIds, plan.toInsert);
 }
 
-function normalizeItineraryItemInput(input: ItineraryItemInsert): ItineraryItemInsert {
+function normalizeItineraryItemInput(
+  input: ItineraryItemInsert,
+): ItineraryItemInsert {
   if (input.visit_date !== null) {
     return input;
   }
@@ -434,7 +487,9 @@ function toPlaceUpdate(input: PlaceEditInput): PlaceUpdate {
 function toItineraryItem(row: SupabaseItineraryItemRow): ItineraryItem {
   const place = Array.isArray(row.place) ? row.place[0] : row.place;
   if (!place) {
-    throw new Error(`Supabase itinerary item ${row.id} is missing its joined place.`);
+    throw new Error(
+      `Supabase itinerary item ${row.id} is missing its joined place.`,
+    );
   }
 
   return {

@@ -7,7 +7,9 @@ export type MarkerSizing = {
   activeFontSize: number;
 };
 
-export function buildTimedMarkerLabels(itinerary: ItineraryView): Map<number, string> {
+export function buildTimedMarkerLabels(
+  itinerary: ItineraryView,
+): Map<number, string> {
   const labels = new Map<number, string>();
 
   for (const day of itinerary.days) {

@@ -14,9 +14,15 @@ export function parseGoogleMapsUrl(rawUrl: string): ParsedGoogleMapsUrl {
     };
   }
 
-  const source = parsed ? `${safeDecode(parsed.pathname)}${safeDecode(parsed.hash)}` : rawUrl;
-  const atMatch = source.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?=$|[,/?#])/);
-  const dataMatch = source.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)(?=$|[!/?#&,])/);
+  const source = parsed
+    ? `${safeDecode(parsed.pathname)}${safeDecode(parsed.hash)}`
+    : rawUrl;
+  const atMatch = source.match(
+    /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?=$|[,/?#])/,
+  );
+  const dataMatch = source.match(
+    /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)(?=$|[!/?#&,])/,
+  );
   const match = dataMatch ?? atMatch;
 
   return {

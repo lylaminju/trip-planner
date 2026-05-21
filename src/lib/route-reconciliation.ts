@@ -19,7 +19,9 @@ export function reconcileRouteSegments(
   existingSegments: RouteSegment[],
 ): ReconciliationPlan {
   const desiredPairs = buildDesiredPairs(items);
-  const desiredKeys = new Set(desiredPairs.map(([fromItemId, toItemId]) => pairKey(fromItemId, toItemId)));
+  const desiredKeys = new Set(
+    desiredPairs.map(([fromItemId, toItemId]) => pairKey(fromItemId, toItemId)),
+  );
   const keptPairKeys = new Set<string>();
 
   const toKeepIds: number[] = [];
@@ -40,7 +42,10 @@ export function reconcileRouteSegments(
   }
 
   const toInsert: SegmentInsert[] = desiredPairs
-    .filter(([fromItemId, toItemId]) => !keptPairKeys.has(pairKey(fromItemId, toItemId)))
+    .filter(
+      ([fromItemId, toItemId]) =>
+        !keptPairKeys.has(pairKey(fromItemId, toItemId)),
+    )
     .map(([fromItemId, toItemId]) => ({
       from_item_id: fromItemId,
       to_item_id: toItemId,
@@ -76,19 +81,27 @@ function buildDesiredPairs(items: ItineraryItem[]): Array<[number, number]> {
   return desiredPairs;
 }
 
-function isRoutableItem(item: ItineraryItem): item is ItineraryItem & { visit_date: string; visit_time: string } {
+function isRoutableItem(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_date: string; visit_time: string } {
   return hasVisitDate(item) && hasValidVisitTime(item);
 }
 
-function hasVisitDate(item: ItineraryItem): item is ItineraryItem & { visit_date: string } {
+function hasVisitDate(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_date: string } {
   return typeof item.visit_date === "string" && item.visit_date.length > 0;
 }
 
-function hasVisitTimeText(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+function hasVisitTimeText(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_time: string } {
   return typeof item.visit_time === "string" && item.visit_time.length > 0;
 }
 
-function hasValidVisitTime(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+function hasValidVisitTime(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_time: string } {
   return hasVisitTimeText(item) && parseVisitTime(item.visit_time) !== null;
 }
 

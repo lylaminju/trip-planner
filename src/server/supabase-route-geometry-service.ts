@@ -165,8 +165,12 @@ async function getSegmentRouteRow(segmentId: number): Promise<SegmentRouteRow> {
   };
 }
 
-async function getCachedRouteGeometry(cacheKey: string): Promise<RouteGeometryCacheRow | null> {
-  const cutoff = new Date(Date.now() - CACHE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+async function getCachedRouteGeometry(
+  cacheKey: string,
+): Promise<RouteGeometryCacheRow | null> {
+  const cutoff = new Date(
+    Date.now() - CACHE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString();
   const { data, error } = await getSupabaseClient()
     .from("route_geometry_cache")
     .select("status, encoded_polyline")
@@ -184,27 +188,32 @@ async function saveRouteGeometry(
   geometry: Omit<RouteGeometry, "segment_id">,
 ): Promise<void> {
   const now = new Date().toISOString();
-  const { error } = await getSupabaseClient().from("route_geometry_cache").upsert(
-    {
-      cache_key: cacheKey,
-      from_place_id: segment.from_place_id,
-      to_place_id: segment.to_place_id,
-      mode: segment.mode,
-      from_latitude: segment.from_latitude,
-      from_longitude: segment.from_longitude,
-      to_latitude: segment.to_latitude,
-      to_longitude: segment.to_longitude,
-      status: geometry.status,
-      encoded_polyline: geometry.encoded_polyline ?? null,
-      updated_at: now,
-    },
-    { onConflict: "cache_key" },
-  );
+  const { error } = await getSupabaseClient()
+    .from("route_geometry_cache")
+    .upsert(
+      {
+        cache_key: cacheKey,
+        from_place_id: segment.from_place_id,
+        to_place_id: segment.to_place_id,
+        mode: segment.mode,
+        from_latitude: segment.from_latitude,
+        from_longitude: segment.from_longitude,
+        to_latitude: segment.to_latitude,
+        to_longitude: segment.to_longitude,
+        status: geometry.status,
+        encoded_polyline: geometry.encoded_polyline ?? null,
+        updated_at: now,
+      },
+      { onConflict: "cache_key" },
+    );
 
   if (error) throwSupabaseError(error);
 }
 
-function toRouteGeometry(segmentId: number, cached: RouteGeometryCacheRow): RouteGeometry {
+function toRouteGeometry(
+  segmentId: number,
+  cached: RouteGeometryCacheRow,
+): RouteGeometry {
   if (cached.status === "ok" && cached.encoded_polyline) {
     return {
       segment_id: segmentId,
@@ -235,11 +244,15 @@ function coordinateKey(value: number): string {
   return value.toFixed(6);
 }
 
-function firstJoinedItem(item: JoinedItem | JoinedItem[] | null): JoinedItem | null {
+function firstJoinedItem(
+  item: JoinedItem | JoinedItem[] | null,
+): JoinedItem | null {
   return Array.isArray(item) ? (item[0] ?? null) : item;
 }
 
-function firstJoinedPlace(place: JoinedPlace | JoinedPlace[] | null | undefined): JoinedPlace | null {
+function firstJoinedPlace(
+  place: JoinedPlace | JoinedPlace[] | null | undefined,
+): JoinedPlace | null {
   return Array.isArray(place) ? (place[0] ?? null) : (place ?? null);
 }
 

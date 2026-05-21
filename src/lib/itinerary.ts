@@ -28,9 +28,14 @@ export function buildItinerary(
     .filter((place) => !scheduledPlaceIds.has(place.id))
     .sort(comparePlacesByName);
 
-  const dates = Array.from(new Set(scheduled.map((item) => item.visit_date))).sort();
+  const dates = Array.from(
+    new Set(scheduled.map((item) => item.visit_date)),
+  ).sort();
   const segmentsByPair = new Map(
-    routeSegments.map((segment) => [pairKey(segment.from_item_id, segment.to_item_id), segment]),
+    routeSegments.map((segment) => [
+      pairKey(segment.from_item_id, segment.to_item_id),
+      segment,
+    ]),
   );
 
   const days: ItineraryDay[] = dates.map((date, index) => {
@@ -49,7 +54,10 @@ export function buildItinerary(
   return { days, unscheduled };
 }
 
-export function compareScheduledItems(a: ItineraryItem, b: ItineraryItem): number {
+export function compareScheduledItems(
+  a: ItineraryItem,
+  b: ItineraryItem,
+): number {
   const aTimed = hasValidVisitTime(a);
   const bTimed = hasValidVisitTime(b);
 
@@ -92,22 +100,30 @@ function buildSegmentViews(
 }
 
 function compareByName(a: ItineraryItem, b: ItineraryItem): number {
-  return a.place.name.localeCompare(b.place.name, undefined, { sensitivity: "base" });
+  return a.place.name.localeCompare(b.place.name, undefined, {
+    sensitivity: "base",
+  });
 }
 
 function comparePlacesByName(a: Place, b: Place): number {
   return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
 
-function hasVisitDate(item: ItineraryItem): item is ItineraryItem & { visit_date: string } {
+function hasVisitDate(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_date: string } {
   return typeof item.visit_date === "string" && item.visit_date.length > 0;
 }
 
-function hasVisitTimeText(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+function hasVisitTimeText(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_time: string } {
   return typeof item.visit_time === "string" && item.visit_time.length > 0;
 }
 
-function hasValidVisitTime(item: ItineraryItem): item is ItineraryItem & { visit_time: string } {
+function hasValidVisitTime(
+  item: ItineraryItem,
+): item is ItineraryItem & { visit_time: string } {
   return hasVisitTimeText(item) && getVisitTimeMinutes(item) !== null;
 }
 
@@ -134,10 +150,14 @@ function compareVisitTimes(
     return 1;
   }
 
-  return a.visit_time.localeCompare(b.visit_time, undefined, { sensitivity: "base" });
+  return a.visit_time.localeCompare(b.visit_time, undefined, {
+    sensitivity: "base",
+  });
 }
 
-function getVisitTimeMinutes(item: ItineraryItem & { visit_time: string }): number | null {
+function getVisitTimeMinutes(
+  item: ItineraryItem & { visit_time: string },
+): number | null {
   return parseVisitTime(item.visit_time);
 }
 

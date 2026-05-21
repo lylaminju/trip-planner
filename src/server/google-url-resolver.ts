@@ -1,5 +1,8 @@
 import { parseGoogleMapsUrl } from "@/lib/google-maps-url";
-import { GoogleMapsUrlUpstreamError, GoogleMapsUrlValidationError } from "@/server/errors";
+import {
+  GoogleMapsUrlUpstreamError,
+  GoogleMapsUrlValidationError,
+} from "@/server/errors";
 
 export type ResolvedGoogleMapsUrl = {
   google_maps_url: string;
@@ -8,7 +11,9 @@ export type ResolvedGoogleMapsUrl = {
   longitude: number | null;
 };
 
-export async function resolveGoogleMapsUrl(rawUrl: string): Promise<ResolvedGoogleMapsUrl> {
+export async function resolveGoogleMapsUrl(
+  rawUrl: string,
+): Promise<ResolvedGoogleMapsUrl> {
   const direct = parseGoogleMapsUrl(rawUrl);
   if (isResolvedGoogleMapsUrl(direct)) {
     return { google_maps_url: rawUrl, ...direct };
@@ -20,13 +25,17 @@ export async function resolveGoogleMapsUrl(rawUrl: string): Promise<ResolvedGoog
   }
 
   if (shortUrl.protocol !== "https:") {
-    throw new GoogleMapsUrlValidationError("Google Maps short URLs must use https");
+    throw new GoogleMapsUrlValidationError(
+      "Google Maps short URLs must use https",
+    );
   }
 
   const finalUrl = await resolveRedirect(shortUrl.toString());
   const parsed = parseGoogleMapsUrl(finalUrl);
   if (!isResolvedGoogleMapsUrl(parsed)) {
-    throw new GoogleMapsUrlValidationError("Resolved Google Maps URL was not parseable");
+    throw new GoogleMapsUrlValidationError(
+      "Resolved Google Maps URL was not parseable",
+    );
   }
 
   return {
@@ -56,10 +65,16 @@ async function resolveRedirect(rawUrl: string): Promise<string> {
 
       if (isRedirectStatus(response.status)) {
         if (hop === GOOGLE_REDIRECT_MAX_HOPS) {
-          throw new GoogleMapsUrlUpstreamError(GOOGLE_REDIRECT_TOO_MANY_HOPS_ERROR, 502);
+          throw new GoogleMapsUrlUpstreamError(
+            GOOGLE_REDIRECT_TOO_MANY_HOPS_ERROR,
+            502,
+          );
         }
 
-        currentUrl = resolveAllowedGoogleRedirectUrl(currentUrl, response).toString();
+        currentUrl = resolveAllowedGoogleRedirectUrl(
+          currentUrl,
+          response,
+        ).toString();
         continue;
       }
 
@@ -73,7 +88,10 @@ async function resolveRedirect(rawUrl: string): Promise<string> {
       return response.url || currentUrl;
     }
 
-    throw new GoogleMapsUrlUpstreamError(GOOGLE_REDIRECT_TOO_MANY_HOPS_ERROR, 502);
+    throw new GoogleMapsUrlUpstreamError(
+      GOOGLE_REDIRECT_TOO_MANY_HOPS_ERROR,
+      502,
+    );
   } catch (error) {
     if (controller.signal.aborted) {
       const reason =
@@ -108,19 +126,29 @@ function isAllowedGoogleShortUrl(url: URL): boolean {
   return ALLOWED_GOOGLE_SHORT_HOSTS.has(url.hostname.toLowerCase());
 }
 
-function resolveAllowedGoogleRedirectUrl(currentUrl: string, response: Response): URL {
+function resolveAllowedGoogleRedirectUrl(
+  currentUrl: string,
+  response: Response,
+): URL {
   const location = response.headers.get("location");
   if (!location) {
-    throw new GoogleMapsUrlUpstreamError("Google Maps redirect response missing Location header", 502);
+    throw new GoogleMapsUrlUpstreamError(
+      "Google Maps redirect response missing Location header",
+      502,
+    );
   }
 
   const nextUrl = new URL(location, currentUrl);
   if (nextUrl.protocol !== "https:") {
-    throw new GoogleMapsUrlValidationError("Google Maps redirects must use https");
+    throw new GoogleMapsUrlValidationError(
+      "Google Maps redirects must use https",
+    );
   }
 
   if (!ALLOWED_GOOGLE_REDIRECT_HOSTS.has(nextUrl.hostname.toLowerCase())) {
-    throw new GoogleMapsUrlValidationError("Unsupported Google Maps redirect host");
+    throw new GoogleMapsUrlValidationError(
+      "Unsupported Google Maps redirect host",
+    );
   }
 
   return nextUrl;
@@ -130,7 +158,9 @@ function isRedirectStatus(status: number): boolean {
   return status >= 300 && status < 400;
 }
 
-function isResolvedGoogleMapsUrl(parsed: ReturnType<typeof parseGoogleMapsUrl>): boolean {
+function isResolvedGoogleMapsUrl(
+  parsed: ReturnType<typeof parseGoogleMapsUrl>,
+): boolean {
   const hasCoordinates = parsed.latitude !== null && parsed.longitude !== null;
   return hasCoordinates || parsed.name !== null;
 }
@@ -154,5 +184,6 @@ const ALLOWED_GOOGLE_REDIRECT_HOSTS = new Set([
 const GOOGLE_REDIRECT_MAX_HOPS = 5;
 const GOOGLE_REDIRECT_TIMEOUT_MS = 5_000;
 const GOOGLE_REDIRECT_TIMEOUT_ERROR = "Google Maps URL resolution timed out";
-const GOOGLE_REDIRECT_TOO_MANY_HOPS_ERROR = "Google Maps URL redirected too many times";
+const GOOGLE_REDIRECT_TOO_MANY_HOPS_ERROR =
+  "Google Maps URL redirected too many times";
 const GOOGLE_REDIRECT_FETCH_ERROR = "Google Maps URL request failed";

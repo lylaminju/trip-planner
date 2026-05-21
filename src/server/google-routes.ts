@@ -22,10 +22,13 @@ type GoogleRoutesResponse = {
   }>;
 };
 
-const ROUTES_ENDPOINT = "https://routes.googleapis.com/directions/v2:computeRoutes";
+const ROUTES_ENDPOINT =
+  "https://routes.googleapis.com/directions/v2:computeRoutes";
 const REQUEST_TIMEOUT_MS = 10_000;
 
-export async function computeGoogleRoute(input: ComputeRouteInput): Promise<Omit<RouteGeometry, "segment_id">> {
+export async function computeGoogleRoute(
+  input: ComputeRouteInput,
+): Promise<Omit<RouteGeometry, "segment_id">> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -48,7 +51,10 @@ export async function computeGoogleRoute(input: ComputeRouteInput): Promise<Omit
     });
 
     if (!response.ok) {
-      throw new GoogleRoutesUpstreamError("Google Routes API request failed.", response.status === 504 ? 504 : 502);
+      throw new GoogleRoutesUpstreamError(
+        "Google Routes API request failed.",
+        response.status === 504 ? 504 : 502,
+      );
     }
 
     const payload = (await response.json()) as GoogleRoutesResponse;
@@ -62,8 +68,12 @@ export async function computeGoogleRoute(input: ComputeRouteInput): Promise<Omit
       throw error;
     }
 
-    const status = error instanceof Error && error.name === "AbortError" ? 504 : 502;
-    throw new GoogleRoutesUpstreamError("Google Routes API request failed.", status);
+    const status =
+      error instanceof Error && error.name === "AbortError" ? 504 : 502;
+    throw new GoogleRoutesUpstreamError(
+      "Google Routes API request failed.",
+      status,
+    );
   } finally {
     clearTimeout(timeout);
   }

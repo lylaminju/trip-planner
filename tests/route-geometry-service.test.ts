@@ -13,7 +13,8 @@ describe("route-geometry-service", () => {
     }));
 
     try {
-      const { getRouteGeometry } = await import("@/server/route-geometry-service");
+      const { getRouteGeometry } =
+        await import("@/server/route-geometry-service");
       await expect(getRouteGeometry(1)).rejects.toMatchObject({
         name: "GoogleRoutesConfigError",
       });
@@ -49,13 +50,17 @@ describe("route-geometry-service", () => {
     }));
 
     try {
-      const { getRouteGeometry } = await import("@/server/route-geometry-service");
+      const { getRouteGeometry } =
+        await import("@/server/route-geometry-service");
       await expect(getRouteGeometry(12)).resolves.toEqual({
         segment_id: 12,
         status: "ok",
         encoded_polyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@",
       });
-      expect(getSupabaseRouteGeometry).toHaveBeenCalledWith(12, "test-routes-key");
+      expect(getSupabaseRouteGeometry).toHaveBeenCalledWith(
+        12,
+        "test-routes-key",
+      );
     } finally {
       vi.doUnmock("@/server/supabase-route-geometry-service");
       vi.resetModules();

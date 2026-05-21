@@ -1,11 +1,21 @@
 import { reconcileRouteSegments } from "@/lib/route-reconciliation";
-import type { ItineraryItem, Place, PlannerSnapshot, RouteSegment, TravelMode } from "@/lib/types";
+import type {
+  ItineraryItem,
+  Place,
+  PlannerSnapshot,
+  RouteSegment,
+  TravelMode,
+} from "@/lib/types";
 import {
   ItineraryItemNotFoundError,
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
 } from "@/server/errors";
-import type { ItineraryItemUpdate, PlaceCreateInput, PlaceEditInput } from "@/server/place-inputs";
+import type {
+  ItineraryItemUpdate,
+  PlaceCreateInput,
+  PlaceEditInput,
+} from "@/server/place-inputs";
 
 export function createFakeSupabasePlaceService() {
   let placeId = 1;
@@ -43,7 +53,9 @@ export function createFakeSupabasePlaceService() {
   function reconcile() {
     itineraryItems = itineraryItems.map((item) => hydrateItem(item));
     const plan = reconcileRouteSegments(itineraryItems, routeSegments);
-    routeSegments = routeSegments.filter((segment) => !plan.toDeleteIds.includes(segment.id));
+    routeSegments = routeSegments.filter(
+      (segment) => !plan.toDeleteIds.includes(segment.id),
+    );
     routeSegments.push(
       ...plan.toInsert.map((insert) => ({
         id: segmentId++,
@@ -119,7 +131,10 @@ export function createFakeSupabasePlaceService() {
               ...candidate,
               ...Object.fromEntries(
                 Object.entries(input).filter(
-                  ([key, value]) => !["visit_date", "visit_time", "itinerary_notes"].includes(key) && value !== undefined,
+                  ([key, value]) =>
+                    !["visit_date", "visit_time", "itinerary_notes"].includes(
+                      key,
+                    ) && value !== undefined,
                 ),
               ),
               updated_at: now(),
@@ -127,23 +142,43 @@ export function createFakeSupabasePlaceService() {
           : candidate,
       );
 
-      if (input.visit_date !== undefined || input.visit_time !== undefined || input.itinerary_notes !== undefined) {
-        const item = itineraryItems.find((candidate) => candidate.place_id === place.id);
+      if (
+        input.visit_date !== undefined ||
+        input.visit_time !== undefined ||
+        input.itinerary_notes !== undefined
+      ) {
+        const item = itineraryItems.find(
+          (candidate) => candidate.place_id === place.id,
+        );
         if (item && input.visit_date === null) {
-          itineraryItems = itineraryItems.filter((candidate) => candidate.id !== item.id);
+          itineraryItems = itineraryItems.filter(
+            (candidate) => candidate.id !== item.id,
+          );
         } else if (item) {
           itineraryItems = itineraryItems.map((candidate) =>
             candidate.id === item.id
               ? hydrateItem({
                   ...candidate,
-                  visit_date: input.visit_date !== undefined ? input.visit_date : candidate.visit_date,
-                  visit_time: input.visit_time !== undefined ? input.visit_time : candidate.visit_time,
-                  notes: input.itinerary_notes !== undefined ? input.itinerary_notes : candidate.notes,
+                  visit_date:
+                    input.visit_date !== undefined
+                      ? input.visit_date
+                      : candidate.visit_date,
+                  visit_time:
+                    input.visit_time !== undefined
+                      ? input.visit_time
+                      : candidate.visit_time,
+                  notes:
+                    input.itinerary_notes !== undefined
+                      ? input.itinerary_notes
+                      : candidate.notes,
                   updated_at: now(),
                 })
               : candidate,
           );
-        } else if (input.visit_date !== undefined && input.visit_date !== null) {
+        } else if (
+          input.visit_date !== undefined &&
+          input.visit_date !== null
+        ) {
           insertItem({
             place_id: id,
             visit_date: input.visit_date,
@@ -165,7 +200,12 @@ export function createFakeSupabasePlaceService() {
       return snapshot();
     },
 
-    async schedulePlace(id: number, visit_date: string | null, visit_time: string | null, notes: string | null = null) {
+    async schedulePlace(
+      id: number,
+      visit_date: string | null,
+      visit_time: string | null,
+      notes: string | null = null,
+    ) {
       getPlace(id);
       if (visit_date !== null) {
         insertItem({ place_id: id, visit_date, visit_time, notes });
@@ -174,14 +214,27 @@ export function createFakeSupabasePlaceService() {
       return snapshot();
     },
 
-    async scheduleItineraryItem(id: number, visit_date: string | null, visit_time: string | null) {
+    async scheduleItineraryItem(
+      id: number,
+      visit_date: string | null,
+      visit_time: string | null,
+    ) {
       const item = itineraryItems.find((candidate) => candidate.id === id);
       if (!item) throw new ItineraryItemNotFoundError(id);
       if (visit_date === null) {
-        itineraryItems = itineraryItems.filter((candidate) => candidate.id !== id);
+        itineraryItems = itineraryItems.filter(
+          (candidate) => candidate.id !== id,
+        );
       } else {
         itineraryItems = itineraryItems.map((candidate) =>
-          candidate.id === id ? hydrateItem({ ...candidate, visit_date, visit_time, updated_at: now() }) : candidate,
+          candidate.id === id
+            ? hydrateItem({
+                ...candidate,
+                visit_date,
+                visit_time,
+                updated_at: now(),
+              })
+            : candidate,
         );
       }
       reconcile();
@@ -192,15 +245,24 @@ export function createFakeSupabasePlaceService() {
       const item = itineraryItems.find((candidate) => candidate.id === id);
       if (!item) throw new ItineraryItemNotFoundError(id);
       if (input.visit_date === null) {
-        itineraryItems = itineraryItems.filter((candidate) => candidate.id !== id);
+        itineraryItems = itineraryItems.filter(
+          (candidate) => candidate.id !== id,
+        );
       } else {
         itineraryItems = itineraryItems.map((candidate) =>
           candidate.id === id
             ? hydrateItem({
                 ...candidate,
-                visit_date: input.visit_date !== undefined ? input.visit_date : candidate.visit_date,
-                visit_time: input.visit_time !== undefined ? input.visit_time : candidate.visit_time,
-                notes: input.notes !== undefined ? input.notes : candidate.notes,
+                visit_date:
+                  input.visit_date !== undefined
+                    ? input.visit_date
+                    : candidate.visit_date,
+                visit_time:
+                  input.visit_time !== undefined
+                    ? input.visit_time
+                    : candidate.visit_time,
+                notes:
+                  input.notes !== undefined ? input.notes : candidate.notes,
                 updated_at: now(),
               })
             : candidate,
@@ -211,14 +273,16 @@ export function createFakeSupabasePlaceService() {
     },
 
     async removeItineraryItem(id: number) {
-      if (!itineraryItems.some((item) => item.id === id)) throw new ItineraryItemNotFoundError(id);
+      if (!itineraryItems.some((item) => item.id === id))
+        throw new ItineraryItemNotFoundError(id);
       itineraryItems = itineraryItems.filter((item) => item.id !== id);
       reconcile();
       return snapshot();
     },
 
     async setRouteSegmentMode(id: number, mode: TravelMode) {
-      if (!routeSegments.some((segment) => segment.id === id)) throw new RouteSegmentNotFoundError(id);
+      if (!routeSegments.some((segment) => segment.id === id))
+        throw new RouteSegmentNotFoundError(id);
       routeSegments = routeSegments.map((segment) =>
         segment.id === id ? { ...segment, mode, updated_at: now() } : segment,
       );

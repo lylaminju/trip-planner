@@ -44,10 +44,16 @@ export async function POST(request: Request) {
     const resolved = await resolvePlaceUrl(googleMapsUrl);
     const name = stringOrNull(body.name) ?? resolved.name;
     if (!name) {
-      return jsonError("Name is required when it cannot be resolved from the URL.", 400);
+      return jsonError(
+        "Name is required when it cannot be resolved from the URL.",
+        400,
+      );
     }
     if (resolved.latitude === null || resolved.longitude === null) {
-      return jsonError("Could not resolve coordinates from the Google Maps URL.", 400);
+      return jsonError(
+        "Could not resolve coordinates from the Google Maps URL.",
+        400,
+      );
     }
 
     return NextResponse.json(
@@ -90,7 +96,9 @@ function dateOrNull(value: unknown): string | NextResponse | null {
   }
 
   const text = stringOrNull(value);
-  return text && isValidIsoDate(text) ? text : jsonError("Visit date must be YYYY-MM-DD.", 400);
+  return text && isValidIsoDate(text)
+    ? text
+    : jsonError("Visit date must be YYYY-MM-DD.", 400);
 }
 
 function timeOrNull(value: unknown): string | NextResponse | null {
@@ -103,5 +111,7 @@ function timeOrNull(value: unknown): string | NextResponse | null {
   }
 
   const text = stringOrNull(value);
-  return text && isValid24HourTime(text) ? text : jsonError("Visit time must be HH:MM.", 400);
+  return text && isValid24HourTime(text)
+    ? text
+    : jsonError("Visit time must be HH:MM.", 400);
 }

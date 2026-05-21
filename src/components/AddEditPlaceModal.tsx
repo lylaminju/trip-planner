@@ -36,7 +36,9 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
     try {
       await onSave(payload);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Failed to save place.");
+      setError(
+        reason instanceof Error ? reason.message : "Failed to save place.",
+      );
       setIsSaving(false);
     }
   }
@@ -46,14 +48,23 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
       <form className="modal" onSubmit={submit}>
         <header className="modal-header">
           <h2>{isEditing ? "Edit Place" : "Add Place"}</h2>
-          <button type="button" className="icon-button" onClick={onCancel} aria-label="Close">
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onCancel}
+            aria-label="Close"
+          >
             X
           </button>
         </header>
 
         <label>
           Google Maps URL
-          <input name="google_maps_url" required defaultValue={place?.google_maps_url ?? ""} />
+          <input
+            name="google_maps_url"
+            required
+            defaultValue={place?.google_maps_url ?? ""}
+          />
         </label>
 
         <label>
@@ -88,7 +99,10 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
                     </option>
                   ))}
                 </select>
-                <select name="visit_time_minute" defaultValue={visitTimeMinute || "00"}>
+                <select
+                  name="visit_time_minute"
+                  defaultValue={visitTimeMinute || "00"}
+                >
                   {MINUTE_OPTIONS.map((value) => (
                     <option key={value} value={value}>
                       {value}
@@ -153,5 +167,7 @@ function splitVisitTime(value: string | null): [string, string] {
   return [match[1], match[2]];
 }
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) =>
+  String(hour).padStart(2, "0"),
+);
 const MINUTE_OPTIONS = ["00", "10", "20", "30", "40", "50"] as const;

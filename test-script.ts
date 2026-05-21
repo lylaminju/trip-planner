@@ -14,5 +14,5 @@ const place = {
   notes: null,
   created_at: "now",
   updated_at: "now",
-  visit_date: "2024-01-01" // Imagine if it accidentally had this
+  visit_date: "2024-01-01", // Imagine if it accidentally had this
 };

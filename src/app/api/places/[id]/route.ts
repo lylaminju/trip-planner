@@ -54,10 +54,16 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     const existingPlace = await getPlaceByIdForRequest(placeId);
-    if (input.google_maps_url && input.google_maps_url !== existingPlace.google_maps_url) {
+    if (
+      input.google_maps_url &&
+      input.google_maps_url !== existingPlace.google_maps_url
+    ) {
       const resolved = await resolvePlaceUrl(input.google_maps_url);
       if (resolved.latitude === null || resolved.longitude === null) {
-        return jsonError("Could not resolve coordinates from the Google Maps URL.", 400);
+        return jsonError(
+          "Could not resolve coordinates from the Google Maps URL.",
+          400,
+        );
       }
       input.google_maps_url = resolved.google_maps_url;
       input.latitude = resolved.latitude;
@@ -105,7 +111,9 @@ function nullableStringOrUndefined(value: unknown): string | null | undefined {
   return stringOrUndefined(value);
 }
 
-function nullableDateOrUndefined(value: unknown): string | NextResponse | null | undefined {
+function nullableDateOrUndefined(
+  value: unknown,
+): string | NextResponse | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== "string") {
@@ -118,7 +126,9 @@ function nullableDateOrUndefined(value: unknown): string | NextResponse | null |
   return text;
 }
 
-function nullableTimeOrUndefined(value: unknown): string | NextResponse | null | undefined {
+function nullableTimeOrUndefined(
+  value: unknown,
+): string | NextResponse | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== "string") {

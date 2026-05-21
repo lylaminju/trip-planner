@@ -24,7 +24,9 @@ export type ItineraryItemInsert = {
   notes: string | null;
 };
 
-export type ItineraryItemUpdate = Partial<Omit<ItineraryItemInsert, "place_id">>;
+export type ItineraryItemUpdate = Partial<
+  Omit<ItineraryItemInsert, "place_id">
+>;
 
 export type PlaceCreateInput = PlaceInsert & {
   itinerary_notes?: string | null;

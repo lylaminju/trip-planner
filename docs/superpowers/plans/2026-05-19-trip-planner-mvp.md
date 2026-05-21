@@ -60,6 +60,7 @@ Create or modify these files:
 ## Task 1: Scaffold The Next.js Project
 
 **Files:**
+
 - Create: `package.json`
 - Create: `tsconfig.json`
 - Create: `next.config.ts`
@@ -205,7 +206,11 @@ export const metadata: Metadata = {
   description: "Local-first itinerary planner",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>
@@ -338,6 +343,7 @@ Expected: Vitest reports no tests found or exits cleanly after tests are added i
 ## Task 2: Define Shared Types And Itinerary Sorting
 
 **Files:**
+
 - Create: `src/lib/types.ts`
 - Create: `src/lib/itinerary.ts`
 - Create: `tests/itinerary.test.ts`
@@ -379,8 +385,18 @@ describe("buildItinerary", () => {
     const result = buildItinerary(
       [
         place({ id: 1, name: "Guggenheim", visit_date: "2026-06-01" }),
-        place({ id: 2, name: "A Stop", visit_date: "2026-06-01", visit_time: "11:00" }),
-        place({ id: 3, name: "B Stop", visit_date: "2026-06-01", visit_time: "09:00" }),
+        place({
+          id: 2,
+          name: "A Stop",
+          visit_date: "2026-06-01",
+          visit_time: "11:00",
+        }),
+        place({
+          id: 3,
+          name: "B Stop",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
         place({ id: 4, name: "Central Park", visit_date: "2026-06-01" }),
       ],
       [],
@@ -400,12 +416,20 @@ describe("buildItinerary", () => {
       [
         place({ id: 1, name: "Zoo" }),
         place({ id: 2, name: "Aquarium" }),
-        place({ id: 3, name: "Museum", visit_date: "2026-06-02", visit_time: "10:00" }),
+        place({
+          id: 3,
+          name: "Museum",
+          visit_date: "2026-06-02",
+          visit_time: "10:00",
+        }),
       ],
       [],
     );
 
-    expect(result.unscheduled.map((item) => item.name)).toEqual(["Aquarium", "Zoo"]);
+    expect(result.unscheduled.map((item) => item.name)).toEqual([
+      "Aquarium",
+      "Zoo",
+    ]);
     expect(result.days[0].date).toBe("2026-06-02");
   });
 
@@ -423,8 +447,18 @@ describe("buildItinerary", () => {
 
     const result = buildItinerary(
       [
-        place({ id: 1, name: "A", visit_date: "2026-06-01", visit_time: "09:00" }),
-        place({ id: 2, name: "B", visit_date: "2026-06-01", visit_time: "10:00" }),
+        place({
+          id: 1,
+          name: "A",
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        }),
+        place({
+          id: 2,
+          name: "B",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
         place({ id: 3, name: "C", visit_date: "2026-06-01" }),
       ],
       segments,
@@ -514,18 +548,42 @@ export type PlannerSnapshot = {
 Create `src/lib/itinerary.ts`:
 
 ```ts
-import type { ItineraryDay, ItineraryView, Place, RouteSegment, SegmentView } from "./types";
+import type {
+  ItineraryDay,
+  ItineraryView,
+  Place,
+  RouteSegment,
+  SegmentView,
+} from "./types";
 
-const DAY_COLORS = ["#0f766e", "#2563eb", "#b45309", "#7c3aed", "#be123c", "#15803d", "#0369a1"];
+const DAY_COLORS = [
+  "#0f766e",
+  "#2563eb",
+  "#b45309",
+  "#7c3aed",
+  "#be123c",
+  "#15803d",
+  "#0369a1",
+];
 
-export function buildItinerary(places: Place[], routeSegments: RouteSegment[]): ItineraryView {
+export function buildItinerary(
+  places: Place[],
+  routeSegments: RouteSegment[],
+): ItineraryView {
   const scheduled = places.filter((place) => place.visit_date);
   const unscheduled = places
     .filter((place) => !place.visit_date)
     .toSorted(compareByName);
 
-  const dates = Array.from(new Set(scheduled.map((place) => place.visit_date as string))).toSorted();
-  const segmentsByPair = new Map(routeSegments.map((segment) => [pairKey(segment.from_place_id, segment.to_place_id), segment]));
+  const dates = Array.from(
+    new Set(scheduled.map((place) => place.visit_date as string)),
+  ).toSorted();
+  const segmentsByPair = new Map(
+    routeSegments.map((segment) => [
+      pairKey(segment.from_place_id, segment.to_place_id),
+      segment,
+    ]),
+  );
 
   const days: ItineraryDay[] = dates.map((date, index) => {
     const dayPlaces = scheduled
@@ -555,7 +613,10 @@ export function compareScheduledPlaces(a: Place, b: Place): number {
   return compareByName(a, b);
 }
 
-function buildSegmentViews(places: Place[], segmentsByPair: Map<string, RouteSegment>): SegmentView[] {
+function buildSegmentViews(
+  places: Place[],
+  segmentsByPair: Map<string, RouteSegment>,
+): SegmentView[] {
   const timedPlaces = places.filter((place) => place.visit_time);
   const views: SegmentView[] = [];
 
@@ -594,6 +655,7 @@ Expected: PASS.
 ## Task 3: Implement Route Reconciliation Rules
 
 **Files:**
+
 - Create: `src/lib/route-reconciliation.ts`
 - Create: `tests/route-reconciliation.test.ts`
 
@@ -608,7 +670,12 @@ import type { Place, RouteSegment } from "@/lib/types";
 
 const stamp = "2026-05-19 00:00:00";
 
-function place(id: number, name: string, visit_date: string | null, visit_time: string | null): Place {
+function place(
+  id: number,
+  name: string,
+  visit_date: string | null,
+  visit_time: string | null,
+): Place {
   return {
     id,
     name,
@@ -628,8 +695,20 @@ function place(id: number, name: string, visit_date: string | null, visit_time: 
   };
 }
 
-function segment(id: number, from_place_id: number, to_place_id: number, mode: RouteSegment["mode"]): RouteSegment {
-  return { id, from_place_id, to_place_id, mode, created_at: stamp, updated_at: stamp };
+function segment(
+  id: number,
+  from_place_id: number,
+  to_place_id: number,
+  mode: RouteSegment["mode"],
+): RouteSegment {
+  return {
+    id,
+    from_place_id,
+    to_place_id,
+    mode,
+    created_at: stamp,
+    updated_at: stamp,
+  };
 }
 
 describe("reconcileRouteSegments", () => {
@@ -644,7 +723,9 @@ describe("reconcileRouteSegments", () => {
       [],
     );
 
-    expect(result.toInsert).toEqual([{ from_place_id: 1, to_place_id: 2, mode: "walking" }]);
+    expect(result.toInsert).toEqual([
+      { from_place_id: 1, to_place_id: 2, mode: "walking" },
+    ]);
     expect(result.toDeleteIds).toEqual([]);
     expect(result.toKeepIds).toEqual([]);
   });
@@ -652,7 +733,10 @@ describe("reconcileRouteSegments", () => {
   it("preserves mode for unchanged valid pairs", () => {
     const existing = segment(8, 1, 2, "transit");
     const result = reconcileRouteSegments(
-      [place(1, "A", "2026-06-01", "09:00"), place(2, "B", "2026-06-01", "10:00")],
+      [
+        place(1, "A", "2026-06-01", "09:00"),
+        place(2, "B", "2026-06-01", "10:00"),
+      ],
       [existing],
     );
 
@@ -673,12 +757,17 @@ describe("reconcileRouteSegments", () => {
 
     expect(result.toDeleteIds).toEqual([1]);
     expect(result.toKeepIds).toEqual([2]);
-    expect(result.toInsert).toEqual([{ from_place_id: 3, to_place_id: 1, mode: "walking" }]);
+    expect(result.toInsert).toEqual([
+      { from_place_id: 3, to_place_id: 1, mode: "walking" },
+    ]);
   });
 
   it("deduplicates repeated existing rows for the same valid pair", () => {
     const result = reconcileRouteSegments(
-      [place(1, "A", "2026-06-01", "09:00"), place(2, "B", "2026-06-01", "10:00")],
+      [
+        place(1, "A", "2026-06-01", "09:00"),
+        place(2, "B", "2026-06-01", "10:00"),
+      ],
       [segment(1, 1, 2, "driving"), segment(2, 1, 2, "walking")],
     );
 
@@ -720,9 +809,14 @@ export type ReconciliationPlan = {
   preservedModes: Map<string, TravelMode>;
 };
 
-export function reconcileRouteSegments(places: Place[], existingSegments: RouteSegment[]): ReconciliationPlan {
+export function reconcileRouteSegments(
+  places: Place[],
+  existingSegments: RouteSegment[],
+): ReconciliationPlan {
   const desiredPairs = desiredSegmentPairs(places);
-  const desiredPairKeys = new Set(desiredPairs.map((pair) => pairKey(pair.from_place_id, pair.to_place_id)));
+  const desiredPairKeys = new Set(
+    desiredPairs.map((pair) => pairKey(pair.from_place_id, pair.to_place_id)),
+  );
   const existingByPair = new Map<string, RouteSegment>();
   const toKeepIds: number[] = [];
   const toDeleteIds: number[] = [];
@@ -747,15 +841,24 @@ export function reconcileRouteSegments(places: Place[], existingSegments: RouteS
   }
 
   const toInsert = desiredPairs
-    .filter((pair) => !existingByPair.has(pairKey(pair.from_place_id, pair.to_place_id)))
+    .filter(
+      (pair) =>
+        !existingByPair.has(pairKey(pair.from_place_id, pair.to_place_id)),
+    )
     .map((pair) => ({ ...pair, mode: "walking" as const }));
 
   return { toKeepIds, toDeleteIds, toInsert, preservedModes };
 }
 
-function desiredSegmentPairs(places: Place[]): Array<{ from_place_id: number; to_place_id: number }> {
+function desiredSegmentPairs(
+  places: Place[],
+): Array<{ from_place_id: number; to_place_id: number }> {
   const dates = Array.from(
-    new Set(places.filter((place) => place.visit_date && place.visit_time).map((place) => place.visit_date as string)),
+    new Set(
+      places
+        .filter((place) => place.visit_date && place.visit_time)
+        .map((place) => place.visit_date as string),
+    ),
   ).toSorted();
 
   const pairs: Array<{ from_place_id: number; to_place_id: number }> = [];
@@ -794,6 +897,7 @@ Expected: PASS.
 ## Task 4: Implement Maps URL Utilities
 
 **Files:**
+
 - Create: `src/lib/maps-url.ts`
 - Create: `src/lib/google-maps-url.ts`
 - Create: `tests/maps-url.test.ts`
@@ -830,7 +934,11 @@ import { parseGoogleMapsUrl } from "@/lib/google-maps-url";
 
 describe("parseGoogleMapsUrl", () => {
   it("extracts coordinates from @lat,lng URLs", () => {
-    expect(parseGoogleMapsUrl("https://www.google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z")).toMatchObject({
+    expect(
+      parseGoogleMapsUrl(
+        "https://www.google.com/maps/place/Oculus/@40.7118042,-74.0118498,17z",
+      ),
+    ).toMatchObject({
       latitude: 40.7118042,
       longitude: -74.0118498,
       name: "Oculus",
@@ -839,7 +947,9 @@ describe("parseGoogleMapsUrl", () => {
 
   it("extracts coordinates from !3dlat!4dlng URLs", () => {
     expect(
-      parseGoogleMapsUrl("https://www.google.com/maps/place/Times+Square/data=!3d40.7579747!4d-73.9855426"),
+      parseGoogleMapsUrl(
+        "https://www.google.com/maps/place/Times+Square/data=!3d40.7579747!4d-73.9855426",
+      ),
     ).toMatchObject({
       latitude: 40.7579747,
       longitude: -73.9855426,
@@ -953,6 +1063,7 @@ Expected: PASS.
 ## Task 5: Add SQLite Schema, DB Connection, And Repository
 
 **Files:**
+
 - Create: `src/server/schema.sql`
 - Create: `src/server/db.ts`
 - Create: `src/server/place-repository.ts`
@@ -1009,7 +1120,9 @@ let singleton: Database.Database | null = null;
 export function getDatabase(): Database.Database {
   if (singleton) return singleton;
 
-  const dbPath = process.env.TRIP_PLANNER_DB_PATH ?? path.join(process.cwd(), "data", "trip-planner.sqlite");
+  const dbPath =
+    process.env.TRIP_PLANNER_DB_PATH ??
+    path.join(process.cwd(), "data", "trip-planner.sqlite");
   mkdirSync(path.dirname(dbPath), { recursive: true });
 
   const db = new Database(dbPath);
@@ -1050,7 +1163,15 @@ export type PlaceInsert = {
   notes: string | null;
 };
 
-export type PlaceUpdate = Partial<Omit<PlaceInsert, "place_id" | "google_place_token" | "google_internal_ids" | "source_list_url">> & {
+export type PlaceUpdate = Partial<
+  Omit<
+    PlaceInsert,
+    | "place_id"
+    | "google_place_token"
+    | "google_internal_ids"
+    | "source_list_url"
+  >
+> & {
   place_id?: string | null;
   google_place_token?: string | null;
   google_internal_ids?: string | null;
@@ -1058,11 +1179,17 @@ export type PlaceUpdate = Partial<Omit<PlaceInsert, "place_id" | "google_place_t
 };
 
 export function listPlaces(db: Database.Database): Place[] {
-  return db.prepare("SELECT * FROM places ORDER BY COALESCE(visit_date, ''), COALESCE(visit_time, ''), name").all() as Place[];
+  return db
+    .prepare(
+      "SELECT * FROM places ORDER BY COALESCE(visit_date, ''), COALESCE(visit_time, ''), name",
+    )
+    .all() as Place[];
 }
 
 export function listRouteSegments(db: Database.Database): RouteSegment[] {
-  return db.prepare("SELECT * FROM route_segments ORDER BY id").all() as RouteSegment[];
+  return db
+    .prepare("SELECT * FROM route_segments ORDER BY id")
+    .all() as RouteSegment[];
 }
 
 export function insertPlace(db: Database.Database, input: PlaceInsert): Place {
@@ -1081,12 +1208,20 @@ export function insertPlace(db: Database.Database, input: PlaceInsert): Place {
   return getPlace(db, Number(result.lastInsertRowid));
 }
 
-export function updatePlace(db: Database.Database, id: number, input: PlaceUpdate): Place {
-  const fields = Object.entries(input).filter(([, value]) => value !== undefined);
+export function updatePlace(
+  db: Database.Database,
+  id: number,
+  input: PlaceUpdate,
+): Place {
+  const fields = Object.entries(input).filter(
+    ([, value]) => value !== undefined,
+  );
   if (fields.length === 0) return getPlace(db, id);
 
   const assignments = fields.map(([key]) => `${key} = @${key}`).join(", ");
-  db.prepare(`UPDATE places SET ${assignments}, updated_at = CURRENT_TIMESTAMP WHERE id = @id`).run({ id, ...input });
+  db.prepare(
+    `UPDATE places SET ${assignments}, updated_at = CURRENT_TIMESTAMP WHERE id = @id`,
+  ).run({ id, ...input });
   return getPlace(db, id);
 }
 
@@ -1094,14 +1229,30 @@ export function deletePlace(db: Database.Database, id: number): void {
   db.prepare("DELETE FROM places WHERE id = ?").run(id);
 }
 
-export function updateRouteSegmentMode(db: Database.Database, id: number, mode: TravelMode): RouteSegment {
-  db.prepare("UPDATE route_segments SET mode = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(mode, id);
-  const segment = db.prepare("SELECT * FROM route_segments WHERE id = ?").get(id) as RouteSegment | undefined;
+export function updateRouteSegmentMode(
+  db: Database.Database,
+  id: number,
+  mode: TravelMode,
+): RouteSegment {
+  db.prepare(
+    "UPDATE route_segments SET mode = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+  ).run(mode, id);
+  const segment = db
+    .prepare("SELECT * FROM route_segments WHERE id = ?")
+    .get(id) as RouteSegment | undefined;
   if (!segment) throw new Error(`Route segment ${id} not found`);
   return segment;
 }
 
-export function replaceSegments(db: Database.Database, deleteIds: number[], inserts: Array<{ from_place_id: number; to_place_id: number; mode: TravelMode }>): void {
+export function replaceSegments(
+  db: Database.Database,
+  deleteIds: number[],
+  inserts: Array<{
+    from_place_id: number;
+    to_place_id: number;
+    mode: TravelMode;
+  }>,
+): void {
   const deleteStatement = db.prepare("DELETE FROM route_segments WHERE id = ?");
   const insertStatement = db.prepare(
     "INSERT INTO route_segments (from_place_id, to_place_id, mode) VALUES (@from_place_id, @to_place_id, @mode)",
@@ -1112,7 +1263,9 @@ export function replaceSegments(db: Database.Database, deleteIds: number[], inse
 }
 
 function getPlace(db: Database.Database, id: number): Place {
-  const place = db.prepare("SELECT * FROM places WHERE id = ?").get(id) as Place | undefined;
+  const place = db.prepare("SELECT * FROM places WHERE id = ?").get(id) as
+    | Place
+    | undefined;
   if (!place) throw new Error(`Place ${id} not found`);
   return place;
 }
@@ -1131,6 +1284,7 @@ Expected: build succeeds or fails only because APIs/components are not complete 
 ## Task 6: Add Place Service Transactions
 
 **Files:**
+
 - Create: `src/server/place-service.ts`
 - Modify: `src/server/place-repository.ts`
 
@@ -1189,7 +1343,11 @@ export function removePlace(id: number): PlannerSnapshot {
   return getPlannerSnapshot();
 }
 
-export function schedulePlace(id: number, visit_date: string | null, visit_time: string | null): PlannerSnapshot {
+export function schedulePlace(
+  id: number,
+  visit_date: string | null,
+  visit_time: string | null,
+): PlannerSnapshot {
   const db = getDatabase();
   db.transaction(() => {
     updatePlace(db, id, { visit_date, visit_time });
@@ -1198,7 +1356,10 @@ export function schedulePlace(id: number, visit_date: string | null, visit_time:
   return getPlannerSnapshot();
 }
 
-export function setRouteSegmentMode(id: number, mode: TravelMode): PlannerSnapshot {
+export function setRouteSegmentMode(
+  id: number,
+  mode: TravelMode,
+): PlannerSnapshot {
   const db = getDatabase();
   db.transaction(() => {
     updateRouteSegmentMode(db, id, mode);
@@ -1227,6 +1388,7 @@ Expected: no TypeScript errors from `src/server/place-service.ts`.
 ## Task 7: Implement Server-Side Google URL Resolution
 
 **Files:**
+
 - Create: `src/server/google-url-resolver.ts`
 - Modify: `src/server/place-service.ts`
 
@@ -1244,7 +1406,9 @@ export type ResolvedGoogleMapsUrl = {
   longitude: number | null;
 };
 
-export async function resolveGoogleMapsUrl(rawUrl: string): Promise<ResolvedGoogleMapsUrl> {
+export async function resolveGoogleMapsUrl(
+  rawUrl: string,
+): Promise<ResolvedGoogleMapsUrl> {
   const direct = parseGoogleMapsUrl(rawUrl);
   if (direct.latitude !== null && direct.longitude !== null) {
     return { google_maps_url: rawUrl, ...direct };
@@ -1269,7 +1433,9 @@ async function resolveRedirect(rawUrl: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`Google Maps URL request failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Google Maps URL request failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   return response.url || rawUrl;
@@ -1283,7 +1449,9 @@ Modify `src/server/place-service.ts` by adding these exports:
 ```ts
 import { resolveGoogleMapsUrl } from "./google-url-resolver";
 
-export async function resolvePlaceUrl(rawUrl: string): Promise<ResolvedPlaceUrl> {
+export async function resolvePlaceUrl(
+  rawUrl: string,
+): Promise<ResolvedPlaceUrl> {
   const resolved = await resolveGoogleMapsUrl(rawUrl);
 
   return {
@@ -1317,6 +1485,7 @@ Expected: TypeScript build succeeds. If it fails because `ResolvedPlaceUrl` is u
 ## Task 8: Add API Routes
 
 **Files:**
+
 - Create: `src/app/api/places/route.ts`
 - Create: `src/app/api/places/[id]/route.ts`
 - Create: `src/app/api/places/[id]/schedule/route.ts`
@@ -1330,7 +1499,11 @@ Create `src/app/api/places/route.ts`:
 
 ```ts
 import { NextResponse } from "next/server";
-import { createPlace, getPlannerSnapshot, resolvePlaceUrl } from "@/server/place-service";
+import {
+  createPlace,
+  getPlannerSnapshot,
+  resolvePlaceUrl,
+} from "@/server/place-service";
 
 export async function GET() {
   return NextResponse.json(getPlannerSnapshot());
@@ -1340,16 +1513,25 @@ export async function POST(request: Request) {
   const body = await request.json();
   const googleMapsUrl = stringOrNull(body.google_maps_url);
   if (!googleMapsUrl) {
-    return NextResponse.json({ error: "Google Maps URL is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Google Maps URL is required." },
+      { status: 400 },
+    );
   }
 
   const resolved = await resolvePlaceUrl(googleMapsUrl);
   const name = stringOrNull(body.name) ?? resolved.name;
   if (!name) {
-    return NextResponse.json({ error: "Name is required when it cannot be resolved from the URL." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Name is required when it cannot be resolved from the URL." },
+      { status: 400 },
+    );
   }
   if (resolved.latitude === null || resolved.longitude === null) {
-    return NextResponse.json({ error: "Could not resolve coordinates from the Google Maps URL." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Could not resolve coordinates from the Google Maps URL." },
+      { status: 400 },
+    );
   }
 
   return NextResponse.json(
@@ -1391,7 +1573,11 @@ Create `src/app/api/places/[id]/route.ts`:
 
 ```ts
 import { NextResponse } from "next/server";
-import { editPlace, removePlace, resolvePlaceUrl } from "@/server/place-service";
+import {
+  editPlace,
+  removePlace,
+  resolvePlaceUrl,
+} from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -1418,7 +1604,10 @@ export async function PATCH(request: Request, { params }: Params) {
   if (input.google_maps_url) {
     const resolved = await resolvePlaceUrl(input.google_maps_url);
     if (resolved.latitude === null || resolved.longitude === null) {
-      return NextResponse.json({ error: "Could not resolve coordinates from the Google Maps URL." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Could not resolve coordinates from the Google Maps URL." },
+        { status: 400 },
+      );
     }
     input.google_maps_url = resolved.google_maps_url;
     input.latitude = resolved.latitude;
@@ -1480,18 +1669,28 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Invalid place id." }, { status: 400 });
   }
 
-  const visitDate = body.visit_date === null ? null : parseDate(body.visit_date);
-  const visitTime = visitDate === null ? null : body.visit_time === null ? null : parseTime(body.visit_time);
+  const visitDate =
+    body.visit_date === null ? null : parseDate(body.visit_date);
+  const visitTime =
+    visitDate === null
+      ? null
+      : body.visit_time === null
+        ? null
+        : parseTime(body.visit_time);
 
   return NextResponse.json(schedulePlace(placeId, visitDate, visitTime));
 }
 
 function parseDate(value: unknown): string | null {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? value
+    : null;
 }
 
 function parseTime(value: unknown): string | null {
-  return typeof value === "string" && /^\d{2}:\d{2}$/.test(value) ? value : null;
+  return typeof value === "string" && /^\d{2}:\d{2}$/.test(value)
+    ? value
+    : null;
 }
 ```
 
@@ -1504,7 +1703,12 @@ import { NextResponse } from "next/server";
 import { setRouteSegmentMode } from "@/server/place-service";
 import type { TravelMode } from "@/lib/types";
 
-const MODES = new Set<TravelMode>(["walking", "transit", "bicycling", "driving"]);
+const MODES = new Set<TravelMode>([
+  "walking",
+  "transit",
+  "bicycling",
+  "driving",
+]);
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -1518,7 +1722,10 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   if (!MODES.has(body.mode)) {
-    return NextResponse.json({ error: "Invalid travel mode." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid travel mode." },
+      { status: 400 },
+    );
   }
 
   return NextResponse.json(setRouteSegmentMode(segmentId, body.mode));
@@ -1538,6 +1745,7 @@ Expected: PASS.
 ## Task 9: Update CLI-Only Google List Importer
 
 **Files:**
+
 - Modify: `scripts/import-google-list.mjs`
 - Create: `tests/importer-matching.test.mjs`
 
@@ -1549,24 +1757,46 @@ Create `tests/importer-matching.test.mjs`:
 import { describe, expect, it } from "vitest";
 
 function findExistingPlace(imported, existingRows) {
-  if (imported.place_id) return existingRows.find((row) => row.place_id === imported.place_id) ?? null;
+  if (imported.place_id)
+    return (
+      existingRows.find((row) => row.place_id === imported.place_id) ?? null
+    );
   if (imported.google_place_token) {
-    return existingRows.find((row) => row.google_place_token === imported.google_place_token) ?? null;
+    return (
+      existingRows.find(
+        (row) => row.google_place_token === imported.google_place_token,
+      ) ?? null
+    );
   }
   if (imported.google_internal_ids) {
-    return existingRows.find((row) => row.google_internal_ids === imported.google_internal_ids) ?? null;
+    return (
+      existingRows.find(
+        (row) => row.google_internal_ids === imported.google_internal_ids,
+      ) ?? null
+    );
   }
   return null;
 }
 
 describe("importer matching contract", () => {
   it("matches by google_internal_ids before falling back", () => {
-    const existing = { id: 1, google_internal_ids: "[\"a\",\"b\"]", name: "User Name" };
-    expect(findExistingPlace({ google_internal_ids: "[\"a\",\"b\"]" }, [existing])).toBe(existing);
+    const existing = {
+      id: 1,
+      google_internal_ids: '["a","b"]',
+      name: "User Name",
+    };
+    expect(
+      findExistingPlace({ google_internal_ids: '["a","b"]' }, [existing]),
+    ).toBe(existing);
   });
 
   it("does not match weak rows without stable identity", () => {
-    expect(findExistingPlace({ name: "Central Park", google_internal_ids: null }, [])).toBeNull();
+    expect(
+      findExistingPlace(
+        { name: "Central Park", google_internal_ids: null },
+        [],
+      ),
+    ).toBeNull();
   });
 });
 ```
@@ -1644,12 +1874,16 @@ function findExistingPlace(imported, existingRows) {
   }
 
   if (imported.googlePlaceToken) {
-    const match = existingRows.find((row) => row.google_place_token === imported.googlePlaceToken);
+    const match = existingRows.find(
+      (row) => row.google_place_token === imported.googlePlaceToken,
+    );
     if (match) return match;
   }
 
   if (imported.googleInternalIds) {
-    const match = existingRows.find((row) => row.google_internal_ids === imported.googleInternalIds);
+    const match = existingRows.find(
+      (row) => row.google_internal_ids === imported.googleInternalIds,
+    );
     if (match) return match;
   }
 
@@ -1723,6 +1957,7 @@ Expected: count is greater than 0.
 ## Task 10: Build Client State Shell And API Calls
 
 **Files:**
+
 - Replace: `src/components/TripPlannerApp.tsx`
 
 - [ ] **Step 1: Replace `TripPlannerApp`**
@@ -1749,7 +1984,10 @@ export function TripPlannerApp() {
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const itinerary = useMemo(() => buildItinerary(snapshot.places, snapshot.routeSegments), [snapshot]);
+  const itinerary = useMemo(
+    () => buildItinerary(snapshot.places, snapshot.routeSegments),
+    [snapshot],
+  );
 
   const reload = useCallback(async () => {
     const response = await fetch("/api/places");
@@ -1758,7 +1996,11 @@ export function TripPlannerApp() {
   }, []);
 
   useEffect(() => {
-    reload().catch((reason) => setError(reason instanceof Error ? reason.message : "Failed to load places."));
+    reload().catch((reason) =>
+      setError(
+        reason instanceof Error ? reason.message : "Failed to load places.",
+      ),
+    );
   }, [reload]);
 
   async function savePlace(payload: Record<string, unknown>, id?: number) {
@@ -1781,14 +2023,19 @@ export function TripPlannerApp() {
     setSnapshot(data);
   }
 
-  async function schedulePlace(id: number, visitDate: string | null, visitTime: string | null) {
+  async function schedulePlace(
+    id: number,
+    visitDate: string | null,
+    visitTime: string | null,
+  ) {
     const response = await fetch(`/api/places/${id}/schedule`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ visit_date: visitDate, visit_time: visitTime }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error ?? "Failed to schedule place.");
+    if (!response.ok)
+      throw new Error(data.error ?? "Failed to schedule place.");
     setSnapshot(data);
   }
 
@@ -1799,7 +2046,8 @@ export function TripPlannerApp() {
       body: JSON.stringify({ mode }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error ?? "Failed to update route mode.");
+    if (!response.ok)
+      throw new Error(data.error ?? "Failed to update route mode.");
     setSnapshot(data);
   }
 
@@ -1813,11 +2061,21 @@ export function TripPlannerApp() {
         error={error}
         onAdd={() => setIsAdding(true)}
         onEdit={setEditingPlace}
-        onDelete={(id) => deletePlace(id).catch((reason) => setError(reason.message))}
+        onDelete={(id) =>
+          deletePlace(id).catch((reason) => setError(reason.message))
+        }
         onSelectPlace={setActivePlaceId}
         onSelectSegment={setActiveSegmentId}
-        onSchedulePlace={(id, date, time) => schedulePlace(id, date, time).catch((reason) => setError(reason.message))}
-        onModeChange={(id, mode) => updateSegmentMode(id, mode).catch((reason) => setError(reason.message))}
+        onSchedulePlace={(id, date, time) =>
+          schedulePlace(id, date, time).catch((reason) =>
+            setError(reason.message),
+          )
+        }
+        onModeChange={(id, mode) =>
+          updateSegmentMode(id, mode).catch((reason) =>
+            setError(reason.message),
+          )
+        }
       />
       <MapPanel
         places={snapshot.places}
@@ -1835,7 +2093,11 @@ export function TripPlannerApp() {
             setIsAdding(false);
             setEditingPlace(null);
           }}
-          onSave={(payload) => savePlace(payload, editingPlace?.id).catch((reason) => setError(reason.message))}
+          onSave={(payload) =>
+            savePlace(payload, editingPlace?.id).catch((reason) =>
+              setError(reason.message),
+            )
+          }
         />
       )}
     </main>
@@ -1856,6 +2118,7 @@ Expected: FAIL because child components do not exist. Continue to Task 11.
 ## Task 11: Build Left Panel, Modal, And Segment Row
 
 **Files:**
+
 - Create: `src/components/AddEditPlaceModal.tsx`
 - Create: `src/components/LeftPanel.tsx`
 - Create: `src/components/SegmentRow.tsx`
@@ -1898,7 +2161,9 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
     try {
       await onSave(payload);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Failed to save place.");
+      setError(
+        reason instanceof Error ? reason.message : "Failed to save place.",
+      );
       setIsSaving(false);
     }
   }
@@ -1908,17 +2173,30 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
       <form className="modal" onSubmit={submit}>
         <header className="modal-header">
           <h2>{place ? "Edit Place" : "Add Place"}</h2>
-          <button type="button" className="icon-button" onClick={onCancel} aria-label="Close">
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onCancel}
+            aria-label="Close"
+          >
             X
           </button>
         </header>
         <label>
           Google Maps URL
-          <input name="google_maps_url" required defaultValue={place?.google_maps_url ?? ""} />
+          <input
+            name="google_maps_url"
+            required
+            defaultValue={place?.google_maps_url ?? ""}
+          />
         </label>
         <label>
           Name
-          <input name="name" defaultValue={place?.name ?? ""} placeholder="Auto-filled when possible" />
+          <input
+            name="name"
+            defaultValue={place?.name ?? ""}
+            placeholder="Auto-filled when possible"
+          />
         </label>
         <label>
           Address
@@ -1927,11 +2205,19 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
         <div className="form-grid">
           <label>
             Date
-            <input type="date" name="visit_date" defaultValue={place?.visit_date ?? ""} />
+            <input
+              type="date"
+              name="visit_date"
+              defaultValue={place?.visit_date ?? ""}
+            />
           </label>
           <label>
             Time
-            <input type="time" name="visit_time" defaultValue={place?.visit_time ?? ""} />
+            <input
+              type="time"
+              name="visit_time"
+              defaultValue={place?.visit_time ?? ""}
+            />
           </label>
         </div>
         <label>
@@ -1983,7 +2269,14 @@ type Props = {
   onModeChange: (mode: TravelMode) => void;
 };
 
-export function SegmentRow({ segment, from, to, active, onSelect, onModeChange }: Props) {
+export function SegmentRow({
+  segment,
+  from,
+  to,
+  active,
+  onSelect,
+  onModeChange,
+}: Props) {
   const url = buildGoogleMapsDirectionsUrl({
     origin: { latitude: from.latitude, longitude: from.longitude },
     destination: { latitude: to.latitude, longitude: to.longitude },
@@ -1995,7 +2288,9 @@ export function SegmentRow({ segment, from, to, active, onSelect, onModeChange }
       <select
         aria-label={`Travel mode from ${from.name} to ${to.name}`}
         value={segment.mode}
-        onChange={(event) => onModeChange(event.currentTarget.value as TravelMode)}
+        onChange={(event) =>
+          onModeChange(event.currentTarget.value as TravelMode)
+        }
       >
         {MODES.map((mode) => (
           <option key={mode} value={mode}>
@@ -2032,7 +2327,11 @@ type Props = {
   onDelete: (id: number) => void;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
-  onSchedulePlace: (id: number, visitDate: string | null, visitTime: string | null) => void;
+  onSchedulePlace: (
+    id: number,
+    visitDate: string | null,
+    visitTime: string | null,
+  ) => void;
   onModeChange: (id: number, mode: TravelMode) => void;
 };
 
@@ -2053,13 +2352,16 @@ export function LeftPanel(props: Props) {
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => {
               const id = Number(event.dataTransfer.getData("text/place-id"));
-              if (Number.isInteger(id)) props.onSchedulePlace(id, day.date, null);
+              if (Number.isInteger(id))
+                props.onSchedulePlace(id, day.date, null);
             }}
           >
             <h3 style={{ borderColor: day.color }}>{day.date}</h3>
             {day.places.map((place, index) => {
               const nextPlace = day.places[index + 1];
-              const segmentView = day.segments.find((segment) => segment.fromPlaceId === place.id);
+              const segmentView = day.segments.find(
+                (segment) => segment.fromPlaceId === place.id,
+              );
               return (
                 <div key={place.id}>
                   <PlaceRow
@@ -2076,8 +2378,12 @@ export function LeftPanel(props: Props) {
                       from={place}
                       to={nextPlace}
                       active={props.activeSegmentId === segmentView.segment.id}
-                      onSelect={() => props.onSelectSegment(segmentView.segment.id)}
-                      onModeChange={(mode) => props.onModeChange(segmentView.segment.id, mode)}
+                      onSelect={() =>
+                        props.onSelectSegment(segmentView.segment.id)
+                      }
+                      onModeChange={(mode) =>
+                        props.onModeChange(segmentView.segment.id, mode)
+                      }
                     />
                   )}
                 </div>
@@ -2137,7 +2443,9 @@ function PlaceRow(props: {
     <div
       className={`place-row ${props.active ? "active" : ""}`}
       draggable={props.draggable}
-      onDragStart={(event) => event.dataTransfer.setData("text/place-id", String(props.place.id))}
+      onDragStart={(event) =>
+        event.dataTransfer.setData("text/place-id", String(props.place.id))
+      }
     >
       <button className="place-main" onClick={props.onSelect}>
         <strong>{props.place.name}</strong>
@@ -2152,7 +2460,8 @@ function PlaceRow(props: {
 }
 
 function formatSchedule(place: Place): string {
-  if (place.visit_date && place.visit_time) return `${place.visit_date} ${place.visit_time}`;
+  if (place.visit_date && place.visit_time)
+    return `${place.visit_date} ${place.visit_time}`;
   if (place.visit_date) return `${place.visit_date} no time`;
   return place.address ?? "Unscheduled";
 }
@@ -2315,6 +2624,7 @@ Expected: FAIL only because `MapPanel` does not exist. Continue to Task 12.
 ## Task 12: Build Map Panel And Fallback
 
 **Files:**
+
 - Create: `src/components/MapPanel.tsx`
 - Modify: `src/app/globals.css`
 
@@ -2341,7 +2651,10 @@ type Props = {
 export function MapPanel(props: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const placeColors = useMemo(() => buildPlaceColors(props.itinerary), [props.itinerary]);
+  const placeColors = useMemo(
+    () => buildPlaceColors(props.itinerary),
+    [props.itinerary],
+  );
 
   useEffect(() => {
     if (!apiKey || !mapRef.current) return;
@@ -2365,7 +2678,9 @@ export function MapPanel(props: Props) {
     return <CoordinateFallback places={props.places} />;
   }
 
-  return <section className="panel panel-map" ref={mapRef} aria-label="Google map" />;
+  return (
+    <section className="panel panel-map" ref={mapRef} aria-label="Google map" />
+  );
 }
 
 function CoordinateFallback({ places }: { places: Place[] }) {
@@ -2391,11 +2706,17 @@ function buildPlaceColors(itinerary: ItineraryView): Map<number, string> {
 
 function loadGoogleMaps(apiKey: string): Promise<void> {
   if (window.google?.maps) return Promise.resolve();
-  const existing = document.querySelector<HTMLScriptElement>("script[data-google-maps]");
+  const existing = document.querySelector<HTMLScriptElement>(
+    "script[data-google-maps]",
+  );
   if (existing) {
     return new Promise((resolve, reject) => {
       existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Google Maps failed to load")), { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Google Maps failed to load")),
+        { once: true },
+      );
     });
   }
 
@@ -2410,9 +2731,19 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
   });
 }
 
-function renderMap(container: HTMLElement, props: Props, placeColors: Map<number, string>): void {
-  const center = props.places[0] ? { lat: props.places[0].latitude, lng: props.places[0].longitude } : { lat: 40.7128, lng: -74.006 };
-  const map = new google.maps.Map(container, { center, zoom: 12, mapId: "trip-planner-map" });
+function renderMap(
+  container: HTMLElement,
+  props: Props,
+  placeColors: Map<number, string>,
+): void {
+  const center = props.places[0]
+    ? { lat: props.places[0].latitude, lng: props.places[0].longitude }
+    : { lat: 40.7128, lng: -74.006 };
+  const map = new google.maps.Map(container, {
+    center,
+    zoom: 12,
+    mapId: "trip-planner-map",
+  });
   const bounds = new google.maps.LatLngBounds();
   const placesById = new Map(props.places.map((place) => [place.id, place]));
 
@@ -2423,7 +2754,10 @@ function renderMap(container: HTMLElement, props: Props, placeColors: Map<number
       map,
       position,
       title: place.name,
-      content: markerContent(placeColors.get(place.id) ?? "#64748b", props.activePlaceId === place.id),
+      content: markerContent(
+        placeColors.get(place.id) ?? "#64748b",
+        props.activePlaceId === place.id,
+      ),
     });
     marker.addListener("click", () => props.onSelectPlace(place.id));
   }
@@ -2512,6 +2846,7 @@ Expected: PASS. If `google` type declarations conflict, remove the custom `Windo
 ## Task 13: Full Verification Pass
 
 **Files:**
+
 - No planned edits unless verification fails.
 
 - [ ] **Step 1: Run all unit tests**

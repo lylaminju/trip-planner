@@ -15,7 +15,9 @@ export type ResolvedPlaceUrl = {
   longitude: number | null;
 };
 
-export async function resolvePlaceUrl(rawUrl: string): Promise<ResolvedPlaceUrl> {
+export async function resolvePlaceUrl(
+  rawUrl: string,
+): Promise<ResolvedPlaceUrl> {
   const resolved = await resolveGoogleMapsUrl(rawUrl);
 
   return {
@@ -34,11 +36,15 @@ export async function getPlannerSnapshotForRequest(): Promise<PlannerSnapshot> {
   return getPlannerSnapshot();
 }
 
-export async function createPlace(input: PlaceCreateInput): Promise<PlannerSnapshot> {
+export async function createPlace(
+  input: PlaceCreateInput,
+): Promise<PlannerSnapshot> {
   return supabasePlaceService.createPlace(input);
 }
 
-export async function createPlaceForRequest(input: PlaceCreateInput): Promise<PlannerSnapshot> {
+export async function createPlaceForRequest(
+  input: PlaceCreateInput,
+): Promise<PlannerSnapshot> {
   return createPlace(input);
 }
 
@@ -46,7 +52,10 @@ export async function getPlaceByIdForRequest(id: number): Promise<Place> {
   return supabasePlaceService.getPlaceById(id);
 }
 
-export async function editPlace(id: number, input: PlaceEditInput): Promise<PlannerSnapshot> {
+export async function editPlace(
+  id: number,
+  input: PlaceEditInput,
+): Promise<PlannerSnapshot> {
   return supabasePlaceService.editPlace(id, input);
 }
 
@@ -61,7 +70,9 @@ export async function removePlace(id: number): Promise<PlannerSnapshot> {
   return supabasePlaceService.removePlace(id);
 }
 
-export async function removePlaceForRequest(id: number): Promise<PlannerSnapshot> {
+export async function removePlaceForRequest(
+  id: number,
+): Promise<PlannerSnapshot> {
   return removePlace(id);
 }
 
@@ -113,11 +124,15 @@ export async function editItineraryItemForRequest(
   return editItineraryItem(id, input);
 }
 
-export async function removeItineraryItem(id: number): Promise<PlannerSnapshot> {
+export async function removeItineraryItem(
+  id: number,
+): Promise<PlannerSnapshot> {
   return supabasePlaceService.removeItineraryItem(id);
 }
 
-export async function removeItineraryItemForRequest(id: number): Promise<PlannerSnapshot> {
+export async function removeItineraryItemForRequest(
+  id: number,
+): Promise<PlannerSnapshot> {
   return removeItineraryItem(id);
 }
 

@@ -18,11 +18,14 @@ const baseInput: PlaceInsert = {
 };
 
 async function withFreshPlaceService(
-  run: (service: typeof import("@/server/place-service")) => Promise<void> | void,
+  run: (
+    service: typeof import("@/server/place-service"),
+  ) => Promise<void> | void,
 ): Promise<void> {
   vi.resetModules();
   vi.doMock("@/server/supabase-place-service", async () => {
-    const { createFakeSupabasePlaceService } = await import("./fake-supabase-place-service");
+    const { createFakeSupabasePlaceService } =
+      await import("./fake-supabase-place-service");
     return createFakeSupabasePlaceService();
   });
 
@@ -32,7 +35,6 @@ async function withFreshPlaceService(
   } finally {
     vi.doUnmock("@/server/supabase-place-service");
     vi.resetModules();
-
   }
 }
 
@@ -82,18 +84,24 @@ describe("place-service scheduling normalization", () => {
   });
 
   it("deletes an itinerary item when scheduleItineraryItem moves it to unscheduled", async () => {
-    await withFreshPlaceService(async ({ createPlace, scheduleItineraryItem }) => {
-      const created = await createPlace({
-        ...baseInput,
-        visit_date: "2026-06-01",
-        visit_time: "09:00",
-      });
+    await withFreshPlaceService(
+      async ({ createPlace, scheduleItineraryItem }) => {
+        const created = await createPlace({
+          ...baseInput,
+          visit_date: "2026-06-01",
+          visit_time: "09:00",
+        });
 
-      const snapshot = await scheduleItineraryItem(created.itineraryItems[0].id, null, "11:00");
+        const snapshot = await scheduleItineraryItem(
+          created.itineraryItems[0].id,
+          null,
+          "11:00",
+        );
 
-      expect(snapshot.itineraryItems).toEqual([]);
-      expect(snapshot.routeSegments).toEqual([]);
-    });
+        expect(snapshot.itineraryItems).toEqual([]);
+        expect(snapshot.routeSegments).toEqual([]);
+      },
+    );
   });
 
   it("can create multiple visits for the same canonical place", async () => {
@@ -104,7 +112,11 @@ describe("place-service scheduling normalization", () => {
         visit_time: "09:00",
       });
 
-      const snapshot = await schedulePlace(created.places[0].id, "2026-06-01", "10:00");
+      const snapshot = await schedulePlace(
+        created.places[0].id,
+        "2026-06-01",
+        "10:00",
+      );
 
       expect(snapshot.places).toHaveLength(1);
       expect(snapshot.itineraryItems).toMatchObject([

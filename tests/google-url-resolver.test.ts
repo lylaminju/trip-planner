@@ -14,9 +14,11 @@ describe("resolveGoogleMapsUrl", () => {
   });
 
   it("returns parsed direct Google Maps URLs without fetching", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(
-      new Error("fetch should not be called on the fast path"),
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(
+        new Error("fetch should not be called on the fast path"),
+      );
 
     await expect(resolveGoogleMapsUrl(CANONICAL_URL)).resolves.toEqual({
       google_maps_url: CANONICAL_URL,
@@ -28,20 +30,24 @@ describe("resolveGoogleMapsUrl", () => {
   });
 
   it("rejects disallowed non-Google hosts without fetching", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("should not fetch"));
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("should not fetch"));
 
-    await expect(resolveGoogleMapsUrl("https://example.com/maps/place/Oculus")).rejects.toThrow(
-      "Unsupported Google Maps URL host",
-    );
+    await expect(
+      resolveGoogleMapsUrl("https://example.com/maps/place/Oculus"),
+    ).rejects.toThrow("Unsupported Google Maps URL host");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("rejects non-HTTPS short Google Maps URLs without fetching", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("should not fetch"));
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("should not fetch"));
 
-    await expect(resolveGoogleMapsUrl("http://maps.app.goo.gl/abc123")).rejects.toThrow(
-      "Google Maps short URLs must use https",
-    );
+    await expect(
+      resolveGoogleMapsUrl("http://maps.app.goo.gl/abc123"),
+    ).rejects.toThrow("Google Maps short URLs must use https");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -81,9 +87,9 @@ describe("resolveGoogleMapsUrl", () => {
       mockRedirectResponse("https://evil.example.com/not-google"),
     );
 
-    await expect(resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123")).rejects.toThrow(
-      "Unsupported Google Maps redirect host",
-    );
+    await expect(
+      resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123"),
+    ).rejects.toThrow("Unsupported Google Maps redirect host");
   });
 
   it("throws when the redirect response is not ok", async () => {
@@ -94,9 +100,9 @@ describe("resolveGoogleMapsUrl", () => {
       url: "https://maps.app.goo.gl/abc123",
     } as Response);
 
-    await expect(resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123")).rejects.toThrow(
-      "Google Maps URL request failed: 502 Bad Gateway",
-    );
+    await expect(
+      resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123"),
+    ).rejects.toThrow("Google Maps URL request failed: 502 Bad Gateway");
   });
 
   it("throws when the redirected final URL is not a recognized Google Maps place URL", async () => {
@@ -107,17 +113,19 @@ describe("resolveGoogleMapsUrl", () => {
       url: "https://example.com/not-google",
     } as Response);
 
-    await expect(resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123")).rejects.toThrow(
-      "Resolved Google Maps URL was not parseable",
-    );
+    await expect(
+      resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123"),
+    ).rejects.toThrow("Resolved Google Maps URL was not parseable");
   });
 
   it("normalizes transport failures into a stable fetch error", async () => {
-    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("connect ECONNREFUSED 127.0.0.1"));
-
-    await expect(resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123")).rejects.toThrow(
-      STABLE_FETCH_ERROR,
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(
+      new Error("connect ECONNREFUSED 127.0.0.1"),
     );
+
+    await expect(
+      resolveGoogleMapsUrl("https://maps.app.goo.gl/abc123"),
+    ).rejects.toThrow(STABLE_FETCH_ERROR);
   });
 
   it("aborts redirect resolution when the fetch times out", async () => {
@@ -134,7 +142,9 @@ describe("resolveGoogleMapsUrl", () => {
     );
 
     const pending = resolveGoogleMapsUrl("https://maps.app.goo.gl/timeout");
-    const assertion = expect(pending).rejects.toThrow("Google Maps URL resolution timed out");
+    const assertion = expect(pending).rejects.toThrow(
+      "Google Maps URL resolution timed out",
+    );
 
     await vi.advanceTimersByTimeAsync(5_000);
 

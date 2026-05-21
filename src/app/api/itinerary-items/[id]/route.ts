@@ -87,7 +87,9 @@ function nullableStringOrUndefined(value: unknown): string | null | undefined {
   return stringOrUndefined(value);
 }
 
-function nullableDateOrUndefined(value: unknown): string | NextResponse | null | undefined {
+function nullableDateOrUndefined(
+  value: unknown,
+): string | NextResponse | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== "string") {
@@ -100,7 +102,9 @@ function nullableDateOrUndefined(value: unknown): string | NextResponse | null |
   return text;
 }
 
-function nullableTimeOrUndefined(value: unknown): string | NextResponse | null | undefined {
+function nullableTimeOrUndefined(
+  value: unknown,
+): string | NextResponse | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== "string") {

@@ -1,14 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { formatItineraryDateHeading, formatPlaceRow } from "@/lib/place-display";
+import {
+  formatItineraryDateHeading,
+  formatPlaceRow,
+} from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 describe("formatPlaceRow", () => {
   it("shows itinerary time before the place name without repeating the date", () => {
     expect(
-      formatPlaceRow(place({ name: "LaGuardia Airport", visit_date: "2026-06-01", visit_time: "10:00" }), {
-        context: "itinerary",
-      }),
+      formatPlaceRow(
+        place({
+          name: "LaGuardia Airport",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
+        {
+          context: "itinerary",
+        },
+      ),
     ).toEqual({
       title: "LaGuardia Airport",
       detail: null,
@@ -18,9 +28,16 @@ describe("formatPlaceRow", () => {
 
   it("shows itinerary place names without a no-time label", () => {
     expect(
-      formatPlaceRow(place({ name: "Bryant Park", visit_date: "2026-06-01", visit_time: null }), {
-        context: "itinerary",
-      }),
+      formatPlaceRow(
+        place({
+          name: "Bryant Park",
+          visit_date: "2026-06-01",
+          visit_time: null,
+        }),
+        {
+          context: "itinerary",
+        },
+      ),
     ).toEqual({
       title: "Bryant Park",
       detail: null,
@@ -30,9 +47,16 @@ describe("formatPlaceRow", () => {
 
   it("keeps schedule context outside date buckets", () => {
     expect(
-      formatPlaceRow(place({ name: "LaGuardia Airport", visit_date: "2026-06-01", visit_time: "10:00" }), {
-        context: "default",
-      }),
+      formatPlaceRow(
+        place({
+          name: "LaGuardia Airport",
+          visit_date: "2026-06-01",
+          visit_time: "10:00",
+        }),
+        {
+          context: "default",
+        },
+      ),
     ).toEqual({
       title: "LaGuardia Airport",
       detail: "2026-06-01 10:00",
@@ -98,7 +122,8 @@ describe("formatItineraryDateHeading", () => {
 });
 
 function place(
-  overrides: Partial<Place> & Partial<Pick<ItineraryItem, "visit_date" | "visit_time">>,
+  overrides: Partial<Place> &
+    Partial<Pick<ItineraryItem, "visit_date" | "visit_time">>,
 ): ItineraryItem {
   const canonicalPlace: Place = {
     id: 1,

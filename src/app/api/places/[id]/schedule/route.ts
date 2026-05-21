@@ -38,7 +38,12 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     return NextResponse.json(
-      await schedulePlaceForRequest(placeId, visitDate, visitTime, stringOrNull(body.notes)),
+      await schedulePlaceForRequest(
+        placeId,
+        visitDate,
+        visitTime,
+        stringOrNull(body.notes),
+      ),
     );
   } catch (error) {
     const response = mapRouteError(error);
@@ -54,7 +59,9 @@ function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-function parseDate(body: Record<string, unknown>): string | NextResponse | null {
+function parseDate(
+  body: Record<string, unknown>,
+): string | NextResponse | null {
   if (!Object.prototype.hasOwnProperty.call(body, "visit_date")) {
     return jsonError("Visit date is required.", 400);
   }
@@ -69,10 +76,14 @@ function parseDate(body: Record<string, unknown>): string | NextResponse | null 
   }
 
   const text = value.trim();
-  return isValidIsoDate(text) ? text : jsonError("Visit date must be YYYY-MM-DD.", 400);
+  return isValidIsoDate(text)
+    ? text
+    : jsonError("Visit date must be YYYY-MM-DD.", 400);
 }
 
-function parseTime(body: Record<string, unknown>): string | NextResponse | null {
+function parseTime(
+  body: Record<string, unknown>,
+): string | NextResponse | null {
   if (body.visit_date === null) {
     return null;
   }
@@ -91,5 +102,7 @@ function parseTime(body: Record<string, unknown>): string | NextResponse | null 
   }
 
   const text = value.trim();
-  return isValid24HourTime(text) ? text : jsonError("Visit time must be HH:MM.", 400);
+  return isValid24HourTime(text)
+    ? text
+    : jsonError("Visit time must be HH:MM.", 400);
 }
