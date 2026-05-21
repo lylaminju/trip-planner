@@ -7,6 +7,7 @@ import {
   buildTimedMarkerLabels,
   getMarkerSizing,
 } from "@/lib/map-marker-labels";
+import type { MobileSheetState } from "@/lib/mobile-sheet";
 import { getSelectedPlacePosition } from "@/lib/map-viewport";
 import type {
   ItineraryItem,
@@ -23,6 +24,7 @@ type Props = {
   activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
+  mobileSheetState: MobileSheetState;
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
   hidden?: boolean;
@@ -124,6 +126,7 @@ export function MapPanel(props: Props) {
       map,
       items: itineraryItems,
       unscheduledPlaces: props.itinerary.unscheduled,
+      mobileSheetState: props.mobileSheetState,
       routeSegments: props.routeSegments,
       routeGeometries: props.routeGeometries,
       itemColors,
@@ -218,6 +221,9 @@ export function MapPanel(props: Props) {
     );
     if (position) {
       map.panTo(position);
+      if (shouldOffsetFocusForHalfSheet(props.mobileSheetState)) {
+        map.panBy(0, Math.round(window.innerHeight * 0.32));
+      }
     }
   }, [
     apiKey,
@@ -227,6 +233,7 @@ export function MapPanel(props: Props) {
     props.activeCanonicalPlaceId,
     props.activePlaceId,
     props.hidden,
+    props.mobileSheetState,
     unscheduledPlacesSignature,
   ]);
 
@@ -381,6 +388,7 @@ function renderOverlays(input: {
   map: any;
   items: ItineraryItem[];
   unscheduledPlaces: Place[];
+  mobileSheetState: MobileSheetState;
   routeSegments: RouteSegment[];
   routeGeometries: Map<number, RouteGeometry>;
   itemColors: Map<number, string>;
@@ -534,6 +542,11 @@ function renderOverlays(input: {
   if (!bounds.isEmpty() && input.boundsSignatureRef.current === "") {
     input.boundsSignatureRef.current = "initialized";
     input.map.fitBounds(bounds, 48);
+    if (shouldOffsetFocusForHalfSheet(input.mobileSheetState)) {
+      window.google?.maps?.event?.addListenerOnce?.(input.map, "idle", () => {
+        input.map.panBy(0, Math.round(window.innerHeight * 0.32));
+      });
+    }
   }
 }
 
@@ -653,6 +666,14 @@ function buildPlacesSignature(places: Place[]): string {
   return places
     .map((place) => `place:${place.id}:${place.latitude},${place.longitude}`)
     .join(";");
+}
+
+function shouldOffsetFocusForHalfSheet(state: MobileSheetState): boolean {
+  return (
+    state === "half" &&
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 900px)").matches
+  );
 }
 
 function buildRouteSegmentsSignature(segments: RouteSegment[]): string {

@@ -2,15 +2,15 @@
 
 import {
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
   type DragEvent,
   type MouseEvent,
-  type PointerEvent,
 } from "react";
 import { createPortal } from "react-dom";
 
+import { useMobileSheetDrag } from "@/hooks/useMobileSheetDrag";
+import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   formatItineraryDateHeading,
   formatPlaceRow,
@@ -76,8 +76,6 @@ type PickerState = {
   top: number;
 };
 
-type MobileSheetState = "collapsed" | "half" | "full";
-
 export function LeftPanel(props: Props) {
   const [isItinerariesOpen, setIsItinerariesOpen] = useState(true);
   const [isUnscheduledOpen, setIsUnscheduledOpen] = useState(false);
@@ -85,11 +83,10 @@ export function LeftPanel(props: Props) {
   const [showRouteSegments, setShowRouteSegments] = useState(true);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
   const [picker, setPicker] = useState<PickerState | null>(null);
-  const sheetDragStartYRef = useRef<number | null>(null);
-  const sheetDragStartHeightRef = useRef<number | null>(null);
-  const sheetDragMovedRef = useRef(false);
-  const sheetSuppressClickRef = useRef(false);
-  const [sheetDragHeight, setSheetDragHeight] = useState<number | null>(null);
+  const mobileSheetDrag = useMobileSheetDrag({
+    state: props.mobileSheetState,
+    onStateChange: props.onMobileSheetStateChange,
+  });
   const markerLabels = useMemo(
     () => buildTimedMarkerLabels(props.itinerary),
     [props.itinerary],
@@ -132,64 +129,16 @@ export function LeftPanel(props: Props) {
     });
   }
 
-  function handleSheetPointerDown(event: PointerEvent<HTMLButtonElement>) {
-    sheetDragStartYRef.current = event.clientY;
-    sheetDragStartHeightRef.current =
-      event.currentTarget.closest(".panel-left")?.getBoundingClientRect()
-        .height ?? null;
-    sheetDragMovedRef.current = false;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function handleSheetPointerMove(event: PointerEvent<HTMLButtonElement>) {
-    const startY = sheetDragStartYRef.current;
-    const startHeight = sheetDragStartHeightRef.current;
-    if (startY === null || startHeight === null) return;
-
-    if (Math.abs(event.clientY - startY) > 8) {
-      sheetDragMovedRef.current = true;
-    }
-
-    const nextHeight = clampMobileSheetHeight(
-      startHeight - (event.clientY - startY),
-    );
-    setSheetDragHeight(nextHeight);
-  }
-
-  function handleSheetPointerUp(event: PointerEvent<HTMLButtonElement>) {
-    const startY = sheetDragStartYRef.current;
-    sheetDragStartYRef.current = null;
-    sheetDragStartHeightRef.current = null;
-    setSheetDragHeight(null);
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
-    if (startY === null) return;
-
-    const deltaY = event.clientY - startY;
-    if (!sheetDragMovedRef.current || Math.abs(deltaY) < 24) {
-      return;
-    }
-
-    sheetSuppressClickRef.current = true;
-    props.onMobileSheetStateChange(
-      deltaY > 0
-        ? lowerMobileSheetState(props.mobileSheetState)
-        : raiseMobileSheetState(props.mobileSheetState),
-    );
-  }
-
   return (
     <section
       className={`panel panel-left mobile-sheet-${props.mobileSheetState} ${
-        sheetDragHeight !== null ? "mobile-sheet-dragging" : ""
+        mobileSheetDrag.dragHeight !== null ? "mobile-sheet-dragging" : ""
       } ${props.isExpanded ? "expanded" : ""}`}
       style={
-        sheetDragHeight === null
+        mobileSheetDrag.dragHeight === null
           ? undefined
           : ({
-              "--mobile-sheet-drag-height": `${sheetDragHeight}px`,
+              "--mobile-sheet-drag-height": `${mobileSheetDrag.dragHeight}px`,
             } as CSSProperties)
       }
     >
@@ -198,24 +147,11 @@ export function LeftPanel(props: Props) {
         className="mobile-sheet-handle"
         aria-label={`Resize itinerary panel, currently ${props.mobileSheetState}`}
         title="Resize itinerary panel"
-        onPointerDown={handleSheetPointerDown}
-        onPointerMove={handleSheetPointerMove}
-        onPointerUp={handleSheetPointerUp}
-        onPointerCancel={() => {
-          sheetDragStartYRef.current = null;
-          sheetDragStartHeightRef.current = null;
-          setSheetDragHeight(null);
-        }}
-        onClick={() => {
-          if (sheetSuppressClickRef.current) {
-            sheetSuppressClickRef.current = false;
-            return;
-          }
-
-          props.onMobileSheetStateChange(
-            nextMobileSheetState(props.mobileSheetState),
-          );
-        }}
+        onPointerDown={mobileSheetDrag.handlePointerDown}
+        onPointerMove={mobileSheetDrag.handlePointerMove}
+        onPointerUp={mobileSheetDrag.handlePointerUp}
+        onPointerCancel={mobileSheetDrag.handlePointerCancel}
+        onClick={mobileSheetDrag.handleClick}
       >
         <span aria-hidden="true" />
       </button>
@@ -565,30 +501,6 @@ export function LeftPanel(props: Props) {
         )}
     </section>
   );
-}
-
-function nextMobileSheetState(state: MobileSheetState): MobileSheetState {
-  if (state === "collapsed") return "half";
-  if (state === "half") return "full";
-  return "collapsed";
-}
-
-function lowerMobileSheetState(state: MobileSheetState): MobileSheetState {
-  if (state === "full") return "half";
-  return "collapsed";
-}
-
-function raiseMobileSheetState(state: MobileSheetState): MobileSheetState {
-  if (state === "collapsed") return "half";
-  return "full";
-}
-
-function clampMobileSheetHeight(height: number): number {
-  if (typeof window === "undefined") return height;
-
-  const minHeight = 52;
-  const maxHeight = window.innerHeight;
-  return Math.min(Math.max(height, minHeight), maxHeight);
 }
 
 function DatePlacePicker(props: {

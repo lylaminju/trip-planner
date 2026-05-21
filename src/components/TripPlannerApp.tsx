@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buildItinerary } from "@/lib/itinerary";
+import type { MobileSheetState } from "@/lib/mobile-sheet";
 import { toggleSelectedId } from "@/lib/selection";
 import type {
   ItineraryItem,
@@ -495,6 +496,7 @@ export function TripPlannerApp() {
         activeCanonicalPlaceId={activeCanonicalPlaceId}
         activeSegmentId={activeSegmentId}
         activeDate={activeDate}
+        mobileSheetState={mobileSheetState}
         routeGeometries={routeGeometries}
         routeGeometryError={routeGeometryError}
         hidden={isLeftPanelExpanded}
@@ -532,8 +534,6 @@ type RouteGeometryFetchResult = {
   geometry: RouteGeometry | null;
   error: string | null;
 };
-
-type MobileSheetState = "collapsed" | "half" | "full";
 
 async function fetchRouteGeometry(
   segmentId: number,
