@@ -172,24 +172,19 @@ export function LeftPanel(props: Props) {
             {props.itinerary.days.map((day) => (
               <div
                 key={day.date}
-                className={`day-block ${dropTargetKey === day.date ? "drop-target" : ""} ${
-                  props.activeDate === day.date ? "active" : ""
-                }`}
+                className={`day-block ${props.activeDate === day.date ? "active" : ""}`}
                 onDragEnter={(event) => activateDropTarget(event, day.date)}
                 onDragOver={(event) => activateDropTarget(event, day.date)}
                 onDragLeave={leaveDropTarget}
                 onDrop={(event) => {
                   event.preventDefault();
                   setDropTargetKey(null);
-                  const item = getDraggedItem(event, props.itinerary);
-                  if (item) {
-                    props.onScheduleItem(
-                      item.id,
-                      day.date,
-                      item.visit_date ? item.visit_time : null,
-                    );
-                    return;
-                  }
+                  scheduleDraggedSource(event, {
+                    itinerary: props.itinerary,
+                    date: day.date,
+                    visitTime: null,
+                    onScheduleItem: props.onScheduleItem,
+                  });
                 }}
               >
                 <h3 className="day-heading">
@@ -221,9 +216,46 @@ export function LeftPanel(props: Props) {
                     index > 0 &&
                     !hasVisitTime(item) &&
                     hasVisitTime(day.items[index - 1]);
+                  const showEndTimedDropZone =
+                    hasVisitTime(item) && !hasVisitTime(nextItem ?? null);
 
                   return (
-                    <div key={item.id}>
+                    <div key={item.id} className="itinerary-item-stack">
+                      {index > 0 && (
+                        <InsertionDropZone
+                          active={
+                            dropTargetKey ===
+                            insertionDropTargetKey(day.date, index)
+                          }
+                          onDragEnter={(event) =>
+                            activateDropTarget(
+                              event,
+                              insertionDropTargetKey(day.date, index),
+                            )
+                          }
+                          onDragOver={(event) =>
+                            activateDropTarget(
+                              event,
+                              insertionDropTargetKey(day.date, index),
+                            )
+                          }
+                          onDragLeave={leaveDropTarget}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            setDropTargetKey(null);
+                            scheduleDraggedSource(event, {
+                              itinerary: props.itinerary,
+                              date: day.date,
+                              visitTime: inferInsertedVisitTime(
+                                day.items[index - 1],
+                                item,
+                              ),
+                              onScheduleItem: props.onScheduleItem,
+                            });
+                          }}
+                        />
+                      )}
                       {showUntimedDivider && (
                         <div className="itinerary-divider" aria-hidden="true" />
                       )}
@@ -263,6 +295,35 @@ export function LeftPanel(props: Props) {
                           onModeChange={(mode) =>
                             props.onModeChange(segmentView.segment.id, mode)
                           }
+                        />
+                      )}
+                      {showEndTimedDropZone && (
+                        <EndInsertionDropZone
+                          active={dropTargetKey === endDropTargetKey(day.date)}
+                          onDragEnter={(event) =>
+                            activateDropTarget(
+                              event,
+                              endDropTargetKey(day.date),
+                            )
+                          }
+                          onDragOver={(event) =>
+                            activateDropTarget(
+                              event,
+                              endDropTargetKey(day.date),
+                            )
+                          }
+                          onDragLeave={leaveDropTarget}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            setDropTargetKey(null);
+                            scheduleDraggedSource(event, {
+                              itinerary: props.itinerary,
+                              date: day.date,
+                              visitTime: inferEndVisitTime(day.items),
+                              onScheduleItem: props.onScheduleItem,
+                            });
+                          }}
                         />
                       )}
                     </div>
@@ -605,10 +666,64 @@ function PlaceListRow(props: {
   );
 }
 
+function InsertionDropZone(props: {
+  active: boolean;
+  onDragEnter: (event: DragEvent<HTMLDivElement>) => void;
+  onDragOver: (event: DragEvent<HTMLDivElement>) => void;
+  onDragLeave: (event: DragEvent<HTMLDivElement>) => void;
+  onDrop: (event: DragEvent<HTMLDivElement>) => void;
+}) {
+  return (
+    <div
+      className={`itinerary-insertion-zone ${props.active ? "active" : ""}`}
+      aria-hidden="true"
+      onDragEnter={(event) => {
+        event.stopPropagation();
+        props.onDragEnter(event);
+      }}
+      onDragOver={(event) => {
+        event.stopPropagation();
+        props.onDragOver(event);
+      }}
+      onDragLeave={props.onDragLeave}
+      onDrop={props.onDrop}
+    >
+      <span />
+    </div>
+  );
+}
+
+function EndInsertionDropZone(props: {
+  active: boolean;
+  onDragEnter: (event: DragEvent<HTMLDivElement>) => void;
+  onDragOver: (event: DragEvent<HTMLDivElement>) => void;
+  onDragLeave: (event: DragEvent<HTMLDivElement>) => void;
+  onDrop: (event: DragEvent<HTMLDivElement>) => void;
+}) {
+  return (
+    <div
+      className={`itinerary-end-insertion-zone ${props.active ? "active" : ""}`}
+      aria-hidden="true"
+      onDragEnter={(event) => {
+        event.stopPropagation();
+        props.onDragEnter(event);
+      }}
+      onDragOver={(event) => {
+        event.stopPropagation();
+        props.onDragOver(event);
+      }}
+      onDragLeave={props.onDragLeave}
+      onDrop={props.onDrop}
+    >
+      <span />
+    </div>
+  );
+}
+
 function hasVisitTime(
-  item: ItineraryItem,
+  item: ItineraryItem | null,
 ): item is ItineraryItem & { visit_time: string } {
-  return typeof item.visit_time === "string" && item.visit_time.length > 0;
+  return typeof item?.visit_time === "string" && item.visit_time.length > 0;
 }
 
 function createDragPreview(source: ItineraryItem): HTMLElement {
@@ -628,9 +743,7 @@ function createDragPreview(source: ItineraryItem): HTMLElement {
 
 function hasScheduleDragData(event: DragEvent<HTMLElement>): boolean {
   const types = Array.from(event.dataTransfer.types);
-  return (
-    types.includes("text/place-id") || types.includes("text/itinerary-item-id")
-  );
+  return types.includes("text/itinerary-item-id");
 }
 
 function isLeavingCurrentTarget(event: DragEvent<HTMLElement>): boolean {
@@ -651,6 +764,91 @@ function getDraggedItem(
   if (!Number.isInteger(id)) return null;
 
   return getAllItems(itinerary).find((item) => item.id === id) ?? null;
+}
+
+function scheduleDraggedSource(
+  event: DragEvent<HTMLElement>,
+  options: {
+    itinerary: ItineraryView;
+    date: string;
+    visitTime: string | null;
+    onScheduleItem: (
+      id: number,
+      visitDate: string | null,
+      visitTime: string | null,
+    ) => void;
+  },
+) {
+  const item = getDraggedItem(event, options.itinerary);
+  if (item) {
+    options.onScheduleItem(item.id, options.date, options.visitTime);
+  }
+}
+
+function inferInsertedVisitTime(
+  previous: ItineraryItem,
+  next: ItineraryItem,
+): string | null {
+  const previousMinutes = parseVisitTime(previous.visit_time);
+  const nextMinutes = parseVisitTime(next.visit_time);
+  if (
+    previousMinutes === null ||
+    nextMinutes === null ||
+    nextMinutes - previousMinutes <= 1
+  ) {
+    return null;
+  }
+
+  const midpoint = (previousMinutes + nextMinutes) / 2;
+  const rounded = Math.round(midpoint / 5) * 5;
+  const insertedMinutes =
+    rounded > previousMinutes && rounded < nextMinutes
+      ? rounded
+      : Math.floor(midpoint);
+
+  if (insertedMinutes <= previousMinutes || insertedMinutes >= nextMinutes) {
+    return null;
+  }
+
+  return formatVisitTime(insertedMinutes);
+}
+
+function inferEndVisitTime(items: ItineraryItem[]): string | null {
+  const timedMinutes = items
+    .map((item) => parseVisitTime(item.visit_time))
+    .filter((value): value is number => value !== null);
+  const lastMinutes = timedMinutes.at(-1);
+  if (lastMinutes === undefined) {
+    return null;
+  }
+
+  return formatVisitTime(Math.min(lastMinutes + 60, 23 * 60 + 59));
+}
+
+function parseVisitTime(value: string | null): number | null {
+  if (!value) return null;
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+  return hours * 60 + minutes;
+}
+
+function formatVisitTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
+function insertionDropTargetKey(date: string, index: number): string {
+  return `${date}:insert:${index}`;
+}
+
+function endDropTargetKey(date: string): string {
+  return `${date}:end`;
 }
 
 function getFirstItemIdForPlace(

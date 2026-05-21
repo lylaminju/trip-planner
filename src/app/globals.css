@@ -391,6 +391,51 @@ textarea {
   margin: 10px 0 8px;
 }
 
+.itinerary-item-stack {
+  position: relative;
+}
+
+.itinerary-insertion-zone,
+.itinerary-end-insertion-zone {
+  align-items: center;
+  display: flex;
+  height: 20px;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: -10px;
+  z-index: 3;
+}
+
+.itinerary-insertion-zone span,
+.itinerary-end-insertion-zone span {
+  background: var(--active-line);
+  border-radius: 999px;
+  display: block;
+  height: 2px;
+  opacity: 0;
+  position: absolute;
+  top: 9px;
+  transition: opacity 120ms ease;
+  width: 100%;
+}
+
+.itinerary-insertion-zone.active span,
+.itinerary-end-insertion-zone.active span {
+  opacity: 1;
+}
+
+.itinerary-end-insertion-zone {
+  bottom: -10px;
+  top: auto;
+}
+
+.itinerary-end-insertion-zone span {
+  top: 9px;
+}
+
 .place-main {
   background: transparent;
   border: 0;
@@ -529,8 +574,7 @@ textarea {
   font-weight: 700;
   gap: 6px;
   padding: 0;
-  transition:
-    color 120ms ease;
+  transition: color 120ms ease;
 }
 
 .route-segment-toggle.active {
@@ -593,10 +637,10 @@ textarea {
 .route-mode-select {
   appearance: none;
   background:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 13px) 50% / 5px 5px
-      no-repeat,
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 8px) 50% / 5px 5px
-      no-repeat,
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 13px)
+      50% / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 8px)
+      50% / 5px 5px no-repeat,
     #ffffff;
   border: 1px solid var(--line);
   border-radius: 6px;

@@ -1,6 +1,6 @@
 # Trip Planner
 
-A local-first trip planning app for building dated itineraries from saved places, arranging visits by day and time, and viewing the plan on Google Maps.
+A trip planning app for building dated itineraries from saved places, arranging visits by day and time, and viewing the plan on Google Maps. This app is deployed on Vercel.
 
 ## Features
 
@@ -74,30 +74,6 @@ The main tables are:
 - `itinerary_items`: scheduled visits that reference places.
 - `route_segments`: travel-mode choices between consecutive timed itinerary items.
 - `route_geometry_cache`: cached Google Routes API results.
-
-## Legacy SQLite Data
-
-The repository still keeps the previous SQLite database at:
-
-```text
-data/trip-planner.sqlite
-```
-
-The app no longer connects to SQLite in local or hosted environments. The SQLite file is retained as a migration source while the project moves to Supabase. SQLite runtime sidecar files such as `data/*.sqlite-wal` and `data/*.sqlite-shm` are still ignored.
-
-To copy the committed SQLite data into Supabase:
-
-```bash
-npm run push:supabase
-```
-
-To clear the remote trip-planner tables first, then import SQLite:
-
-```bash
-npm run push:supabase -- --replace
-```
-
-`--replace` deletes remote rows in `route_geometry_cache`, `route_segments`, `itinerary_items`, and `places` before importing. Use it only when the Supabase project should mirror the local SQLite database exactly.
 
 ## Hosting
 
