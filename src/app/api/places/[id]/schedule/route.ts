@@ -7,12 +7,19 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
 } from "@/app/api/_utils";
 import { schedulePlaceForRequest } from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const placeId = Number(id);
 
@@ -37,13 +44,16 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(
-      await schedulePlaceForRequest(
-        placeId,
-        visitDate,
-        visitTime,
-        stringOrNull(body.notes),
+    return withRefreshedSession(
+      NextResponse.json(
+        await schedulePlaceForRequest(
+          placeId,
+          visitDate,
+          visitTime,
+          stringOrNull(body.notes),
+        ),
       ),
+      auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);

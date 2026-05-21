@@ -411,6 +411,14 @@ export function TripPlannerApp() {
     setActiveCanonicalPlaceId(id);
   }
 
+  async function logout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      window.location.assign("/login");
+    }
+  }
+
   return (
     <main
       className={`app-shell mobile-sheet-${mobileSheetState} ${
@@ -431,6 +439,7 @@ export function TripPlannerApp() {
         onToggleExpanded={() => setIsLeftPanelExpanded((value) => !value)}
         onMobileSheetStateChange={setMobileSheetState}
         onAdd={openAddModal}
+        onLogout={logout}
         onAddVisit={openAddVisitModal}
         onEdit={openEditModal}
         onEditItem={openEditItemModal}

@@ -7,6 +7,8 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
 } from "@/app/api/_utils";
 import {
   editItineraryItemForRequest,
@@ -16,6 +18,11 @@ import {
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const itemId = Number(id);
 
@@ -40,12 +47,15 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(
-      await editItineraryItemForRequest(itemId, {
-        visit_date: visitDate,
-        visit_time: visitTime,
-        notes: nullableStringOrUndefined(body.notes),
-      }),
+    return withRefreshedSession(
+      NextResponse.json(
+        await editItineraryItemForRequest(itemId, {
+          visit_date: visitDate,
+          visit_time: visitTime,
+          notes: nullableStringOrUndefined(body.notes),
+        }),
+      ),
+      auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);
@@ -57,7 +67,12 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const itemId = Number(id);
 
@@ -66,7 +81,10 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(await removeItineraryItemForRequest(itemId));
+    return withRefreshedSession(
+      NextResponse.json(await removeItineraryItemForRequest(itemId)),
+      auth.refreshedSession,
+    );
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

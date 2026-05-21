@@ -19,6 +19,7 @@ const baseInput: PlaceInsert = {
 
 async function withFreshTestEnv(
   run: () => Promise<void> | void,
+  options: { authenticated?: boolean } = {},
 ): Promise<void> {
   vi.resetModules();
   vi.doMock("@/server/supabase-place-service", async () => {
@@ -26,10 +27,22 @@ async function withFreshTestEnv(
       await import("./fake-supabase-place-service");
     return createFakeSupabasePlaceService();
   });
+  vi.doMock("@/server/auth-session", () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue({
+      user: options.authenticated === false ? null : { id: "user-1" },
+      session: null,
+    }),
+    readAuthTokensFromCookieHeader: vi.fn().mockReturnValue({
+      accessToken: "token",
+      refreshToken: "refresh",
+    }),
+    setAuthCookies: vi.fn((response) => response),
+  }));
 
   try {
     await run();
   } finally {
+    vi.doUnmock("@/server/auth-session");
     vi.doUnmock("@/server/place-service");
     vi.doUnmock("@/server/supabase-place-service");
     vi.restoreAllMocks();
@@ -38,6 +51,21 @@ async function withFreshTestEnv(
 }
 
 describe("API routes transport behavior", () => {
+  it("returns 401 for unauthenticated planner API requests", async () => {
+    await withFreshTestEnv(
+      async () => {
+        const { GET } = await import("@/app/api/places/route");
+        const response = await GET(new Request("http://localhost/api/places"));
+
+        expect(response.status).toBe(401);
+        await expect(response.json()).resolves.toEqual({
+          error: "Authentication required.",
+        });
+      },
+      { authenticated: false },
+    );
+  });
+
   it("returns 400 for malformed JSON in all mutating routes", async () => {
     await withFreshTestEnv(async () => {
       const placesRoute = await import("@/app/api/places/route");

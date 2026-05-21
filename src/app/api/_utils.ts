@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Session } from "@supabase/supabase-js";
 
 import {
   GoogleRoutesConfigError,
@@ -9,6 +10,11 @@ import {
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
 } from "@/server/errors";
+import {
+  getAuthenticatedUser,
+  readAuthTokensFromCookieHeader,
+  setAuthCookies,
+} from "@/server/auth-session";
 
 export type JsonObject = Record<string, unknown>;
 
@@ -29,6 +35,34 @@ export async function readJsonBody(
 
 export function jsonError(error: string, status: number): NextResponse {
   return NextResponse.json({ error }, { status });
+}
+
+export async function requireAuthenticatedRequest(
+  request: Request,
+): Promise<
+  | { ok: true; refreshedSession: Session | null }
+  | { ok: false; response: NextResponse }
+> {
+  const { user, session } = await getAuthenticatedUser(
+    readAuthTokensFromCookieHeader(request.headers.get("cookie")),
+  );
+
+  if (!user) {
+    return { ok: false, response: jsonError("Authentication required.", 401) };
+  }
+
+  return { ok: true, refreshedSession: session };
+}
+
+export function withRefreshedSession(
+  response: NextResponse,
+  refreshedSession: Session | null,
+): NextResponse {
+  if (!refreshedSession) {
+    return response;
+  }
+
+  return setAuthCookies(response, refreshedSession);
 }
 
 export function mapRouteError(error: unknown): NextResponse | null {

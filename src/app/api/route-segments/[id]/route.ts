@@ -5,6 +5,8 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
 } from "@/app/api/_utils";
 import type { TravelMode } from "@/lib/types";
 import { setRouteSegmentModeForRequest } from "@/server/place-service";
@@ -19,6 +21,11 @@ const MODES = new Set<TravelMode>([
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const segmentId = Number(id);
 
@@ -37,8 +44,11 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(
-      await setRouteSegmentModeForRequest(segmentId, body.mode as TravelMode),
+    return withRefreshedSession(
+      NextResponse.json(
+        await setRouteSegmentModeForRequest(segmentId, body.mode as TravelMode),
+      ),
+      auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);

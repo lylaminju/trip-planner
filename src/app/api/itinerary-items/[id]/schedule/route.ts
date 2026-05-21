@@ -7,12 +7,19 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
 } from "@/app/api/_utils";
 import { scheduleItineraryItemForRequest } from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const itemId = Number(id);
 
@@ -37,8 +44,11 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(
-      await scheduleItineraryItemForRequest(itemId, visitDate, visitTime),
+    return withRefreshedSession(
+      NextResponse.json(
+        await scheduleItineraryItemForRequest(itemId, visitDate, visitTime),
+      ),
+      auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);

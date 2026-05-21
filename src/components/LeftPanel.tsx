@@ -48,6 +48,7 @@ type Props = {
   onToggleExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onAdd: () => void;
+  onLogout: () => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
   onEditItem: (item: ItineraryItem) => void;
@@ -158,6 +159,9 @@ export function LeftPanel(props: Props) {
       <header className="app-header">
         <h1>Trip Planner</h1>
         <div className="app-header-actions">
+          <button type="button" onClick={props.onLogout}>
+            Log out
+          </button>
           <button
             type="button"
             className="panel-expand-toggle"

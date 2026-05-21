@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 
-import { jsonError, mapRouteError } from "@/app/api/_utils";
+import {
+  jsonError,
+  mapRouteError,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
+} from "@/app/api/_utils";
 import { getRouteGeometry } from "@/server/route-geometry-service";
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const segmentId = Number(id);
 
@@ -14,7 +24,10 @@ export async function GET(_request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(await getRouteGeometry(segmentId));
+    return withRefreshedSession(
+      NextResponse.json(await getRouteGeometry(segmentId)),
+      auth.refreshedSession,
+    );
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

@@ -27,6 +27,82 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.login-shell {
+  align-items: center;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(15, 118, 110, 0.14),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(100, 116, 139, 0.18),
+      transparent 36%
+    ),
+    var(--bg);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(216, 222, 228, 0.92);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+  display: grid;
+  gap: 20px;
+  max-width: 420px;
+  padding: 28px;
+  width: min(100%, 420px);
+}
+
+.login-copy h1 {
+  font-size: 32px;
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.login-copy p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.login-kicker {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.login-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.login-form span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-form input {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
 button,
 input,
 select,

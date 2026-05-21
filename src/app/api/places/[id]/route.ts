@@ -7,6 +7,8 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
 } from "@/app/api/_utils";
 import {
   editPlaceForRequest,
@@ -18,6 +20,11 @@ import {
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const placeId = Number(id);
 
@@ -70,7 +77,10 @@ export async function PATCH(request: Request, { params }: Params) {
       input.longitude = resolved.longitude;
     }
 
-    return NextResponse.json(await editPlaceForRequest(placeId, input));
+    return withRefreshedSession(
+      NextResponse.json(await editPlaceForRequest(placeId, input)),
+      auth.refreshedSession,
+    );
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {
@@ -81,7 +91,12 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: Params) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const { id } = await params;
   const placeId = Number(id);
 
@@ -90,7 +105,10 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(await removePlaceForRequest(placeId));
+    return withRefreshedSession(
+      NextResponse.json(await removePlaceForRequest(placeId)),
+      auth.refreshedSession,
+    );
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

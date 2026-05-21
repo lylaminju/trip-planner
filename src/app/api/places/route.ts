@@ -7,6 +7,8 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
+  requireAuthenticatedRequest,
+  withRefreshedSession,
 } from "@/app/api/_utils";
 import {
   createPlaceForRequest,
@@ -14,11 +16,24 @@ import {
   resolvePlaceUrl,
 } from "@/server/place-service";
 
-export async function GET() {
-  return NextResponse.json(await getPlannerSnapshotForRequest());
+export async function GET(request: Request) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
+  return withRefreshedSession(
+    NextResponse.json(await getPlannerSnapshotForRequest()),
+    auth.refreshedSession,
+  );
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   const parsedBody = await readJsonBody(request);
   if (!parsedBody.ok) {
     return parsedBody.response;
@@ -56,21 +71,24 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(
-      await createPlaceForRequest({
-        name,
-        address: stringOrNull(body.address),
-        notes: stringOrNull(body.notes),
-        google_maps_url: resolved.google_maps_url,
-        place_id: null,
-        google_place_token: null,
-        google_internal_ids: null,
-        source_list_url: null,
-        latitude: resolved.latitude,
-        longitude: resolved.longitude,
-        visit_date: visitDate,
-        visit_time: visitTime,
-      }),
+    return withRefreshedSession(
+      NextResponse.json(
+        await createPlaceForRequest({
+          name,
+          address: stringOrNull(body.address),
+          notes: stringOrNull(body.notes),
+          google_maps_url: resolved.google_maps_url,
+          place_id: null,
+          google_place_token: null,
+          google_internal_ids: null,
+          source_list_url: null,
+          latitude: resolved.latitude,
+          longitude: resolved.longitude,
+          visit_date: visitDate,
+          visit_time: visitTime,
+        }),
+      ),
+      auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);
