@@ -761,6 +761,12 @@ textarea {
   outline: none;
 }
 
+.small-button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
 .small-button,
 button {
   background: #ffffff;
@@ -776,6 +782,12 @@ button {
     box-shadow 120ms ease,
     color 120ms ease,
     transform 120ms ease;
+}
+
+.small-button svg {
+  display: block;
+  height: 16px;
+  width: 16px;
 }
 
 .small-button:hover,

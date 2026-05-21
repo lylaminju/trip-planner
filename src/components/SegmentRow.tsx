@@ -2,6 +2,7 @@
 
 import { buildGoogleMapsDirectionsUrl } from "@/lib/maps-url";
 import type { Place, RouteSegment, TravelMode } from "@/lib/types";
+import { ExternalLinkIcon } from "./Icons";
 
 const MODES: TravelMode[] = ["walking", "transit", "bicycling", "driving"];
 
@@ -60,7 +61,7 @@ export function SegmentRow({
         onClick={(event) => event.stopPropagation()}
         title="Open in Google Maps"
       >
-        🔗
+        <ExternalLinkIcon />
       </a>
     </div>
   );
