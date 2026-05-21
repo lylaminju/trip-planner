@@ -1,0 +1,111 @@
+# Trip Planner
+
+A local-first trip planning app for building dated itineraries from saved places, arranging visits by day and time, and viewing the plan on Google Maps.
+
+## Features
+
+- **Place library:** Save canonical places with name, address, Google Maps URL, coordinates, and place-level notes.
+- **Repeated visits:** Add the same place to the itinerary multiple times as separate itinerary items, each with its own date, time, and visit note.
+- **Date buckets:** Itinerary items are grouped by date, sorted with timed visits first, and displayed with the day of week.
+- **Unscheduled places:** Places that are not scheduled on any date are derived from the place library and shown separately.
+- **Drag and drop scheduling:** Drag places into a date bucket, move scheduled visits between dates, or move visits back to Unscheduled.
+- **Date-scoped place picker:** Use the `+` button on a date bucket to open a sidecar picker and add existing places directly to that date.
+- **Route segments:** Consecutive timed visits create route segment rows with selectable travel modes: walking, transit, bicycling, or driving.
+- **Interactive Google Map:** Scheduled visits are shown as colored markers by day, with timed markers numbered to match the itinerary order.
+- **Unscheduled map markers:** Unscheduled places are shown on the map as gray markers.
+- **Real route geometry:** When a server-side Google Routes API key is configured, route polylines use Google Routes geometry; otherwise the app falls back to straight lines.
+- **Minimal route API usage:** Route geometry is cached in SQLite by route endpoints and travel mode, so repeated renders do not keep calling Google Routes.
+- **Google Maps saved-list import:** A script imports places from a known shared Google Maps saved-list endpoint into the local SQLite database.
+
+## Tech Stack
+
+- Next.js App Router
+- React 19
+- TypeScript
+- SQLite with `better-sqlite3`
+- Native CSS
+- Google Maps JavaScript API
+- Google Routes API, optional for real route polylines
+- Vitest
+
+## Getting Started
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create `.env.local`:
+
+```bash
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_google_maps_key
+GOOGLE_MAPS_ROUTES_API_KEY=your_server_google_routes_key
+```
+
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is used by the browser map. `GOOGLE_MAPS_ROUTES_API_KEY` is optional, but required for real route polylines. Without it, the map still renders markers and uses straight-line route fallbacks.
+
+Run the dev server:
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Data Storage
+
+The app stores data in SQLite at:
+
+```text
+data/trip-planner.sqlite
+```
+
+This database file is intentionally committed so collaborators on the private repo can share the same trip data. SQLite runtime sidecar files such as `data/*.sqlite-wal` and `data/*.sqlite-shm` are still ignored.
+
+You can override the database location with:
+
+```bash
+TRIP_PLANNER_DB_PATH=/path/to/trip-planner.sqlite npm run dev
+```
+
+The main tables are:
+
+- `places`: canonical place records.
+- `itinerary_items`: scheduled visits that reference places.
+- `route_segments`: travel-mode choices between consecutive timed itinerary items.
+- `route_geometry_cache`: cached Google Routes API results.
+
+## Importing A Google Maps Saved List
+
+Run:
+
+```bash
+npm run import:google-list
+```
+
+The importer reads the configured shared Google Maps saved-list endpoint in `scripts/import-google-list.mjs`, imports places into SQLite, and keeps imported places unscheduled. See `docs/google-maps-saved-list-extraction.md` for details and caveats.
+
+## Verification
+
+Run tests:
+
+```bash
+npm test
+```
+
+Run a production build:
+
+```bash
+npm run build
+```
+
+Run TypeScript checking directly:
+
+```bash
+npx tsc --noEmit --pretty false
+```
+
+## Notes
+
+- The saved-list importer uses an undocumented Google Maps endpoint and may need updates if Google changes the response format.
