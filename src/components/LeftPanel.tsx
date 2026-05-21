@@ -190,11 +190,6 @@ export function LeftPanel(props: Props) {
                     );
                     return;
                   }
-
-                  const placeId = getDraggedPlaceId(event);
-                  if (placeId !== null) {
-                    props.onSchedulePlace(placeId, day.date, null);
-                  }
                 }}
               >
                 <h3 className="day-heading">
@@ -293,12 +288,6 @@ export function LeftPanel(props: Props) {
                 const item = getDraggedItem(event, props.itinerary);
                 if (item) {
                   props.onScheduleItem(item.id, null, null);
-                  return;
-                }
-
-                const placeId = getDraggedPlaceId(event);
-                if (placeId !== null) {
-                  props.onSchedulePlace(placeId, null, null);
                 }
               }}
             >
@@ -570,31 +559,12 @@ function PlaceListRow(props: {
   onDelete: () => void;
 }) {
   const display = formatPlaceRow(props.place);
-  const dragLabel = `Drag ${props.place.name} to an itinerary date`;
   const addVisitLabel = `Add ${props.place.name} to itinerary`;
   const editLabel = `Edit place ${props.place.name}`;
   const deleteLabel = `Delete place ${props.place.name}`;
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
-      <button
-        type="button"
-        className="drag-handle"
-        draggable
-        aria-label={dragLabel}
-        title={dragLabel}
-        onClick={(event) => event.preventDefault()}
-        onDragStart={(event) => {
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/place-id", String(props.place.id));
-          const dragPreview = createDragPreview(props.place);
-          document.body.appendChild(dragPreview);
-          event.dataTransfer.setDragImage(dragPreview, 16, 16);
-          window.setTimeout(() => dragPreview.remove(), 0);
-        }}
-      >
-        ::
-      </button>
       <button type="button" className="place-main" onClick={props.onSelect}>
         <strong className="place-title">
           <span className="place-name">{display.title}</span>
@@ -641,8 +611,8 @@ function hasVisitTime(
   return typeof item.visit_time === "string" && item.visit_time.length > 0;
 }
 
-function createDragPreview(source: Place | ItineraryItem): HTMLElement {
-  const place = "place" in source ? source.place : source;
+function createDragPreview(source: ItineraryItem): HTMLElement {
+  const place = source.place;
   const preview = document.createElement("div");
   preview.className = "place-drag-preview";
 
@@ -650,10 +620,7 @@ function createDragPreview(source: Place | ItineraryItem): HTMLElement {
   name.textContent = place.name;
 
   const schedule = document.createElement("span");
-  schedule.textContent =
-    "place" in source
-      ? formatSchedule(source)
-      : (place.address ?? "Unscheduled");
+  schedule.textContent = formatSchedule(source);
 
   preview.append(name, schedule);
   return preview;
@@ -675,11 +642,6 @@ function isLeavingCurrentTarget(event: DragEvent<HTMLElement>): boolean {
 }
 
 const UNSCHEDULED_DROP_TARGET = "unscheduled";
-
-function getDraggedPlaceId(event: DragEvent<HTMLElement>): number | null {
-  const id = Number(event.dataTransfer.getData("text/place-id"));
-  return Number.isInteger(id) ? id : null;
-}
 
 function getDraggedItem(
   event: DragEvent<HTMLElement>,
