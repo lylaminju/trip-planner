@@ -551,9 +551,8 @@ function renderOverlays(input: {
     }
   }
 
-  const nextBoundsSignature = boundsSignature(input.items, input.unscheduledPlaces);
-  if (!bounds.isEmpty() && nextBoundsSignature !== input.boundsSignatureRef.current) {
-    input.boundsSignatureRef.current = nextBoundsSignature;
+  if (!bounds.isEmpty() && input.boundsSignatureRef.current === "") {
+    input.boundsSignatureRef.current = "initialized";
     input.map.fitBounds(bounds, 48);
   }
 }
@@ -634,15 +633,6 @@ function coordinateKey(value: number): string {
 
 function isBetaRouteMode(mode: TravelMode): boolean {
   return mode === "walking" || mode === "bicycling";
-}
-
-function boundsSignature(items: ItineraryItem[], unscheduledPlaces: Place[]): string {
-  return [
-    ...items.map((item) => `item:${item.id}:${item.place.latitude},${item.place.longitude}`),
-    ...unscheduledPlaces.map((place) => `place:${place.id}:${place.latitude},${place.longitude}`),
-  ]
-    .sort()
-    .join(";");
 }
 
 function updateOverlaySelection(
