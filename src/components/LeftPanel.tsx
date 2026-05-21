@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useMemo, useState, type DragEvent } from "react";
 
 import {
   formatItineraryDateHeading,
   formatPlaceRow,
   formatSchedule,
 } from "@/lib/place-display";
+import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type {
   ItineraryItem,
   ItineraryView,
@@ -53,6 +54,10 @@ export function LeftPanel(props: Props) {
   const [isPlacesOpen, setIsPlacesOpen] = useState(true);
   const [showRouteSegments, setShowRouteSegments] = useState(true);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const markerLabels = useMemo(
+    () => buildTimedMarkerLabels(props.itinerary),
+    [props.itinerary],
+  );
 
   function activateDropTarget(event: DragEvent<HTMLElement>, key: string) {
     if (!hasScheduleDragData(event)) return;
@@ -171,6 +176,8 @@ export function LeftPanel(props: Props) {
                       <ItineraryItemRow
                         item={item}
                         active={props.activePlaceId === item.id}
+                        markerLabel={markerLabels.get(item.id) ?? null}
+                        markerColor={day.color}
                         onDragEnd={() => setDropTargetKey(null)}
                         onSelect={() =>
                           props.onSelectPlace(
@@ -346,6 +353,8 @@ function SectionToggle(props: {
 function ItineraryItemRow(props: {
   item: ItineraryItem;
   active: boolean;
+  markerLabel: string | null;
+  markerColor: string;
   onDragEnd?: () => void;
   onSelect: () => void;
   onEdit: () => void;
@@ -380,6 +389,15 @@ function ItineraryItemRow(props: {
       </button>
       <button type="button" className="place-main" onClick={props.onSelect}>
         <strong className="place-title">
+          {props.markerLabel && (
+            <span
+              className="place-marker-label"
+              style={{ backgroundColor: props.markerColor }}
+              aria-label={`Visit order ${props.markerLabel}`}
+            >
+              {props.markerLabel}
+            </span>
+          )}
           {display.timePrefix && (
             <span className="place-time">{display.timePrefix}</span>
           )}

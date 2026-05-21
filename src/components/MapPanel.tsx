@@ -468,6 +468,7 @@ function renderOverlays(input: {
       position,
       title: place.name,
       content: element,
+      gmpClickable: true,
     });
     marker.addEventListener("gmp-click", () => {
       input.onSelectPlace(item.id);
@@ -498,6 +499,7 @@ function renderOverlays(input: {
       position,
       title: place.name,
       content: element,
+      gmpClickable: true,
     });
     marker.addEventListener("gmp-click", () => {
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
