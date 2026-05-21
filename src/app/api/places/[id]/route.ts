@@ -8,9 +8,12 @@ import {
   mapRouteError,
   readJsonBody,
 } from "@/app/api/_utils";
-import { editPlace, removePlace, resolvePlaceUrl } from "@/server/place-service";
-import { getDatabase } from "@/server/db";
-import { getPlaceById } from "@/server/place-repository";
+import {
+  editPlaceForRequest,
+  getPlaceByIdForRequest,
+  removePlaceForRequest,
+  resolvePlaceUrl,
+} from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -50,7 +53,7 @@ export async function PATCH(request: Request, { params }: Params) {
   };
 
   try {
-    const existingPlace = getPlaceById(getDatabase(), placeId);
+    const existingPlace = await getPlaceByIdForRequest(placeId);
     if (input.google_maps_url && input.google_maps_url !== existingPlace.google_maps_url) {
       const resolved = await resolvePlaceUrl(input.google_maps_url);
       if (resolved.latitude === null || resolved.longitude === null) {
@@ -61,7 +64,7 @@ export async function PATCH(request: Request, { params }: Params) {
       input.longitude = resolved.longitude;
     }
 
-    return NextResponse.json(editPlace(placeId, input));
+    return NextResponse.json(await editPlaceForRequest(placeId, input));
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {
@@ -81,7 +84,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(removePlace(placeId));
+    return NextResponse.json(await removePlaceForRequest(placeId));
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

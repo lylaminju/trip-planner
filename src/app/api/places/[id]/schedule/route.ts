@@ -8,7 +8,7 @@ import {
   mapRouteError,
   readJsonBody,
 } from "@/app/api/_utils";
-import { schedulePlace } from "@/server/place-service";
+import { schedulePlaceForRequest } from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -37,7 +37,9 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(schedulePlace(placeId, visitDate, visitTime, stringOrNull(body.notes)));
+    return NextResponse.json(
+      await schedulePlaceForRequest(placeId, visitDate, visitTime, stringOrNull(body.notes)),
+    );
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

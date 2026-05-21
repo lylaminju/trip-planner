@@ -10,9 +10,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "import:google-list": "node scripts/import-google-list.mjs",
+    "push:supabase": "node scripts/push-sqlite-to-supabase.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
     "better-sqlite3": "^12.10.0",
     "next": "^16.2.6",
     "react": "^19.2.6",

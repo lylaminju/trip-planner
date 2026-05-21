@@ -14,15 +14,15 @@ A local-first trip planning app for building dated itineraries from saved places
 - **Interactive Google Map:** Scheduled visits are shown as colored markers by day, with timed markers numbered to match the itinerary order.
 - **Unscheduled map markers:** Unscheduled places are shown on the map as gray markers.
 - **Real route geometry:** When a server-side Google Routes API key is configured, route polylines use Google Routes geometry; otherwise the app falls back to straight lines.
-- **Minimal route API usage:** Route geometry is cached in SQLite by route endpoints and travel mode, so repeated renders do not keep calling Google Routes.
-- **Google Maps saved-list import:** A script imports places from a known shared Google Maps saved-list endpoint into the local SQLite database.
+- **Minimal route API usage:** Route geometry is cached by route endpoints and travel mode, so repeated renders do not keep calling Google Routes.
+- **Google Maps saved-list import:** A legacy script imports places from a known shared Google Maps saved-list endpoint into the retained SQLite migration database.
 
 ## Tech Stack
 
 - Next.js App Router
 - React 19
 - TypeScript
-- SQLite with `better-sqlite3`
+- Supabase Postgres
 - Native CSS
 - Google Maps JavaScript API
 - Google Routes API, optional for real route polylines
@@ -55,19 +55,18 @@ Open `http://localhost:3000`.
 
 ## Data Storage
 
-The app stores data in SQLite at:
+The app stores runtime data in Supabase Postgres. Create a Supabase project, then run the SQL in `supabase/schema.sql` in the Supabase SQL editor.
 
-```text
-data/trip-planner.sqlite
-```
-
-This database file is intentionally committed so collaborators on the private repo can share the same trip data. SQLite runtime sidecar files such as `data/*.sqlite-wal` and `data/*.sqlite-shm` are still ignored.
-
-You can override the database location with:
+Required environment variables:
 
 ```bash
-TRIP_PLANNER_DB_PATH=/path/to/trip-planner.sqlite npm run dev
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SECRET_KEY=your_server_only_secret_key
+# or, for legacy projects:
+SUPABASE_SERVICE_ROLE_KEY=your_legacy_service_role_key
 ```
+
+Use a server-only Supabase secret key if available, or the legacy service-role key. Do not expose either key in browser code.
 
 The main tables are:
 
@@ -75,6 +74,43 @@ The main tables are:
 - `itinerary_items`: scheduled visits that reference places.
 - `route_segments`: travel-mode choices between consecutive timed itinerary items.
 - `route_geometry_cache`: cached Google Routes API results.
+
+## Legacy SQLite Data
+
+The repository still keeps the previous SQLite database at:
+
+```text
+data/trip-planner.sqlite
+```
+
+The app no longer connects to SQLite in local or hosted environments. The SQLite file is retained as a migration source while the project moves to Supabase. SQLite runtime sidecar files such as `data/*.sqlite-wal` and `data/*.sqlite-shm` are still ignored.
+
+To copy the committed SQLite data into Supabase:
+
+```bash
+npm run push:supabase
+```
+
+To clear the remote trip-planner tables first, then import SQLite:
+
+```bash
+npm run push:supabase -- --replace
+```
+
+`--replace` deletes remote rows in `route_geometry_cache`, `route_segments`, `itinerary_items`, and `places` before importing. Use it only when the Supabase project should mirror the local SQLite database exactly.
+
+## Hosting
+
+The recommended deployment path is Supabase Postgres for data and Vercel for the Next.js app.
+
+Hosted environment variables:
+
+```bash
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SECRET_KEY=your_server_only_secret_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_google_maps_key
+GOOGLE_MAPS_ROUTES_API_KEY=your_server_google_routes_key
+```
 
 ## Importing A Google Maps Saved List
 
@@ -84,7 +120,7 @@ Run:
 npm run import:google-list
 ```
 
-The importer reads the configured shared Google Maps saved-list endpoint in `scripts/import-google-list.mjs`, imports places into SQLite, and keeps imported places unscheduled. See `docs/google-maps-saved-list-extraction.md` for details and caveats.
+The importer reads the configured shared Google Maps saved-list endpoint in `scripts/import-google-list.mjs`, imports places into the legacy SQLite database, and keeps imported places unscheduled. Run `npm run push:supabase` afterward to move those imported rows into Supabase. See `docs/google-maps-saved-list-extraction.md` for details and caveats.
 
 ## Verification
 

@@ -1,10 +1,6 @@
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
-
 import { describe, expect, it, vi } from "vitest";
 
-import type { PlaceInsert } from "@/server/place-repository";
+import type { PlaceInsert } from "@/server/place-inputs";
 
 const baseInput: PlaceInsert = {
   name: "Museum",
@@ -22,27 +18,20 @@ const baseInput: PlaceInsert = {
 };
 
 async function withFreshTestEnv(run: () => Promise<void> | void): Promise<void> {
-  const tempDir = mkdtempSync(path.join(tmpdir(), "trip-planner-api-"));
-  const dbPath = path.join(tempDir, "trip-planner.sqlite");
-  const originalDbPath = process.env.TRIP_PLANNER_DB_PATH;
-
-  process.env.TRIP_PLANNER_DB_PATH = dbPath;
   vi.resetModules();
+  vi.doMock("@/server/supabase-place-service", async () => {
+    const { createFakeSupabasePlaceService } = await import("./fake-supabase-place-service");
+    return createFakeSupabasePlaceService();
+  });
 
   try {
     await run();
   } finally {
     vi.doUnmock("@/server/place-service");
+    vi.doUnmock("@/server/supabase-place-service");
     vi.restoreAllMocks();
     vi.resetModules();
 
-    if (originalDbPath === undefined) {
-      delete process.env.TRIP_PLANNER_DB_PATH;
-    } else {
-      process.env.TRIP_PLANNER_DB_PATH = originalDbPath;
-    }
-
-    rmSync(tempDir, { recursive: true, force: true });
   }
 }
 
@@ -102,7 +91,7 @@ describe("API routes transport behavior", () => {
     await withFreshTestEnv(async () => {
       const { GoogleMapsUrlUpstreamError } = await import("@/server/errors");
       const service = await import("@/server/place-service");
-      const created = service.createPlace(baseInput);
+      const created = await service.createPlace(baseInput);
 
       vi.doMock("@/server/place-service", async () => {
         const actual = await vi.importActual<typeof import("@/server/place-service")>(
@@ -164,7 +153,7 @@ describe("API routes transport behavior", () => {
   it("returns 400 for invalid date/time updates instead of ignoring them", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = service.createPlace(baseInput);
+      const created = await service.createPlace(baseInput);
       const { PATCH } = await import("@/app/api/places/[id]/route");
 
       const badDateResponse = await PATCH(
@@ -208,7 +197,7 @@ describe("API routes transport behavior", () => {
   it("does not clear schedule when visit_date is omitted or invalid in the schedule route", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = service.createPlace({
+      const created = await service.createPlace({
         ...baseInput,
         visit_date: "2026-06-01",
         visit_time: "09:00",
@@ -231,9 +220,13 @@ describe("API routes transport behavior", () => {
         error: "Visit date must be YYYY-MM-DD.",
       });
 
-      expect(service.getPlannerSnapshot().itineraryItems[0]).toMatchObject({
+      await expect(service.getPlannerSnapshot()).resolves.toMatchObject({
+        itineraryItems: [
+          expect.objectContaining({
         visit_date: "2026-06-01",
         visit_time: "09:00",
+          }),
+        ],
       });
     });
   });
@@ -293,7 +286,7 @@ describe("API routes transport behavior", () => {
   it("treats empty nullable text fields as clears on place edit", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = service.createPlace(baseInput);
+      const created = await service.createPlace(baseInput);
       const { PATCH } = await import("@/app/api/places/[id]/route");
 
       const response = await PATCH(
@@ -313,7 +306,7 @@ describe("API routes transport behavior", () => {
   it("allows date/time edits without re-resolving an unchanged Google Maps URL", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = service.createPlace({
+      const created = await service.createPlace({
         ...baseInput,
         google_maps_url: "https://www.google.com/maps/search/?api=1&query=JGSTAY%20-%20Times%20Square",
       });
@@ -341,7 +334,7 @@ describe("API routes transport behavior", () => {
   it("edits itinerary item schedule and notes independently from place notes", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = service.createPlace({
+      const created = await service.createPlace({
         ...baseInput,
         notes: "Place note",
         visit_date: "2026-06-01",

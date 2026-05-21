@@ -8,7 +8,10 @@ import {
   mapRouteError,
   readJsonBody,
 } from "@/app/api/_utils";
-import { editItineraryItem, removeItineraryItem } from "@/server/place-service";
+import {
+  editItineraryItemForRequest,
+  removeItineraryItemForRequest,
+} from "@/server/place-service";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -38,7 +41,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     return NextResponse.json(
-      editItineraryItem(itemId, {
+      await editItineraryItemForRequest(itemId, {
         visit_date: visitDate,
         visit_time: visitTime,
         notes: nullableStringOrUndefined(body.notes),
@@ -63,7 +66,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   try {
-    return NextResponse.json(removeItineraryItem(itemId));
+    return NextResponse.json(await removeItineraryItemForRequest(itemId));
   } catch (error) {
     const response = mapRouteError(error);
     if (response) {

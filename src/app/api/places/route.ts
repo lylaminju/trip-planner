@@ -8,10 +8,14 @@ import {
   mapRouteError,
   readJsonBody,
 } from "@/app/api/_utils";
-import { createPlace, getPlannerSnapshot, resolvePlaceUrl } from "@/server/place-service";
+import {
+  createPlaceForRequest,
+  getPlannerSnapshotForRequest,
+  resolvePlaceUrl,
+} from "@/server/place-service";
 
 export async function GET() {
-  return NextResponse.json(getPlannerSnapshot());
+  return NextResponse.json(await getPlannerSnapshotForRequest());
 }
 
 export async function POST(request: Request) {
@@ -47,7 +51,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      createPlace({
+      await createPlaceForRequest({
         name,
         address: stringOrNull(body.address),
         notes: stringOrNull(body.notes),

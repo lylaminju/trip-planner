@@ -1,27 +1,12 @@
-import { reconcileRouteSegments } from "@/lib/route-reconciliation";
-import type { PlannerSnapshot, TravelMode } from "@/lib/types";
+import type { Place, PlannerSnapshot, TravelMode } from "@/lib/types";
 
-import { getDatabase } from "./db";
 import { resolveGoogleMapsUrl } from "./google-url-resolver";
-import {
-  deleteItineraryItem,
-  deletePlace,
-  getPlaceById,
-  insertItineraryItem,
-  insertPlace,
-  listItineraryItems,
-  listItineraryItemsByPlaceId,
-  listPlaces,
-  listRouteSegments,
-  replaceSegments,
-  updateItineraryItem,
-  updatePlace,
-  updateRouteSegmentMode,
-  type ItineraryItemInsert,
-  type ItineraryItemUpdate,
-  type PlaceInsert,
-  type PlaceUpdate,
-} from "./place-repository";
+import type {
+  ItineraryItemUpdate,
+  PlaceCreateInput,
+  PlaceEditInput,
+} from "./place-inputs";
+import * as supabasePlaceService from "./supabase-place-service";
 
 export type ResolvedPlaceUrl = {
   google_maps_url: string;
@@ -29,17 +14,6 @@ export type ResolvedPlaceUrl = {
   latitude: number | null;
   longitude: number | null;
 };
-
-export type PlaceCreateInput = PlaceInsert & {
-  visit_date?: string | null;
-  visit_time?: string | null;
-  itinerary_notes?: string | null;
-};
-
-export type PlaceEditInput = PlaceUpdate &
-  Partial<Pick<ItineraryItemUpdate, "visit_date" | "visit_time">> & {
-    itinerary_notes?: string | null;
-  };
 
 export async function resolvePlaceUrl(rawUrl: string): Promise<ResolvedPlaceUrl> {
   const resolved = await resolveGoogleMapsUrl(rawUrl);
@@ -52,243 +26,111 @@ export async function resolvePlaceUrl(rawUrl: string): Promise<ResolvedPlaceUrl>
   };
 }
 
-export function getPlannerSnapshot(): PlannerSnapshot {
-  const db = getDatabase();
-
-  return {
-    places: listPlaces(db),
-    itineraryItems: listItineraryItems(db),
-    routeSegments: listRouteSegments(db),
-  };
+export async function getPlannerSnapshot(): Promise<PlannerSnapshot> {
+  return supabasePlaceService.getPlannerSnapshot();
 }
 
-export function createPlace(input: PlaceCreateInput): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    const place = insertPlace(db, toPlaceInsert(input));
-    if (input.visit_date !== undefined && input.visit_date !== null) {
-      insertItineraryItem(
-        db,
-        normalizeItineraryItemInput({
-          place_id: place.id,
-          visit_date: input.visit_date,
-          visit_time: input.visit_time ?? null,
-          notes: input.itinerary_notes ?? null,
-        }),
-      );
-    }
-    reconcileAllRoutes(db);
-  })();
-
+export async function getPlannerSnapshotForRequest(): Promise<PlannerSnapshot> {
   return getPlannerSnapshot();
 }
 
-export function editPlace(id: number, input: PlaceEditInput): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    updatePlace(db, id, toPlaceUpdate(input));
-
-    if (input.visit_date !== undefined || input.visit_time !== undefined || input.itinerary_notes !== undefined) {
-      const item = listItineraryItemsByPlaceId(db, id)[0];
-      const currentVisitDate = item?.visit_date;
-      const normalizedInput = normalizeItineraryItemUpdate(
-        {
-          visit_date: input.visit_date,
-          visit_time: input.visit_time,
-          notes: input.itinerary_notes,
-        },
-        currentVisitDate,
-      );
-
-      if (item) {
-        if (normalizedInput.visit_date === null) {
-          deleteItineraryItem(db, item.id);
-        } else {
-          updateItineraryItem(db, item.id, normalizedInput);
-        }
-      } else if (normalizedInput.visit_date !== undefined && normalizedInput.visit_date !== null) {
-        insertItineraryItem(
-          db,
-          normalizeItineraryItemInput({
-            place_id: id,
-            visit_date: normalizedInput.visit_date ?? null,
-            visit_time: normalizedInput.visit_time ?? null,
-            notes: normalizedInput.notes ?? null,
-          }),
-        );
-      }
-    }
-
-    reconcileAllRoutes(db);
-  })();
-
-  return getPlannerSnapshot();
+export async function createPlace(input: PlaceCreateInput): Promise<PlannerSnapshot> {
+  return supabasePlaceService.createPlace(input);
 }
 
-export function removePlace(id: number): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    deletePlace(db, id);
-    reconcileAllRoutes(db);
-  })();
-
-  return getPlannerSnapshot();
+export async function createPlaceForRequest(input: PlaceCreateInput): Promise<PlannerSnapshot> {
+  return createPlace(input);
 }
 
-export function schedulePlace(
+export async function getPlaceByIdForRequest(id: number): Promise<Place> {
+  return supabasePlaceService.getPlaceById(id);
+}
+
+export async function editPlace(id: number, input: PlaceEditInput): Promise<PlannerSnapshot> {
+  return supabasePlaceService.editPlace(id, input);
+}
+
+export async function editPlaceForRequest(
+  id: number,
+  input: PlaceEditInput,
+): Promise<PlannerSnapshot> {
+  return editPlace(id, input);
+}
+
+export async function removePlace(id: number): Promise<PlannerSnapshot> {
+  return supabasePlaceService.removePlace(id);
+}
+
+export async function removePlaceForRequest(id: number): Promise<PlannerSnapshot> {
+  return removePlace(id);
+}
+
+export async function schedulePlace(
   id: number,
   visit_date: string | null,
   visit_time: string | null,
   notes: string | null = null,
-): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    getPlaceById(db, id);
-    if (visit_date !== null) {
-      insertItineraryItem(
-        db,
-        normalizeItineraryItemInput({
-          place_id: id,
-          visit_date,
-          visit_time,
-          notes,
-        }),
-      );
-    }
-    reconcileAllRoutes(db);
-  })();
-
-  return getPlannerSnapshot();
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.schedulePlace(id, visit_date, visit_time, notes);
 }
 
-export function scheduleItineraryItem(
+export async function schedulePlaceForRequest(
   id: number,
   visit_date: string | null,
   visit_time: string | null,
-): PlannerSnapshot {
-  const db = getDatabase();
-  const normalizedInput = normalizeItineraryItemUpdate({ visit_date, visit_time });
-
-  db.transaction(() => {
-    if (visit_date === null) {
-      deleteItineraryItem(db, id);
-    } else {
-      updateItineraryItem(db, id, normalizedInput);
-    }
-    reconcileAllRoutes(db);
-  })();
-
-  return getPlannerSnapshot();
+  notes: string | null = null,
+): Promise<PlannerSnapshot> {
+  return schedulePlace(id, visit_date, visit_time, notes);
 }
 
-export function editItineraryItem(id: number, input: ItineraryItemUpdate): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    const currentItem = listItineraryItems(db).find((item) => item.id === id);
-    const normalizedInput = normalizeItineraryItemUpdate(input, currentItem?.visit_date);
-    if (normalizedInput.visit_date === null) {
-      deleteItineraryItem(db, id);
-    } else {
-      updateItineraryItem(db, id, normalizedInput);
-    }
-    reconcileAllRoutes(db);
-  })();
-
-  return getPlannerSnapshot();
+export async function scheduleItineraryItem(
+  id: number,
+  visit_date: string | null,
+  visit_time: string | null,
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.scheduleItineraryItem(id, visit_date, visit_time);
 }
 
-export function removeItineraryItem(id: number): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    deleteItineraryItem(db, id);
-    reconcileAllRoutes(db);
-  })();
-
-  return getPlannerSnapshot();
+export async function scheduleItineraryItemForRequest(
+  id: number,
+  visit_date: string | null,
+  visit_time: string | null,
+): Promise<PlannerSnapshot> {
+  return scheduleItineraryItem(id, visit_date, visit_time);
 }
 
-export function setRouteSegmentMode(id: number, mode: TravelMode): PlannerSnapshot {
-  const db = getDatabase();
-
-  db.transaction(() => {
-    updateRouteSegmentMode(db, id, mode);
-  })();
-
-  return getPlannerSnapshot();
-}
-
-function reconcileAllRoutes(db: ReturnType<typeof getDatabase>): void {
-  const items = listItineraryItems(db);
-  const routeSegments = listRouteSegments(db);
-  const plan = reconcileRouteSegments(items, routeSegments);
-
-  replaceSegments(db, plan.toDeleteIds, plan.toInsert);
-}
-
-function normalizeItineraryItemInput(input: ItineraryItemInsert): ItineraryItemInsert {
-  if (input.visit_date !== null) {
-    return input;
-  }
-
-  return {
-    ...input,
-    visit_time: null,
-  };
-}
-
-function normalizeItineraryItemUpdate(
+export async function editItineraryItem(
+  id: number,
   input: ItineraryItemUpdate,
-  currentVisitDate: string | null | undefined = undefined,
-): ItineraryItemUpdate {
-  if (input.visit_date === null) {
-    return {
-      ...input,
-      visit_time: null,
-    };
-  }
-
-  if (input.visit_date === undefined && currentVisitDate === null) {
-    return {
-      ...input,
-      visit_time: null,
-    };
-  }
-
-  return input;
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.editItineraryItem(id, input);
 }
 
-function toPlaceInsert(input: PlaceCreateInput): PlaceInsert {
-  return {
-    name: input.name,
-    address: input.address,
-    google_maps_url: input.google_maps_url,
-    place_id: input.place_id,
-    google_place_token: input.google_place_token,
-    google_internal_ids: input.google_internal_ids,
-    source_list_url: input.source_list_url,
-    latitude: input.latitude,
-    longitude: input.longitude,
-    notes: input.notes,
-  };
+export async function editItineraryItemForRequest(
+  id: number,
+  input: ItineraryItemUpdate,
+): Promise<PlannerSnapshot> {
+  return editItineraryItem(id, input);
 }
 
-function toPlaceUpdate(input: PlaceEditInput): PlaceUpdate {
-  return {
-    name: input.name,
-    address: input.address,
-    google_maps_url: input.google_maps_url,
-    place_id: input.place_id,
-    google_place_token: input.google_place_token,
-    google_internal_ids: input.google_internal_ids,
-    source_list_url: input.source_list_url,
-    latitude: input.latitude,
-    longitude: input.longitude,
-    notes: input.notes,
-  };
+export async function removeItineraryItem(id: number): Promise<PlannerSnapshot> {
+  return supabasePlaceService.removeItineraryItem(id);
+}
+
+export async function removeItineraryItemForRequest(id: number): Promise<PlannerSnapshot> {
+  return removeItineraryItem(id);
+}
+
+export async function setRouteSegmentMode(
+  id: number,
+  mode: TravelMode,
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.setRouteSegmentMode(id, mode);
+}
+
+export async function setRouteSegmentModeForRequest(
+  id: number,
+  mode: TravelMode,
+): Promise<PlannerSnapshot> {
+  return setRouteSegmentMode(id, mode);
 }
