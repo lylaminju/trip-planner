@@ -3,14 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { decodePolyline, type LatLngLiteral } from "@/lib/encoded-polyline";
-import { buildTimedMarkerLabels, getMarkerSizing } from "@/lib/map-marker-labels";
+import {
+  buildTimedMarkerLabels,
+  getMarkerSizing,
+} from "@/lib/map-marker-labels";
 import { getSelectedPlacePosition } from "@/lib/map-viewport";
-import type { ItineraryItem, ItineraryView, Place, RouteGeometry, RouteSegment, TravelMode } from "@/lib/types";
+import type {
+  ItineraryItem,
+  ItineraryView,
+  Place,
+  RouteGeometry,
+  RouteSegment,
+  TravelMode,
+} from "@/lib/types";
 
 type Props = {
   itinerary: ItineraryView;
   routeSegments: RouteSegment[];
   activePlaceId: number | null;
+  activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
   hidden?: boolean;
@@ -49,11 +60,21 @@ export function MapPanel(props: Props) {
   const infoWindowRef = useRef<any>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [routeGeometries, setRouteGeometries] = useState<Map<number, RouteGeometry>>(new Map());
-  const [routeGeometryError, setRouteGeometryError] = useState<string | null>(null);
+  const [routeGeometries, setRouteGeometries] = useState<
+    Map<number, RouteGeometry>
+  >(new Map());
+  const [routeGeometryError, setRouteGeometryError] = useState<string | null>(
+    null,
+  );
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const itineraryItems = useMemo(() => getItineraryItems(props.itinerary), [props.itinerary]);
-  const itineraryItemsSignature = useMemo(() => buildItineraryItemsSignature(itineraryItems), [itineraryItems]);
+  const itineraryItems = useMemo(
+    () => getItineraryItems(props.itinerary),
+    [props.itinerary],
+  );
+  const itineraryItemsSignature = useMemo(
+    () => buildItineraryItemsSignature(itineraryItems),
+    [itineraryItems],
+  );
   const unscheduledPlacesSignature = useMemo(
     () => buildPlacesSignature(props.itinerary.unscheduled),
     [props.itinerary.unscheduled],
@@ -62,8 +83,14 @@ export function MapPanel(props: Props) {
     () => buildRouteSegmentsSignature(props.routeSegments),
     [props.routeSegments],
   );
-  const itemColors = useMemo(() => buildItemColors(props.itinerary), [props.itinerary]);
-  const markerLabels = useMemo(() => buildTimedMarkerLabels(props.itinerary), [props.itinerary]);
+  const itemColors = useMemo(
+    () => buildItemColors(props.itinerary),
+    [props.itinerary],
+  );
+  const markerLabels = useMemo(
+    () => buildTimedMarkerLabels(props.itinerary),
+    [props.itinerary],
+  );
   const showRouteQualityWarning = useMemo(
     () => props.routeSegments.some((segment) => isBetaRouteMode(segment.mode)),
     [props.routeSegments],
@@ -84,7 +111,11 @@ export function MapPanel(props: Props) {
         }
 
         if (!mapInstanceRef.current) {
-          mapInstanceRef.current = createMap(mapRef.current, itineraryItems, props.itinerary.unscheduled);
+          mapInstanceRef.current = createMap(
+            mapRef.current,
+            itineraryItems,
+            props.itinerary.unscheduled,
+          );
         }
         setIsMapReady(true);
       })
@@ -106,7 +137,9 @@ export function MapPanel(props: Props) {
 
     let cancelled = false;
     const itemsById = new Map(itineraryItems.map((item) => [item.id, item]));
-    const nextSegmentIds = new Set(props.routeSegments.map((segment) => segment.id));
+    const nextSegmentIds = new Set(
+      props.routeSegments.map((segment) => segment.id),
+    );
     const changedSegmentIds = new Set<number>();
     const requests: Promise<RouteGeometryFetchResult>[] = [];
 
@@ -115,7 +148,11 @@ export function MapPanel(props: Props) {
       const to = itemsById.get(segment.to_item_id);
       if (!from || !to) continue;
 
-      const signature = routeGeometryRequestSignature(segment, from.place, to.place);
+      const signature = routeGeometryRequestSignature(
+        segment,
+        from.place,
+        to.place,
+      );
       if (routeGeometrySignaturesRef.current.get(segment.id) === signature) {
         continue;
       }
@@ -136,7 +173,10 @@ export function MapPanel(props: Props) {
       let changed = false;
 
       for (const segmentId of current.keys()) {
-        if (!nextSegmentIds.has(segmentId) || changedSegmentIds.has(segmentId)) {
+        if (
+          !nextSegmentIds.has(segmentId) ||
+          changedSegmentIds.has(segmentId)
+        ) {
           next.delete(segmentId);
           changed = true;
         }
@@ -153,7 +193,9 @@ export function MapPanel(props: Props) {
       void Promise.all(requests).then((results) => {
         if (cancelled) return;
 
-        setRouteGeometryError(results.find((result) => result.error)?.error ?? null);
+        setRouteGeometryError(
+          results.find((result) => result.error)?.error ?? null,
+        );
         setRouteGeometries((current) => {
           const next = new Map(current);
           let changed = false;
@@ -173,7 +215,13 @@ export function MapPanel(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [apiKey, isMapReady, itineraryItemsSignature, loadFailed, routeSegmentsSignature]);
+  }, [
+    apiKey,
+    isMapReady,
+    itineraryItemsSignature,
+    loadFailed,
+    routeSegmentsSignature,
+  ]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -200,6 +248,7 @@ export function MapPanel(props: Props) {
       markerRecordsRef.current,
       polylinesRef.current,
       props.activePlaceId,
+      props.activeCanonicalPlaceId,
       props.activeSegmentId,
       props.activeDate,
     );
@@ -217,6 +266,8 @@ export function MapPanel(props: Props) {
     props.onSelectPlace,
     props.onSelectSegment,
     props.activeDate,
+    props.activeCanonicalPlaceId,
+    props.activePlaceId,
   ]);
 
   useEffect(() => {
@@ -240,10 +291,16 @@ export function MapPanel(props: Props) {
       markerRecordsRef.current,
       polylinesRef.current,
       props.activePlaceId,
+      props.activeCanonicalPlaceId,
       props.activeSegmentId,
       props.activeDate,
     );
-  }, [props.activePlaceId, props.activeSegmentId, props.activeDate]);
+  }, [
+    props.activePlaceId,
+    props.activeCanonicalPlaceId,
+    props.activeSegmentId,
+    props.activeDate,
+  ]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -262,14 +319,33 @@ export function MapPanel(props: Props) {
       return;
     }
 
-    const position = getSelectedPlacePosition(itineraryItems, props.activePlaceId);
+    const position = getSelectedPlacePosition(
+      itineraryItems,
+      props.itinerary.unscheduled,
+      props.activePlaceId,
+      props.activeCanonicalPlaceId,
+    );
     if (position) {
       map.panTo(position);
     }
-  }, [apiKey, isMapReady, itineraryItemsSignature, loadFailed, props.activePlaceId, props.hidden]);
+  }, [
+    apiKey,
+    isMapReady,
+    itineraryItemsSignature,
+    loadFailed,
+    props.activeCanonicalPlaceId,
+    props.activePlaceId,
+    props.hidden,
+    unscheduledPlacesSignature,
+  ]);
 
   if (!apiKey || loadFailed) {
-    return <CoordinateFallback items={itineraryItems} unscheduledPlaces={props.itinerary.unscheduled} />;
+    return (
+      <CoordinateFallback
+        items={itineraryItems}
+        unscheduledPlaces={props.itinerary.unscheduled}
+      />
+    );
   }
 
   return (
@@ -283,7 +359,10 @@ export function MapPanel(props: Props) {
         <div className="map-route-warning">
           {routeGeometryError && <p>{routeGeometryError}</p>}
           {showRouteQualityWarning && (
-            <p>Walking and bicycling routes may be missing sidewalks, pedestrian paths, or bike paths.</p>
+            <p>
+              Walking and bicycling routes may be missing sidewalks, pedestrian
+              paths, or bike paths.
+            </p>
           )}
         </div>
       )}
@@ -291,13 +370,20 @@ export function MapPanel(props: Props) {
   );
 }
 
-function CoordinateFallback({ items, unscheduledPlaces }: { items: ItineraryItem[]; unscheduledPlaces: Place[] }) {
+function CoordinateFallback({
+  items,
+  unscheduledPlaces,
+}: {
+  items: ItineraryItem[];
+  unscheduledPlaces: Place[];
+}) {
   return (
     <section className="panel panel-map map-fallback">
       <h2>Coordinates</h2>
       {items.map((item) => (
         <p key={item.id}>
-          <strong>{item.place.name}</strong>: {item.place.latitude}, {item.place.longitude}
+          <strong>{item.place.name}</strong>: {item.place.latitude},{" "}
+          {item.place.longitude}
         </p>
       ))}
       {unscheduledPlaces.map((place) => (
@@ -321,14 +407,22 @@ function buildItemColors(itinerary: ItineraryView): Map<number, string> {
   return colors;
 }
 
-function createMap(container: HTMLElement, items: ItineraryItem[], unscheduledPlaces: Place[]): any {
+function createMap(
+  container: HTMLElement,
+  items: ItineraryItem[],
+  unscheduledPlaces: Place[],
+): any {
   const googleMaps = window.google;
   const firstPlace = items[0]?.place ?? unscheduledPlaces[0] ?? null;
   const center = firstPlace
     ? { lat: firstPlace.latitude, lng: firstPlace.longitude }
     : { lat: 40.7128, lng: -74.006 };
 
-  return new googleMaps.maps.Map(container, { center, zoom: 12, mapId: "trip-planner-map" });
+  return new googleMaps.maps.Map(container, {
+    center,
+    zoom: 12,
+    mapId: "trip-planner-map",
+  });
 }
 
 function loadGoogleMaps(apiKey: string): Promise<void> {
@@ -371,7 +465,9 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
     pollId = window.setInterval(finish, 50);
     timeoutId = window.setTimeout(fail, 10000);
 
-    const existing = document.querySelector<HTMLScriptElement>("script[data-google-maps]");
+    const existing = document.querySelector<HTMLScriptElement>(
+      "script[data-google-maps]",
+    );
     if (existing) {
       existing.addEventListener("load", finish, { once: true });
       existing.addEventListener("error", fail, { once: true });
@@ -390,10 +486,15 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
 }
 
 function isGoogleMapsReady(): boolean {
-  return Boolean(window.google?.maps?.Map && window.google.maps.marker?.AdvancedMarkerElement);
+  return Boolean(
+    window.google?.maps?.Map &&
+    window.google.maps.marker?.AdvancedMarkerElement,
+  );
 }
 
-async function fetchRouteGeometry(segmentId: number): Promise<RouteGeometryFetchResult> {
+async function fetchRouteGeometry(
+  segmentId: number,
+): Promise<RouteGeometryFetchResult> {
   try {
     const response = await fetch(`/api/route-segments/${segmentId}/geometry`);
     if (!response.ok) {
@@ -414,7 +515,8 @@ async function fetchRouteGeometry(segmentId: number): Promise<RouteGeometryFetch
   } catch {
     return {
       geometry: null,
-      error: "Real routes are unavailable from Google right now. Showing straight lines for now.",
+      error:
+        "Real routes are unavailable from Google right now. Showing straight lines for now.",
     };
   }
 }
@@ -474,7 +576,12 @@ function renderOverlays(input: {
       input.onSelectPlace(item.id);
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
-    input.markerRecords.set(markerKey, { marker, element, signature, date: item.visit_date });
+    input.markerRecords.set(markerKey, {
+      marker,
+      element,
+      signature,
+      date: item.visit_date,
+    });
   }
 
   for (const place of input.unscheduledPlaces) {
@@ -504,7 +611,12 @@ function renderOverlays(input: {
     marker.addEventListener("gmp-click", () => {
       openPlaceInfoWindow(input.map, marker, infoWindow, place);
     });
-    input.markerRecords.set(markerKey, { marker, element, signature, date: null });
+    input.markerRecords.set(markerKey, {
+      marker,
+      element,
+      signature,
+      date: null,
+    });
   }
 
   for (const [markerKey, record] of input.markerRecords) {
@@ -514,7 +626,9 @@ function renderOverlays(input: {
     }
   }
 
-  const nextSegmentIds = new Set(input.routeSegments.map((segment) => segment.id));
+  const nextSegmentIds = new Set(
+    input.routeSegments.map((segment) => segment.id),
+  );
   for (const segment of input.routeSegments) {
     const from = itemsById.get(segment.from_item_id);
     const to = itemsById.get(segment.to_item_id);
@@ -522,7 +636,13 @@ function renderOverlays(input: {
 
     const color = input.itemColors.get(from.id) ?? "#64748b";
     const routeGeometry = input.routeGeometries.get(segment.id);
-    const signature = polylineSignature(segment, from.place, to.place, color, routeGeometry?.encoded_polyline);
+    const signature = polylineSignature(
+      segment,
+      from.place,
+      to.place,
+      color,
+      routeGeometry?.encoded_polyline,
+    );
     const existing = input.polylines.get(segment.id);
 
     if (existing?.signature === signature) {
@@ -541,7 +661,11 @@ function renderOverlays(input: {
     });
 
     polyline.addListener("click", () => input.onSelectSegment(segment.id));
-    input.polylines.set(segment.id, { polyline, signature, date: from.visit_date });
+    input.polylines.set(segment.id, {
+      polyline,
+      signature,
+      date: from.visit_date,
+    });
   }
 
   for (const [segmentId, record] of input.polylines) {
@@ -595,7 +719,11 @@ function polylineSignature(
   ].join("|");
 }
 
-function routePath(from: Place, to: Place, geometry: RouteGeometry | undefined): LatLngLiteral[] {
+function routePath(
+  from: Place,
+  to: Place,
+  geometry: RouteGeometry | undefined,
+): LatLngLiteral[] {
   if (geometry?.status === "ok" && geometry.encoded_polyline) {
     try {
       const path = decodePolyline(geometry.encoded_polyline);
@@ -617,7 +745,11 @@ function straightRoutePath(from: Place, to: Place): LatLngLiteral[] {
   ];
 }
 
-function routeGeometryRequestSignature(segment: RouteSegment, from: Place, to: Place): string {
+function routeGeometryRequestSignature(
+  segment: RouteSegment,
+  from: Place,
+  to: Place,
+): string {
   return [
     segment.mode,
     coordinateKey(from.latitude),
@@ -639,14 +771,21 @@ function updateOverlaySelection(
   markerRecords: Map<string, MarkerRecord>,
   polylines: Map<number, PolylineRecord>,
   activePlaceId: number | null,
+  activeCanonicalPlaceId: number | null,
   activeSegmentId: number | null,
   activeDate: string | null,
 ): void {
   for (const [markerKey, { element, marker, date }] of markerRecords) {
-    const active = markerKey === itemMarkerKey(activePlaceId);
+    const active =
+      (activePlaceId !== null && markerKey === itemMarkerKey(activePlaceId)) ||
+      (activeCanonicalPlaceId !== null &&
+        markerKey === placeMarkerKey(activeCanonicalPlaceId));
     const dateSelected = activeDate !== null && date === activeDate;
     element.classList.toggle("active", active);
-    element.classList.toggle("date-active", activeDate !== null && date === activeDate);
+    element.classList.toggle(
+      "date-active",
+      activeDate !== null && date === activeDate,
+    );
     marker.zIndex = active ? 1000 : dateSelected ? 100 : 1;
   }
 
@@ -683,17 +822,31 @@ function buildPlacesSignature(places: Place[]): string {
 }
 
 function buildRouteSegmentsSignature(segments: RouteSegment[]): string {
-  return segments.map((segment) => `segment:${segment.id}:${segment.from_item_id}->${segment.to_item_id}:${segment.mode}`).join(";");
+  return segments
+    .map(
+      (segment) =>
+        `segment:${segment.id}:${segment.from_item_id}->${segment.to_item_id}:${segment.mode}`,
+    )
+    .join(";");
 }
 
-function updateMarkerSizes(markerRecords: Map<string, MarkerRecord>, zoom: number | undefined): void {
+function updateMarkerSizes(
+  markerRecords: Map<string, MarkerRecord>,
+  zoom: number | undefined,
+): void {
   const sizing = getMarkerSizing(zoom);
 
   for (const { element } of markerRecords.values()) {
     element.style.setProperty("--map-marker-size", `${sizing.size}px`);
-    element.style.setProperty("--map-marker-active-size", `${sizing.activeSize}px`);
+    element.style.setProperty(
+      "--map-marker-active-size",
+      `${sizing.activeSize}px`,
+    );
     element.style.setProperty("--map-marker-font-size", `${sizing.fontSize}px`);
-    element.style.setProperty("--map-marker-active-font-size", `${sizing.activeFontSize}px`);
+    element.style.setProperty(
+      "--map-marker-active-font-size",
+      `${sizing.activeFontSize}px`,
+    );
   }
 }
 
@@ -726,7 +879,12 @@ function getInfoWindow(infoWindowRef: { current: any }): any {
   return infoWindowRef.current;
 }
 
-function openPlaceInfoWindow(map: any, marker: any, infoWindow: any, place: Place): void {
+function openPlaceInfoWindow(
+  map: any,
+  marker: any,
+  infoWindow: any,
+  place: Place,
+): void {
   infoWindow.setContent(placeInfoWindowContent(place));
   infoWindow.open({ anchor: marker, map });
 }

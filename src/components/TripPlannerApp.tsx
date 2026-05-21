@@ -4,18 +4,30 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { buildItinerary } from "@/lib/itinerary";
 import { toggleSelectedId } from "@/lib/selection";
-import type { ItineraryItem, PlannerSnapshot, Place, TravelMode } from "@/lib/types";
+import type {
+  ItineraryItem,
+  PlannerSnapshot,
+  Place,
+  TravelMode,
+} from "@/lib/types";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { LeftPanel } from "./LeftPanel";
 import { MapPanel } from "./MapPanel";
 
-const EMPTY_SNAPSHOT: PlannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+const EMPTY_SNAPSHOT: PlannerSnapshot = {
+  places: [],
+  itineraryItems: [],
+  routeSegments: [],
+};
 
 export function TripPlannerApp() {
   const [snapshot, setSnapshot] = useState<PlannerSnapshot>(EMPTY_SNAPSHOT);
   const [activeItemId, setActiveItemId] = useState<number | null>(null);
+  const [activeCanonicalPlaceId, setActiveCanonicalPlaceId] = useState<
+    number | null
+  >(null);
   const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
   const [activeDate, setActiveDate] = useState<string | null>(null);
   const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(false);
@@ -26,7 +38,12 @@ export function TripPlannerApp() {
   const [error, setError] = useState<string | null>(null);
 
   const itinerary = useMemo(
-    () => buildItinerary(snapshot.itineraryItems, snapshot.routeSegments, snapshot.places),
+    () =>
+      buildItinerary(
+        snapshot.itineraryItems,
+        snapshot.routeSegments,
+        snapshot.places,
+      ),
     [snapshot],
   );
 
@@ -42,7 +59,9 @@ export function TripPlannerApp() {
 
   useEffect(() => {
     reload().catch((reason) => {
-      setError(reason instanceof Error ? reason.message : "Failed to load places.");
+      setError(
+        reason instanceof Error ? reason.message : "Failed to load places.",
+      );
     });
   }, [reload]);
 
@@ -55,12 +74,14 @@ export function TripPlannerApp() {
 
     const data = await response.json();
     if (!response.ok) {
-      const message = typeof data?.error === "string" ? data.error : "Failed to save place.";
+      const message =
+        typeof data?.error === "string" ? data.error : "Failed to save place.";
       setError(message);
       throw new Error(message);
     }
 
     setSnapshot(data);
+    setActiveCanonicalPlaceId(null);
     setIsAdding(false);
     setEditingPlace(null);
     setEditingItem(null);
@@ -68,7 +89,10 @@ export function TripPlannerApp() {
     setError(null);
   }
 
-  async function saveItineraryItem(payload: Record<string, unknown>, id: number) {
+  async function saveItineraryItem(
+    payload: Record<string, unknown>,
+    id: number,
+  ) {
     const response = await fetch(`/api/itinerary-items/${id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -77,7 +101,8 @@ export function TripPlannerApp() {
 
     const data = await response.json();
     if (!response.ok) {
-      const message = typeof data?.error === "string" ? data.error : "Failed to save visit.";
+      const message =
+        typeof data?.error === "string" ? data.error : "Failed to save visit.";
       setError(message);
       throw new Error(message);
     }
@@ -91,7 +116,11 @@ export function TripPlannerApp() {
     const response = await fetch(`/api/places/${id}`, { method: "DELETE" });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(typeof data?.error === "string" ? data.error : "Failed to delete place.");
+      throw new Error(
+        typeof data?.error === "string"
+          ? data.error
+          : "Failed to delete place.",
+      );
     }
 
     setSnapshot(data);
@@ -102,11 +131,16 @@ export function TripPlannerApp() {
 
       return deletedItemIds.includes(current ?? -1) ? null : current;
     });
+    setActiveCanonicalPlaceId((current) => (current === id ? null : current));
     setActiveSegmentId(null);
     setError(null);
   }
 
-  async function schedulePlace(id: number, visitDate: string | null, visitTime: string | null) {
+  async function schedulePlace(
+    id: number,
+    visitDate: string | null,
+    visitTime: string | null,
+  ) {
     const response = await fetch(`/api/places/${id}/schedule`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -115,14 +149,21 @@ export function TripPlannerApp() {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(typeof data?.error === "string" ? data.error : "Failed to schedule place.");
+      throw new Error(
+        typeof data?.error === "string"
+          ? data.error
+          : "Failed to schedule place.",
+      );
     }
 
     setSnapshot(data);
     setError(null);
   }
 
-  async function createItineraryItem(placeId: number, payload: Record<string, unknown>) {
+  async function createItineraryItem(
+    placeId: number,
+    payload: Record<string, unknown>,
+  ) {
     const response = await fetch(`/api/places/${placeId}/schedule`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -131,7 +172,8 @@ export function TripPlannerApp() {
 
     const data = await response.json();
     if (!response.ok) {
-      const message = typeof data?.error === "string" ? data.error : "Failed to add visit.";
+      const message =
+        typeof data?.error === "string" ? data.error : "Failed to add visit.";
       setError(message);
       throw new Error(message);
     }
@@ -141,7 +183,11 @@ export function TripPlannerApp() {
     setError(null);
   }
 
-  async function scheduleItineraryItem(id: number, visitDate: string | null, visitTime: string | null) {
+  async function scheduleItineraryItem(
+    id: number,
+    visitDate: string | null,
+    visitTime: string | null,
+  ) {
     const response = await fetch(`/api/itinerary-items/${id}/schedule`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -150,7 +196,11 @@ export function TripPlannerApp() {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(typeof data?.error === "string" ? data.error : "Failed to schedule itinerary item.");
+      throw new Error(
+        typeof data?.error === "string"
+          ? data.error
+          : "Failed to schedule itinerary item.",
+      );
     }
 
     setSnapshot(data);
@@ -158,10 +208,16 @@ export function TripPlannerApp() {
   }
 
   async function deleteItineraryItem(id: number) {
-    const response = await fetch(`/api/itinerary-items/${id}`, { method: "DELETE" });
+    const response = await fetch(`/api/itinerary-items/${id}`, {
+      method: "DELETE",
+    });
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(typeof data?.error === "string" ? data.error : "Failed to delete itinerary item.");
+      throw new Error(
+        typeof data?.error === "string"
+          ? data.error
+          : "Failed to delete itinerary item.",
+      );
     }
 
     setSnapshot(data);
@@ -180,7 +236,11 @@ export function TripPlannerApp() {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(typeof data?.error === "string" ? data.error : "Failed to update route mode.");
+      throw new Error(
+        typeof data?.error === "string"
+          ? data.error
+          : "Failed to update route mode.",
+      );
     }
 
     setSnapshot(data);
@@ -234,20 +294,32 @@ export function TripPlannerApp() {
 
     setActiveDate(null);
     setActiveItemId(null);
+    setActiveCanonicalPlaceId(null);
     setActiveSegmentId((current) => toggleSelectedId(current, id));
   }
 
   function selectItem(id: number | null) {
     setActiveDate(null);
+    setActiveCanonicalPlaceId(null);
     setActiveItemId(id);
   }
 
+  function selectCanonicalPlace(id: number | null) {
+    setActiveDate(null);
+    setActiveItemId(null);
+    setActiveSegmentId(null);
+    setActiveCanonicalPlaceId(id);
+  }
+
   return (
-    <main className={`app-shell ${isLeftPanelExpanded ? "left-panel-expanded" : ""}`}>
+    <main
+      className={`app-shell ${isLeftPanelExpanded ? "left-panel-expanded" : ""}`}
+    >
       <LeftPanel
         itinerary={itinerary}
         places={snapshot.places}
         activePlaceId={activeItemId}
+        activeCanonicalPlaceId={activeCanonicalPlaceId}
         activeSegmentId={activeSegmentId}
         activeDate={activeDate}
         error={error}
@@ -259,34 +331,56 @@ export function TripPlannerApp() {
         onEditItem={openEditItemModal}
         onDelete={(id) =>
           deletePlace(id).catch((reason) => {
-            setError(reason instanceof Error ? reason.message : "Failed to delete place.");
+            setError(
+              reason instanceof Error
+                ? reason.message
+                : "Failed to delete place.",
+            );
           })
         }
         onSelectPlace={selectItem}
+        onSelectCanonicalPlace={selectCanonicalPlace}
         onSelectSegment={toggleSegmentSelection}
         onSelectDate={(date) => {
           setActiveDate((current) => (current === date ? null : date));
           setActiveItemId(null);
+          setActiveCanonicalPlaceId(null);
           setActiveSegmentId(null);
         }}
         onSchedulePlace={(id, date, time) =>
           schedulePlace(id, date, time).catch((reason) => {
-            setError(reason instanceof Error ? reason.message : "Failed to schedule place.");
+            setError(
+              reason instanceof Error
+                ? reason.message
+                : "Failed to schedule place.",
+            );
           })
         }
         onScheduleItem={(id, date, time) =>
           scheduleItineraryItem(id, date, time).catch((reason) => {
-            setError(reason instanceof Error ? reason.message : "Failed to schedule itinerary item.");
+            setError(
+              reason instanceof Error
+                ? reason.message
+                : "Failed to schedule itinerary item.",
+            );
           })
         }
         onDeleteItem={(id) =>
           deleteItineraryItem(id).catch((reason) => {
-            setError(reason instanceof Error ? reason.message : "Failed to delete itinerary item.");
+            setError(
+              reason instanceof Error
+                ? reason.message
+                : "Failed to delete itinerary item.",
+            );
           })
         }
         onModeChange={(id, mode) =>
           updateSegmentMode(id, mode).catch((reason) => {
-            setError(reason instanceof Error ? reason.message : "Failed to update route mode.");
+            setError(
+              reason instanceof Error
+                ? reason.message
+                : "Failed to update route mode.",
+            );
           })
         }
       />
@@ -294,6 +388,7 @@ export function TripPlannerApp() {
         itinerary={itinerary}
         routeSegments={snapshot.routeSegments}
         activePlaceId={activeItemId}
+        activeCanonicalPlaceId={activeCanonicalPlaceId}
         activeSegmentId={activeSegmentId}
         activeDate={activeDate}
         hidden={isLeftPanelExpanded}
@@ -318,7 +413,9 @@ export function TripPlannerApp() {
         <EditItineraryItemModal
           place={addingVisitPlace}
           onCancel={closeModal}
-          onSave={(payload) => createItineraryItem(addingVisitPlace.id, payload)}
+          onSave={(payload) =>
+            createItineraryItem(addingVisitPlace.id, payload)
+          }
         />
       )}
     </main>

@@ -35,6 +35,7 @@ type Props = {
   itinerary: ItineraryView;
   places: Place[];
   activePlaceId: number | null;
+  activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
   error: string | null;
@@ -46,6 +47,7 @@ type Props = {
   onEditItem: (item: ItineraryItem) => void;
   onDelete: (id: number) => void;
   onSelectPlace: (id: number | null) => void;
+  onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
   onSelectDate: (date: string) => void;
   onSchedulePlace: (
@@ -363,20 +365,29 @@ export function LeftPanel(props: Props) {
                   <PlaceListRow
                     key={place.id}
                     place={place}
-                    active={false}
-                    onSelect={() => props.onSelectPlace(null)}
+                    active={props.activeCanonicalPlaceId === place.id}
+                    onSelect={() =>
+                      props.onSelectCanonicalPlace(
+                        props.activeCanonicalPlaceId === place.id
+                          ? null
+                          : place.id,
+                      )
+                    }
                     onEdit={() => {
                       props.onSelectPlace(null);
+                      props.onSelectCanonicalPlace(null);
                       props.onSelectSegment(null);
                       props.onEdit(place);
                     }}
                     onAddVisit={() => {
                       props.onSelectPlace(null);
+                      props.onSelectCanonicalPlace(null);
                       props.onSelectSegment(null);
                       props.onAddVisit(place);
                     }}
                     onDelete={() => {
                       props.onSelectPlace(null);
+                      props.onSelectCanonicalPlace(null);
                       props.onSelectSegment(null);
                       props.onDelete(place.id);
                     }}
@@ -402,24 +413,32 @@ export function LeftPanel(props: Props) {
                 <PlaceListRow
                   key={place.id}
                   place={place}
-                  active={itemId !== null && props.activePlaceId === itemId}
+                  active={
+                    props.activeCanonicalPlaceId === place.id ||
+                    (itemId !== null && props.activePlaceId === itemId)
+                  }
                   onSelect={() =>
-                    props.onSelectPlace(
-                      itemId && props.activePlaceId !== itemId ? itemId : null,
+                    props.onSelectCanonicalPlace(
+                      props.activeCanonicalPlaceId === place.id
+                        ? null
+                        : place.id,
                     )
                   }
                   onEdit={() => {
                     props.onSelectPlace(null);
+                    props.onSelectCanonicalPlace(null);
                     props.onSelectSegment(null);
                     props.onEdit(place);
                   }}
                   onAddVisit={() => {
                     props.onSelectPlace(null);
+                    props.onSelectCanonicalPlace(null);
                     props.onSelectSegment(null);
                     props.onAddVisit(place);
                   }}
                   onDelete={() => {
                     props.onSelectPlace(null);
+                    props.onSelectCanonicalPlace(null);
                     props.onSelectSegment(null);
                     props.onDelete(place.id);
                   }}

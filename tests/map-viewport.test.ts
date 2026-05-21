@@ -8,16 +8,34 @@ describe("getSelectedPlacePosition", () => {
     expect(
       getSelectedPlacePosition(
         [
-          item({ id: 1, place: place({ id: 1, latitude: 40.7, longitude: -73.9 }) }),
-          item({ id: 2, place: place({ id: 2, latitude: 40.76, longitude: -73.98 }) }),
+          item({
+            id: 1,
+            place: place({ id: 1, latitude: 40.7, longitude: -73.9 }),
+          }),
+          item({
+            id: 2,
+            place: place({ id: 2, latitude: 40.76, longitude: -73.98 }),
+          }),
         ],
+        [],
         2,
       ),
     ).toEqual({ lat: 40.76, lng: -73.98 });
   });
 
   it("returns null when there is no selected place", () => {
-    expect(getSelectedPlacePosition([item({ id: 1 })], null)).toBeNull();
+    expect(getSelectedPlacePosition([item({ id: 1 })], [], null)).toBeNull();
+  });
+
+  it("returns unscheduled place coordinates for map centering", () => {
+    expect(
+      getSelectedPlacePosition(
+        [item({ id: 1 })],
+        [place({ id: 4, latitude: 41, longitude: -75 })],
+        null,
+        4,
+      ),
+    ).toEqual({ lat: 41, lng: -75 });
   });
 });
 
