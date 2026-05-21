@@ -643,9 +643,11 @@ function updateOverlaySelection(
   activeDate: string | null,
 ): void {
   for (const [markerKey, { element, marker, date }] of markerRecords) {
-    element.classList.toggle("active", markerKey === itemMarkerKey(activePlaceId));
+    const active = markerKey === itemMarkerKey(activePlaceId);
+    const dateSelected = activeDate !== null && date === activeDate;
+    element.classList.toggle("active", active);
     element.classList.toggle("date-active", activeDate !== null && date === activeDate);
-    marker.zIndex = activeDate !== null && date === activeDate ? 100 : 1;
+    marker.zIndex = active ? 1000 : dateSelected ? 100 : 1;
   }
 
   for (const [segmentId, { polyline, date }] of polylines) {
