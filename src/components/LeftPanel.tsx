@@ -19,6 +19,7 @@ import type {
   ItineraryItem,
   ItineraryView,
   Place,
+  RouteGeometry,
   TravelMode,
 } from "@/lib/types";
 
@@ -38,6 +39,7 @@ type Props = {
   activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
+  routeGeometries: Map<number, RouteGeometry>;
   error: string | null;
   isExpanded: boolean;
   onToggleExpanded: () => void;
@@ -290,6 +292,10 @@ export function LeftPanel(props: Props) {
                           to={nextItem.place}
                           active={
                             props.activeSegmentId === segmentView.segment.id
+                          }
+                          durationSeconds={
+                            props.routeGeometries.get(segmentView.segment.id)
+                              ?.duration_seconds
                           }
                           onSelect={() =>
                             props.onSelectSegment(segmentView.segment.id)

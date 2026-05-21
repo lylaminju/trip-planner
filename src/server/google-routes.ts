@@ -16,6 +16,7 @@ type ComputeRouteInput = {
 
 type GoogleRoutesResponse = {
   routes?: Array<{
+    duration?: unknown;
     polyline?: {
       encodedPolyline?: unknown;
     };
@@ -38,7 +39,7 @@ export async function computeGoogleRoute(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": input.apiKey,
-        "X-Goog-FieldMask": "routes.polyline.encodedPolyline",
+        "X-Goog-FieldMask": "routes.duration,routes.polyline.encodedPolyline",
       },
       body: JSON.stringify({
         origin: { location: { latLng: input.from } },
@@ -58,10 +59,16 @@ export async function computeGoogleRoute(
     }
 
     const payload = (await response.json()) as GoogleRoutesResponse;
-    const encodedPolyline = payload.routes?.[0]?.polyline?.encodedPolyline;
+    const route = payload.routes?.[0];
+    const encodedPolyline = route?.polyline?.encodedPolyline;
+    const durationSeconds = parseGoogleDuration(route?.duration);
 
     return typeof encodedPolyline === "string" && encodedPolyline
-      ? { status: "ok", encoded_polyline: encodedPolyline }
+      ? {
+          status: "ok",
+          encoded_polyline: encodedPolyline,
+          duration_seconds: durationSeconds ?? undefined,
+        }
       : { status: "no_route" };
   } catch (error) {
     if (error instanceof GoogleRoutesUpstreamError) {
@@ -77,6 +84,15 @@ export async function computeGoogleRoute(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function parseGoogleDuration(value: unknown): number | null {
+  if (typeof value !== "string") return null;
+
+  const match = /^(\d+)s$/.exec(value);
+  if (!match) return null;
+
+  return Number(match[1]);
 }
 
 function toGoogleTravelMode(mode: TravelMode): string {

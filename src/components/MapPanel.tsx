@@ -24,6 +24,8 @@ type Props = {
   activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
+  routeGeometries: Map<number, RouteGeometry>;
+  routeGeometryError: string | null;
   hidden?: boolean;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
@@ -42,11 +44,6 @@ type PolylineRecord = {
   date: string | null;
 };
 
-type RouteGeometryFetchResult = {
-  geometry: RouteGeometry | null;
-  error: string | null;
-};
-
 const GOOGLE_MAPS_CALLBACK = "__tripPlannerGoogleMapsReady";
 let googleMapsLoadPromise: Promise<void> | null = null;
 
@@ -55,17 +52,10 @@ export function MapPanel(props: Props) {
   const mapInstanceRef = useRef<any>(null);
   const markerRecordsRef = useRef<Map<string, MarkerRecord>>(new Map());
   const polylinesRef = useRef<Map<number, PolylineRecord>>(new Map());
-  const routeGeometrySignaturesRef = useRef<Map<number, string>>(new Map());
   const boundsSignatureRef = useRef<string>("");
   const infoWindowRef = useRef<any>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [routeGeometries, setRouteGeometries] = useState<
-    Map<number, RouteGeometry>
-  >(new Map());
-  const [routeGeometryError, setRouteGeometryError] = useState<string | null>(
-    null,
-  );
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const itineraryItems = useMemo(
     () => getItineraryItems(props.itinerary),
@@ -131,99 +121,6 @@ export function MapPanel(props: Props) {
   }, [apiKey, itineraryItemsSignature, unscheduledPlacesSignature]);
 
   useEffect(() => {
-    if (!apiKey || loadFailed || !isMapReady) {
-      return;
-    }
-
-    let cancelled = false;
-    const itemsById = new Map(itineraryItems.map((item) => [item.id, item]));
-    const nextSegmentIds = new Set(
-      props.routeSegments.map((segment) => segment.id),
-    );
-    const changedSegmentIds = new Set<number>();
-    const requests: Promise<RouteGeometryFetchResult>[] = [];
-
-    for (const segment of props.routeSegments) {
-      const from = itemsById.get(segment.from_item_id);
-      const to = itemsById.get(segment.to_item_id);
-      if (!from || !to) continue;
-
-      const signature = routeGeometryRequestSignature(
-        segment,
-        from.place,
-        to.place,
-      );
-      if (routeGeometrySignaturesRef.current.get(segment.id) === signature) {
-        continue;
-      }
-
-      changedSegmentIds.add(segment.id);
-      routeGeometrySignaturesRef.current.set(segment.id, signature);
-      requests.push(fetchRouteGeometry(segment.id));
-    }
-
-    for (const segmentId of routeGeometrySignaturesRef.current.keys()) {
-      if (!nextSegmentIds.has(segmentId)) {
-        routeGeometrySignaturesRef.current.delete(segmentId);
-      }
-    }
-
-    setRouteGeometries((current) => {
-      const next = new Map(current);
-      let changed = false;
-
-      for (const segmentId of current.keys()) {
-        if (
-          !nextSegmentIds.has(segmentId) ||
-          changedSegmentIds.has(segmentId)
-        ) {
-          next.delete(segmentId);
-          changed = true;
-        }
-      }
-
-      return changed ? next : current;
-    });
-
-    if (props.routeSegments.length === 0) {
-      setRouteGeometryError(null);
-    }
-
-    if (requests.length > 0) {
-      void Promise.all(requests).then((results) => {
-        if (cancelled) return;
-
-        setRouteGeometryError(
-          results.find((result) => result.error)?.error ?? null,
-        );
-        setRouteGeometries((current) => {
-          const next = new Map(current);
-          let changed = false;
-
-          for (const { geometry } of results) {
-            if (geometry?.status !== "ok") continue;
-
-            next.set(geometry.segment_id, geometry);
-            changed = true;
-          }
-
-          return changed ? next : current;
-        });
-      });
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    apiKey,
-    isMapReady,
-    itineraryItemsSignature,
-    loadFailed,
-    routeSegmentsSignature,
-  ]);
-
-  useEffect(() => {
     const map = mapInstanceRef.current;
     if (!apiKey || loadFailed || !isMapReady || !map || !window.google?.maps) {
       return;
@@ -234,7 +131,7 @@ export function MapPanel(props: Props) {
       items: itineraryItems,
       unscheduledPlaces: props.itinerary.unscheduled,
       routeSegments: props.routeSegments,
-      routeGeometries,
+      routeGeometries: props.routeGeometries,
       itemColors,
       markerLabels,
       markerRecords: markerRecordsRef.current,
@@ -260,7 +157,7 @@ export function MapPanel(props: Props) {
     loadFailed,
     unscheduledPlacesSignature,
     routeSegmentsSignature,
-    routeGeometries,
+    props.routeGeometries,
     itemColors,
     markerLabels,
     props.onSelectPlace,
@@ -355,9 +252,9 @@ export function MapPanel(props: Props) {
       aria-hidden={props.hidden}
     >
       <div className="map-canvas" ref={mapRef} />
-      {(routeGeometryError || showRouteQualityWarning) && (
+      {(props.routeGeometryError || showRouteQualityWarning) && (
         <div className="map-route-warning">
-          {routeGeometryError && <p>{routeGeometryError}</p>}
+          {props.routeGeometryError && <p>{props.routeGeometryError}</p>}
           {showRouteQualityWarning && (
             <p>
               Walking and bicycling routes may be missing sidewalks, pedestrian
@@ -490,35 +387,6 @@ function isGoogleMapsReady(): boolean {
     window.google?.maps?.Map &&
     window.google.maps.marker?.AdvancedMarkerElement,
   );
-}
-
-async function fetchRouteGeometry(
-  segmentId: number,
-): Promise<RouteGeometryFetchResult> {
-  try {
-    const response = await fetch(`/api/route-segments/${segmentId}/geometry`);
-    if (!response.ok) {
-      return {
-        geometry: null,
-        error:
-          response.status === 503
-            ? "Real routes need a server-side Google Routes API key. Showing straight lines for now."
-            : "Real routes are unavailable from Google right now. Showing straight lines for now.",
-      };
-    }
-
-    const geometry = (await response.json()) as RouteGeometry;
-    return {
-      geometry: geometry.segment_id === segmentId ? geometry : null,
-      error: null,
-    };
-  } catch {
-    return {
-      geometry: null,
-      error:
-        "Real routes are unavailable from Google right now. Showing straight lines for now.",
-    };
-  }
 }
 
 function renderOverlays(input: {
@@ -743,24 +611,6 @@ function straightRoutePath(from: Place, to: Place): LatLngLiteral[] {
     { lat: from.latitude, lng: from.longitude },
     { lat: to.latitude, lng: to.longitude },
   ];
-}
-
-function routeGeometryRequestSignature(
-  segment: RouteSegment,
-  from: Place,
-  to: Place,
-): string {
-  return [
-    segment.mode,
-    coordinateKey(from.latitude),
-    coordinateKey(from.longitude),
-    coordinateKey(to.latitude),
-    coordinateKey(to.longitude),
-  ].join("|");
-}
-
-function coordinateKey(value: number): string {
-  return value.toFixed(6);
 }
 
 function isBetaRouteMode(mode: TravelMode): boolean {

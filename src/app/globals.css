@@ -386,6 +386,13 @@ textarea {
   box-shadow: inset 0 0 0 1px var(--active-line);
 }
 
+.route-duration {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .itinerary-divider {
   border-top: 2px solid var(--line);
   margin: 10px 0 8px;

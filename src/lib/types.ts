@@ -40,6 +40,7 @@ export type RouteGeometry = {
   segment_id: number;
   status: "ok" | "no_route";
   encoded_polyline?: string;
+  duration_seconds?: number;
 };
 
 export type SegmentView = {

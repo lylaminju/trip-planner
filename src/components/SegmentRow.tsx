@@ -10,6 +10,7 @@ type Props = {
   from: Place;
   to: Place;
   active: boolean;
+  durationSeconds?: number;
   onSelect: () => void;
   onModeChange: (mode: TravelMode) => void;
 };
@@ -19,6 +20,7 @@ export function SegmentRow({
   from,
   to,
   active,
+  durationSeconds,
   onSelect,
   onModeChange,
 }: Props) {
@@ -45,15 +47,37 @@ export function SegmentRow({
           </option>
         ))}
       </select>
+      {durationSeconds !== undefined && (
+        <span className="route-duration">
+          {formatRouteDuration(durationSeconds)}
+        </span>
+      )}
       <a
         className="small-button"
         href={url}
         target="_blank"
         rel="noopener noreferrer"
         onClick={(event) => event.stopPropagation()}
+        title="Open in Google Maps"
       >
-        Open in Google Maps
+        🔗
       </a>
     </div>
   );
+}
+
+function formatRouteDuration(seconds: number): string {
+  const totalMinutes = Math.max(1, Math.round(seconds / 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes} min`;
+  }
+
+  if (minutes === 0) {
+    return `${hours} hr`;
+  }
+
+  return `${hours} hr ${minutes} min`;
 }

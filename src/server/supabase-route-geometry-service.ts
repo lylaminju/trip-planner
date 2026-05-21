@@ -92,6 +92,7 @@ type JoinedItem = {
 type RouteGeometryCacheRow = {
   status: "ok" | "no_route";
   encoded_polyline: string | null;
+  duration_seconds: number | null;
 };
 
 const CACHE_MAX_AGE_DAYS = 30;
@@ -173,13 +174,21 @@ async function getCachedRouteGeometry(
   ).toISOString();
   const { data, error } = await getSupabaseClient()
     .from("route_geometry_cache")
-    .select("status, encoded_polyline")
+    .select("status, encoded_polyline, duration_seconds")
     .eq("cache_key", cacheKey)
     .gte("updated_at", cutoff)
     .maybeSingle();
 
   if (error) throwSupabaseError(error);
-  return (data as RouteGeometryCacheRow | null) ?? null;
+  const cached = (data as RouteGeometryCacheRow | null) ?? null;
+  if (
+    cached?.status === "ok" &&
+    cached.encoded_polyline &&
+    cached.duration_seconds === null
+  ) {
+    return null;
+  }
+  return cached;
 }
 
 async function saveRouteGeometry(
@@ -202,6 +211,7 @@ async function saveRouteGeometry(
         to_longitude: segment.to_longitude,
         status: geometry.status,
         encoded_polyline: geometry.encoded_polyline ?? null,
+        duration_seconds: geometry.duration_seconds ?? null,
         updated_at: now,
       },
       { onConflict: "cache_key" },
@@ -219,6 +229,7 @@ function toRouteGeometry(
       segment_id: segmentId,
       status: "ok",
       encoded_polyline: cached.encoded_polyline,
+      duration_seconds: cached.duration_seconds ?? undefined,
     };
   }
 

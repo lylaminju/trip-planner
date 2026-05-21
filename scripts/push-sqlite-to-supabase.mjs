@@ -60,7 +60,8 @@ try {
       .prepare(
         `SELECT
           cache_key, from_place_id, to_place_id, mode, from_latitude, from_longitude,
-          to_latitude, to_longitude, status, encoded_polyline, created_at, updated_at
+          to_latitude, to_longitude, status, encoded_polyline, NULL AS duration_seconds,
+          created_at, updated_at
         FROM route_geometry_cache
         ORDER BY cache_key`,
       )

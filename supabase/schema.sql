@@ -44,9 +44,13 @@ create table if not exists public.route_geometry_cache (
   to_longitude double precision not null,
   status text not null check (status in ('ok', 'no_route')),
   encoded_polyline text,
+  duration_seconds integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.route_geometry_cache
+  add column if not exists duration_seconds integer;
 
 create index if not exists idx_itinerary_items_visit_date_time
   on public.itinerary_items (visit_date, visit_time, place_id);
@@ -79,4 +83,4 @@ grant execute on function public.reset_trip_planner_id_sequences() to service_ro
 alter table public.places enable row level security;
 alter table public.itinerary_items enable row level security;
 alter table public.route_segments enable row level security;
-alter table public.route_geometry_cache enable row level security
+alter table public.route_geometry_cache enable row level security;
