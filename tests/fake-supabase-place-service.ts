@@ -107,6 +107,7 @@ export function createFakeSupabasePlaceService() {
         latitude: input.latitude,
         longitude: input.longitude,
         notes: input.notes,
+        links: [...input.links],
         created_at: now(),
         updated_at: now(),
       };

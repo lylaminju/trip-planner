@@ -52,6 +52,7 @@ export async function PATCH(request: Request, { params }: Params) {
     name: stringOrUndefined(body.name),
     address: nullableStringOrUndefined(body.address),
     notes: nullableStringOrUndefined(body.notes),
+    links: stringArrayOrUndefined(body.links),
     visit_date: visitDate,
     visit_time: visitTime,
     google_maps_url: stringOrUndefined(body.google_maps_url),
@@ -127,6 +128,16 @@ function nullableStringOrUndefined(value: unknown): string | null | undefined {
   if (value === null) return null;
   if (typeof value === "string" && value.trim() === "") return null;
   return stringOrUndefined(value);
+}
+
+function stringArrayOrUndefined(value: unknown): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 function nullableDateOrUndefined(

@@ -4,6 +4,8 @@ import { useState, type FormEvent } from "react";
 
 import type { Place } from "@/lib/types";
 
+import { TrashIcon } from "./Icons";
+
 type Props = {
   place: Place | null;
   onCancel: () => void;
@@ -13,6 +15,7 @@ type Props = {
 export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [links, setLinks] = useState<string[]>(place?.links ?? [""]);
   const [visitTimeHour, visitTimeMinute] = splitVisitTime(null);
   const isEditing = place !== null;
 
@@ -27,6 +30,7 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
       name: stringValue(form, "name"),
       address: nullableValue(form, "address"),
       notes: nullableValue(form, "notes"),
+      links: links.map((link) => link.trim()).filter(Boolean),
     };
     if (!isEditing) {
       payload.visit_date = nullableValue(form, "visit_date");
@@ -118,6 +122,52 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
           Place notes
           <textarea name="notes" rows={5} defaultValue={place?.notes ?? ""} />
         </label>
+
+        <fieldset className="modal-links-fieldset">
+          <legend>Links</legend>
+          <div className="modal-links-list">
+            {links.map((link, index) => (
+              <div key={index} className="modal-link-row">
+                <input
+                  type="url"
+                  value={link}
+                  placeholder="https://example.com"
+                  onChange={(event) => {
+                    const nextValue = event.currentTarget.value;
+                    setLinks((current) =>
+                      current.map((value, valueIndex) =>
+                        valueIndex === index ? nextValue : value,
+                      ),
+                    );
+                  }}
+                />
+                <button
+                  type="button"
+                  className="icon-button danger-button"
+                  aria-label="Remove link"
+                  title="Remove link"
+                  onClick={() =>
+                    setLinks((current) =>
+                      current.length === 1
+                        ? [""]
+                        : current.filter(
+                            (_, valueIndex) => valueIndex !== index,
+                          ),
+                    )
+                  }
+                >
+                  <TrashIcon />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setLinks((current) => [...current, ""])}
+          >
+            Add link
+          </button>
+        </fieldset>
 
         {error && <p className="error-text">{error}</p>}
 

@@ -12,6 +12,7 @@ export type Place = {
   latitude: number;
   longitude: number;
   notes: string | null;
+  links: string[];
   created_at: string;
   updated_at: string;
 };

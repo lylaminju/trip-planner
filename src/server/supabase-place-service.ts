@@ -32,7 +32,7 @@ type RouteSegmentInsert = {
 };
 
 const PLACE_COLUMNS =
-  "id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, created_at, updated_at";
+  "id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, created_at, updated_at";
 const ITINERARY_ITEM_COLUMNS = `id, place_id, visit_date, visit_time, notes, created_at, updated_at, place:places (${PLACE_COLUMNS})`;
 const PLACE_UPDATE_COLUMNS = [
   "name",
@@ -45,6 +45,7 @@ const PLACE_UPDATE_COLUMNS = [
   "latitude",
   "longitude",
   "notes",
+  "links",
 ] as const satisfies readonly (keyof PlaceUpdate)[];
 const ITEM_UPDATE_COLUMNS = [
   "visit_date",
@@ -301,7 +302,7 @@ async function updatePlace(id: number, input: PlaceUpdate): Promise<Place> {
   const fields = PLACE_UPDATE_COLUMNS.filter((key) => input[key] !== undefined);
   if (fields.length === 0) return getPlaceById(id);
 
-  const values: Record<string, number | string | null> = {};
+  const values: Record<string, number | string | string[] | null> = {};
   for (const key of fields) {
     values[key] = input[key] ?? null;
   }
@@ -466,6 +467,7 @@ function toPlaceInsert(input: PlaceCreateInput): PlaceInsert {
     latitude: input.latitude,
     longitude: input.longitude,
     notes: input.notes,
+    links: input.links,
   };
 }
 
@@ -481,6 +483,7 @@ function toPlaceUpdate(input: PlaceEditInput): PlaceUpdate {
     latitude: input.latitude,
     longitude: input.longitude,
     notes: input.notes,
+    links: input.links,
   };
 }
 

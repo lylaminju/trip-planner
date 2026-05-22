@@ -66,6 +66,44 @@
   white-space: pre-wrap;
 }
 
+.modal-links-fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+}
+
+.modal-links-fieldset legend {
+  padding: 0 6px;
+}
+
+.modal-links-list,
+.modal-links-readonly {
+  display: grid;
+  gap: 8px;
+}
+
+.modal-link-row {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.modal-links-readonly a {
+  color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.modal-links-readonly a:hover {
+  text-decoration-thickness: 2px;
+}
+
 .modal input,
 .modal textarea,
 .modal select {

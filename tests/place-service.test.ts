@@ -15,6 +15,7 @@ const baseInput: PlaceInsert = {
   visit_date: null,
   visit_time: null,
   notes: null,
+  links: [],
 };
 
 async function withFreshPlaceService(
@@ -152,6 +153,28 @@ describe("place-service scheduling normalization", () => {
         visit_date: "2026-06-02",
         visit_time: "10:00",
         notes: "Visit note",
+      });
+    });
+  });
+
+  it("stores multiple canonical place links independently from itinerary items", async () => {
+    await withFreshPlaceService(async ({ createPlace, editPlace }) => {
+      const created = await createPlace({
+        ...baseInput,
+        links: ["https://menu.example.com"],
+        visit_date: "2026-06-01",
+        visit_time: "09:00",
+      });
+
+      const snapshot = await editPlace(created.places[0].id, {
+        links: ["https://menu.example.com", "https://booking.example.com"],
+      });
+
+      expect(snapshot.places[0]).toMatchObject({
+        links: ["https://menu.example.com", "https://booking.example.com"],
+      });
+      expect(snapshot.itineraryItems[0]).toMatchObject({
+        notes: null,
       });
     });
   });

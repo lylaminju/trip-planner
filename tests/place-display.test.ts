@@ -77,6 +77,7 @@ describe("formatPlaceRow", () => {
       latitude: 40,
       longitude: -74,
       notes: null,
+      links: [],
       created_at: "2026-05-20 00:00:00",
       updated_at: "2026-05-20 00:00:00",
       visit_date: "2026-06-01",
@@ -103,6 +104,7 @@ describe("formatPlaceRow", () => {
       latitude: 40,
       longitude: -74,
       notes: "Lawn and fountain",
+      links: [],
       created_at: "2026-05-20 00:00:00",
       updated_at: "2026-05-20 00:00:00",
     } as Place;
@@ -137,6 +139,7 @@ function place(
     latitude: overrides.latitude ?? 40,
     longitude: overrides.longitude ?? -74,
     notes: overrides.notes ?? null,
+    links: overrides.links ?? [],
     created_at: overrides.created_at ?? "2026-05-20 00:00:00",
     updated_at: overrides.updated_at ?? "2026-05-20 00:00:00",
   };

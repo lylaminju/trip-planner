@@ -15,6 +15,7 @@ const baseInput: PlaceInsert = {
   visit_date: null,
   visit_time: null,
   notes: "Existing notes",
+  links: [],
 };
 
 async function withFreshTestEnv(

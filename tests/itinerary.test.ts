@@ -12,6 +12,7 @@ const basePlace = {
   latitude: 40,
   longitude: -73,
   notes: null,
+  links: [],
   created_at: "2026-05-19 00:00:00",
   updated_at: "2026-05-19 00:00:00",
 };

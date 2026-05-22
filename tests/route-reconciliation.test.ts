@@ -22,6 +22,7 @@ function place(
     latitude: 40 + id,
     longitude: -73 - id,
     notes: null,
+    links: [],
     created_at: stamp,
     updated_at: stamp,
   };

@@ -11,6 +11,7 @@ export type PlaceInsert = {
   latitude: number;
   longitude: number;
   notes: string | null;
+  links: string[];
   visit_date?: string | null;
   visit_time?: string | null;
 };

@@ -22,6 +22,9 @@ export function EditItineraryItemModal({
     throw new Error("EditItineraryItemModal requires an item or place.");
   }
   const placeNotes = displayPlace.notes?.trim() || null;
+  const placeLinks = displayPlace.links.filter(
+    (link) => link.trim().length > 0,
+  );
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,9 +73,25 @@ export function EditItineraryItemModal({
         <p className="modal-subtitle">{displayPlace.name}</p>
 
         {placeNotes && (
-          <section className="modal-note-block" aria-label="Original place notes">
+          <section
+            className="modal-note-block"
+            aria-label="Original place notes"
+          >
             <span className="modal-note-label">Place notes</span>
             <p className="modal-note-text">{placeNotes}</p>
+          </section>
+        )}
+
+        {placeLinks.length > 0 && (
+          <section className="modal-note-block" aria-label="Place links">
+            <span className="modal-note-label">Links</span>
+            <div className="modal-links-readonly">
+              {placeLinks.map((link) => (
+                <a key={link} href={link} target="_blank" rel="noreferrer">
+                  {link}
+                </a>
+              ))}
+            </div>
           </section>
         )}
 

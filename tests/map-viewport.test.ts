@@ -52,6 +52,7 @@ function place(overrides: Partial<Place>): Place {
     latitude: 40,
     longitude: -74,
     notes: null,
+    links: [],
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",
     ...overrides,
