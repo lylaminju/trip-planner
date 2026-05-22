@@ -10,13 +10,13 @@ import {
 import { createPortal } from "react-dom";
 
 import { useMobileSheetDrag } from "@/hooks/useMobileSheetDrag";
+import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   formatItineraryDateHeading,
   formatPlaceRow,
   formatSchedule,
 } from "@/lib/place-display";
-import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type {
   ItineraryItem,
   ItineraryView,
@@ -25,7 +25,6 @@ import type {
   TravelMode,
 } from "@/lib/types";
 
-import { SegmentRow } from "./SegmentRow";
 import {
   CalendarPlusIcon,
   CloseIcon,
@@ -33,6 +32,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "./Icons";
+import { SegmentRow } from "./SegmentRow";
 
 type Props = {
   itinerary: ItineraryView;
@@ -159,6 +159,9 @@ export function LeftPanel(props: Props) {
       <header className="app-header">
         <h1>Trip Planner</h1>
         <div className="app-header-actions">
+          <button type="button" onClick={props.onAdd}>
+            Add Place
+          </button>
           <button type="button" onClick={props.onLogout}>
             Log out
           </button>
@@ -172,9 +175,6 @@ export function LeftPanel(props: Props) {
             onClick={props.onToggleExpanded}
           >
             {props.isExpanded ? "<<" : ">>"}
-          </button>
-          <button type="button" onClick={props.onAdd}>
-            Add Place
           </button>
         </div>
       </header>
