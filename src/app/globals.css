@@ -887,8 +887,31 @@ button:focus-visible {
 .modal select {
   border: 1px solid var(--line);
   border-radius: 6px;
+  background: #ffffff;
+  color: var(--text);
+  min-height: 42px;
   padding: 8px;
   width: 100%;
+}
+
+.modal input[type="date"],
+.modal select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.modal select {
+  background:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 16px) 50% /
+      6px 6px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 11px) 50% /
+      6px 6px no-repeat,
+    #ffffff;
+  padding-right: 32px;
+}
+
+.modal input[type="date"] {
+  color-scheme: light;
 }
 
 .form-grid {
