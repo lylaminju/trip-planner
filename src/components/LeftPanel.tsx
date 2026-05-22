@@ -324,6 +324,11 @@ export function LeftPanel(props: Props) {
                           props.onEditItem(item);
                         }}
                         onDelete={() => {
+                          if (
+                            !confirmDeletion(`this visit to ${item.place.name}`)
+                          ) {
+                            return;
+                          }
                           props.onSelectPlace(null);
                           props.onSelectSegment(null);
                           props.onDeleteItem(item.id);
