@@ -561,14 +561,16 @@ textarea {
   text-align: left;
 }
 
-.place-main span {
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
 .place-title {
   display: flex;
   align-items: center;
+  min-width: 0;
+}
+
+.place-title-text {
+  color: inherit;
+  display: flex;
+  align-items: baseline;
   min-width: 0;
 }
 
@@ -602,6 +604,11 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.place-main > span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .place-main .place-note {
@@ -1204,12 +1211,16 @@ button:focus-visible {
 
   .place-row {
     gap: 4px;
-    padding: 4px 6px;
-    margin: 0px;
+    padding: 4px 4px;
+    margin: 2px 0px;
   }
 
   .place-main {
-    padding: 6px 4px;
+    padding: 4px;
+  }
+
+  .place-title-text {
+    font-size: 14px;
   }
 
   .icon-button {

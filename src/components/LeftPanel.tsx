@@ -671,10 +671,12 @@ function ItineraryItemRow(props: {
               {props.markerLabel}
             </span>
           )}
-          {display.timePrefix && (
-            <span className="place-time">{display.timePrefix}</span>
-          )}
-          <span className="place-name">{display.title}</span>
+          <span className="place-title-text">
+            {display.timePrefix && (
+              <span className="place-time">{display.timePrefix}</span>
+            )}
+            <span className="place-name">{display.title}</span>
+          </span>
         </strong>
         {display.detail && <span>{display.detail}</span>}
         {note && <span className="place-note">{note}</span>}
@@ -718,7 +720,9 @@ function PlaceListRow(props: {
     <div className={`place-row ${props.active ? "active" : ""}`}>
       <button type="button" className="place-main" onClick={props.onSelect}>
         <strong className="place-title">
-          <span className="place-name">{display.title}</span>
+          <span className="place-title-text">
+            <span className="place-name">{display.title}</span>
+          </span>
         </strong>
         {display.detail && <span>{display.detail}</span>}
         {props.place.notes && (
