@@ -130,6 +130,12 @@ export function LeftPanel(props: Props) {
     });
   }
 
+  function confirmDeletion(targetLabel: string): boolean {
+    return window.confirm(
+      `Delete ${targetLabel}?\n\nThis action cannot be restored.`,
+    );
+  }
+
   return (
     <section
       className={`panel panel-left mobile-sheet-${props.mobileSheetState} ${
@@ -162,7 +168,11 @@ export function LeftPanel(props: Props) {
           <button type="button" onClick={props.onAdd}>
             Add Place
           </button>
-          <button type="button" className="desktop-logout-button" onClick={props.onLogout}>
+          <button
+            type="button"
+            className="desktop-logout-button"
+            onClick={props.onLogout}
+          >
             Log out
           </button>
           <button
@@ -426,6 +436,9 @@ export function LeftPanel(props: Props) {
                       props.onAddVisit(place);
                     }}
                     onDelete={() => {
+                      if (!confirmDeletion(`place ${place.name}`)) {
+                        return;
+                      }
                       props.onSelectPlace(null);
                       props.onSelectCanonicalPlace(null);
                       props.onSelectSegment(null);
@@ -477,6 +490,9 @@ export function LeftPanel(props: Props) {
                     props.onAddVisit(place);
                   }}
                   onDelete={() => {
+                    if (!confirmDeletion(`place ${place.name}`)) {
+                      return;
+                    }
                     props.onSelectPlace(null);
                     props.onSelectCanonicalPlace(null);
                     props.onSelectSegment(null);
@@ -504,7 +520,11 @@ export function LeftPanel(props: Props) {
           document.body,
         )}
       <footer className="mobile-logout-footer">
-        <button type="button" className="mobile-logout-button" onClick={props.onLogout}>
+        <button
+          type="button"
+          className="mobile-logout-button"
+          onClick={props.onLogout}
+        >
           Log out
         </button>
       </footer>
