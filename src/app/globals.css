@@ -209,6 +209,10 @@ textarea {
   gap: 8px;
 }
 
+.mobile-logout-footer {
+  display: none;
+}
+
 .panel-expand-toggle {
   min-width: 40px;
 }
@@ -1086,6 +1090,20 @@ button:focus-visible {
 
   .app-header-actions {
     flex-shrink: 0;
+  }
+
+  .desktop-logout-button {
+    display: none;
+  }
+
+  .mobile-logout-footer {
+    display: block;
+    margin-top: 16px;
+    padding: 12px 0 0;
+  }
+
+  .mobile-logout-button {
+    width: 100%;
   }
 
   .section-block {

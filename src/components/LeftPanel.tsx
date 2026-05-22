@@ -162,7 +162,7 @@ export function LeftPanel(props: Props) {
           <button type="button" onClick={props.onAdd}>
             Add Place
           </button>
-          <button type="button" onClick={props.onLogout}>
+          <button type="button" className="desktop-logout-button" onClick={props.onLogout}>
             Log out
           </button>
           <button
@@ -503,6 +503,11 @@ export function LeftPanel(props: Props) {
           />,
           document.body,
         )}
+      <footer className="mobile-logout-footer">
+        <button type="button" className="mobile-logout-button" onClick={props.onLogout}>
+          Log out
+        </button>
+      </footer>
     </section>
   );
 }
