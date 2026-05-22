@@ -81,8 +81,10 @@
   border-radius: 0 6px 6px 0;
   color: inherit;
   cursor: pointer;
-  display: block;
+  display: flex;
+  gap: 8px;
   flex: 1;
+  align-items: center;
   font: inherit;
   min-width: 0;
   padding: 4px 8px;
@@ -94,6 +96,17 @@
 
 .day-heading-button:hover {
   background: #f1f5f9;
+}
+
+.day-heading-prefix {
+  flex: 0 0 auto;
+  font-size: inherit;
+}
+
+.day-heading-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
 }
 
 .day-add-place-button {

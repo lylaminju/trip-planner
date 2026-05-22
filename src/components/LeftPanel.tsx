@@ -217,7 +217,7 @@ export function LeftPanel(props: Props) {
           <div
             className={`itinerary-board ${props.isExpanded ? "expanded" : ""}`}
           >
-            {props.itinerary.days.map((day) => (
+            {props.itinerary.days.map((day, dayIndex) => (
               <div
                 key={day.date}
                 className={`day-block ${props.activeDate === day.date ? "active" : ""}`}
@@ -243,7 +243,10 @@ export function LeftPanel(props: Props) {
                     aria-pressed={props.activeDate === day.date}
                     onClick={() => props.onSelectDate(day.date)}
                   >
-                    {formatItineraryDateHeading(day.date)}
+                    <span className="day-heading-prefix">{`Day ${dayIndex + 1}`}</span>
+                    <span className="day-heading-text">
+                      {formatItineraryDateHeading(day.date)}
+                    </span>
                   </button>
                   <button
                     type="button"

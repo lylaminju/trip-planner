@@ -44,8 +44,10 @@ export function formatItineraryDateHeading(date: string): string {
     timeZone: "UTC",
     weekday: "long",
   }).format(parsedDate);
+  const [, month, day] = date.split("-");
+  const shortDate = month && day ? `${month}-${day}` : date;
 
-  return `${date} ${weekday}`;
+  return `${shortDate} ${weekday}`;
 }
 
 function hasNestedPlace(source: PlaceRowSource): source is ItineraryItem {

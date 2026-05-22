@@ -118,8 +118,8 @@ describe("formatPlaceRow", () => {
 });
 
 describe("formatItineraryDateHeading", () => {
-  it("adds the weekday next to an itinerary date", () => {
-    expect(formatItineraryDateHeading("2026-06-01")).toBe("2026-06-01 Monday");
+  it("adds the weekday next to a month-day itinerary date", () => {
+    expect(formatItineraryDateHeading("2026-06-01")).toBe("06-01 Monday");
   });
 });
 
