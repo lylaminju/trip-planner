@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 export function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [emailLocalPart, setEmailLocalPart] = useState("");
+  const [emailDomain, setEmailDomain] = useState("gmail.com");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,6 +13,8 @@ export function LoginPage() {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    const email = `${emailLocalPart.trim()}@${emailDomain}`;
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -45,13 +48,28 @@ export function LoginPage() {
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
             <span>Email</span>
-            <input
-              autoComplete="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.currentTarget.value)}
-            />
+            <span className="login-email-row">
+              <input
+                autoComplete="email"
+                className="login-email-local"
+                name="email_local"
+                type="text"
+                value={emailLocalPart}
+                onChange={(event) =>
+                  setEmailLocalPart(event.currentTarget.value)
+                }
+              />
+              <span className="login-email-at" aria-hidden="true">
+                @
+              </span>
+              <input
+                className="login-email-domain"
+                name="email_domain"
+                type="text"
+                value={emailDomain}
+                onChange={(event) => setEmailDomain(event.currentTarget.value)}
+              />
+            </span>
           </label>
           <label>
             <span>Password</span>

@@ -95,12 +95,34 @@ body {
   font-weight: 700;
 }
 
+.login-email-row {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(120px, 148px);
+}
+
+.login-email-at {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .login-form input {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 10px;
   min-height: 44px;
   padding: 10px 12px;
+}
+
+.login-form .login-email-domain {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  width: 100%;
 }
 
 button,
