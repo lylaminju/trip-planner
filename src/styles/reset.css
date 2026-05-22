@@ -1,0 +1,4 @@
+/* Minimal global reset used across the app. */
+* {
+  box-sizing: border-box;
+}

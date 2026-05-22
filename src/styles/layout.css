@@ -1,0 +1,61 @@
+/* Shared app shell, panel, and section layout primitives. */
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(540px, 640px) minmax(0, 1fr);
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  transition: grid-template-columns 260ms ease;
+}
+
+.app-shell.left-panel-expanded {
+  grid-template-columns: minmax(0, 1fr) 0px;
+}
+
+.panel {
+  min-height: 0;
+  min-width: 0;
+}
+
+.panel-left {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  overflow: auto;
+  padding: 16px;
+  position: relative;
+  transition: opacity 260ms ease;
+}
+
+.panel-left.expanded {
+  border-right: 0;
+}
+
+.app-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.app-header h1 {
+  margin: 0;
+}
+
+.app-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mobile-logout-footer {
+  display: none;
+}
+
+.panel-expand-toggle {
+  min-width: 40px;
+}
+
+.section-block {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 16px;
+}

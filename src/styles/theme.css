@@ -1,0 +1,13 @@
+/* Design tokens and shared CSS custom properties. */
+:root {
+  color-scheme: light;
+  --bg: #f5f7f8;
+  --panel: #ffffff;
+  --text: #1f2933;
+  --muted: #64748b;
+  --line: #d8dee4;
+  --accent: #0f766e;
+  --active-line: #3f4750;
+  --danger: #b42318;
+  --board-column-width: 440px;
+}
