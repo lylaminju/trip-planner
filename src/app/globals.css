@@ -872,6 +872,10 @@ button:focus-visible {
   justify-content: space-between;
 }
 
+.modal-header h2 {
+  margin: 4px 0;
+}
+
 .modal label {
   display: grid;
   gap: 4px;
@@ -880,6 +884,29 @@ button:focus-visible {
 .modal-subtitle {
   color: var(--muted);
   margin: -4px 0 0;
+}
+
+.modal-note-block {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.modal-note-label {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.modal-note-text {
+  color: var(--text);
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .modal input,
@@ -902,10 +929,10 @@ button:focus-visible {
 
 .modal select {
   background:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 16px) 50% /
-      6px 6px no-repeat,
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 11px) 50% /
-      6px 6px no-repeat,
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 16px)
+      50% / 6px 6px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 11px)
+      50% / 6px 6px no-repeat,
     #ffffff;
   padding-right: 32px;
 }

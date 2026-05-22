@@ -21,6 +21,7 @@ export function EditItineraryItemModal({
   if (!displayPlace) {
     throw new Error("EditItineraryItemModal requires an item or place.");
   }
+  const placeNotes = displayPlace.notes?.trim() || null;
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,13 @@ export function EditItineraryItemModal({
         </header>
 
         <p className="modal-subtitle">{displayPlace.name}</p>
+
+        {placeNotes && (
+          <section className="modal-note-block" aria-label="Original place notes">
+            <span className="modal-note-label">Place notes</span>
+            <p className="modal-note-text">{placeNotes}</p>
+          </section>
+        )}
 
         <div className="form-grid">
           <label>
