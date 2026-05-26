@@ -1,0 +1,78 @@
+"use client";
+
+import type { ItineraryView, Place } from "@/lib/types";
+
+import { PlaceListRow } from "./PlaceRows";
+import { SectionToggle } from "./SectionToggle";
+import { getFirstItemIdForPlace } from "./drag-schedule";
+
+export function PlacesSection(props: {
+  places: Place[];
+  itinerary: ItineraryView;
+  activePlaceId: number | null;
+  activeCanonicalPlaceId: number | null;
+  isExpanded: boolean;
+  isOpen: boolean;
+  onToggleOpen: () => void;
+  onSelectPlace: (id: number | null) => void;
+  onSelectCanonicalPlace: (id: number | null) => void;
+  onSelectSegment: (id: number | null) => void;
+  onAddVisit: (place: Place) => void;
+  onEdit: (place: Place) => void;
+  onDelete: (id: number) => void;
+  onConfirmDeletion: (targetLabel: string) => boolean;
+}) {
+  return (
+    <section className="section-block">
+      <SectionToggle
+        title={`Places (${props.places.length})`}
+        open={props.isOpen}
+        onToggle={props.onToggleOpen}
+      />
+      {props.isOpen && (
+        <div className={`places-board ${props.isExpanded ? "expanded" : ""}`}>
+          {props.places.map((place) => {
+            const itemId = getFirstItemIdForPlace(props.itinerary, place.id);
+
+            return (
+              <PlaceListRow
+                key={place.id}
+                place={place}
+                active={
+                  props.activeCanonicalPlaceId === place.id ||
+                  (itemId !== null && props.activePlaceId === itemId)
+                }
+                onSelect={() =>
+                  props.onSelectCanonicalPlace(
+                    props.activeCanonicalPlaceId === place.id ? null : place.id,
+                  )
+                }
+                onEdit={() => {
+                  props.onSelectPlace(null);
+                  props.onSelectCanonicalPlace(null);
+                  props.onSelectSegment(null);
+                  props.onEdit(place);
+                }}
+                onAddVisit={() => {
+                  props.onSelectPlace(null);
+                  props.onSelectCanonicalPlace(null);
+                  props.onSelectSegment(null);
+                  props.onAddVisit(place);
+                }}
+                onDelete={() => {
+                  if (!props.onConfirmDeletion(`place ${place.name}`)) {
+                    return;
+                  }
+                  props.onSelectPlace(null);
+                  props.onSelectCanonicalPlace(null);
+                  props.onSelectSegment(null);
+                  props.onDelete(place.id);
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
