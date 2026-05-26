@@ -27,8 +27,8 @@ import type {
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
-import { LeftPanel } from "./LeftPanel";
 import { MapPanel } from "./MapPanel";
+import { PlannerPanel } from "./PlannerPanel";
 
 const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
@@ -44,7 +44,7 @@ export function TripPlannerApp() {
   >(null);
   const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
   const [activeDate, setActiveDate] = useState<string | null>(null);
-  const [isLeftPanelExpanded, setIsLeftPanelExpanded] = useState(false);
+  const [isPlannerPanelExpanded, setIsPlannerPanelExpanded] = useState(false);
   const [mobileSheetState, setMobileSheetState] =
     useState<MobileSheetState>("half");
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
@@ -243,10 +243,10 @@ export function TripPlannerApp() {
   return (
     <main
       className={`app-shell mobile-sheet-${mobileSheetState} ${
-        isLeftPanelExpanded ? "left-panel-expanded" : ""
+        isPlannerPanelExpanded ? "left-panel-expanded" : ""
       }`}
     >
-      <LeftPanel
+      <PlannerPanel
         itinerary={itinerary}
         places={snapshot.places}
         activePlaceId={activeItemId}
@@ -255,9 +255,9 @@ export function TripPlannerApp() {
         activeDate={activeDate}
         routeGeometries={routeGeometries}
         error={error}
-        isExpanded={isLeftPanelExpanded}
+        isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
-        onToggleExpanded={() => setIsLeftPanelExpanded((value) => !value)}
+        onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
         onMobileSheetStateChange={setMobileSheetState}
         onAdd={openAddModal}
         onLogout={logout}
@@ -329,7 +329,7 @@ export function TripPlannerApp() {
         mobileSheetState={mobileSheetState}
         routeGeometries={routeGeometries}
         routeGeometryError={routeGeometryError}
-        hidden={isLeftPanelExpanded}
+        hidden={isPlannerPanelExpanded}
         onSelectPlace={selectItem}
         onSelectSegment={toggleSegmentSelection}
       />

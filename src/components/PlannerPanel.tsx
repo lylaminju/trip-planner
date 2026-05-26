@@ -14,9 +14,9 @@ import type {
   TravelMode,
 } from "@/lib/types";
 
-import { DatePlacePicker } from "./left-panel/DatePlacePicker";
-import { ItinerarySection } from "./left-panel/ItinerarySection";
-import { PlacesSection } from "./left-panel/PlacesSection";
+import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
+import { ItinerarySection } from "./planner-panel/ItinerarySection";
+import { PlacesSection } from "./planner-panel/PlacesSection";
 
 type Props = {
   itinerary: ItineraryView;
@@ -61,7 +61,7 @@ type PickerState = {
   top: number;
 };
 
-export function LeftPanel(props: Props) {
+export function PlannerPanel(props: Props) {
   const [isItinerariesOpen, setIsItinerariesOpen] = useState(true);
   const [isUnscheduledOpen, setIsUnscheduledOpen] = useState(false);
   const [isPlacesOpen, setIsPlacesOpen] = useState(true);
@@ -150,7 +150,7 @@ export function LeftPanel(props: Props) {
             className="panel-expand-toggle"
             aria-pressed={props.isExpanded}
             title={
-              props.isExpanded ? "Restore split view" : "Expand left panel"
+              props.isExpanded ? "Restore split view" : "Expand planner panel"
             }
             onClick={props.onToggleExpanded}
           >
