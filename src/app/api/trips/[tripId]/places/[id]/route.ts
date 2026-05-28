@@ -17,19 +17,17 @@ import {
   resolvePlaceUrl,
 } from "@/server/place-service";
 
-type Params = { params: Promise<{ id: string }> };
+import { readEntityParams, type TripEntityParams } from "../../_utils";
 
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: Request, { params }: TripEntityParams) {
   const auth = await requireAuthenticatedRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
 
-  const { id } = await params;
-  const placeId = Number(id);
-
-  if (!Number.isInteger(placeId)) {
-    return jsonError("Invalid place id.", 400);
+  const parsedParams = await readEntityParams(params, "place");
+  if (parsedParams instanceof Response) {
+    return parsedParams;
   }
 
   const parsedBody = await readJsonBody(request);
@@ -61,7 +59,11 @@ export async function PATCH(request: Request, { params }: Params) {
   };
 
   try {
-    const existingPlace = await getPlaceByIdForRequest(placeId);
+    const existingPlace = await getPlaceByIdForRequest(
+      parsedParams.tripId,
+      auth.user.id,
+      parsedParams.id,
+    );
     if (
       input.google_maps_url &&
       input.google_maps_url !== existingPlace.google_maps_url
@@ -79,43 +81,48 @@ export async function PATCH(request: Request, { params }: Params) {
     }
 
     return withRefreshedSession(
-      NextResponse.json(await editPlaceForRequest(placeId, input)),
+      NextResponse.json(
+        await editPlaceForRequest(
+          parsedParams.tripId,
+          auth.user.id,
+          parsedParams.id,
+          input,
+        ),
+      ),
       auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);
-    if (response) {
-      return response;
-    }
-
+    if (response) return response;
     throw error;
   }
 }
 
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: TripEntityParams) {
   const auth = await requireAuthenticatedRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
 
-  const { id } = await params;
-  const placeId = Number(id);
-
-  if (!Number.isInteger(placeId)) {
-    return jsonError("Invalid place id.", 400);
+  const parsedParams = await readEntityParams(params, "place");
+  if (parsedParams instanceof Response) {
+    return parsedParams;
   }
 
   try {
     return withRefreshedSession(
-      NextResponse.json(await removePlaceForRequest(placeId)),
+      NextResponse.json(
+        await removePlaceForRequest(
+          parsedParams.tripId,
+          auth.user.id,
+          parsedParams.id,
+        ),
+      ),
       auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);
-    if (response) {
-      return response;
-    }
-
+    if (response) return response;
     throw error;
   }
 }

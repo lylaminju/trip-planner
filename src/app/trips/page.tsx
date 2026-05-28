@@ -6,7 +6,7 @@ import {
   readAuthTokensFromCookieStore,
 } from "@/server/auth-session";
 
-export default async function HomePage() {
+export default async function TripsPage() {
   const cookieStore = await cookies();
   const { user } = await getAuthenticatedUser(
     readAuthTokensFromCookieStore(cookieStore),
@@ -16,5 +16,14 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  redirect("/trips");
+  return (
+    <main className="app-shell">
+      <section className="left-panel">
+        <div className="panel-section">
+          <h1>Trips</h1>
+          <p>Trip dashboard is not implemented yet.</p>
+        </div>
+      </section>
+    </main>
+  );
 }

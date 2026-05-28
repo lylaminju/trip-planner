@@ -11,6 +11,8 @@ import {
 import type { TravelMode } from "@/lib/types";
 import { setRouteSegmentModeForRequest } from "@/server/place-service";
 
+import { readEntityParams, type TripEntityParams } from "../../_utils";
+
 const MODES = new Set<TravelMode>([
   "walking",
   "transit",
@@ -18,19 +20,15 @@ const MODES = new Set<TravelMode>([
   "driving",
 ]);
 
-type Params = { params: Promise<{ id: string }> };
-
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: Request, { params }: TripEntityParams) {
   const auth = await requireAuthenticatedRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
 
-  const { id } = await params;
-  const segmentId = Number(id);
-
-  if (!Number.isInteger(segmentId)) {
-    return jsonError("Invalid segment id.", 400);
+  const parsedParams = await readEntityParams(params, "segment");
+  if (parsedParams instanceof Response) {
+    return parsedParams;
   }
 
   const parsedBody = await readJsonBody(request);
@@ -46,16 +44,18 @@ export async function PATCH(request: Request, { params }: Params) {
   try {
     return withRefreshedSession(
       NextResponse.json(
-        await setRouteSegmentModeForRequest(segmentId, body.mode as TravelMode),
+        await setRouteSegmentModeForRequest(
+          parsedParams.tripId,
+          auth.user.id,
+          parsedParams.id,
+          body.mode as TravelMode,
+        ),
       ),
       auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);
-    if (response) {
-      return response;
-    }
-
+    if (response) return response;
     throw error;
   }
 }

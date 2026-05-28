@@ -15,7 +15,7 @@ describe("route-geometry-service", () => {
     try {
       const { getRouteGeometry } =
         await import("@/server/route-geometry-service");
-      await expect(getRouteGeometry(1)).rejects.toMatchObject({
+      await expect(getRouteGeometry(1, 1)).rejects.toMatchObject({
         name: "GoogleRoutesConfigError",
       });
     } finally {
@@ -52,12 +52,13 @@ describe("route-geometry-service", () => {
     try {
       const { getRouteGeometry } =
         await import("@/server/route-geometry-service");
-      await expect(getRouteGeometry(12)).resolves.toEqual({
+      await expect(getRouteGeometry(1, 12)).resolves.toEqual({
         segment_id: 12,
         status: "ok",
         encoded_polyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@",
       });
       expect(getSupabaseRouteGeometry).toHaveBeenCalledWith(
+        1,
         12,
         "test-routes-key",
       );

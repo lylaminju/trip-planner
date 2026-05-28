@@ -94,6 +94,7 @@ describe("formatPlaceRow", () => {
   it("hides place addresses in the places list", () => {
     const placeOnly = {
       id: 2,
+      trip_id: 1,
       name: "Bryant Park",
       address: "New York, NY",
       google_maps_url: "https://www.google.com/maps",
@@ -129,6 +130,7 @@ function place(
 ): ItineraryItem {
   const canonicalPlace: Place = {
     id: 1,
+    trip_id: 1,
     name: overrides.name ?? "Place",
     address: overrides.address ?? null,
     google_maps_url: overrides.google_maps_url ?? "https://www.google.com/maps",
@@ -146,6 +148,7 @@ function place(
 
   return {
     id: 1,
+    trip_id: canonicalPlace.trip_id,
     place_id: canonicalPlace.id,
     visit_date: overrides.visit_date ?? null,
     visit_time: overrides.visit_time ?? null,

@@ -1,7 +1,9 @@
 import type { PlannerSnapshot, RouteGeometry, TravelMode } from "./types";
 
-export async function loadPlannerSnapshot(): Promise<PlannerSnapshot> {
-  const response = await fetch("/api/places");
+export async function loadPlannerSnapshot(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  const response = await fetch(`${tripApiBase(tripId)}/planner`);
   if (!response.ok) {
     throw new Error("Failed to load places.");
   }
@@ -10,83 +12,113 @@ export async function loadPlannerSnapshot(): Promise<PlannerSnapshot> {
 }
 
 export function savePlaceRequest(
+  tripId: number,
   payload: Record<string, unknown>,
   id?: number,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(id ? `/api/places/${id}` : "/api/places", {
-    method: id ? "PATCH" : "POST",
-    body: JSON.stringify(payload),
-    fallbackError: "Failed to save place.",
-  });
+  return plannerSnapshotRequest(
+    id
+      ? `${tripApiBase(tripId)}/places/${id}`
+      : `${tripApiBase(tripId)}/places`,
+    {
+      method: id ? "PATCH" : "POST",
+      body: JSON.stringify(payload),
+      fallbackError: "Failed to save place.",
+    },
+  );
 }
 
 export function saveItineraryItemRequest(
+  tripId: number,
   payload: Record<string, unknown>,
   id: number,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/itinerary-items/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-    fallbackError: "Failed to save visit.",
-  });
+  return plannerSnapshotRequest(
+    `${tripApiBase(tripId)}/itinerary-items/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      fallbackError: "Failed to save visit.",
+    },
+  );
 }
 
-export function deletePlaceRequest(id: number): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/places/${id}`, {
+export function deletePlaceRequest(
+  tripId: number,
+  id: number,
+): Promise<PlannerSnapshot> {
+  return plannerSnapshotRequest(`${tripApiBase(tripId)}/places/${id}`, {
     method: "DELETE",
     fallbackError: "Failed to delete place.",
   });
 }
 
 export function schedulePlaceRequest(
+  tripId: number,
   id: number,
   visitDate: string | null,
   visitTime: string | null,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/places/${id}/schedule`, {
-    method: "PATCH",
-    body: JSON.stringify({ visit_date: visitDate, visit_time: visitTime }),
-    fallbackError: "Failed to schedule place.",
-  });
+  return plannerSnapshotRequest(
+    `${tripApiBase(tripId)}/places/${id}/schedule`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ visit_date: visitDate, visit_time: visitTime }),
+      fallbackError: "Failed to schedule place.",
+    },
+  );
 }
 
 export function createItineraryItemRequest(
+  tripId: number,
   placeId: number,
   payload: Record<string, unknown>,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/places/${placeId}/schedule`, {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-    fallbackError: "Failed to add visit.",
-  });
+  return plannerSnapshotRequest(
+    `${tripApiBase(tripId)}/places/${placeId}/schedule`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      fallbackError: "Failed to add visit.",
+    },
+  );
 }
 
 export function scheduleItineraryItemRequest(
+  tripId: number,
   id: number,
   visitDate: string | null,
   visitTime: string | null,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/itinerary-items/${id}/schedule`, {
-    method: "PATCH",
-    body: JSON.stringify({ visit_date: visitDate, visit_time: visitTime }),
-    fallbackError: "Failed to schedule itinerary item.",
-  });
+  return plannerSnapshotRequest(
+    `${tripApiBase(tripId)}/itinerary-items/${id}/schedule`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ visit_date: visitDate, visit_time: visitTime }),
+      fallbackError: "Failed to schedule itinerary item.",
+    },
+  );
 }
 
 export function deleteItineraryItemRequest(
+  tripId: number,
   id: number,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/itinerary-items/${id}`, {
-    method: "DELETE",
-    fallbackError: "Failed to delete itinerary item.",
-  });
+  return plannerSnapshotRequest(
+    `${tripApiBase(tripId)}/itinerary-items/${id}`,
+    {
+      method: "DELETE",
+      fallbackError: "Failed to delete itinerary item.",
+    },
+  );
 }
 
 export function updateSegmentModeRequest(
+  tripId: number,
   id: number,
   mode: TravelMode,
 ): Promise<PlannerSnapshot> {
-  return plannerSnapshotRequest(`/api/route-segments/${id}`, {
+  return plannerSnapshotRequest(`${tripApiBase(tripId)}/route-segments/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ mode }),
     fallbackError: "Failed to update route mode.",
@@ -94,10 +126,13 @@ export function updateSegmentModeRequest(
 }
 
 export async function fetchRouteGeometry(
+  tripId: number,
   segmentId: number,
 ): Promise<{ geometry: RouteGeometry | null; error: string | null }> {
   try {
-    const response = await fetch(`/api/route-segments/${segmentId}/geometry`);
+    const response = await fetch(
+      `${tripApiBase(tripId)}/route-segments/${segmentId}/geometry`,
+    );
     if (!response.ok) {
       return {
         geometry: null,
@@ -124,6 +159,10 @@ export async function fetchRouteGeometry(
 
 export function logoutRequest(): Promise<Response> {
   return fetch("/api/auth/logout", { method: "POST" });
+}
+
+function tripApiBase(tripId: number): string {
+  return `/api/trips/${tripId}`;
 }
 
 async function plannerSnapshotRequest(

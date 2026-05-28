@@ -98,10 +98,11 @@ type RouteGeometryCacheRow = {
 const CACHE_MAX_AGE_DAYS = 30;
 
 export async function getRouteGeometry(
+  tripId: number,
   segmentId: number,
   apiKey: string,
 ): Promise<RouteGeometry> {
-  const segment = await getSegmentRouteRow(segmentId);
+  const segment = await getSegmentRouteRow(tripId, segmentId);
   const cacheKey = routeGeometryCacheKey(segment);
   const cached = await getCachedRouteGeometry(cacheKey);
 
@@ -126,7 +127,10 @@ export async function getRouteGeometry(
   return { segment_id: segmentId, ...computed };
 }
 
-async function getSegmentRouteRow(segmentId: number): Promise<SegmentRouteRow> {
+async function getSegmentRouteRow(
+  tripId: number,
+  segmentId: number,
+): Promise<SegmentRouteRow> {
   const { data, error } = await getSupabaseClient()
     .from("route_segments")
     .select(
@@ -141,6 +145,7 @@ async function getSegmentRouteRow(segmentId: number): Promise<SegmentRouteRow> {
         )
       `,
     )
+    .eq("trip_id", tripId)
     .eq("id", segmentId)
     .maybeSingle();
 

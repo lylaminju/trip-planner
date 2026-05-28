@@ -3,6 +3,7 @@ import { buildItinerary, compareScheduledPlaces } from "@/lib/itinerary";
 import type { ItineraryItem, Place, RouteSegment } from "@/lib/types";
 
 const basePlace = {
+  trip_id: 1,
   address: null,
   google_maps_url: "https://www.google.com/maps",
   place_id: null,
@@ -29,6 +30,7 @@ function place(
 
   return {
     id: overrides.id,
+    trip_id: canonicalPlace.trip_id,
     place_id: overrides.id,
     visit_date: overrides.visit_date ?? null,
     visit_time: overrides.visit_time ?? null,
@@ -299,6 +301,7 @@ describe("buildItinerary", () => {
     const segments: RouteSegment[] = [
       {
         id: 20,
+        trip_id: 1,
         from_item_id: 1,
         to_item_id: 2,
         mode: "walking",
@@ -307,6 +310,7 @@ describe("buildItinerary", () => {
       },
       {
         id: 21,
+        trip_id: 1,
         from_item_id: 2,
         to_item_id: 3,
         mode: "walking",
@@ -357,6 +361,7 @@ describe("buildItinerary", () => {
     const segments: RouteSegment[] = [
       {
         id: 20,
+        trip_id: 1,
         from_item_id: 1,
         to_item_id: 2,
         mode: "walking",
@@ -365,6 +370,7 @@ describe("buildItinerary", () => {
       },
       {
         id: 21,
+        trip_id: 1,
         from_item_id: 1,
         to_item_id: 3,
         mode: "walking",
@@ -415,6 +421,7 @@ describe("buildItinerary", () => {
     const segments: RouteSegment[] = [
       {
         id: 20,
+        trip_id: 1,
         from_item_id: 1,
         to_item_id: 2,
         mode: "walking",
@@ -423,6 +430,7 @@ describe("buildItinerary", () => {
       },
       {
         id: 21,
+        trip_id: 1,
         from_item_id: 2,
         to_item_id: 3,
         mode: "walking",
@@ -431,6 +439,7 @@ describe("buildItinerary", () => {
       },
       {
         id: 22,
+        trip_id: 1,
         from_item_id: 1,
         to_item_id: 3,
         mode: "walking",
@@ -439,6 +448,7 @@ describe("buildItinerary", () => {
       },
       {
         id: 23,
+        trip_id: 1,
         from_item_id: 3,
         to_item_id: 2,
         mode: "walking",

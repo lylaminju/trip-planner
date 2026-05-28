@@ -36,7 +36,11 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
   routeSegments: [],
 };
 
-export function TripPlannerApp() {
+type TripPlannerAppProps = {
+  tripId: number;
+};
+
+export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   const [snapshot, setSnapshot] = useState<PlannerSnapshot>(EMPTY_SNAPSHOT);
   const [activeItemId, setActiveItemId] = useState<number | null>(null);
   const [activeCanonicalPlaceId, setActiveCanonicalPlaceId] = useState<
@@ -62,12 +66,15 @@ export function TripPlannerApp() {
       ),
     [snapshot],
   );
-  const { routeGeometries, routeGeometryError } = useRouteGeometries(snapshot);
+  const { routeGeometries, routeGeometryError } = useRouteGeometries(
+    tripId,
+    snapshot,
+  );
 
   const reload = useCallback(async () => {
-    setSnapshot(await loadPlannerSnapshot());
+    setSnapshot(await loadPlannerSnapshot(tripId));
     setError(null);
-  }, []);
+  }, [tripId]);
 
   useEffect(() => {
     reload().catch((reason) => {
@@ -79,7 +86,7 @@ export function TripPlannerApp() {
 
   async function savePlace(payload: Record<string, unknown>, id?: number) {
     try {
-      setSnapshot(await savePlaceRequest(payload, id));
+      setSnapshot(await savePlaceRequest(tripId, payload, id));
       setActiveCanonicalPlaceId(null);
       setIsAdding(false);
       setEditingPlace(null);
@@ -98,7 +105,7 @@ export function TripPlannerApp() {
     id: number,
   ) {
     try {
-      setSnapshot(await saveItineraryItemRequest(payload, id));
+      setSnapshot(await saveItineraryItemRequest(tripId, payload, id));
       setEditingItem(null);
       setError(null);
     } catch (reason) {
@@ -109,7 +116,7 @@ export function TripPlannerApp() {
   }
 
   async function deletePlace(id: number) {
-    setSnapshot(await deletePlaceRequest(id));
+    setSnapshot(await deletePlaceRequest(tripId, id));
     setActiveItemId((current) => {
       const deletedItemIds = snapshot.itineraryItems
         .filter((item) => item.place_id === id)
@@ -127,7 +134,7 @@ export function TripPlannerApp() {
     visitDate: string | null,
     visitTime: string | null,
   ) {
-    setSnapshot(await schedulePlaceRequest(id, visitDate, visitTime));
+    setSnapshot(await schedulePlaceRequest(tripId, id, visitDate, visitTime));
     setError(null);
   }
 
@@ -136,7 +143,7 @@ export function TripPlannerApp() {
     payload: Record<string, unknown>,
   ) {
     try {
-      setSnapshot(await createItineraryItemRequest(placeId, payload));
+      setSnapshot(await createItineraryItemRequest(tripId, placeId, payload));
       setAddingVisitPlace(null);
       setError(null);
     } catch (reason) {
@@ -151,12 +158,14 @@ export function TripPlannerApp() {
     visitDate: string | null,
     visitTime: string | null,
   ) {
-    setSnapshot(await scheduleItineraryItemRequest(id, visitDate, visitTime));
+    setSnapshot(
+      await scheduleItineraryItemRequest(tripId, id, visitDate, visitTime),
+    );
     setError(null);
   }
 
   async function deleteItineraryItem(id: number) {
-    setSnapshot(await deleteItineraryItemRequest(id));
+    setSnapshot(await deleteItineraryItemRequest(tripId, id));
     setActiveItemId((current) => (current === id ? null : current));
     setActiveSegmentId(null);
     setActiveDate(null);
@@ -164,7 +173,7 @@ export function TripPlannerApp() {
   }
 
   async function updateSegmentMode(id: number, mode: TravelMode) {
-    setSnapshot(await updateSegmentModeRequest(id, mode));
+    setSnapshot(await updateSegmentModeRequest(tripId, id, mode));
     setError(null);
   }
 

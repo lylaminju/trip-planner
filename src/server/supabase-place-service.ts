@@ -26,14 +26,15 @@ type SupabaseItineraryItemRow = Omit<ItineraryItem, "place"> & {
 };
 
 type RouteSegmentInsert = {
+  trip_id: number;
   from_item_id: number;
   to_item_id: number;
   mode: TravelMode;
 };
 
 const PLACE_COLUMNS =
-  "id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, created_at, updated_at";
-const ITINERARY_ITEM_COLUMNS = `id, place_id, visit_date, visit_time, notes, created_at, updated_at, place:places (${PLACE_COLUMNS})`;
+  "id, trip_id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, created_at, updated_at";
+const ITINERARY_ITEM_COLUMNS = `id, trip_id, place_id, visit_date, visit_time, notes, created_at, updated_at, place:places (${PLACE_COLUMNS})`;
 const PLACE_UPDATE_COLUMNS = [
   "name",
   "address",
@@ -53,20 +54,23 @@ const ITEM_UPDATE_COLUMNS = [
   "notes",
 ] as const satisfies readonly (keyof ItineraryItemUpdate)[];
 
-export async function getPlannerSnapshot(): Promise<PlannerSnapshot> {
+export async function getPlannerSnapshot(
+  tripId: number,
+): Promise<PlannerSnapshot> {
   const [places, itineraryItems, routeSegments] = await Promise.all([
-    listPlaces(),
-    listItineraryItems(),
-    listRouteSegments(),
+    listPlaces(tripId),
+    listItineraryItems(tripId),
+    listRouteSegments(tripId),
   ]);
 
   return { places, itineraryItems, routeSegments };
 }
 
-export async function getPlaceById(id: number): Promise<Place> {
+export async function getPlaceById(tripId: number, id: number): Promise<Place> {
   const { data, error } = await getSupabaseClient()
     .from("places")
     .select(PLACE_COLUMNS)
+    .eq("trip_id", tripId)
     .eq("id", id)
     .maybeSingle();
 
@@ -76,13 +80,15 @@ export async function getPlaceById(id: number): Promise<Place> {
 }
 
 export async function createPlace(
+  tripId: number,
   input: PlaceCreateInput,
 ): Promise<PlannerSnapshot> {
-  const place = await insertPlace(toPlaceInsert(input));
+  const place = await insertPlace(toPlaceInsert(tripId, input));
 
   if (input.visit_date !== undefined && input.visit_date !== null) {
     await insertItineraryItem(
       normalizeItineraryItemInput({
+        trip_id: tripId,
         place_id: place.id,
         visit_date: input.visit_date,
         visit_time: input.visit_time ?? null,
@@ -91,22 +97,23 @@ export async function createPlace(
     );
   }
 
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
 export async function editPlace(
+  tripId: number,
   id: number,
   input: PlaceEditInput,
 ): Promise<PlannerSnapshot> {
-  await updatePlace(id, toPlaceUpdate(input));
+  await updatePlace(tripId, id, toPlaceUpdate(input));
 
   if (
     input.visit_date !== undefined ||
     input.visit_time !== undefined ||
     input.itinerary_notes !== undefined
   ) {
-    const item = (await listItineraryItemsByPlaceId(id))[0];
+    const item = (await listItineraryItemsByPlaceId(tripId, id))[0];
     const currentVisitDate = item?.visit_date;
     const normalizedInput = normalizeItineraryItemUpdate(
       {
@@ -119,9 +126,9 @@ export async function editPlace(
 
     if (item) {
       if (normalizedInput.visit_date === null) {
-        await deleteItineraryItem(item.id);
+        await deleteItineraryItem(tripId, item.id);
       } else {
-        await updateItineraryItem(item.id, normalizedInput);
+        await updateItineraryItem(tripId, item.id, normalizedInput);
       }
     } else if (
       normalizedInput.visit_date !== undefined &&
@@ -129,6 +136,7 @@ export async function editPlace(
     ) {
       await insertItineraryItem(
         normalizeItineraryItemInput({
+          trip_id: tripId,
           place_id: id,
           visit_date: normalizedInput.visit_date ?? null,
           visit_time: normalizedInput.visit_time ?? null,
@@ -138,27 +146,32 @@ export async function editPlace(
     }
   }
 
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
-export async function removePlace(id: number): Promise<PlannerSnapshot> {
-  await deletePlace(id);
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+export async function removePlace(
+  tripId: number,
+  id: number,
+): Promise<PlannerSnapshot> {
+  await deletePlace(tripId, id);
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
 export async function schedulePlace(
+  tripId: number,
   id: number,
   visit_date: string | null,
   visit_time: string | null,
   notes: string | null = null,
 ): Promise<PlannerSnapshot> {
-  await getPlaceById(id);
+  await getPlaceById(tripId, id);
 
   if (visit_date !== null) {
     await insertItineraryItem(
       normalizeItineraryItemInput({
+        trip_id: tripId,
         place_id: id,
         visit_date,
         visit_time,
@@ -167,11 +180,12 @@ export async function schedulePlace(
     );
   }
 
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
 export async function scheduleItineraryItem(
+  tripId: number,
   id: number,
   visit_date: string | null,
   visit_time: string | null,
@@ -182,20 +196,21 @@ export async function scheduleItineraryItem(
   });
 
   if (visit_date === null) {
-    await deleteItineraryItem(id);
+    await deleteItineraryItem(tripId, id);
   } else {
-    await updateItineraryItem(id, normalizedInput);
+    await updateItineraryItem(tripId, id, normalizedInput);
   }
 
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
 export async function editItineraryItem(
+  tripId: number,
   id: number,
   input: ItineraryItemUpdate,
 ): Promise<PlannerSnapshot> {
-  const currentItem = (await listItineraryItems()).find(
+  const currentItem = (await listItineraryItems(tripId)).find(
     (item) => item.id === id,
   );
   const normalizedInput = normalizeItineraryItemUpdate(
@@ -204,45 +219,49 @@ export async function editItineraryItem(
   );
 
   if (normalizedInput.visit_date === null) {
-    await deleteItineraryItem(id);
+    await deleteItineraryItem(tripId, id);
   } else {
-    await updateItineraryItem(id, normalizedInput);
+    await updateItineraryItem(tripId, id, normalizedInput);
   }
 
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
 export async function removeItineraryItem(
+  tripId: number,
   id: number,
 ): Promise<PlannerSnapshot> {
-  await deleteItineraryItem(id);
-  await reconcileAllRoutes();
-  return getPlannerSnapshot();
+  await deleteItineraryItem(tripId, id);
+  await reconcileRoutesForTrip(tripId);
+  return getPlannerSnapshot(tripId);
 }
 
 export async function setRouteSegmentMode(
+  tripId: number,
   id: number,
   mode: TravelMode,
 ): Promise<PlannerSnapshot> {
-  await updateRouteSegmentMode(id, mode);
-  return getPlannerSnapshot();
+  await updateRouteSegmentMode(tripId, id, mode);
+  return getPlannerSnapshot(tripId);
 }
 
-async function listPlaces(): Promise<Place[]> {
+async function listPlaces(tripId: number): Promise<Place[]> {
   const { data, error } = await getSupabaseClient()
     .from("places")
     .select(PLACE_COLUMNS)
+    .eq("trip_id", tripId)
     .order("name", { ascending: true });
 
   if (error) throwSupabaseError(error);
   return (data ?? []) as Place[];
 }
 
-async function listItineraryItems(): Promise<ItineraryItem[]> {
+async function listItineraryItems(tripId: number): Promise<ItineraryItem[]> {
   const { data, error } = await getSupabaseClient()
     .from("itinerary_items")
     .select(ITINERARY_ITEM_COLUMNS)
+    .eq("trip_id", tripId)
     .order("visit_date", { ascending: true, nullsFirst: true })
     .order("visit_time", { ascending: true, nullsFirst: true })
     .order("place_id", { ascending: true });
@@ -252,11 +271,13 @@ async function listItineraryItems(): Promise<ItineraryItem[]> {
 }
 
 async function listItineraryItemsByPlaceId(
+  tripId: number,
   placeId: number,
 ): Promise<ItineraryItem[]> {
   const { data, error } = await getSupabaseClient()
     .from("itinerary_items")
     .select(ITINERARY_ITEM_COLUMNS)
+    .eq("trip_id", tripId)
     .eq("place_id", placeId)
     .order("id", { ascending: true });
 
@@ -264,10 +285,13 @@ async function listItineraryItemsByPlaceId(
   return ((data ?? []) as SupabaseItineraryItemRow[]).map(toItineraryItem);
 }
 
-async function listRouteSegments(): Promise<RouteSegment[]> {
+async function listRouteSegments(tripId: number): Promise<RouteSegment[]> {
   const { data, error } = await getSupabaseClient()
     .from("route_segments")
-    .select("id, from_item_id, to_item_id, mode, created_at, updated_at")
+    .select(
+      "id, trip_id, from_item_id, to_item_id, mode, created_at, updated_at",
+    )
+    .eq("trip_id", tripId)
     .order("id", { ascending: true });
 
   if (error) throwSupabaseError(error);
@@ -298,9 +322,13 @@ async function insertItineraryItem(
   return toItineraryItem(data as SupabaseItineraryItemRow);
 }
 
-async function updatePlace(id: number, input: PlaceUpdate): Promise<Place> {
+async function updatePlace(
+  tripId: number,
+  id: number,
+  input: PlaceUpdate,
+): Promise<Place> {
   const fields = PLACE_UPDATE_COLUMNS.filter((key) => input[key] !== undefined);
-  if (fields.length === 0) return getPlaceById(id);
+  if (fields.length === 0) return getPlaceById(tripId, id);
 
   const values: Record<string, number | string | string[] | null> = {};
   for (const key of fields) {
@@ -311,6 +339,7 @@ async function updatePlace(id: number, input: PlaceUpdate): Promise<Place> {
   const { data, error } = await getSupabaseClient()
     .from("places")
     .update(values)
+    .eq("trip_id", tripId)
     .eq("id", id)
     .select(PLACE_COLUMNS)
     .maybeSingle();
@@ -321,11 +350,12 @@ async function updatePlace(id: number, input: PlaceUpdate): Promise<Place> {
 }
 
 async function updateItineraryItem(
+  tripId: number,
   id: number,
   input: ItineraryItemUpdate,
 ): Promise<ItineraryItem> {
   const fields = ITEM_UPDATE_COLUMNS.filter((key) => input[key] !== undefined);
-  if (fields.length === 0) return getItineraryItemById(id);
+  if (fields.length === 0) return getItineraryItemById(tripId, id);
 
   const values: Record<string, string | null> = {};
   for (const key of fields) {
@@ -336,6 +366,7 @@ async function updateItineraryItem(
   const { data, error } = await getSupabaseClient()
     .from("itinerary_items")
     .update(values)
+    .eq("trip_id", tripId)
     .eq("id", id)
     .select(ITINERARY_ITEM_COLUMNS)
     .maybeSingle();
@@ -345,10 +376,14 @@ async function updateItineraryItem(
   return toItineraryItem(data as SupabaseItineraryItemRow);
 }
 
-async function getItineraryItemById(id: number): Promise<ItineraryItem> {
+async function getItineraryItemById(
+  tripId: number,
+  id: number,
+): Promise<ItineraryItem> {
   const { data, error } = await getSupabaseClient()
     .from("itinerary_items")
     .select(ITINERARY_ITEM_COLUMNS)
+    .eq("trip_id", tripId)
     .eq("id", id)
     .maybeSingle();
 
@@ -357,20 +392,22 @@ async function getItineraryItemById(id: number): Promise<ItineraryItem> {
   return toItineraryItem(data as SupabaseItineraryItemRow);
 }
 
-async function deletePlace(id: number): Promise<void> {
+async function deletePlace(tripId: number, id: number): Promise<void> {
   const { error, count } = await getSupabaseClient()
     .from("places")
     .delete({ count: "exact" })
+    .eq("trip_id", tripId)
     .eq("id", id);
 
   if (error) throwSupabaseError(error);
   if (count === 0) throw new PlaceNotFoundError(id);
 }
 
-async function deleteItineraryItem(id: number): Promise<void> {
+async function deleteItineraryItem(tripId: number, id: number): Promise<void> {
   const { error, count } = await getSupabaseClient()
     .from("itinerary_items")
     .delete({ count: "exact" })
+    .eq("trip_id", tripId)
     .eq("id", id);
 
   if (error) throwSupabaseError(error);
@@ -378,14 +415,18 @@ async function deleteItineraryItem(id: number): Promise<void> {
 }
 
 async function updateRouteSegmentMode(
+  tripId: number,
   id: number,
   mode: TravelMode,
 ): Promise<RouteSegment> {
   const { data, error } = await getSupabaseClient()
     .from("route_segments")
     .update({ mode, updated_at: new Date().toISOString() })
+    .eq("trip_id", tripId)
     .eq("id", id)
-    .select("id, from_item_id, to_item_id, mode, created_at, updated_at")
+    .select(
+      "id, trip_id, from_item_id, to_item_id, mode, created_at, updated_at",
+    )
     .maybeSingle();
 
   if (error) throwSupabaseError(error);
@@ -413,12 +454,15 @@ async function replaceSegments(
   }
 }
 
-async function reconcileAllRoutes(): Promise<void> {
-  const items = await listItineraryItems();
-  const routeSegments = await listRouteSegments();
+async function reconcileRoutesForTrip(tripId: number): Promise<void> {
+  const items = await listItineraryItems(tripId);
+  const routeSegments = await listRouteSegments(tripId);
   const plan = reconcileRouteSegments(items, routeSegments);
 
-  await replaceSegments(plan.toDeleteIds, plan.toInsert);
+  await replaceSegments(
+    plan.toDeleteIds,
+    plan.toInsert.map((segment) => ({ ...segment, trip_id: tripId })),
+  );
 }
 
 function normalizeItineraryItemInput(
@@ -455,8 +499,9 @@ function normalizeItineraryItemUpdate(
   return input;
 }
 
-function toPlaceInsert(input: PlaceCreateInput): PlaceInsert {
+function toPlaceInsert(tripId: number, input: PlaceCreateInput): PlaceInsert {
   return {
+    trip_id: tripId,
     name: input.name,
     address: input.address,
     google_maps_url: input.google_maps_url,
@@ -497,6 +542,7 @@ function toItineraryItem(row: SupabaseItineraryItemRow): ItineraryItem {
 
   return {
     id: row.id,
+    trip_id: row.trip_id,
     place_id: row.place_id,
     visit_date: row.visit_date,
     visit_time: row.visit_time,

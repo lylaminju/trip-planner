@@ -70,10 +70,16 @@ Use a server-only Supabase secret key if available, or the legacy service-role k
 
 The main tables are:
 
+- `trips`: trip records with name, dates, and timezone.
+- `trip_memberships`: per-user trip access with `owner`, `editor`, or `viewer` roles.
 - `places`: canonical place records.
 - `itinerary_items`: scheduled visits that reference places.
 - `route_segments`: travel-mode choices between consecutive timed itinerary items.
 - `route_geometry_cache`: cached Google Routes API results.
+
+Existing deployments that predate trip memberships need a one-time backfill for
+the default shared New York City trip. See
+`docs/trip-membership-migration.md`.
 
 ## Hosting
 
@@ -94,6 +100,7 @@ Run:
 
 ```bash
 npm run import:google-list
+TRIP_PLANNER_DEFAULT_TRIP_ID=1 npm run push:supabase
 ```
 
 The importer reads the configured shared Google Maps saved-list endpoint in `scripts/import-google-list.mjs`, imports places into the legacy SQLite database, and keeps imported places unscheduled. Run `npm run push:supabase` afterward to move those imported rows into Supabase. See `docs/google-maps-saved-list-extraction.md` for details and caveats.

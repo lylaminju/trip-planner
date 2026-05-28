@@ -61,6 +61,7 @@ describe("getMarkerSizing", () => {
 function place(overrides: Partial<ItineraryItem>): ItineraryItem {
   return {
     id: 1,
+    trip_id: 1,
     place_id: 1,
     visit_date: "2026-06-01",
     visit_time: null,
@@ -69,6 +70,7 @@ function place(overrides: Partial<ItineraryItem>): ItineraryItem {
     updated_at: "2026-05-20 00:00:00",
     place: {
       id: 1,
+      trip_id: 1,
       name: "Place",
       address: null,
       google_maps_url: "https://www.google.com/maps",
@@ -90,6 +92,7 @@ function place(overrides: Partial<ItineraryItem>): ItineraryItem {
 function canonicalPlace(overrides: Partial<Place>): Place {
   return {
     id: 1,
+    trip_id: 1,
     name: "Place",
     address: null,
     google_maps_url: "https://www.google.com/maps",

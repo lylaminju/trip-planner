@@ -1,6 +1,7 @@
 import type { ItineraryItem } from "@/lib/types";
 
 export type PlaceInsert = {
+  trip_id: number;
   name: string;
   address: string | null;
   google_maps_url: string;
@@ -19,6 +20,7 @@ export type PlaceInsert = {
 export type PlaceUpdate = Partial<PlaceInsert>;
 
 export type ItineraryItemInsert = {
+  trip_id: number;
   place_id: number;
   visit_date: string | null;
   visit_time: string | null;
@@ -26,14 +28,14 @@ export type ItineraryItemInsert = {
 };
 
 export type ItineraryItemUpdate = Partial<
-  Omit<ItineraryItemInsert, "place_id">
+  Omit<ItineraryItemInsert, "trip_id" | "place_id">
 >;
 
-export type PlaceCreateInput = PlaceInsert & {
+export type PlaceCreateInput = Omit<PlaceInsert, "trip_id"> & {
   itinerary_notes?: string | null;
 };
 
-export type PlaceEditInput = PlaceUpdate &
+export type PlaceEditInput = Omit<PlaceUpdate, "trip_id"> &
   Partial<Pick<ItineraryItem, "visit_date" | "visit_time">> & {
     itinerary_notes?: string | null;
   };

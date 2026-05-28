@@ -7,7 +7,10 @@ import type {
   RouteGeometry,
 } from "@/lib/types";
 
-export function useRouteGeometries(snapshot: PlannerSnapshot): {
+export function useRouteGeometries(
+  tripId: number,
+  snapshot: PlannerSnapshot,
+): {
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
 } {
@@ -81,32 +84,34 @@ export function useRouteGeometries(snapshot: PlannerSnapshot): {
 
     routeGeometrySignaturesRef.current = nextSignatures;
 
-    void Promise.all(missingSegmentIds.map(fetchRouteGeometry)).then(
-      (results) => {
-        if (cancelled) return;
+    void Promise.all(
+      missingSegmentIds.map((segmentId) =>
+        fetchRouteGeometry(tripId, segmentId),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
 
-        setRouteGeometryError(
-          results.find((result) => result.error)?.error ?? null,
-        );
-        setRouteGeometries((current) => {
-          const next = new Map(current);
-          let changed = false;
+      setRouteGeometryError(
+        results.find((result) => result.error)?.error ?? null,
+      );
+      setRouteGeometries((current) => {
+        const next = new Map(current);
+        let changed = false;
 
-          for (const { geometry } of results) {
-            if (!geometry) continue;
-            next.set(geometry.segment_id, geometry);
-            changed = true;
-          }
+        for (const { geometry } of results) {
+          if (!geometry) continue;
+          next.set(geometry.segment_id, geometry);
+          changed = true;
+        }
 
-          return changed ? next : current;
-        });
-      },
-    );
+        return changed ? next : current;
+      });
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [routeGeometrySignature, routeGeometries, snapshot.routeSegments]);
+  }, [routeGeometrySignature, routeGeometries, snapshot.routeSegments, tripId]);
 
   return { routeGeometries, routeGeometryError };
 }

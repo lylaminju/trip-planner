@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { PlaceInsert } from "@/server/place-inputs";
+import type { TripRole } from "@/lib/types";
+import type { PlaceCreateInput } from "@/server/place-inputs";
 
-const baseInput: PlaceInsert = {
+const baseInput: PlaceCreateInput = {
   name: "Museum",
   address: "123 Main St",
   google_maps_url: "https://www.google.com/maps",
@@ -20,7 +21,7 @@ const baseInput: PlaceInsert = {
 
 async function withFreshTestEnv(
   run: () => Promise<void> | void,
-  options: { authenticated?: boolean } = {},
+  options: { authenticated?: boolean; role?: TripRole | "none" } = {},
 ): Promise<void> {
   vi.resetModules();
   vi.doMock("@/server/supabase-place-service", async () => {
@@ -39,6 +40,30 @@ async function withFreshTestEnv(
     }),
     setAuthCookies: vi.fn((response) => response),
   }));
+  vi.doMock("@/server/trip-access", async () => {
+    const { TripAccessDeniedError } = await import("@/server/errors");
+    const roles: TripRole[] = ["viewer", "editor", "owner"];
+    return {
+      requireTripRole: vi.fn(
+        async (tripId: number, userId: string, minimumRole: TripRole) => {
+          const role = options.role ?? "owner";
+          if (
+            role === "none" ||
+            roles.indexOf(role) < roles.indexOf(minimumRole)
+          ) {
+            throw new TripAccessDeniedError(tripId);
+          }
+
+          return {
+            trip_id: tripId,
+            user_id: userId,
+            role,
+            created_at: "2026-01-01T00:00:00.000Z",
+          };
+        },
+      ),
+    };
+  });
 
   try {
     await run();
@@ -46,6 +71,7 @@ async function withFreshTestEnv(
     vi.doUnmock("@/server/auth-session");
     vi.doUnmock("@/server/place-service");
     vi.doUnmock("@/server/supabase-place-service");
+    vi.doUnmock("@/server/trip-access");
     vi.restoreAllMocks();
     vi.resetModules();
   }
@@ -55,8 +81,11 @@ describe("API routes transport behavior", () => {
   it("returns 401 for unauthenticated planner API requests", async () => {
     await withFreshTestEnv(
       async () => {
-        const { GET } = await import("@/app/api/places/route");
-        const response = await GET(new Request("http://localhost/api/places"));
+        const { GET } = await import("@/app/api/trips/[tripId]/planner/route");
+        const response = await GET(
+          new Request("http://localhost/api/trips/1/planner"),
+          tripParams(),
+        );
 
         expect(response.status).toBe(401);
         await expect(response.json()).resolves.toEqual({
@@ -67,16 +96,65 @@ describe("API routes transport behavior", () => {
     );
   });
 
+  it("returns 403 when an authenticated user is not a trip member", async () => {
+    await withFreshTestEnv(
+      async () => {
+        const { GET } = await import("@/app/api/trips/[tripId]/planner/route");
+        const response = await GET(
+          new Request("http://localhost/api/trips/1/planner"),
+          tripParams(),
+        );
+
+        expect(response.status).toBe(403);
+        await expect(response.json()).resolves.toEqual({
+          error: "Trip access denied.",
+        });
+      },
+      { role: "none" },
+    );
+  });
+
+  it("allows viewers to read snapshots but rejects planner mutations", async () => {
+    await withFreshTestEnv(
+      async () => {
+        const plannerRoute =
+          await import("@/app/api/trips/[tripId]/planner/route");
+        const placesRoute =
+          await import("@/app/api/trips/[tripId]/places/route");
+
+        const readResponse = await plannerRoute.GET(
+          new Request("http://localhost/api/trips/1/planner"),
+          tripParams(),
+        );
+        expect(readResponse.status).toBe(200);
+
+        const writeResponse = await placesRoute.POST(
+          jsonRequest("POST", {
+            google_maps_url: "https://www.google.com/maps",
+          }),
+          tripParams(),
+        );
+        expect(writeResponse.status).toBe(403);
+        await expect(writeResponse.json()).resolves.toEqual({
+          error: "Trip access denied.",
+        });
+      },
+      { role: "viewer" },
+    );
+  });
+
   it("returns 400 for malformed JSON in all mutating routes", async () => {
     await withFreshTestEnv(async () => {
-      const placesRoute = await import("@/app/api/places/route");
-      const placeRoute = await import("@/app/api/places/[id]/route");
+      const placesRoute = await import("@/app/api/trips/[tripId]/places/route");
+      const placeRoute =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
       const scheduleRoute =
-        await import("@/app/api/places/[id]/schedule/route");
-      const segmentRoute = await import("@/app/api/route-segments/[id]/route");
+        await import("@/app/api/trips/[tripId]/places/[id]/schedule/route");
+      const segmentRoute =
+        await import("@/app/api/trips/[tripId]/route-segments/[id]/route");
 
       const cases = [
-        placesRoute.POST(malformedJsonRequest("POST")),
+        placesRoute.POST(malformedJsonRequest("POST"), tripParams()),
         placeRoute.PATCH(malformedJsonRequest("PATCH"), params("1")),
         scheduleRoute.PATCH(malformedJsonRequest("PATCH"), params("1")),
         segmentRoute.PATCH(malformedJsonRequest("PATCH"), params("1")),
@@ -113,11 +191,12 @@ describe("API routes transport behavior", () => {
         };
       });
 
-      const { POST } = await import("@/app/api/places/route");
+      const { POST } = await import("@/app/api/trips/[tripId]/places/route");
       const response = await POST(
         jsonRequest("POST", {
           google_maps_url: "https://example.com/maps/place/Bad",
         }),
+        tripParams(),
       );
 
       expect(response.status).toBe(400);
@@ -131,7 +210,7 @@ describe("API routes transport behavior", () => {
     await withFreshTestEnv(async () => {
       const { GoogleMapsUrlUpstreamError } = await import("@/server/errors");
       const service = await import("@/server/place-service");
-      const created = await service.createPlace(baseInput);
+      const created = await service.createPlace(1, baseInput);
 
       vi.doMock("@/server/place-service", async () => {
         const actual = await vi.importActual<
@@ -151,7 +230,8 @@ describe("API routes transport behavior", () => {
         };
       });
 
-      const { PATCH } = await import("@/app/api/places/[id]/route");
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
       const response = await PATCH(
         jsonRequest("PATCH", {
           google_maps_url: "https://maps.app.goo.gl/timeout",
@@ -188,11 +268,12 @@ describe("API routes transport behavior", () => {
         };
       });
 
-      const { POST } = await import("@/app/api/places/route");
+      const { POST } = await import("@/app/api/trips/[tripId]/places/route");
       const response = await POST(
         jsonRequest("POST", {
           google_maps_url: "https://maps.app.goo.gl/unavailable",
         }),
+        tripParams(),
       );
 
       expect(response.status).toBe(502);
@@ -205,8 +286,9 @@ describe("API routes transport behavior", () => {
   it("returns 400 for invalid date/time updates instead of ignoring them", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = await service.createPlace(baseInput);
-      const { PATCH } = await import("@/app/api/places/[id]/route");
+      const created = await service.createPlace(1, baseInput);
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
 
       const badDateResponse = await PATCH(
         jsonRequest("PATCH", { visit_date: "06/01/2026" }),
@@ -249,13 +331,14 @@ describe("API routes transport behavior", () => {
   it("does not clear schedule when visit_date is omitted or invalid in the schedule route", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = await service.createPlace({
+      const created = await service.createPlace(1, {
         ...baseInput,
         visit_date: "2026-06-01",
         visit_time: "09:00",
       });
       const placeId = String(created.places[0].id);
-      const { PATCH } = await import("@/app/api/places/[id]/schedule/route");
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/places/[id]/schedule/route");
 
       const missingDateResponse = await PATCH(
         jsonRequest("PATCH", { visit_time: null }),
@@ -275,7 +358,7 @@ describe("API routes transport behavior", () => {
         error: "Visit date must be YYYY-MM-DD.",
       });
 
-      await expect(service.getPlannerSnapshot()).resolves.toMatchObject({
+      await expect(service.getPlannerSnapshot(1)).resolves.toMatchObject({
         itineraryItems: [
           expect.objectContaining({
             visit_date: "2026-06-01",
@@ -288,10 +371,12 @@ describe("API routes transport behavior", () => {
 
   it("returns 404 for unknown ids across mutation routes", async () => {
     await withFreshTestEnv(async () => {
-      const placeRoute = await import("@/app/api/places/[id]/route");
+      const placeRoute =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
       const scheduleRoute =
-        await import("@/app/api/places/[id]/schedule/route");
-      const segmentRoute = await import("@/app/api/route-segments/[id]/route");
+        await import("@/app/api/trips/[tripId]/places/[id]/schedule/route");
+      const segmentRoute =
+        await import("@/app/api/trips/[tripId]/route-segments/[id]/route");
 
       const editResponse = await placeRoute.PATCH(
         jsonRequest("PATCH", { name: "Updated" }),
@@ -303,7 +388,9 @@ describe("API routes transport behavior", () => {
       });
 
       const deleteResponse = await placeRoute.DELETE(
-        new Request("http://localhost/api/places/999", { method: "DELETE" }),
+        new Request("http://localhost/api/trips/1/places/999", {
+          method: "DELETE",
+        }),
         params("999"),
       );
       expect(deleteResponse.status).toBe(404);
@@ -342,9 +429,9 @@ describe("API routes transport behavior", () => {
       }));
 
       const { GET } =
-        await import("@/app/api/route-segments/[id]/geometry/route");
+        await import("@/app/api/trips/[tripId]/route-segments/[id]/geometry/route");
       const response = await GET(
-        new Request("http://localhost/api/route-segments/12/geometry"),
+        new Request("http://localhost/api/trips/1/route-segments/12/geometry"),
         params("12"),
       );
 
@@ -360,8 +447,9 @@ describe("API routes transport behavior", () => {
   it("treats empty nullable text fields as clears on place edit", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = await service.createPlace(baseInput);
-      const { PATCH } = await import("@/app/api/places/[id]/route");
+      const created = await service.createPlace(1, baseInput);
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
 
       const response = await PATCH(
         jsonRequest("PATCH", { address: "", notes: "   " }),
@@ -380,13 +468,14 @@ describe("API routes transport behavior", () => {
   it("allows date/time edits without re-resolving an unchanged Google Maps URL", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = await service.createPlace({
+      const created = await service.createPlace(1, {
         ...baseInput,
         google_maps_url:
           "https://www.google.com/maps/search/?api=1&query=JGSTAY%20-%20Times%20Square",
       });
       const placeId = String(created.places[0].id);
-      const { PATCH } = await import("@/app/api/places/[id]/route");
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
 
       const response = await PATCH(
         jsonRequest("PATCH", {
@@ -410,13 +499,14 @@ describe("API routes transport behavior", () => {
   it("edits itinerary item schedule and notes independently from place notes", async () => {
     await withFreshTestEnv(async () => {
       const service = await import("@/server/place-service");
-      const created = await service.createPlace({
+      const created = await service.createPlace(1, {
         ...baseInput,
         notes: "Place note",
         visit_date: "2026-06-01",
         visit_time: "09:00",
       });
-      const { PATCH } = await import("@/app/api/itinerary-items/[id]/route");
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/itinerary-items/[id]/route");
 
       const response = await PATCH(
         jsonRequest("PATCH", {
@@ -440,7 +530,11 @@ describe("API routes transport behavior", () => {
 });
 
 function params(id: string) {
-  return { params: Promise.resolve({ id }) };
+  return { params: Promise.resolve({ tripId: "1", id }) };
+}
+
+function tripParams(tripId = "1") {
+  return { params: Promise.resolve({ tripId }) };
 }
 
 function jsonRequest(method: string, body: unknown): Request {

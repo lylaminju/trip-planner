@@ -10,28 +10,28 @@ import {
   requireAuthenticatedRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
-import {
-  createPlaceForRequest,
-  getPlannerSnapshotForRequest,
-  resolvePlaceUrl,
-} from "@/server/place-service";
+import { createPlaceForRequest, resolvePlaceUrl } from "@/server/place-service";
+import { requireTripRole } from "@/server/trip-access";
 
-export async function GET(request: Request) {
+import { readTripIdParam, type TripParams } from "../_utils";
+
+export async function POST(request: Request, { params }: TripParams) {
   const auth = await requireAuthenticatedRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
 
-  return withRefreshedSession(
-    NextResponse.json(await getPlannerSnapshotForRequest()),
-    auth.refreshedSession,
-  );
-}
+  const tripId = await readTripIdParam(params);
+  if (tripId instanceof Response) {
+    return tripId;
+  }
 
-export async function POST(request: Request) {
-  const auth = await requireAuthenticatedRequest(request);
-  if (!auth.ok) {
-    return auth.response;
+  try {
+    await requireTripRole(tripId, auth.user.id, "editor");
+  } catch (error) {
+    const response = mapRouteError(error);
+    if (response) return response;
+    throw error;
   }
 
   const parsedBody = await readJsonBody(request);
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
     return withRefreshedSession(
       NextResponse.json(
-        await createPlaceForRequest({
+        await createPlaceForRequest(tripId, auth.user.id, {
           name,
           address: stringOrNull(body.address),
           notes: stringOrNull(body.notes),
@@ -93,10 +93,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     const response = mapRouteError(error);
-    if (response) {
-      return response;
-    }
-
+    if (response) return response;
     throw error;
   }
 }

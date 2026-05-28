@@ -42,6 +42,7 @@ describe("getSelectedPlacePosition", () => {
 function place(overrides: Partial<Place>): Place {
   return {
     id: 1,
+    trip_id: 1,
     name: "Place",
     address: null,
     google_maps_url: "https://www.google.com/maps",
@@ -62,6 +63,7 @@ function place(overrides: Partial<Place>): Place {
 function item(overrides: Partial<ItineraryItem>): ItineraryItem {
   return {
     id: 1,
+    trip_id: 1,
     place_id: 1,
     visit_date: null,
     visit_time: null,

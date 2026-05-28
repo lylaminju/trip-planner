@@ -10,21 +10,19 @@ import {
   requireAuthenticatedRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
-import { schedulePlaceForRequest } from "@/server/place-service";
+import { scheduleItineraryItemForRequest } from "@/server/place-service";
 
-type Params = { params: Promise<{ id: string }> };
+import { readEntityParams, type TripEntityParams } from "../../../_utils";
 
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(request: Request, { params }: TripEntityParams) {
   const auth = await requireAuthenticatedRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
 
-  const { id } = await params;
-  const placeId = Number(id);
-
-  if (!Number.isInteger(placeId)) {
-    return jsonError("Invalid place id.", 400);
+  const parsedParams = await readEntityParams(params, "itinerary item");
+  if (parsedParams instanceof Response) {
+    return parsedParams;
   }
 
   const parsedBody = await readJsonBody(request);
@@ -46,27 +44,21 @@ export async function PATCH(request: Request, { params }: Params) {
   try {
     return withRefreshedSession(
       NextResponse.json(
-        await schedulePlaceForRequest(
-          placeId,
+        await scheduleItineraryItemForRequest(
+          parsedParams.tripId,
+          auth.user.id,
+          parsedParams.id,
           visitDate,
           visitTime,
-          stringOrNull(body.notes),
         ),
       ),
       auth.refreshedSession,
     );
   } catch (error) {
     const response = mapRouteError(error);
-    if (response) {
-      return response;
-    }
-
+    if (response) return response;
     throw error;
   }
-}
-
-function stringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function parseDate(

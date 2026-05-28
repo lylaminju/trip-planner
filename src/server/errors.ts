@@ -19,6 +19,13 @@ export class ItineraryItemNotFoundError extends Error {
   }
 }
 
+export class TripAccessDeniedError extends Error {
+  constructor(readonly tripId: number) {
+    super("Trip access denied.");
+    this.name = "TripAccessDeniedError";
+  }
+}
+
 export class GoogleMapsUrlValidationError extends Error {
   constructor(message: string) {
     super(message);

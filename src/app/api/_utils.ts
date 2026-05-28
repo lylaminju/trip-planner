@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 
 import {
   GoogleRoutesConfigError,
@@ -9,6 +9,7 @@ import {
   GoogleMapsUrlValidationError,
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
+  TripAccessDeniedError,
 } from "@/server/errors";
 import {
   getAuthenticatedUser,
@@ -40,7 +41,7 @@ export function jsonError(error: string, status: number): NextResponse {
 export async function requireAuthenticatedRequest(
   request: Request,
 ): Promise<
-  | { ok: true; refreshedSession: Session | null }
+  | { ok: true; refreshedSession: Session | null; user: User }
   | { ok: false; response: NextResponse }
 > {
   const { user, session } = await getAuthenticatedUser(
@@ -51,7 +52,7 @@ export async function requireAuthenticatedRequest(
     return { ok: false, response: jsonError("Authentication required.", 401) };
   }
 
-  return { ok: true, refreshedSession: session };
+  return { ok: true, refreshedSession: session, user };
 }
 
 export function withRefreshedSession(
@@ -72,6 +73,10 @@ export function mapRouteError(error: unknown): NextResponse | null {
     error instanceof ItineraryItemNotFoundError
   ) {
     return jsonError(error.message, 404);
+  }
+
+  if (error instanceof TripAccessDeniedError) {
+    return jsonError(error.message, 403);
   }
 
   if (error instanceof GoogleMapsUrlValidationError) {
@@ -97,6 +102,16 @@ export function asObject(value: unknown): JsonObject {
   return typeof value === "object" && value !== null
     ? (value as JsonObject)
     : {};
+}
+
+export async function readTripId(
+  params: Promise<{ tripId: string }>,
+): Promise<number | NextResponse> {
+  const { tripId } = await params;
+  const parsedTripId = Number(tripId);
+  return Number.isInteger(parsedTripId)
+    ? parsedTripId
+    : jsonError("Invalid trip id.", 400);
 }
 
 export function isValidIsoDate(value: string): boolean {

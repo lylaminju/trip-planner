@@ -3,6 +3,7 @@ import { GoogleRoutesConfigError } from "@/server/errors";
 import { getRouteGeometry as getSupabaseRouteGeometry } from "@/server/supabase-route-geometry-service";
 
 export async function getRouteGeometry(
+  tripId: number,
   segmentId: number,
 ): Promise<RouteGeometry> {
   const apiKey = getRoutesApiKey();
@@ -12,7 +13,7 @@ export async function getRouteGeometry(
     );
   }
 
-  return getSupabaseRouteGeometry(segmentId, apiKey);
+  return getSupabaseRouteGeometry(tripId, segmentId, apiKey);
 }
 
 function getRoutesApiKey(): string | null {

@@ -1,7 +1,27 @@
 export type TravelMode = "walking" | "transit" | "bicycling" | "driving";
+export type TripRole = "owner" | "editor" | "viewer";
+
+export type Trip = {
+  id: number;
+  created_by: string | null;
+  name: string;
+  start_date: string | null;
+  end_date: string | null;
+  timezone: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TripMembership = {
+  trip_id: number;
+  user_id: string;
+  role: TripRole;
+  created_at: string;
+};
 
 export type Place = {
   id: number;
+  trip_id: number;
   name: string;
   address: string | null;
   google_maps_url: string;
@@ -19,6 +39,7 @@ export type Place = {
 
 export type ItineraryItem = {
   id: number;
+  trip_id: number;
   place_id: number;
   visit_date: string | null;
   visit_time: string | null;
@@ -30,6 +51,7 @@ export type ItineraryItem = {
 
 export type RouteSegment = {
   id: number;
+  trip_id: number;
   from_item_id: number;
   to_item_id: number;
   mode: TravelMode;

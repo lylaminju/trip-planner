@@ -29,36 +29,47 @@ export function createFakeSupabasePlaceService() {
     return "2026-01-01T00:00:00.000Z";
   }
 
-  function snapshot(): PlannerSnapshot {
+  function snapshot(tripId: number): PlannerSnapshot {
     return {
-      places: [...places].sort((a, b) => a.name.localeCompare(b.name)),
-      itineraryItems: [...itineraryItems],
-      routeSegments: [...routeSegments],
+      places: places
+        .filter((place) => place.trip_id === tripId)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      itineraryItems: itineraryItems.filter((item) => item.trip_id === tripId),
+      routeSegments: routeSegments.filter(
+        (segment) => segment.trip_id === tripId,
+      ),
     };
   }
 
   function hydrateItem(item: Omit<ItineraryItem, "place">): ItineraryItem {
     return {
       ...item,
-      place: getPlace(item.place_id),
+      place: getPlace(item.trip_id, item.place_id),
     };
   }
 
-  function getPlace(id: number): Place {
-    const place = places.find((candidate) => candidate.id === id);
+  function getPlace(tripId: number, id: number): Place {
+    const place = places.find(
+      (candidate) => candidate.trip_id === tripId && candidate.id === id,
+    );
     if (!place) throw new PlaceNotFoundError(id);
     return place;
   }
 
-  function reconcile() {
+  function reconcile(tripId: number) {
     itineraryItems = itineraryItems.map((item) => hydrateItem(item));
-    const plan = reconcileRouteSegments(itineraryItems, routeSegments);
+    const plan = reconcileRouteSegments(
+      itineraryItems.filter((item) => item.trip_id === tripId),
+      routeSegments.filter((segment) => segment.trip_id === tripId),
+    );
     routeSegments = routeSegments.filter(
-      (segment) => !plan.toDeleteIds.includes(segment.id),
+      (segment) =>
+        segment.trip_id !== tripId || !plan.toDeleteIds.includes(segment.id),
     );
     routeSegments.push(
       ...plan.toInsert.map((insert) => ({
         id: segmentId++,
+        trip_id: tripId,
         ...insert,
         created_at: now(),
         updated_at: now(),
@@ -67,6 +78,7 @@ export function createFakeSupabasePlaceService() {
   }
 
   function insertItem(input: {
+    trip_id: number;
     place_id: number;
     visit_date: string | null;
     visit_time: string | null;
@@ -74,6 +86,7 @@ export function createFakeSupabasePlaceService() {
   }) {
     const item = hydrateItem({
       id: itemId++,
+      trip_id: input.trip_id,
       place_id: input.place_id,
       visit_date: input.visit_date,
       visit_time: input.visit_date === null ? null : input.visit_time,
@@ -86,17 +99,18 @@ export function createFakeSupabasePlaceService() {
   }
 
   return {
-    async getPlannerSnapshot() {
-      return snapshot();
+    async getPlannerSnapshot(tripId: number) {
+      return snapshot(tripId);
     },
 
-    async getPlaceById(id: number) {
-      return getPlace(id);
+    async getPlaceById(tripId: number, id: number) {
+      return getPlace(tripId, id);
     },
 
-    async createPlace(input: PlaceCreateInput) {
+    async createPlace(tripId: number, input: PlaceCreateInput) {
       const place: Place = {
         id: placeId++,
+        trip_id: tripId,
         name: input.name,
         address: input.address,
         google_maps_url: input.google_maps_url,
@@ -114,20 +128,21 @@ export function createFakeSupabasePlaceService() {
       places.push(place);
       if (input.visit_date !== undefined && input.visit_date !== null) {
         insertItem({
+          trip_id: tripId,
           place_id: place.id,
           visit_date: input.visit_date,
           visit_time: input.visit_time ?? null,
           notes: input.itinerary_notes ?? null,
         });
       }
-      reconcile();
-      return snapshot();
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
-    async editPlace(id: number, input: PlaceEditInput) {
-      const place = getPlace(id);
+    async editPlace(tripId: number, id: number, input: PlaceEditInput) {
+      const place = getPlace(tripId, id);
       places = places.map((candidate) =>
-        candidate.id === id
+        candidate.trip_id === tripId && candidate.id === id
           ? {
               ...candidate,
               ...Object.fromEntries(
@@ -149,7 +164,8 @@ export function createFakeSupabasePlaceService() {
         input.itinerary_notes !== undefined
       ) {
         const item = itineraryItems.find(
-          (candidate) => candidate.place_id === place.id,
+          (candidate) =>
+            candidate.trip_id === tripId && candidate.place_id === place.id,
         );
         if (item && input.visit_date === null) {
           itineraryItems = itineraryItems.filter(
@@ -181,6 +197,7 @@ export function createFakeSupabasePlaceService() {
           input.visit_date !== null
         ) {
           insertItem({
+            trip_id: tripId,
             place_id: id,
             visit_date: input.visit_date,
             visit_time: input.visit_time ?? null,
@@ -189,46 +206,60 @@ export function createFakeSupabasePlaceService() {
         }
       }
 
-      reconcile();
-      return snapshot();
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
-    async removePlace(id: number) {
-      getPlace(id);
-      places = places.filter((place) => place.id !== id);
-      itineraryItems = itineraryItems.filter((item) => item.place_id !== id);
-      reconcile();
-      return snapshot();
+    async removePlace(tripId: number, id: number) {
+      getPlace(tripId, id);
+      places = places.filter(
+        (place) => place.trip_id !== tripId || place.id !== id,
+      );
+      itineraryItems = itineraryItems.filter(
+        (item) => item.trip_id !== tripId || item.place_id !== id,
+      );
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
     async schedulePlace(
+      tripId: number,
       id: number,
       visit_date: string | null,
       visit_time: string | null,
       notes: string | null = null,
     ) {
-      getPlace(id);
+      getPlace(tripId, id);
       if (visit_date !== null) {
-        insertItem({ place_id: id, visit_date, visit_time, notes });
+        insertItem({
+          trip_id: tripId,
+          place_id: id,
+          visit_date,
+          visit_time,
+          notes,
+        });
       }
-      reconcile();
-      return snapshot();
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
     async scheduleItineraryItem(
+      tripId: number,
       id: number,
       visit_date: string | null,
       visit_time: string | null,
     ) {
-      const item = itineraryItems.find((candidate) => candidate.id === id);
+      const item = itineraryItems.find(
+        (candidate) => candidate.trip_id === tripId && candidate.id === id,
+      );
       if (!item) throw new ItineraryItemNotFoundError(id);
       if (visit_date === null) {
         itineraryItems = itineraryItems.filter(
-          (candidate) => candidate.id !== id,
+          (candidate) => candidate.trip_id !== tripId || candidate.id !== id,
         );
       } else {
         itineraryItems = itineraryItems.map((candidate) =>
-          candidate.id === id
+          candidate.trip_id === tripId && candidate.id === id
             ? hydrateItem({
                 ...candidate,
                 visit_date,
@@ -238,20 +269,26 @@ export function createFakeSupabasePlaceService() {
             : candidate,
         );
       }
-      reconcile();
-      return snapshot();
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
-    async editItineraryItem(id: number, input: ItineraryItemUpdate) {
-      const item = itineraryItems.find((candidate) => candidate.id === id);
+    async editItineraryItem(
+      tripId: number,
+      id: number,
+      input: ItineraryItemUpdate,
+    ) {
+      const item = itineraryItems.find(
+        (candidate) => candidate.trip_id === tripId && candidate.id === id,
+      );
       if (!item) throw new ItineraryItemNotFoundError(id);
       if (input.visit_date === null) {
         itineraryItems = itineraryItems.filter(
-          (candidate) => candidate.id !== id,
+          (candidate) => candidate.trip_id !== tripId || candidate.id !== id,
         );
       } else {
         itineraryItems = itineraryItems.map((candidate) =>
-          candidate.id === id
+          candidate.trip_id === tripId && candidate.id === id
             ? hydrateItem({
                 ...candidate,
                 visit_date:
@@ -269,25 +306,37 @@ export function createFakeSupabasePlaceService() {
             : candidate,
         );
       }
-      reconcile();
-      return snapshot();
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
-    async removeItineraryItem(id: number) {
-      if (!itineraryItems.some((item) => item.id === id))
+    async removeItineraryItem(tripId: number, id: number) {
+      if (
+        !itineraryItems.some(
+          (item) => item.trip_id === tripId && item.id === id,
+        )
+      )
         throw new ItineraryItemNotFoundError(id);
-      itineraryItems = itineraryItems.filter((item) => item.id !== id);
-      reconcile();
-      return snapshot();
+      itineraryItems = itineraryItems.filter(
+        (item) => item.trip_id !== tripId || item.id !== id,
+      );
+      reconcile(tripId);
+      return snapshot(tripId);
     },
 
-    async setRouteSegmentMode(id: number, mode: TravelMode) {
-      if (!routeSegments.some((segment) => segment.id === id))
+    async setRouteSegmentMode(tripId: number, id: number, mode: TravelMode) {
+      if (
+        !routeSegments.some(
+          (segment) => segment.trip_id === tripId && segment.id === id,
+        )
+      )
         throw new RouteSegmentNotFoundError(id);
       routeSegments = routeSegments.map((segment) =>
-        segment.id === id ? { ...segment, mode, updated_at: now() } : segment,
+        segment.trip_id === tripId && segment.id === id
+          ? { ...segment, mode, updated_at: now() }
+          : segment,
       );
-      return snapshot();
+      return snapshot(tripId);
     },
   };
 }

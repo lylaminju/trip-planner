@@ -15,10 +15,17 @@ const supabaseUrl = process.env.SUPABASE_URL?.trim();
 const supabaseKey =
   process.env.SUPABASE_SECRET_KEY?.trim() ??
   process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+const defaultTripId = Number(process.env.TRIP_PLANNER_DEFAULT_TRIP_ID);
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error(
     "Set SUPABASE_URL and SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY before running this script.",
+  );
+}
+
+if (!Number.isInteger(defaultTripId)) {
+  throw new Error(
+    "Set TRIP_PLANNER_DEFAULT_TRIP_ID to the target shared trip id before running this script.",
   );
 }
 
@@ -36,26 +43,26 @@ try {
     places: db
       .prepare(
         `SELECT
-          id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids,
+          id, @defaultTripId AS trip_id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids,
           source_list_url, latitude, longitude, notes, created_at, updated_at
         FROM places
         ORDER BY id`,
       )
-      .all(),
+      .all({ defaultTripId }),
     itinerary_items: db
       .prepare(
-        `SELECT id, place_id, visit_date, visit_time, notes, created_at, updated_at
+        `SELECT id, @defaultTripId AS trip_id, place_id, visit_date, visit_time, notes, created_at, updated_at
         FROM itinerary_items
         ORDER BY id`,
       )
-      .all(),
+      .all({ defaultTripId }),
     route_segments: db
       .prepare(
-        `SELECT id, from_item_id, to_item_id, mode, created_at, updated_at
+        `SELECT id, @defaultTripId AS trip_id, from_item_id, to_item_id, mode, created_at, updated_at
         FROM route_segments
         ORDER BY id`,
       )
-      .all(),
+      .all({ defaultTripId }),
     route_geometry_cache: db
       .prepare(
         `SELECT
@@ -87,6 +94,7 @@ try {
       {
         dbPath,
         replaceRemote,
+        defaultTripId,
         imported: Object.fromEntries(
           Object.entries(rows).map(([table, tableRows]) => [
             table,

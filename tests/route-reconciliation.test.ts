@@ -12,6 +12,7 @@ function place(
 ): ItineraryItem {
   const place = {
     id,
+    trip_id: 1,
     name,
     address: null,
     google_maps_url: "https://www.google.com/maps",
@@ -29,6 +30,7 @@ function place(
 
   return {
     id,
+    trip_id: 1,
     place_id: id,
     visit_date,
     visit_time,
@@ -47,6 +49,7 @@ function segment(
 ): RouteSegment {
   return {
     id,
+    trip_id: 1,
     from_item_id,
     to_item_id,
     mode,

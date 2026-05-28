@@ -7,6 +7,7 @@ import type {
   PlaceEditInput,
 } from "./place-inputs";
 import * as supabasePlaceService from "./supabase-place-service";
+import { requireTripRole } from "./trip-access";
 
 export type ResolvedPlaceUrl = {
   google_maps_url: string;
@@ -28,124 +29,180 @@ export async function resolvePlaceUrl(
   };
 }
 
-export async function getPlannerSnapshot(): Promise<PlannerSnapshot> {
-  return supabasePlaceService.getPlannerSnapshot();
+export async function getPlannerSnapshot(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.getPlannerSnapshot(tripId);
 }
 
-export async function getPlannerSnapshotForRequest(): Promise<PlannerSnapshot> {
-  return getPlannerSnapshot();
+export async function getPlannerSnapshotForRequest(
+  tripId: number,
+  userId: string,
+): Promise<PlannerSnapshot> {
+  await requireTripRole(tripId, userId, "viewer");
+  return getPlannerSnapshot(tripId);
 }
 
 export async function createPlace(
+  tripId: number,
   input: PlaceCreateInput,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.createPlace(input);
+  return supabasePlaceService.createPlace(tripId, input);
 }
 
 export async function createPlaceForRequest(
+  tripId: number,
+  userId: string,
   input: PlaceCreateInput,
 ): Promise<PlannerSnapshot> {
-  return createPlace(input);
+  await requireTripRole(tripId, userId, "editor");
+  return createPlace(tripId, input);
 }
 
-export async function getPlaceByIdForRequest(id: number): Promise<Place> {
-  return supabasePlaceService.getPlaceById(id);
+export async function getPlaceByIdForRequest(
+  tripId: number,
+  userId: string,
+  id: number,
+): Promise<Place> {
+  await requireTripRole(tripId, userId, "viewer");
+  return supabasePlaceService.getPlaceById(tripId, id);
 }
 
 export async function editPlace(
+  tripId: number,
   id: number,
   input: PlaceEditInput,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.editPlace(id, input);
+  return supabasePlaceService.editPlace(tripId, id, input);
 }
 
 export async function editPlaceForRequest(
+  tripId: number,
+  userId: string,
   id: number,
   input: PlaceEditInput,
 ): Promise<PlannerSnapshot> {
-  return editPlace(id, input);
+  await requireTripRole(tripId, userId, "editor");
+  return editPlace(tripId, id, input);
 }
 
-export async function removePlace(id: number): Promise<PlannerSnapshot> {
-  return supabasePlaceService.removePlace(id);
+export async function removePlace(
+  tripId: number,
+  id: number,
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.removePlace(tripId, id);
 }
 
 export async function removePlaceForRequest(
+  tripId: number,
+  userId: string,
   id: number,
 ): Promise<PlannerSnapshot> {
-  return removePlace(id);
+  await requireTripRole(tripId, userId, "editor");
+  return removePlace(tripId, id);
 }
 
 export async function schedulePlace(
+  tripId: number,
   id: number,
   visit_date: string | null,
   visit_time: string | null,
   notes: string | null = null,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.schedulePlace(id, visit_date, visit_time, notes);
+  return supabasePlaceService.schedulePlace(
+    tripId,
+    id,
+    visit_date,
+    visit_time,
+    notes,
+  );
 }
 
 export async function schedulePlaceForRequest(
+  tripId: number,
+  userId: string,
   id: number,
   visit_date: string | null,
   visit_time: string | null,
   notes: string | null = null,
 ): Promise<PlannerSnapshot> {
-  return schedulePlace(id, visit_date, visit_time, notes);
+  await requireTripRole(tripId, userId, "editor");
+  return schedulePlace(tripId, id, visit_date, visit_time, notes);
 }
 
 export async function scheduleItineraryItem(
+  tripId: number,
   id: number,
   visit_date: string | null,
   visit_time: string | null,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.scheduleItineraryItem(id, visit_date, visit_time);
+  return supabasePlaceService.scheduleItineraryItem(
+    tripId,
+    id,
+    visit_date,
+    visit_time,
+  );
 }
 
 export async function scheduleItineraryItemForRequest(
+  tripId: number,
+  userId: string,
   id: number,
   visit_date: string | null,
   visit_time: string | null,
 ): Promise<PlannerSnapshot> {
-  return scheduleItineraryItem(id, visit_date, visit_time);
+  await requireTripRole(tripId, userId, "editor");
+  return scheduleItineraryItem(tripId, id, visit_date, visit_time);
 }
 
 export async function editItineraryItem(
+  tripId: number,
   id: number,
   input: ItineraryItemUpdate,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.editItineraryItem(id, input);
+  return supabasePlaceService.editItineraryItem(tripId, id, input);
 }
 
 export async function editItineraryItemForRequest(
+  tripId: number,
+  userId: string,
   id: number,
   input: ItineraryItemUpdate,
 ): Promise<PlannerSnapshot> {
-  return editItineraryItem(id, input);
+  await requireTripRole(tripId, userId, "editor");
+  return editItineraryItem(tripId, id, input);
 }
 
 export async function removeItineraryItem(
+  tripId: number,
   id: number,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.removeItineraryItem(id);
+  return supabasePlaceService.removeItineraryItem(tripId, id);
 }
 
 export async function removeItineraryItemForRequest(
+  tripId: number,
+  userId: string,
   id: number,
 ): Promise<PlannerSnapshot> {
-  return removeItineraryItem(id);
+  await requireTripRole(tripId, userId, "editor");
+  return removeItineraryItem(tripId, id);
 }
 
 export async function setRouteSegmentMode(
+  tripId: number,
   id: number,
   mode: TravelMode,
 ): Promise<PlannerSnapshot> {
-  return supabasePlaceService.setRouteSegmentMode(id, mode);
+  return supabasePlaceService.setRouteSegmentMode(tripId, id, mode);
 }
 
 export async function setRouteSegmentModeForRequest(
+  tripId: number,
+  userId: string,
   id: number,
   mode: TravelMode,
 ): Promise<PlannerSnapshot> {
-  return setRouteSegmentMode(id, mode);
+  await requireTripRole(tripId, userId, "editor");
+  return setRouteSegmentMode(tripId, id, mode);
 }
