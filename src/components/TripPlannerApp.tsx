@@ -34,6 +34,7 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
   itineraryItems: [],
   routeSegments: [],
+  role: "viewer",
 };
 
 type TripPlannerAppProps = {
@@ -70,6 +71,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     tripId,
     snapshot,
   );
+  const canEdit = snapshot.role !== "viewer";
 
   const reload = useCallback(async () => {
     setSnapshot(await loadPlannerSnapshot(tripId));
@@ -85,6 +87,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }, [reload]);
 
   async function savePlace(payload: Record<string, unknown>, id?: number) {
+    if (!canEdit) return;
     try {
       setSnapshot(await savePlaceRequest(tripId, payload, id));
       setActiveCanonicalPlaceId(null);
@@ -104,6 +107,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     payload: Record<string, unknown>,
     id: number,
   ) {
+    if (!canEdit) return;
     try {
       setSnapshot(await saveItineraryItemRequest(tripId, payload, id));
       setEditingItem(null);
@@ -116,6 +120,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }
 
   async function deletePlace(id: number) {
+    if (!canEdit) return;
     setSnapshot(await deletePlaceRequest(tripId, id));
     setActiveItemId((current) => {
       const deletedItemIds = snapshot.itineraryItems
@@ -134,6 +139,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     visitDate: string | null,
     visitTime: string | null,
   ) {
+    if (!canEdit) return;
     setSnapshot(await schedulePlaceRequest(tripId, id, visitDate, visitTime));
     setError(null);
   }
@@ -142,6 +148,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     placeId: number,
     payload: Record<string, unknown>,
   ) {
+    if (!canEdit) return;
     try {
       setSnapshot(await createItineraryItemRequest(tripId, placeId, payload));
       setAddingVisitPlace(null);
@@ -158,6 +165,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     visitDate: string | null,
     visitTime: string | null,
   ) {
+    if (!canEdit) return;
     setSnapshot(
       await scheduleItineraryItemRequest(tripId, id, visitDate, visitTime),
     );
@@ -165,6 +173,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }
 
   async function deleteItineraryItem(id: number) {
+    if (!canEdit) return;
     setSnapshot(await deleteItineraryItemRequest(tripId, id));
     setActiveItemId((current) => (current === id ? null : current));
     setActiveSegmentId(null);
@@ -173,11 +182,13 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }
 
   async function updateSegmentMode(id: number, mode: TravelMode) {
+    if (!canEdit) return;
     setSnapshot(await updateSegmentModeRequest(tripId, id, mode));
     setError(null);
   }
 
   function openAddModal() {
+    if (!canEdit) return;
     setError(null);
     setEditingPlace(null);
     setEditingItem(null);
@@ -186,6 +197,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }
 
   function openEditModal(place: Place) {
+    if (!canEdit) return;
     setError(null);
     setEditingPlace(place);
     setEditingItem(null);
@@ -194,6 +206,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }
 
   function openEditItemModal(item: ItineraryItem) {
+    if (!canEdit) return;
     setError(null);
     setEditingPlace(null);
     setEditingItem(item);
@@ -202,6 +215,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }
 
   function openAddVisitModal(place: Place) {
+    if (!canEdit) return;
     setError(null);
     setEditingPlace(null);
     setEditingItem(null);
@@ -266,6 +280,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         error={error}
         isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
+        canEdit={canEdit}
         onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
         onMobileSheetStateChange={setMobileSheetState}
         onAdd={openAddModal}

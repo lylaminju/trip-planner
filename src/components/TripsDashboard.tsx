@@ -1,0 +1,425 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+
+import {
+  detectBrowserTimeZone,
+  groupTripsByTiming,
+} from "@/lib/trip-classification";
+import {
+  createTrip,
+  deleteTrip,
+  loadTrips,
+  updateTrip,
+  type TripMetadataPayload,
+} from "@/lib/trips-api";
+import type { TripSummary } from "@/lib/types";
+
+type TripFormState = {
+  name: string;
+  startDate: string;
+  endDate: string;
+  timezone: string;
+};
+
+export function TripsDashboard() {
+  const router = useRouter();
+  const [trips, setTrips] = useState<TripSummary[]>([]);
+  const [form, setForm] = useState<TripFormState>(() => ({
+    name: "",
+    startDate: "",
+    endDate: "",
+    timezone: detectBrowserTimeZone(),
+  }));
+  const [editing, setEditing] = useState<{
+    tripId: number;
+    form: TripFormState;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
+
+  useEffect(() => {
+    loadTrips()
+      .then((loadedTrips) => {
+        setTrips(loadedTrips);
+        setError(null);
+      })
+      .catch((reason) => {
+        setError(errorMessage(reason, "Failed to load trips."));
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  async function submitCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const trip = await createTrip(formPayload(form));
+      setTrips((current) => [...current, trip]);
+      setForm({
+        name: "",
+        startDate: "",
+        endDate: "",
+        timezone: detectBrowserTimeZone(),
+      });
+      router.push(`/trips/${trip.id}`);
+    } catch (reason) {
+      setError(errorMessage(reason, "Failed to create trip."));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function submitEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing) return;
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const trip = await updateTrip(editing.tripId, formPayload(editing.form));
+      setTrips((current) =>
+        current.map((entry) => (entry.id === trip.id ? trip : entry)),
+      );
+      setEditing(null);
+    } catch (reason) {
+      setError(errorMessage(reason, "Failed to update trip."));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removeTrip(trip: TripSummary) {
+    if (
+      !window.confirm(
+        `Delete ${trip.name}?\n\nThis removes the trip and planner data permanently.`,
+      )
+    ) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await deleteTrip(trip.id);
+      setTrips((current) => current.filter((entry) => entry.id !== trip.id));
+    } catch (reason) {
+      setError(errorMessage(reason, "Failed to delete trip."));
+    }
+  }
+
+  return (
+    <main className="trips-page">
+      <section className="trips-dashboard">
+        <header className="trips-header">
+          <div>
+            <h1>Trips</h1>
+            <p>Manage trip workspaces and open the planner for each trip.</p>
+          </div>
+        </header>
+
+        <form className="trip-form" onSubmit={submitCreate}>
+          <label>
+            <span>Name</span>
+            <input
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  name: event.currentTarget.value,
+                }))
+              }
+              required
+            />
+          </label>
+          <label>
+            <span>Start</span>
+            <input
+              type="date"
+              value={form.startDate}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  startDate: event.currentTarget.value,
+                }))
+              }
+            />
+          </label>
+          <label>
+            <span>End</span>
+            <input
+              type="date"
+              value={form.endDate}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  endDate: event.currentTarget.value,
+                }))
+              }
+            />
+          </label>
+          <label>
+            <span>Timezone</span>
+            <input
+              value={form.timezone}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  timezone: event.currentTarget.value,
+                }))
+              }
+              required
+            />
+          </label>
+          <button type="submit" disabled={isSaving}>
+            Create trip
+          </button>
+        </form>
+
+        {error && <p className="error-text">{error}</p>}
+        {isLoading ? (
+          <p className="trip-empty-text">Loading trips...</p>
+        ) : (
+          <div className="trip-sections">
+            <TripSection
+              title="Ongoing Trips"
+              trips={groups.ongoing}
+              editing={editing}
+              isSaving={isSaving}
+              onEditStart={setEditingFromTrip}
+              onEditCancel={() => setEditing(null)}
+              onEditChange={(form) =>
+                setEditing((current) =>
+                  current ? { ...current, form } : current,
+                )
+              }
+              onEditSubmit={submitEdit}
+              onDelete={removeTrip}
+            />
+            <TripSection
+              title="Needs Dates"
+              trips={groups.needsDates}
+              editing={editing}
+              isSaving={isSaving}
+              onEditStart={setEditingFromTrip}
+              onEditCancel={() => setEditing(null)}
+              onEditChange={(form) =>
+                setEditing((current) =>
+                  current ? { ...current, form } : current,
+                )
+              }
+              onEditSubmit={submitEdit}
+              onDelete={removeTrip}
+            />
+            <TripSection
+              title="Upcoming Trips"
+              trips={groups.upcoming}
+              editing={editing}
+              isSaving={isSaving}
+              onEditStart={setEditingFromTrip}
+              onEditCancel={() => setEditing(null)}
+              onEditChange={(form) =>
+                setEditing((current) =>
+                  current ? { ...current, form } : current,
+                )
+              }
+              onEditSubmit={submitEdit}
+              onDelete={removeTrip}
+            />
+            <TripSection
+              title="Past Trips"
+              trips={groups.past}
+              editing={editing}
+              isSaving={isSaving}
+              onEditStart={setEditingFromTrip}
+              onEditCancel={() => setEditing(null)}
+              onEditChange={(form) =>
+                setEditing((current) =>
+                  current ? { ...current, form } : current,
+                )
+              }
+              onEditSubmit={submitEdit}
+              onDelete={removeTrip}
+            />
+          </div>
+        )}
+      </section>
+    </main>
+  );
+
+  function setEditingFromTrip(trip: TripSummary) {
+    setEditing({
+      tripId: trip.id,
+      form: formFromTrip(trip),
+    });
+  }
+}
+
+function TripSection(props: {
+  title: string;
+  trips: TripSummary[];
+  editing: { tripId: number; form: TripFormState } | null;
+  isSaving: boolean;
+  onEditStart: (trip: TripSummary) => void;
+  onEditCancel: () => void;
+  onEditChange: (form: TripFormState) => void;
+  onEditSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onDelete: (trip: TripSummary) => void;
+}) {
+  return (
+    <section className="trip-section">
+      <div className="trip-section-heading">
+        <h2>{props.title}</h2>
+        <span>{props.trips.length}</span>
+      </div>
+      {props.trips.length === 0 ? (
+        <p className="trip-empty-text">No trips in this section.</p>
+      ) : (
+        <div className="trip-list">
+          {props.trips.map((trip) =>
+            props.editing?.tripId === trip.id ? (
+              <TripEditForm
+                key={trip.id}
+                form={props.editing.form}
+                isSaving={props.isSaving}
+                onChange={props.onEditChange}
+                onCancel={props.onEditCancel}
+                onSubmit={props.onEditSubmit}
+              />
+            ) : (
+              <TripRow
+                key={trip.id}
+                trip={trip}
+                onEdit={() => props.onEditStart(trip)}
+                onDelete={() => props.onDelete(trip)}
+              />
+            ),
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function TripRow(props: {
+  trip: TripSummary;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const canEditMetadata = props.trip.role === "owner";
+
+  return (
+    <article className="trip-row">
+      <Link className="trip-row-main" href={`/trips/${props.trip.id}`}>
+        <strong>{props.trip.name}</strong>
+        <span>{formatDateRange(props.trip)}</span>
+        <span>{props.trip.timezone}</span>
+      </Link>
+      <span className={`trip-role trip-role-${props.trip.role}`}>
+        {props.trip.role}
+      </span>
+      {canEditMetadata && (
+        <div className="trip-row-actions">
+          <button type="button" onClick={props.onEdit}>
+            Edit
+          </button>
+          <button
+            type="button"
+            className="danger-button"
+            onClick={props.onDelete}
+          >
+            Delete
+          </button>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function TripEditForm(props: {
+  form: TripFormState;
+  isSaving: boolean;
+  onChange: (form: TripFormState) => void;
+  onCancel: () => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <form className="trip-row trip-edit-form" onSubmit={props.onSubmit}>
+      <input
+        value={props.form.name}
+        onChange={(event) =>
+          props.onChange({ ...props.form, name: event.currentTarget.value })
+        }
+        required
+      />
+      <input
+        type="date"
+        value={props.form.startDate}
+        onChange={(event) =>
+          props.onChange({
+            ...props.form,
+            startDate: event.currentTarget.value,
+          })
+        }
+      />
+      <input
+        type="date"
+        value={props.form.endDate}
+        onChange={(event) =>
+          props.onChange({ ...props.form, endDate: event.currentTarget.value })
+        }
+      />
+      <input
+        value={props.form.timezone}
+        onChange={(event) =>
+          props.onChange({ ...props.form, timezone: event.currentTarget.value })
+        }
+        required
+      />
+      <div className="trip-row-actions">
+        <button type="submit" disabled={props.isSaving}>
+          Save
+        </button>
+        <button type="button" onClick={props.onCancel}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function formPayload(form: TripFormState): TripMetadataPayload {
+  return {
+    name: form.name,
+    start_date: form.startDate || null,
+    end_date: form.endDate || null,
+    timezone: form.timezone,
+  };
+}
+
+function formFromTrip(trip: TripSummary): TripFormState {
+  return {
+    name: trip.name,
+    startDate: trip.start_date ?? "",
+    endDate: trip.end_date ?? "",
+    timezone: trip.timezone,
+  };
+}
+
+function formatDateRange(trip: TripSummary): string {
+  if (!trip.start_date || !trip.end_date) {
+    return "Needs dates";
+  }
+
+  return `${trip.start_date} to ${trip.end_date}`;
+}
+
+function errorMessage(reason: unknown, fallback: string): string {
+  return reason instanceof Error ? reason.message : fallback;
+}

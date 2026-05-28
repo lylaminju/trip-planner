@@ -37,6 +37,7 @@ type Props = {
   activeDate: string | null;
   routeGeometries: Map<number, RouteGeometry>;
   markerLabels: Map<number, string>;
+  canEdit: boolean;
   isExpanded: boolean;
   isOpen: boolean;
   isUnscheduledOpen: boolean;
@@ -70,7 +71,7 @@ type Props = {
 
 export function ItinerarySection(props: Props) {
   function activateDropTarget(event: DragEvent<HTMLElement>, key: string) {
-    if (!hasScheduleDragData(event)) return;
+    if (!props.canEdit || !hasScheduleDragData(event)) return;
 
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -114,10 +115,19 @@ export function ItinerarySection(props: Props) {
             <div
               key={day.date}
               className={`day-block ${props.activeDate === day.date ? "active" : ""}`}
-              onDragEnter={(event) => activateDropTarget(event, day.date)}
-              onDragOver={(event) => activateDropTarget(event, day.date)}
-              onDragLeave={leaveDropTarget}
+              onDragEnter={
+                props.canEdit
+                  ? (event) => activateDropTarget(event, day.date)
+                  : undefined
+              }
+              onDragOver={
+                props.canEdit
+                  ? (event) => activateDropTarget(event, day.date)
+                  : undefined
+              }
+              onDragLeave={props.canEdit ? leaveDropTarget : undefined}
               onDrop={(event) => {
+                if (!props.canEdit) return;
                 event.preventDefault();
                 props.onDropTargetChange(null);
                 scheduleDraggedSource(event, {
@@ -141,17 +151,19 @@ export function ItinerarySection(props: Props) {
                     {formatItineraryDateHeading(day.date)}
                   </span>
                 </button>
-                <button
-                  type="button"
-                  className="day-add-place-button"
-                  aria-label={`Add place to ${formatItineraryDateHeading(day.date)}`}
-                  title={`Add place to ${formatItineraryDateHeading(day.date)}`}
-                  onClick={(event) =>
-                    props.onToggleDatePlacePicker(event, day.date)
-                  }
-                >
-                  <PlusIcon />
-                </button>
+                {props.canEdit && (
+                  <button
+                    type="button"
+                    className="day-add-place-button"
+                    aria-label={`Add place to ${formatItineraryDateHeading(day.date)}`}
+                    title={`Add place to ${formatItineraryDateHeading(day.date)}`}
+                    onClick={(event) =>
+                      props.onToggleDatePlacePicker(event, day.date)
+                    }
+                  >
+                    <PlusIcon />
+                  </button>
+                )}
               </h3>
               {day.items.map((item, index) => {
                 const nextItem = day.items[index + 1];
@@ -167,7 +179,7 @@ export function ItinerarySection(props: Props) {
 
                 return (
                   <div key={item.id} className="itinerary-item-stack">
-                    {index > 0 && (
+                    {props.canEdit && index > 0 && (
                       <InsertionDropZone
                         active={
                           props.dropTargetKey ===
@@ -211,6 +223,7 @@ export function ItinerarySection(props: Props) {
                       markerLabel={props.markerLabels.get(item.id) ?? null}
                       markerColor={day.color}
                       onDragEnd={() => props.onDropTargetChange(null)}
+                      canEdit={props.canEdit}
                       onSelect={() =>
                         props.onSelectPlace(
                           props.activePlaceId === item.id ? null : item.id,
@@ -246,6 +259,7 @@ export function ItinerarySection(props: Props) {
                           props.routeGeometries.get(segmentView.segment.id)
                             ?.duration_seconds
                         }
+                        canEdit={props.canEdit}
                         onSelect={() =>
                           props.onSelectSegment(segmentView.segment.id)
                         }
@@ -254,7 +268,7 @@ export function ItinerarySection(props: Props) {
                         }
                       />
                     )}
-                    {showEndTimedDropZone && (
+                    {props.canEdit && showEndTimedDropZone && (
                       <EndInsertionDropZone
                         active={
                           props.dropTargetKey === endDropTargetKey(day.date)
@@ -297,6 +311,7 @@ export function ItinerarySection(props: Props) {
             onSelectPlace={props.onSelectPlace}
             onSelectCanonicalPlace={props.onSelectCanonicalPlace}
             onSelectSegment={props.onSelectSegment}
+            canEdit={props.canEdit}
             onAddVisit={props.onAddVisit}
             onEdit={props.onEdit}
             onDelete={props.onDelete}
@@ -321,6 +336,7 @@ function UnscheduledBlock(props: {
   onSelectPlace: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
+  canEdit: boolean;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
   onDelete: (id: number) => void;
@@ -336,14 +352,19 @@ function UnscheduledBlock(props: {
       className={`unscheduled-block ${
         props.dropTargetKey === UNSCHEDULED_DROP_TARGET ? "drop-target" : ""
       }`}
-      onDragEnter={(event) =>
-        props.activateDropTarget(event, UNSCHEDULED_DROP_TARGET)
+      onDragEnter={
+        props.canEdit
+          ? (event) => props.activateDropTarget(event, UNSCHEDULED_DROP_TARGET)
+          : undefined
       }
-      onDragOver={(event) =>
-        props.activateDropTarget(event, UNSCHEDULED_DROP_TARGET)
+      onDragOver={
+        props.canEdit
+          ? (event) => props.activateDropTarget(event, UNSCHEDULED_DROP_TARGET)
+          : undefined
       }
-      onDragLeave={props.leaveDropTarget}
+      onDragLeave={props.canEdit ? props.leaveDropTarget : undefined}
       onDrop={(event) => {
+        if (!props.canEdit) return;
         event.preventDefault();
         props.onDropTargetChange(null);
         const item = getDraggedItem(event, props.itinerary);
@@ -364,6 +385,7 @@ function UnscheduledBlock(props: {
             key={place.id}
             place={place}
             active={props.activeCanonicalPlaceId === place.id}
+            canEdit={props.canEdit}
             onSelect={() =>
               props.onSelectCanonicalPlace(
                 props.activeCanonicalPlaceId === place.id ? null : place.id,

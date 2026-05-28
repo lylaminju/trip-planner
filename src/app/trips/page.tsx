@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { TripsDashboard } from "@/components/TripsDashboard";
 import {
   getAuthenticatedUser,
   readAuthTokensFromCookieStore,
@@ -16,14 +17,5 @@ export default async function TripsPage() {
     redirect("/login");
   }
 
-  return (
-    <main className="app-shell">
-      <section className="left-panel">
-        <div className="panel-section">
-          <h1>Trips</h1>
-          <p>Trip dashboard is not implemented yet.</p>
-        </div>
-      </section>
-    </main>
-  );
+  return <TripsDashboard />;
 }

@@ -78,6 +78,124 @@ async function withFreshTestEnv(
 }
 
 describe("API routes transport behavior", () => {
+  it("returns trips for the authenticated dashboard user", async () => {
+    await withFreshTripApiEnv(async () => {
+      const { GET } = await import("@/app/api/trips/route");
+      const response = await GET(
+        new Request("http://localhost/api/trips"),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        trips: [
+          expect.objectContaining({
+            id: 1,
+            name: "New York City",
+            role: "owner",
+          }),
+        ],
+      });
+    });
+  });
+
+  it("returns 401 for unauthenticated trip dashboard API requests", async () => {
+    await withFreshTripApiEnv(
+      async () => {
+        const { GET } = await import("@/app/api/trips/route");
+        const response = await GET(
+          new Request("http://localhost/api/trips"),
+        );
+
+        expect(response.status).toBe(401);
+        await expect(response.json()).resolves.toEqual({
+          error: "Authentication required.",
+        });
+      },
+      { authenticated: false },
+    );
+  });
+
+  it("creates a trip for the authenticated user", async () => {
+    await withFreshTripApiEnv(async () => {
+      const { POST } = await import("@/app/api/trips/route");
+      const response = await POST(
+        jsonRequest("POST", {
+          name: "Tokyo",
+          start_date: "2026-09-01",
+          end_date: "2026-09-08",
+          timezone: "Asia/Tokyo",
+        }),
+      );
+
+      expect(response.status).toBe(201);
+      await expect(response.json()).resolves.toEqual({
+        trip: expect.objectContaining({
+          id: 2,
+          name: "Tokyo",
+          role: "owner",
+          timezone: "Asia/Tokyo",
+        }),
+      });
+    });
+  });
+
+  it("rejects invalid trip metadata on create", async () => {
+    await withFreshTripApiEnv(async () => {
+      const { POST } = await import("@/app/api/trips/route");
+
+      const missingName = await POST(
+        jsonRequest("POST", {
+          name: "   ",
+          timezone: "America/Toronto",
+        }),
+      );
+      expect(missingName.status).toBe(400);
+      await expect(missingName.json()).resolves.toEqual({
+        error: "Trip name is required.",
+      });
+
+      const badDateRange = await POST(
+        jsonRequest("POST", {
+          name: "Bad range",
+          start_date: "2026-09-08",
+          end_date: "2026-09-01",
+          timezone: "America/Toronto",
+        }),
+      );
+      expect(badDateRange.status).toBe(400);
+      await expect(badDateRange.json()).resolves.toEqual({
+        error: "Trip start date must be before or equal to end date.",
+      });
+    });
+  });
+
+  it("requires owner role for trip metadata edits and deletion", async () => {
+    await withFreshTripApiEnv(
+      async () => {
+        const tripRoute = await import("@/app/api/trips/[tripId]/route");
+
+        const editResponse = await tripRoute.PATCH(
+          jsonRequest("PATCH", { name: "Updated" }),
+          tripParams(),
+        );
+        expect(editResponse.status).toBe(403);
+        await expect(editResponse.json()).resolves.toEqual({
+          error: "Trip access denied.",
+        });
+
+        const deleteResponse = await tripRoute.DELETE(
+          new Request("http://localhost/api/trips/1", { method: "DELETE" }),
+          tripParams(),
+        );
+        expect(deleteResponse.status).toBe(403);
+        await expect(deleteResponse.json()).resolves.toEqual({
+          error: "Trip access denied.",
+        });
+      },
+      { role: "editor" },
+    );
+  });
+
   it("returns 401 for unauthenticated planner API requests", async () => {
     await withFreshTestEnv(
       async () => {
@@ -535,6 +653,69 @@ function params(id: string) {
 
 function tripParams(tripId = "1") {
   return { params: Promise.resolve({ tripId }) };
+}
+
+async function withFreshTripApiEnv(
+  run: () => Promise<void> | void,
+  options: { authenticated?: boolean; role?: TripRole } = {},
+): Promise<void> {
+  vi.resetModules();
+  vi.doMock("@/server/auth-session", () => ({
+    getAuthenticatedUser: vi.fn().mockResolvedValue({
+      user: options.authenticated === false ? null : { id: "user-1" },
+      session: null,
+    }),
+    readAuthTokensFromCookieHeader: vi.fn().mockReturnValue({
+      accessToken: "token",
+      refreshToken: "refresh",
+    }),
+    setAuthCookies: vi.fn((response) => response),
+  }));
+  vi.doMock("@/server/trip-service", async () => {
+    const { TripAccessDeniedError } = await import("@/server/errors");
+    const role = options.role ?? "owner";
+    const baseTrip = {
+      id: 1,
+      created_by: "user-1",
+      name: "New York City",
+      start_date: "2026-05-27",
+      end_date: "2026-05-29",
+      timezone: "America/Toronto",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      role,
+    };
+
+    return {
+      listTripsForRequest: vi.fn().mockResolvedValue([baseTrip]),
+      createTripForRequest: vi.fn().mockImplementation((_userId, input) =>
+        Promise.resolve({
+          ...baseTrip,
+          ...input,
+          id: 2,
+          created_by: "user-1",
+          role: "owner",
+        }),
+      ),
+      updateTripForRequest: vi.fn().mockImplementation((tripId, _userId) => {
+        if (role !== "owner") throw new TripAccessDeniedError(tripId);
+        return Promise.resolve(baseTrip);
+      }),
+      deleteTripForRequest: vi.fn().mockImplementation((tripId) => {
+        if (role !== "owner") throw new TripAccessDeniedError(tripId);
+        return Promise.resolve();
+      }),
+    };
+  });
+
+  try {
+    await run();
+  } finally {
+    vi.doUnmock("@/server/auth-session");
+    vi.doUnmock("@/server/trip-service");
+    vi.restoreAllMocks();
+    vi.resetModules();
+  }
 }
 
 function jsonRequest(method: string, body: unknown): Request {

@@ -12,6 +12,7 @@ type Props = {
   to: Place;
   active: boolean;
   durationSeconds?: number;
+  canEdit: boolean;
   onSelect: () => void;
   onModeChange: (mode: TravelMode) => void;
 };
@@ -22,6 +23,7 @@ export function SegmentRow({
   to,
   active,
   durationSeconds,
+  canEdit,
   onSelect,
   onModeChange,
 }: Props) {
@@ -37,6 +39,7 @@ export function SegmentRow({
         className="route-mode-select"
         aria-label={`Travel mode from ${from.name} to ${to.name}`}
         value={segment.mode}
+        disabled={!canEdit}
         onClick={(event) => event.stopPropagation()}
         onChange={(event) =>
           onModeChange(event.currentTarget.value as TravelMode)

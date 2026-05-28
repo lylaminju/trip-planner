@@ -19,6 +19,10 @@ export type TripMembership = {
   created_at: string;
 };
 
+export type TripSummary = Trip & {
+  role: TripRole;
+};
+
 export type Place = {
   id: number;
   trip_id: number;
@@ -88,4 +92,5 @@ export type PlannerSnapshot = {
   places: Place[];
   itineraryItems: ItineraryItem[];
   routeSegments: RouteSegment[];
+  role?: TripRole;
 };

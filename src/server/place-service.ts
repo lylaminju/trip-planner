@@ -39,8 +39,11 @@ export async function getPlannerSnapshotForRequest(
   tripId: number,
   userId: string,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "viewer");
-  return getPlannerSnapshot(tripId);
+  const membership = await requireTripRole(tripId, userId, "viewer");
+  return {
+    ...(await getPlannerSnapshot(tripId)),
+    role: membership.role,
+  };
 }
 
 export async function createPlace(

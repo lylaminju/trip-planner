@@ -11,6 +11,7 @@ export function PlacesSection(props: {
   itinerary: ItineraryView;
   activePlaceId: number | null;
   activeCanonicalPlaceId: number | null;
+  canEdit: boolean;
   isExpanded: boolean;
   isOpen: boolean;
   onToggleOpen: () => void;
@@ -38,6 +39,7 @@ export function PlacesSection(props: {
               <PlaceListRow
                 key={place.id}
                 place={place}
+                canEdit={props.canEdit}
                 active={
                   props.activeCanonicalPlaceId === place.id ||
                   (itemId !== null && props.activePlaceId === itemId)

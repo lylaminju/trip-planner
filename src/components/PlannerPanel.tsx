@@ -29,6 +29,7 @@ type Props = {
   error: string | null;
   isExpanded: boolean;
   mobileSheetState: MobileSheetState;
+  canEdit: boolean;
   onToggleExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onAdd: () => void;
@@ -135,9 +136,11 @@ export function PlannerPanel(props: Props) {
       <header className="app-header">
         <h1>Trip Planner</h1>
         <div className="app-header-actions">
-          <button type="button" onClick={props.onAdd}>
-            Add Place
-          </button>
+          {props.canEdit && (
+            <button type="button" onClick={props.onAdd}>
+              Add Place
+            </button>
+          )}
           <button
             type="button"
             className="desktop-logout-button"
@@ -169,6 +172,7 @@ export function PlannerPanel(props: Props) {
         activeDate={props.activeDate}
         routeGeometries={props.routeGeometries}
         markerLabels={markerLabels}
+        canEdit={props.canEdit}
         isExpanded={props.isExpanded}
         isOpen={isItinerariesOpen}
         isUnscheduledOpen={isUnscheduledOpen}
@@ -198,6 +202,7 @@ export function PlannerPanel(props: Props) {
         itinerary={props.itinerary}
         activePlaceId={props.activePlaceId}
         activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+        canEdit={props.canEdit}
         isExpanded={props.isExpanded}
         isOpen={isPlacesOpen}
         onToggleOpen={() => setIsPlacesOpen((value) => !value)}
@@ -211,6 +216,7 @@ export function PlannerPanel(props: Props) {
       />
 
       {picker &&
+        props.canEdit &&
         typeof document !== "undefined" &&
         createPortal(
           <DatePlacePicker

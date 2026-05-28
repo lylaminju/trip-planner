@@ -8,5 +8,6 @@ data/*.sqlite-wal
 .DS_Store
 
 .omx/
+.superpowers/
 tsconfig.tsbuildinfo
 data/*.sqlite

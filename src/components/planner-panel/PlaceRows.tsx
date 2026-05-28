@@ -10,6 +10,7 @@ export function ItineraryItemRow(props: {
   active: boolean;
   markerLabel: string | null;
   markerColor: string;
+  canEdit: boolean;
   onDragEnd?: () => void;
   onSelect: () => void;
   onEdit: () => void;
@@ -23,28 +24,32 @@ export function ItineraryItemRow(props: {
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
-      <button
-        type="button"
-        className="drag-handle"
-        draggable
-        aria-label={dragLabel}
-        title={dragLabel}
-        onClick={(event) => event.preventDefault()}
-        onDragStart={(event) => {
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData(
-            "text/itinerary-item-id",
-            String(props.item.id),
-          );
-          const dragPreview = createDragPreview(props.item);
-          document.body.appendChild(dragPreview);
-          event.dataTransfer.setDragImage(dragPreview, 16, 16);
-          window.setTimeout(() => dragPreview.remove(), 0);
-        }}
-        onDragEnd={props.onDragEnd}
-      >
-        ::
-      </button>
+      {props.canEdit ? (
+        <button
+          type="button"
+          className="drag-handle"
+          draggable
+          aria-label={dragLabel}
+          title={dragLabel}
+          onClick={(event) => event.preventDefault()}
+          onDragStart={(event) => {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData(
+              "text/itinerary-item-id",
+              String(props.item.id),
+            );
+            const dragPreview = createDragPreview(props.item);
+            document.body.appendChild(dragPreview);
+            event.dataTransfer.setDragImage(dragPreview, 16, 16);
+            window.setTimeout(() => dragPreview.remove(), 0);
+          }}
+          onDragEnd={props.onDragEnd}
+        >
+          ::
+        </button>
+      ) : (
+        <span className="drag-handle-placeholder" aria-hidden="true" />
+      )}
       <button type="button" className="place-main" onClick={props.onSelect}>
         <strong className="place-title">
           {props.markerLabel && (
@@ -66,24 +71,28 @@ export function ItineraryItemRow(props: {
         {display.detail && <span>{display.detail}</span>}
         {note && <span className="place-note">{note}</span>}
       </button>
-      <button
-        type="button"
-        className="icon-button"
-        aria-label={editLabel}
-        title={editLabel}
-        onClick={props.onEdit}
-      >
-        <PencilIcon />
-      </button>
-      <button
-        type="button"
-        className="icon-button danger-button"
-        aria-label={deleteLabel}
-        title={deleteLabel}
-        onClick={props.onDelete}
-      >
-        <TrashIcon />
-      </button>
+      {props.canEdit && (
+        <>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={editLabel}
+            title={editLabel}
+            onClick={props.onEdit}
+          >
+            <PencilIcon />
+          </button>
+          <button
+            type="button"
+            className="icon-button danger-button"
+            aria-label={deleteLabel}
+            title={deleteLabel}
+            onClick={props.onDelete}
+          >
+            <TrashIcon />
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -91,6 +100,7 @@ export function ItineraryItemRow(props: {
 export function PlaceListRow(props: {
   place: Place;
   active: boolean;
+  canEdit: boolean;
   onSelect: () => void;
   onEdit: () => void;
   onAddVisit: () => void;
@@ -114,33 +124,37 @@ export function PlaceListRow(props: {
           <span className="place-note">{props.place.notes}</span>
         )}
       </button>
-      <button
-        type="button"
-        className="icon-button"
-        aria-label={addVisitLabel}
-        title={addVisitLabel}
-        onClick={props.onAddVisit}
-      >
-        <CalendarPlusIcon />
-      </button>
-      <button
-        type="button"
-        className="icon-button"
-        aria-label={editLabel}
-        title={editLabel}
-        onClick={props.onEdit}
-      >
-        <PencilIcon />
-      </button>
-      <button
-        type="button"
-        className="icon-button danger-button"
-        aria-label={deleteLabel}
-        title={deleteLabel}
-        onClick={props.onDelete}
-      >
-        <TrashIcon />
-      </button>
+      {props.canEdit && (
+        <>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={addVisitLabel}
+            title={addVisitLabel}
+            onClick={props.onAddVisit}
+          >
+            <CalendarPlusIcon />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={editLabel}
+            title={editLabel}
+            onClick={props.onEdit}
+          >
+            <PencilIcon />
+          </button>
+          <button
+            type="button"
+            className="icon-button danger-button"
+            aria-label={deleteLabel}
+            title={deleteLabel}
+            onClick={props.onDelete}
+          >
+            <TrashIcon />
+          </button>
+        </>
+      )}
     </div>
   );
 }
