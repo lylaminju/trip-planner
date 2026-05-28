@@ -43,10 +43,17 @@ type Props = {
   isUnscheduledOpen: boolean;
   showRouteSegments: boolean;
   dropTargetKey: string | null;
+  exportFeedback: {
+    action: "copy" | "download";
+    kind: "error" | "success";
+    label: string;
+  } | null;
   onDropTargetChange: Dispatch<SetStateAction<string | null>>;
   onToggleOpen: () => void;
   onToggleUnscheduledOpen: () => void;
   onToggleRouteSegments: () => void;
+  onCopyExport: () => void;
+  onDownloadExport: () => void;
   onToggleDatePlacePicker: (
     event: MouseEvent<HTMLButtonElement>,
     date: string,
@@ -93,19 +100,51 @@ export function ItinerarySection(props: Props) {
           onToggle={props.onToggleOpen}
           compact
         />
-        <button
-          type="button"
-          className={`route-segment-toggle ${props.showRouteSegments ? "active" : ""}`}
-          role="switch"
-          aria-checked={props.showRouteSegments}
-          title={`${props.showRouteSegments ? "Hide" : "Show"} route segments`}
-          onClick={props.onToggleRouteSegments}
-        >
-          <span>Routes</span>
-          <span className="route-segment-switch-track" aria-hidden="true">
-            <span className="route-segment-switch-knob" />
-          </span>
-        </button>
+        <div className="section-heading-actions">
+          <details className="export-menu">
+            <summary>Export</summary>
+            <div className="export-menu-content">
+              <button
+                type="button"
+                className={exportFeedbackClass(props.exportFeedback, "copy")}
+                onClick={props.onCopyExport}
+              >
+                {exportFeedbackLabel(
+                  props.exportFeedback,
+                  "copy",
+                  "Copy Markdown",
+                )}
+              </button>
+              <button
+                type="button"
+                className={exportFeedbackClass(
+                  props.exportFeedback,
+                  "download",
+                )}
+                onClick={props.onDownloadExport}
+              >
+                {exportFeedbackLabel(
+                  props.exportFeedback,
+                  "download",
+                  "Download .md",
+                )}
+              </button>
+            </div>
+          </details>
+          <button
+            type="button"
+            className={`route-segment-toggle ${props.showRouteSegments ? "active" : ""}`}
+            role="switch"
+            aria-checked={props.showRouteSegments}
+            title={`${props.showRouteSegments ? "Hide" : "Show"} route segments`}
+            onClick={props.onToggleRouteSegments}
+          >
+            <span>Routes</span>
+            <span className="route-segment-switch-track" aria-hidden="true">
+              <span className="route-segment-switch-knob" />
+            </span>
+          </button>
+        </div>
       </div>
       {props.isOpen && (
         <div
@@ -322,6 +361,27 @@ export function ItinerarySection(props: Props) {
       )}
     </section>
   );
+}
+
+function exportFeedbackLabel(
+  feedback: Props["exportFeedback"],
+  action: "copy" | "download",
+  fallback: string,
+): string {
+  return feedback?.action === action ? feedback.label : fallback;
+}
+
+function exportFeedbackClass(
+  feedback: Props["exportFeedback"],
+  action: "copy" | "download",
+): string | undefined {
+  if (feedback?.action !== action) {
+    return undefined;
+  }
+
+  return feedback.kind === "error"
+    ? "export-feedback-error"
+    : "export-feedback-success";
 }
 
 function UnscheduledBlock(props: {

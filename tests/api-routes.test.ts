@@ -64,6 +64,18 @@ async function withFreshTestEnv(
       ),
     };
   });
+  vi.doMock("@/server/trip-service", () => ({
+    getTripById: vi.fn().mockResolvedValue({
+      id: 1,
+      created_by: "user-1",
+      name: "New York City",
+      start_date: "2026-05-27",
+      end_date: "2026-05-29",
+      timezone: "America/Toronto",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    }),
+  }));
 
   try {
     await run();
@@ -72,6 +84,7 @@ async function withFreshTestEnv(
     vi.doUnmock("@/server/place-service");
     vi.doUnmock("@/server/supabase-place-service");
     vi.doUnmock("@/server/trip-access");
+    vi.doUnmock("@/server/trip-service");
     vi.restoreAllMocks();
     vi.resetModules();
   }
@@ -245,6 +258,13 @@ describe("API routes transport behavior", () => {
           tripParams(),
         );
         expect(readResponse.status).toBe(200);
+        await expect(readResponse.json()).resolves.toMatchObject({
+          trip: {
+            id: 1,
+            name: "New York City",
+          },
+          role: "viewer",
+        });
 
         const writeResponse = await placesRoute.POST(
           jsonRequest("POST", {

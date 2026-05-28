@@ -12,6 +12,19 @@ export type TripCreateInput = {
 
 export type TripUpdateInput = Partial<TripCreateInput>;
 
+export async function getTripById(tripId: number): Promise<Trip> {
+  const { data, error } = await getSupabaseClient()
+    .from("trips")
+    .select(
+      "id, created_by, name, start_date, end_date, timezone, created_at, updated_at",
+    )
+    .eq("id", tripId)
+    .single();
+
+  if (error) throwSupabaseError(error);
+  return data as Trip;
+}
+
 export async function listTripsForRequest(
   userId: string,
 ): Promise<TripSummary[]> {

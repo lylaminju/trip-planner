@@ -8,6 +8,7 @@ import type {
 } from "./place-inputs";
 import * as supabasePlaceService from "./supabase-place-service";
 import { requireTripRole } from "./trip-access";
+import { getTripById } from "./trip-service";
 
 export type ResolvedPlaceUrl = {
   google_maps_url: string;
@@ -41,6 +42,7 @@ export async function getPlannerSnapshotForRequest(
 ): Promise<PlannerSnapshot> {
   const membership = await requireTripRole(tripId, userId, "viewer");
   return {
+    trip: await getTripById(tripId),
     ...(await getPlannerSnapshot(tripId)),
     role: membership.role,
   };

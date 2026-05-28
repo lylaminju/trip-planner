@@ -76,3 +76,7 @@ button:focus-visible {
 .error-text {
   color: var(--danger);
 }
+
+.success-text {
+  color: var(--accent);
+}

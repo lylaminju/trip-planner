@@ -19,6 +19,7 @@ import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
 
 type Props = {
+  title: string;
   itinerary: ItineraryView;
   places: Place[];
   activePlaceId: number | null;
@@ -27,12 +28,19 @@ type Props = {
   activeDate: string | null;
   routeGeometries: Map<number, RouteGeometry>;
   error: string | null;
+  exportFeedback: {
+    action: "copy" | "download";
+    kind: "error" | "success";
+    label: string;
+  } | null;
   isExpanded: boolean;
   mobileSheetState: MobileSheetState;
   canEdit: boolean;
   onToggleExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onAdd: () => void;
+  onCopyExport: () => void;
+  onDownloadExport: () => void;
   onLogout: () => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
@@ -134,7 +142,7 @@ export function PlannerPanel(props: Props) {
         <span aria-hidden="true" />
       </button>
       <header className="app-header">
-        <h1>Trip Planner</h1>
+        <h1>{props.title}</h1>
         <div className="app-header-actions">
           {props.canEdit && (
             <button type="button" onClick={props.onAdd}>
@@ -178,10 +186,13 @@ export function PlannerPanel(props: Props) {
         isUnscheduledOpen={isUnscheduledOpen}
         showRouteSegments={showRouteSegments}
         dropTargetKey={dropTargetKey}
+        exportFeedback={props.exportFeedback}
         onDropTargetChange={setDropTargetKey}
         onToggleOpen={() => setIsItinerariesOpen((value) => !value)}
         onToggleUnscheduledOpen={() => setIsUnscheduledOpen((value) => !value)}
         onToggleRouteSegments={() => setShowRouteSegments((value) => !value)}
+        onCopyExport={props.onCopyExport}
+        onDownloadExport={props.onDownloadExport}
         onToggleDatePlacePicker={toggleDatePlacePicker}
         onSelectPlace={props.onSelectPlace}
         onSelectCanonicalPlace={props.onSelectCanonicalPlace}

@@ -4,6 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
 import { buildItinerary } from "@/lib/itinerary";
+import {
+  buildExportFilename,
+  generateScheduledItineraryMarkdown,
+} from "@/lib/itinerary-markdown";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   createItineraryItemRequest,
@@ -57,6 +61,11 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exportFeedback, setExportFeedback] = useState<{
+    action: "copy" | "download";
+    kind: "error" | "success";
+    label: string;
+  } | null>(null);
 
   const itinerary = useMemo(
     () =>
@@ -72,6 +81,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     snapshot,
   );
   const canEdit = snapshot.role !== "viewer";
+  const tripTitle = snapshot.trip?.name ?? "Trip Planner";
 
   const reload = useCallback(async () => {
     setSnapshot(await loadPlannerSnapshot(tripId));
@@ -85,6 +95,17 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
       );
     });
   }, [reload]);
+
+  useEffect(() => {
+    if (!exportFeedback) return;
+
+    const timeout = window.setTimeout(
+      () => setExportFeedback(null),
+      exportFeedback.kind === "error" ? 3500 : 2000,
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [exportFeedback]);
 
   async function savePlace(payload: Record<string, unknown>, id?: number) {
     if (!canEdit) return;
@@ -263,6 +284,40 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     }
   }
 
+  async function copyMarkdownExport() {
+    const markdown = generateScheduledItineraryMarkdown(tripTitle, itinerary);
+
+    try {
+      await navigator.clipboard.writeText(markdown);
+      setExportFeedback({ action: "copy", kind: "success", label: "Copied" });
+    } catch {
+      setExportFeedback({
+        action: "copy",
+        kind: "error",
+        label: "Copy failed",
+      });
+    }
+  }
+
+  function downloadMarkdownExport() {
+    const markdown = generateScheduledItineraryMarkdown(tripTitle, itinerary);
+    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = buildExportFilename(tripTitle);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setExportFeedback({
+      action: "download",
+      kind: "success",
+      label: "Downloaded",
+    });
+  }
+
   return (
     <main
       className={`app-shell mobile-sheet-${mobileSheetState} ${
@@ -270,6 +325,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
       }`}
     >
       <PlannerPanel
+        title={tripTitle}
         itinerary={itinerary}
         places={snapshot.places}
         activePlaceId={activeItemId}
@@ -278,12 +334,23 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         activeDate={activeDate}
         routeGeometries={routeGeometries}
         error={error}
+        exportFeedback={exportFeedback}
         isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
         canEdit={canEdit}
         onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
         onMobileSheetStateChange={setMobileSheetState}
         onAdd={openAddModal}
+        onCopyExport={() => {
+          copyMarkdownExport().catch(() => {
+            setExportFeedback({
+              action: "copy",
+              kind: "error",
+              label: "Copy failed",
+            });
+          });
+        }}
+        onDownloadExport={downloadMarkdownExport}
         onLogout={logout}
         onAddVisit={openAddVisitModal}
         onEdit={openEditModal}
