@@ -57,7 +57,9 @@
 }
 
 .trip-form input,
-.trip-edit-form input {
+.trip-form select,
+.trip-edit-form input,
+.trip-edit-form select {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 6px;

@@ -5,9 +5,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import {
+  DEFAULT_TRIP_TIMEZONE,
   detectBrowserTimeZone,
   groupTripsByTiming,
 } from "@/lib/trip-classification";
+import { errorMessage } from "@/lib/error-message";
+import {
+  getStableTimeZoneOptions,
+  getTimeZoneOptions,
+  STABLE_TIMEZONE_REFERENCE_DATE,
+  timeZoneDateFromIsoDate,
+  type TimeZoneOption,
+} from "@/lib/timezones";
 import {
   createTrip,
   deleteTrip,
@@ -16,13 +25,9 @@ import {
   type TripMetadataPayload,
 } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
-
-type TripFormState = {
-  name: string;
-  startDate: string;
-  endDate: string;
-  timezone: string;
-};
+import { TripEditForm } from "./TripEditForm";
+import { TimeZoneSelect } from "./TimeZoneSelect";
+import type { TripFormState } from "./trip-form-types";
 
 export function TripsDashboard() {
   const router = useRouter();
@@ -31,7 +36,7 @@ export function TripsDashboard() {
     name: "",
     startDate: "",
     endDate: "",
-    timezone: detectBrowserTimeZone(),
+    timezone: DEFAULT_TRIP_TIMEZONE,
   }));
   const [editing, setEditing] = useState<{
     tripId: number;
@@ -39,10 +44,42 @@ export function TripsDashboard() {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
+  const buildTimeZoneOptions = hasHydrated
+    ? getTimeZoneOptions
+    : getStableTimeZoneOptions;
+  const createTimeZoneOptions = useMemo(
+    () =>
+      buildTimeZoneOptions({
+        include: [form.timezone],
+        now: timeZoneReferenceDate(form.startDate, hasHydrated),
+      }),
+    [buildTimeZoneOptions, form.startDate, form.timezone, hasHydrated],
+  );
+  const editTimeZoneOptions = useMemo(
+    () =>
+      buildTimeZoneOptions({
+        include: editing?.form.timezone ? [editing.form.timezone] : [],
+        now: timeZoneReferenceDate(editing?.form.startDate, hasHydrated),
+      }),
+    [
+      buildTimeZoneOptions,
+      editing?.form.startDate,
+      editing?.form.timezone,
+      hasHydrated,
+    ],
+  );
 
   useEffect(() => {
+    setHasHydrated(true);
+    setForm((current) =>
+      current.timezone === DEFAULT_TRIP_TIMEZONE
+        ? { ...current, timezone: detectBrowserTimeZone() }
+        : current,
+    );
+
     loadTrips()
       .then((loadedTrips) => {
         setTrips(loadedTrips);
@@ -166,15 +203,15 @@ export function TripsDashboard() {
           </label>
           <label>
             <span>Timezone</span>
-            <input
+            <TimeZoneSelect
               value={form.timezone}
-              onChange={(event) =>
+              options={createTimeZoneOptions}
+              onChange={(timezone) =>
                 setForm((current) => ({
                   ...current,
-                  timezone: event.currentTarget.value,
+                  timezone,
                 }))
               }
-              required
             />
           </label>
           <button type="submit" disabled={isSaving}>
@@ -192,6 +229,7 @@ export function TripsDashboard() {
               trips={groups.ongoing}
               editing={editing}
               isSaving={isSaving}
+              timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
               onEditChange={(form) =>
@@ -207,6 +245,7 @@ export function TripsDashboard() {
               trips={groups.needsDates}
               editing={editing}
               isSaving={isSaving}
+              timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
               onEditChange={(form) =>
@@ -222,6 +261,7 @@ export function TripsDashboard() {
               trips={groups.upcoming}
               editing={editing}
               isSaving={isSaving}
+              timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
               onEditChange={(form) =>
@@ -237,6 +277,7 @@ export function TripsDashboard() {
               trips={groups.past}
               editing={editing}
               isSaving={isSaving}
+              timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
               onEditChange={(form) =>
@@ -266,6 +307,7 @@ function TripSection(props: {
   trips: TripSummary[];
   editing: { tripId: number; form: TripFormState } | null;
   isSaving: boolean;
+  timeZoneOptions: TimeZoneOption[];
   onEditStart: (trip: TripSummary) => void;
   onEditCancel: () => void;
   onEditChange: (form: TripFormState) => void;
@@ -288,6 +330,7 @@ function TripSection(props: {
                 key={trip.id}
                 form={props.editing.form}
                 isSaving={props.isSaving}
+                timeZoneOptions={props.timeZoneOptions}
                 onChange={props.onEditChange}
                 onCancel={props.onEditCancel}
                 onSubmit={props.onEditSubmit}
@@ -342,58 +385,6 @@ function TripRow(props: {
   );
 }
 
-function TripEditForm(props: {
-  form: TripFormState;
-  isSaving: boolean;
-  onChange: (form: TripFormState) => void;
-  onCancel: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-}) {
-  return (
-    <form className="trip-row trip-edit-form" onSubmit={props.onSubmit}>
-      <input
-        value={props.form.name}
-        onChange={(event) =>
-          props.onChange({ ...props.form, name: event.currentTarget.value })
-        }
-        required
-      />
-      <input
-        type="date"
-        value={props.form.startDate}
-        onChange={(event) =>
-          props.onChange({
-            ...props.form,
-            startDate: event.currentTarget.value,
-          })
-        }
-      />
-      <input
-        type="date"
-        value={props.form.endDate}
-        onChange={(event) =>
-          props.onChange({ ...props.form, endDate: event.currentTarget.value })
-        }
-      />
-      <input
-        value={props.form.timezone}
-        onChange={(event) =>
-          props.onChange({ ...props.form, timezone: event.currentTarget.value })
-        }
-        required
-      />
-      <div className="trip-row-actions">
-        <button type="submit" disabled={props.isSaving}>
-          Save
-        </button>
-        <button type="button" onClick={props.onCancel}>
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
-
 function formPayload(form: TripFormState): TripMetadataPayload {
   return {
     name: form.name,
@@ -413,13 +404,16 @@ function formFromTrip(trip: TripSummary): TripFormState {
 }
 
 function formatDateRange(trip: TripSummary): string {
-  if (!trip.start_date || !trip.end_date) {
-    return "Needs dates";
-  }
-
-  return `${trip.start_date} to ${trip.end_date}`;
+  return trip.start_date && trip.end_date
+    ? `${trip.start_date} to ${trip.end_date}`
+    : "Needs dates";
 }
 
-function errorMessage(reason: unknown, fallback: string): string {
-  return reason instanceof Error ? reason.message : fallback;
+function timeZoneReferenceDate(
+  isoDate: string | undefined,
+  hasHydrated: boolean,
+): Date {
+  return hasHydrated
+    ? timeZoneDateFromIsoDate(isoDate)
+    : timeZoneDateFromIsoDate(isoDate, STABLE_TIMEZONE_REFERENCE_DATE);
 }
