@@ -29,3 +29,11 @@ This file applies to the whole repository. Follow it when changing code here.
 
 - Standard checks after code changes: `npm test` and `npx tsc --noEmit`.
 - Run `npm run build` when changes affect Next.js routing, server/client boundaries, environment-variable behavior, or production bundling.
+
+## Commit Messages
+
+- Use a short conventional subject, for example `feat: add scheduled itinerary export`.
+- When useful, add a short body with a few concise bullet points.
+- The current Codex/OMX guard may require one Lore-style trailer when the agent runs `git commit`; use the least noisy trailer that satisfies the guard.
+- Do not include `Tested:` unless the user explicitly asks for verification details in the commit message.
+- Do not add `Co-authored-by` trailers unless the user explicitly asks for them.
