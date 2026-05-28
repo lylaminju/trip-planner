@@ -139,7 +139,7 @@ export function ItinerarySection(props: Props) {
             title={`${props.showRouteSegments ? "Hide" : "Show"} route segments`}
             onClick={props.onToggleRouteSegments}
           >
-            <span>Routes</span>
+            <span>Route details</span>
             <span className="route-segment-switch-track" aria-hidden="true">
               <span className="route-segment-switch-knob" />
             </span>

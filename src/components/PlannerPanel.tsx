@@ -165,7 +165,7 @@ export function PlannerPanel(props: Props) {
             }
             onClick={props.onToggleExpanded}
           >
-            {props.isExpanded ? "<<" : ">>"}
+            {props.isExpanded ? "<< Collapse" : "Expand >>"}
           </button>
         </div>
       </header>
