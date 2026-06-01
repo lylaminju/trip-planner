@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getSelectedPlacePosition } from "@/lib/map-viewport";
+import {
+  getSelectedDatePositions,
+  getSelectedPlacePosition,
+} from "@/lib/map-viewport";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 describe("getSelectedPlacePosition", () => {
@@ -36,6 +39,86 @@ describe("getSelectedPlacePosition", () => {
         4,
       ),
     ).toEqual({ lat: 41, lng: -75 });
+  });
+});
+
+describe("getSelectedDatePositions", () => {
+  it("returns coordinates only for the requested date", () => {
+    expect(
+      getSelectedDatePositions(
+        [
+          item({
+            id: 1,
+            visit_date: "2026-06-10",
+            place: place({ id: 1, latitude: 40.7, longitude: -73.9 }),
+          }),
+          item({
+            id: 2,
+            visit_date: "2026-06-11",
+            place: place({ id: 2, latitude: 40.76, longitude: -73.98 }),
+          }),
+          item({
+            id: 3,
+            visit_date: "2026-06-10",
+            place: place({ id: 3, latitude: 40.74, longitude: -73.95 }),
+          }),
+        ],
+        "2026-06-10",
+      ),
+    ).toEqual([
+      { lat: 40.7, lng: -73.9 },
+      { lat: 40.74, lng: -73.95 },
+    ]);
+  });
+
+  it("includes a matching item when visit_time is null", () => {
+    expect(
+      getSelectedDatePositions(
+        [
+          item({
+            id: 1,
+            visit_date: "2026-06-10",
+            visit_time: null,
+            place: place({ id: 1, latitude: 40.7, longitude: -73.9 }),
+          }),
+        ],
+        "2026-06-10",
+      ),
+    ).toEqual([{ lat: 40.7, lng: -73.9 }]);
+  });
+
+  it("returns one coordinate for a single-place date", () => {
+    expect(
+      getSelectedDatePositions(
+        [
+          item({
+            id: 1,
+            visit_date: "2026-06-10",
+            place: place({ id: 1, latitude: 40.7, longitude: -73.9 }),
+          }),
+        ],
+        "2026-06-10",
+      ),
+    ).toEqual([{ lat: 40.7, lng: -73.9 }]);
+  });
+
+  it("returns an empty array when activeDate is null", () => {
+    expect(getSelectedDatePositions([item({ id: 1 })], null)).toEqual([]);
+  });
+
+  it("returns an empty array when the date is missing", () => {
+    expect(
+      getSelectedDatePositions(
+        [
+          item({
+            id: 1,
+            visit_date: "2026-06-10",
+            place: place({ id: 1, latitude: 40.7, longitude: -73.9 }),
+          }),
+        ],
+        "2026-06-11",
+      ),
+    ).toEqual([]);
   });
 });
 

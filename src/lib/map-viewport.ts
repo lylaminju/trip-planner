@@ -25,3 +25,14 @@ export function getSelectedPlacePosition(
 
   return null;
 }
+
+export function getSelectedDatePositions(
+  items: ItineraryItem[],
+  activeDate: string | null,
+): MapPosition[] {
+  if (activeDate === null) return [];
+
+  return items
+    .filter((item) => item.visit_date === activeDate)
+    .map((item) => ({ lat: item.place.latitude, lng: item.place.longitude }));
+}
