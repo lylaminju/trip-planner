@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
-import { getSelectedPlacePosition } from "@/lib/map-viewport";
+import {
+  getSelectedDatePositions,
+  getSelectedPlacePosition,
+} from "@/lib/map-viewport";
 import type { ItineraryView, RouteGeometry, RouteSegment } from "@/lib/types";
 
 import { CoordinateFallback } from "./map-panel/CoordinateFallback";
@@ -229,6 +232,77 @@ export function MapPanel(props: Props) {
     props.hidden,
     props.mobileSheetState,
     unscheduledPlacesSignature,
+  ]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (
+      !apiKey ||
+      loadFailed ||
+      !isMapReady ||
+      !map ||
+      !window.google?.maps ||
+      props.hidden
+    ) {
+      return;
+    }
+
+    const positions = getSelectedDatePositions(
+      itineraryItems,
+      props.activeDate,
+    );
+    const dedupedPositions: typeof positions = [];
+    const seenPositions = new Set<string>();
+    positions.forEach((position) => {
+      const key = `${position.lat},${position.lng}`;
+      if (seenPositions.has(key)) {
+        return;
+      }
+      seenPositions.add(key);
+      dedupedPositions.push(position);
+    });
+
+    if (dedupedPositions.length === 0) {
+      return;
+    }
+
+    if (dedupedPositions.length === 1) {
+      map.panTo(dedupedPositions[0]);
+      if (shouldOffsetFocusForHalfSheet(props.mobileSheetState)) {
+        map.panBy(0, Math.round(window.innerHeight * 0.32));
+      }
+      return;
+    }
+
+    let idleListener:
+      | { remove?: () => void }
+      | undefined;
+    const bounds = new window.google.maps.LatLngBounds();
+    dedupedPositions.forEach((position) => {
+      bounds.extend(position);
+    });
+    map.fitBounds(bounds, 48);
+    if (shouldOffsetFocusForHalfSheet(props.mobileSheetState)) {
+      idleListener = window.google.maps.event?.addListenerOnce?.(
+        map,
+        "idle",
+        () => {
+          map.panBy(0, Math.round(window.innerHeight * 0.32));
+        },
+      );
+    }
+
+    return () => {
+      idleListener?.remove?.();
+    };
+  }, [
+    apiKey,
+    isMapReady,
+    itineraryItemsSignature,
+    loadFailed,
+    props.activeDate,
+    props.hidden,
+    props.mobileSheetState,
   ]);
 
   if (!apiKey || loadFailed) {
