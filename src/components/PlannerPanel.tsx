@@ -26,6 +26,7 @@ type Props = {
   activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
+  collapsedDates: ReadonlySet<string>;
   routeGeometries: Map<number, RouteGeometry>;
   error: string | null;
   exportFeedback: {
@@ -49,6 +50,7 @@ type Props = {
   onSelectPlace: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
+  onToggleDateCollapsed: (date: string) => void;
   onSelectDate: (date: string) => void;
   onSchedulePlace: (
     id: number,
@@ -178,6 +180,7 @@ export function PlannerPanel(props: Props) {
         activeCanonicalPlaceId={props.activeCanonicalPlaceId}
         activeSegmentId={props.activeSegmentId}
         activeDate={props.activeDate}
+        collapsedDates={props.collapsedDates}
         routeGeometries={props.routeGeometries}
         markerLabels={markerLabels}
         canEdit={props.canEdit}
@@ -197,6 +200,7 @@ export function PlannerPanel(props: Props) {
         onSelectPlace={props.onSelectPlace}
         onSelectCanonicalPlace={props.onSelectCanonicalPlace}
         onSelectSegment={props.onSelectSegment}
+        onToggleDateCollapsed={props.onToggleDateCollapsed}
         onSelectDate={props.onSelectDate}
         onAddVisit={props.onAddVisit}
         onEdit={props.onEdit}

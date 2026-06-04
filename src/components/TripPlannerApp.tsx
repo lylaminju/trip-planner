@@ -21,6 +21,7 @@ import {
   schedulePlaceRequest,
   updateSegmentModeRequest,
 } from "@/lib/planner-api";
+import { toggleCollapsedDate } from "@/lib/date-collapse";
 import { toggleSelectedId } from "@/lib/selection";
 import type {
   ItineraryItem,
@@ -53,6 +54,9 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   >(null);
   const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
   const [activeDate, setActiveDate] = useState<string | null>(null);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [isPlannerPanelExpanded, setIsPlannerPanelExpanded] = useState(false);
   const [mobileSheetState, setMobileSheetState] =
     useState<MobileSheetState>("half");
@@ -276,6 +280,10 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     setActiveCanonicalPlaceId(id);
   }
 
+  function toggleDateCollapsed(date: string) {
+    setCollapsedDates((current) => toggleCollapsedDate(current, date));
+  }
+
   async function logout() {
     try {
       await logoutRequest();
@@ -332,6 +340,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         activeCanonicalPlaceId={activeCanonicalPlaceId}
         activeSegmentId={activeSegmentId}
         activeDate={activeDate}
+        collapsedDates={collapsedDates}
         routeGeometries={routeGeometries}
         error={error}
         exportFeedback={exportFeedback}
@@ -367,6 +376,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         onSelectPlace={selectItem}
         onSelectCanonicalPlace={selectCanonicalPlace}
         onSelectSegment={toggleSegmentSelection}
+        onToggleDateCollapsed={toggleDateCollapsed}
         onSelectDate={(date) => {
           setActiveDate((current) => (current === date ? null : date));
           setActiveItemId(null);

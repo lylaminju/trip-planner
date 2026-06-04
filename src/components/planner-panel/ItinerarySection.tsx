@@ -35,6 +35,7 @@ type Props = {
   activeCanonicalPlaceId: number | null;
   activeSegmentId: number | null;
   activeDate: string | null;
+  collapsedDates: ReadonlySet<string>;
   routeGeometries: Map<number, RouteGeometry>;
   markerLabels: Map<number, string>;
   canEdit: boolean;
@@ -61,6 +62,7 @@ type Props = {
   onSelectPlace: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
+  onToggleDateCollapsed: (date: string) => void;
   onSelectDate: (date: string) => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
