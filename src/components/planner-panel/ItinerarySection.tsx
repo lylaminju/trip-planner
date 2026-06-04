@@ -152,193 +152,218 @@ export function ItinerarySection(props: Props) {
         <div
           className={`itinerary-board ${props.isExpanded ? "expanded" : ""}`}
         >
-          {props.itinerary.days.map((day, dayIndex) => (
-            <div
-              key={day.date}
-              className={`day-block ${props.activeDate === day.date ? "active" : ""}`}
-              onDragEnter={
-                props.canEdit
-                  ? (event) => activateDropTarget(event, day.date)
-                  : undefined
-              }
-              onDragOver={
-                props.canEdit
-                  ? (event) => activateDropTarget(event, day.date)
-                  : undefined
-              }
-              onDragLeave={props.canEdit ? leaveDropTarget : undefined}
-              onDrop={(event) => {
-                if (!props.canEdit) return;
-                event.preventDefault();
-                props.onDropTargetChange(null);
-                scheduleDraggedSource(event, {
-                  itinerary: props.itinerary,
-                  date: day.date,
-                  visitTime: null,
-                  onScheduleItem: props.onScheduleItem,
-                });
-              }}
-            >
-              <h3 className="day-heading">
-                <button
-                  type="button"
-                  className="day-heading-button"
-                  style={{ borderColor: day.color }}
-                  aria-pressed={props.activeDate === day.date}
-                  onClick={() => props.onSelectDate(day.date)}
-                >
-                  <span className="day-heading-prefix">{`Day ${dayIndex + 1}`}</span>
-                  <span className="day-heading-text">
-                    {formatItineraryDateHeading(day.date)}
-                  </span>
-                </button>
-                {props.canEdit && (
+          {props.itinerary.days.map((day, dayIndex) => {
+            const collapsed = props.collapsedDates.has(day.date);
+            const formattedDayHeading = formatItineraryDateHeading(day.date);
+            const dayBodyId = `itinerary-day-${day.date}-body`;
+
+            return (
+              <div
+                key={day.date}
+                className={`day-block ${props.activeDate === day.date ? "active" : ""}`}
+                onDragEnter={
+                  props.canEdit
+                    ? (event) => activateDropTarget(event, day.date)
+                    : undefined
+                }
+                onDragOver={
+                  props.canEdit
+                    ? (event) => activateDropTarget(event, day.date)
+                    : undefined
+                }
+                onDragLeave={props.canEdit ? leaveDropTarget : undefined}
+                onDrop={(event) => {
+                  if (!props.canEdit) return;
+                  event.preventDefault();
+                  props.onDropTargetChange(null);
+                  scheduleDraggedSource(event, {
+                    itinerary: props.itinerary,
+                    date: day.date,
+                    visitTime: null,
+                    onScheduleItem: props.onScheduleItem,
+                  });
+                }}
+              >
+                <h3 className="day-heading">
                   <button
                     type="button"
-                    className="day-add-place-button"
-                    aria-label={`Add place to ${formatItineraryDateHeading(day.date)}`}
-                    title={`Add place to ${formatItineraryDateHeading(day.date)}`}
-                    onClick={(event) =>
-                      props.onToggleDatePlacePicker(event, day.date)
-                    }
+                    className="day-heading-button"
+                    style={{ borderColor: day.color }}
+                    aria-pressed={props.activeDate === day.date}
+                    onClick={() => props.onSelectDate(day.date)}
                   >
-                    <PlusIcon />
+                    <span className="day-heading-prefix">{`Day ${dayIndex + 1}`}</span>
+                    <span className="day-heading-text">
+                      {formattedDayHeading}
+                    </span>
                   </button>
-                )}
-              </h3>
-              {day.items.map((item, index) => {
-                const nextItem = day.items[index + 1];
-                const segmentView = day.segments.find(
-                  (segment) => segment.fromItemId === item.id,
-                );
-                const showUntimedDivider =
-                  index > 0 &&
-                  !hasVisitTime(item) &&
-                  hasVisitTime(day.items[index - 1]);
-                const showEndTimedDropZone =
-                  hasVisitTime(item) && !hasVisitTime(nextItem ?? null);
-
-                return (
-                  <div key={item.id} className="itinerary-item-stack">
-                    {props.canEdit && index > 0 && (
-                      <InsertionDropZone
-                        active={
-                          props.dropTargetKey ===
-                          insertionDropTargetKey(day.date, index)
-                        }
-                        onDragEnter={(event) =>
-                          activateDropTarget(
-                            event,
-                            insertionDropTargetKey(day.date, index),
-                          )
-                        }
-                        onDragOver={(event) =>
-                          activateDropTarget(
-                            event,
-                            insertionDropTargetKey(day.date, index),
-                          )
-                        }
-                        onDragLeave={leaveDropTarget}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          props.onDropTargetChange(null);
-                          scheduleDraggedSource(event, {
-                            itinerary: props.itinerary,
-                            date: day.date,
-                            visitTime: inferInsertedVisitTime(
-                              day.items[index - 1],
-                              item,
-                            ),
-                            onScheduleItem: props.onScheduleItem,
-                          });
-                        }}
-                      />
-                    )}
-                    {showUntimedDivider && (
-                      <div className="itinerary-divider" aria-hidden="true" />
-                    )}
-                    <ItineraryItemRow
-                      item={item}
-                      active={props.activePlaceId === item.id}
-                      markerLabel={props.markerLabels.get(item.id) ?? null}
-                      markerColor={day.color}
-                      onDragEnd={() => props.onDropTargetChange(null)}
-                      canEdit={props.canEdit}
-                      onSelect={() =>
-                        props.onSelectPlace(
-                          props.activePlaceId === item.id ? null : item.id,
-                        )
+                  <button
+                    type="button"
+                    className="day-collapse-button"
+                    aria-expanded={!collapsed}
+                    aria-controls={dayBodyId}
+                    aria-label={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
+                    title={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
+                    onClick={() => props.onToggleDateCollapsed(day.date)}
+                  >
+                    <span aria-hidden="true">{collapsed ? ">" : "v"}</span>
+                  </button>
+                  {props.canEdit && (
+                    <button
+                      type="button"
+                      className="day-add-place-button"
+                      aria-label={`Add place to ${formattedDayHeading}`}
+                      title={`Add place to ${formattedDayHeading}`}
+                      onClick={(event) =>
+                        props.onToggleDatePlacePicker(event, day.date)
                       }
-                      onEdit={() => {
-                        props.onSelectPlace(null);
-                        props.onSelectSegment(null);
-                        props.onEditItem(item);
-                      }}
-                      onDelete={() => {
-                        if (
-                          !props.onConfirmDeletion(
-                            `this visit to ${item.place.name}`,
-                          )
-                        ) {
-                          return;
-                        }
-                        props.onSelectPlace(null);
-                        props.onSelectSegment(null);
-                        props.onDeleteItem(item.id);
-                      }}
-                    />
-                    {props.showRouteSegments && segmentView && nextItem && (
-                      <SegmentRow
-                        segment={segmentView.segment}
-                        from={item.place}
-                        to={nextItem.place}
-                        active={
-                          props.activeSegmentId === segmentView.segment.id
-                        }
-                        durationSeconds={
-                          props.routeGeometries.get(segmentView.segment.id)
-                            ?.duration_seconds
-                        }
-                        canEdit={props.canEdit}
-                        onSelect={() =>
-                          props.onSelectSegment(segmentView.segment.id)
-                        }
-                        onModeChange={(mode) =>
-                          props.onModeChange(segmentView.segment.id, mode)
-                        }
-                      />
-                    )}
-                    {props.canEdit && showEndTimedDropZone && (
-                      <EndInsertionDropZone
-                        active={
-                          props.dropTargetKey === endDropTargetKey(day.date)
-                        }
-                        onDragEnter={(event) =>
-                          activateDropTarget(event, endDropTargetKey(day.date))
-                        }
-                        onDragOver={(event) =>
-                          activateDropTarget(event, endDropTargetKey(day.date))
-                        }
-                        onDragLeave={leaveDropTarget}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          props.onDropTargetChange(null);
-                          scheduleDraggedSource(event, {
-                            itinerary: props.itinerary,
-                            date: day.date,
-                            visitTime: inferEndVisitTime(day.items),
-                            onScheduleItem: props.onScheduleItem,
-                          });
-                        }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                    >
+                      <PlusIcon />
+                    </button>
+                  )}
+                </h3>
+                <div id={dayBodyId} hidden={collapsed}>
+                  {day.items.map((item, index) => {
+                    const nextItem = day.items[index + 1];
+                    const segmentView = day.segments.find(
+                      (segment) => segment.fromItemId === item.id,
+                    );
+                    const showUntimedDivider =
+                      index > 0 &&
+                      !hasVisitTime(item) &&
+                      hasVisitTime(day.items[index - 1]);
+                    const showEndTimedDropZone =
+                      hasVisitTime(item) && !hasVisitTime(nextItem ?? null);
+
+                    return (
+                      <div key={item.id} className="itinerary-item-stack">
+                        {props.canEdit && index > 0 && (
+                          <InsertionDropZone
+                            active={
+                              props.dropTargetKey ===
+                              insertionDropTargetKey(day.date, index)
+                            }
+                            onDragEnter={(event) =>
+                              activateDropTarget(
+                                event,
+                                insertionDropTargetKey(day.date, index),
+                              )
+                            }
+                            onDragOver={(event) =>
+                              activateDropTarget(
+                                event,
+                                insertionDropTargetKey(day.date, index),
+                              )
+                            }
+                            onDragLeave={leaveDropTarget}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              props.onDropTargetChange(null);
+                              scheduleDraggedSource(event, {
+                                itinerary: props.itinerary,
+                                date: day.date,
+                                visitTime: inferInsertedVisitTime(
+                                  day.items[index - 1],
+                                  item,
+                                ),
+                                onScheduleItem: props.onScheduleItem,
+                              });
+                            }}
+                          />
+                        )}
+                        {showUntimedDivider && (
+                          <div className="itinerary-divider" aria-hidden="true" />
+                        )}
+                        <ItineraryItemRow
+                          item={item}
+                          active={props.activePlaceId === item.id}
+                          markerLabel={props.markerLabels.get(item.id) ?? null}
+                          markerColor={day.color}
+                          onDragEnd={() => props.onDropTargetChange(null)}
+                          canEdit={props.canEdit}
+                          onSelect={() =>
+                            props.onSelectPlace(
+                              props.activePlaceId === item.id ? null : item.id,
+                            )
+                          }
+                          onEdit={() => {
+                            props.onSelectPlace(null);
+                            props.onSelectSegment(null);
+                            props.onEditItem(item);
+                          }}
+                          onDelete={() => {
+                            if (
+                              !props.onConfirmDeletion(
+                                `this visit to ${item.place.name}`,
+                              )
+                            ) {
+                              return;
+                            }
+                            props.onSelectPlace(null);
+                            props.onSelectSegment(null);
+                            props.onDeleteItem(item.id);
+                          }}
+                        />
+                        {props.showRouteSegments && segmentView && nextItem && (
+                          <SegmentRow
+                            segment={segmentView.segment}
+                            from={item.place}
+                            to={nextItem.place}
+                            active={
+                              props.activeSegmentId === segmentView.segment.id
+                            }
+                            durationSeconds={
+                              props.routeGeometries.get(segmentView.segment.id)
+                                ?.duration_seconds
+                            }
+                            canEdit={props.canEdit}
+                            onSelect={() =>
+                              props.onSelectSegment(segmentView.segment.id)
+                            }
+                            onModeChange={(mode) =>
+                              props.onModeChange(segmentView.segment.id, mode)
+                            }
+                          />
+                        )}
+                        {props.canEdit && showEndTimedDropZone && (
+                          <EndInsertionDropZone
+                            active={
+                              props.dropTargetKey === endDropTargetKey(day.date)
+                            }
+                            onDragEnter={(event) =>
+                              activateDropTarget(
+                                event,
+                                endDropTargetKey(day.date),
+                              )
+                            }
+                            onDragOver={(event) =>
+                              activateDropTarget(
+                                event,
+                                endDropTargetKey(day.date),
+                              )
+                            }
+                            onDragLeave={leaveDropTarget}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              props.onDropTargetChange(null);
+                              scheduleDraggedSource(event, {
+                                itinerary: props.itinerary,
+                                date: day.date,
+                                visitTime: inferEndVisitTime(day.items),
+                                onScheduleItem: props.onScheduleItem,
+                              });
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
 
           <UnscheduledBlock
             itinerary={props.itinerary}

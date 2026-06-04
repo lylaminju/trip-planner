@@ -174,6 +174,31 @@
   color: var(--muted);
 }
 
+.day-collapse-button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 28px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 28px;
+}
+
+.day-collapse-button:hover {
+  background: #f1f5f9;
+  border-color: #b9c5d1;
+  color: var(--ink);
+}
+
 .day-add-place-button {
   align-items: center;
   background: #ffffff;
