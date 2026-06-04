@@ -139,6 +139,14 @@
   margin: 0 0 8px;
 }
 
+.day-heading-title-group {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
 .day-heading-button {
   background: transparent;
   border: 0;

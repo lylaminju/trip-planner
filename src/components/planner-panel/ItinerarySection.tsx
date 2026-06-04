@@ -185,29 +185,31 @@ export function ItinerarySection(props: Props) {
                 }}
               >
                 <h3 className="day-heading">
-                  <button
-                    type="button"
-                    className="day-heading-button"
-                    style={{ borderColor: day.color }}
-                    aria-pressed={props.activeDate === day.date}
-                    onClick={() => props.onSelectDate(day.date)}
-                  >
-                    <span className="day-heading-prefix">{`Day ${dayIndex + 1}`}</span>
-                    <span className="day-heading-text">
-                      {formattedDayHeading}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="day-collapse-button"
-                    aria-expanded={!collapsed}
-                    aria-controls={dayBodyId}
-                    aria-label={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
-                    title={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
-                    onClick={() => props.onToggleDateCollapsed(day.date)}
-                  >
-                    <span aria-hidden="true">{collapsed ? ">" : "v"}</span>
-                  </button>
+                  <span className="day-heading-title-group">
+                    <button
+                      type="button"
+                      className="day-heading-button"
+                      style={{ borderColor: day.color }}
+                      aria-pressed={props.activeDate === day.date}
+                      onClick={() => props.onSelectDate(day.date)}
+                    >
+                      <span className="day-heading-prefix">{`Day ${dayIndex + 1}`}</span>
+                      <span className="day-heading-text">
+                        {formattedDayHeading}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="day-collapse-button"
+                      aria-expanded={!collapsed}
+                      aria-controls={dayBodyId}
+                      aria-label={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
+                      title={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
+                      onClick={() => props.onToggleDateCollapsed(day.date)}
+                    >
+                      <span aria-hidden="true">{collapsed ? ">" : "v"}</span>
+                    </button>
+                  </span>
                   {props.canEdit && (
                     <button
                       type="button"
