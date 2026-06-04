@@ -42,7 +42,7 @@ export function formatItineraryDateHeading(date: string): string {
   const parsedDate = new Date(`${date}T00:00:00Z`);
   const weekday = new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
-    weekday: "long",
+    weekday: "short",
   }).format(parsedDate);
   const [, month, day] = date.split("-");
   const shortDate = month && day ? `${month}-${day}` : date;
