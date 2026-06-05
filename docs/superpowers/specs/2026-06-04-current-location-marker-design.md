@@ -27,7 +27,7 @@ When the trip is ongoing:
 - When location is active, change the button label to `Hide my location`.
 - Clicking `Hide my location` removes the marker and stops watching location.
 - If the browser denies permission, lacks geolocation support, or returns an
-  error, show a small location error message in the planner panel.
+  error, show a compact floating toast near the top of the planner panel.
 - If the trip stops being ongoing while location is active, remove the marker
   and stop watching location.
 
@@ -68,8 +68,13 @@ Keep it consistent with the existing dashboard grouping logic.
 Own current-location toggle state in `TripPlannerApp` because it coordinates the
 planner-panel button, geolocation errors, and map rendering.
 
-Pass location state and toggle callbacks into `PlannerPanel`. Pass the active
-position and ongoing/toggle state into `MapPanel`.
+Pass location state, toggle callbacks, and toast feedback into `PlannerPanel`.
+Pass the active position and ongoing/toggle state into `MapPanel`.
+
+Render geolocation failures as a floating planner-panel toast instead of inline
+text. The toast must not reserve layout space or move existing panel content.
+Clear it automatically after a short delay, and also clear it when the user
+retries, hides location, or the trip stops being ongoing.
 
 Keep browser geolocation handling in a focused hook or small helper so
 `TripPlannerApp` does not directly own low-level `watchPosition` cleanup.
@@ -100,6 +105,6 @@ Manual browser verification should cover:
 - First click requests location permission.
 - Marker appears as a compact blue pulse dot.
 - Hide button removes the marker.
-- Location error text appears when permission is denied or geolocation is
-  unavailable.
+- A compact floating toast appears without layout shift when permission is
+  denied or geolocation is unavailable.
 - Existing map focus and route behavior are unchanged.
