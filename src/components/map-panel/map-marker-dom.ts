@@ -37,6 +37,21 @@ export function markerContent(
   return element;
 }
 
+export function currentLocationMarkerContent(): HTMLElement {
+  const element = document.createElement("div");
+  element.className = "current-location-marker";
+  element.setAttribute("aria-label", "Current location");
+
+  const pulse = document.createElement("span");
+  pulse.className = "current-location-marker-pulse";
+
+  const dot = document.createElement("span");
+  dot.className = "current-location-marker-dot";
+
+  element.append(pulse, dot);
+  return element;
+}
+
 export function getInfoWindow(infoWindowRef: { current: any }): any {
   const googleMaps = window.google;
 

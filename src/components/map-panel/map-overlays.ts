@@ -1,4 +1,5 @@
 import type { MobileSheetState } from "@/lib/mobile-sheet";
+import type { CurrentLocationPosition } from "@/lib/current-location";
 import type {
   ItineraryItem,
   ItineraryView,
@@ -8,6 +9,7 @@ import type {
 } from "@/lib/types";
 
 import {
+  currentLocationMarkerContent,
   getInfoWindow,
   markerContent,
   openPlaceInfoWindow,
@@ -31,6 +33,11 @@ export type PolylineRecord = {
   polyline: any;
   signature: string;
   date: string | null;
+};
+
+export type CurrentLocationMarkerRecord = {
+  marker: any;
+  signature: string;
 };
 
 export function buildItemColors(itinerary: ItineraryView): Map<number, string> {
@@ -229,6 +236,46 @@ export function renderOverlays(input: {
       });
     }
   }
+}
+
+export function renderCurrentLocationMarker(input: {
+  map: any;
+  position: CurrentLocationPosition | null;
+  markerRecordRef: { current: CurrentLocationMarkerRecord | null };
+}): void {
+  const existing = input.markerRecordRef.current;
+
+  if (!input.position || !window.google?.maps) {
+    if (existing) {
+      existing.marker.map = null;
+      input.markerRecordRef.current = null;
+    }
+    return;
+  }
+
+  const signature = [
+    input.position.lat,
+    input.position.lng,
+    input.position.accuracy ?? "",
+  ].join(":");
+  if (existing?.signature === signature) {
+    return;
+  }
+
+  if (existing) {
+    existing.marker.map = null;
+  }
+
+  const marker = new window.google.maps.marker.AdvancedMarkerElement({
+    map: input.map,
+    position: { lat: input.position.lat, lng: input.position.lng },
+    title: "Current location",
+    content: currentLocationMarkerContent(),
+    gmpClickable: false,
+    zIndex: 900,
+  });
+
+  input.markerRecordRef.current = { marker, signature };
 }
 
 export function updateOverlaySelection(

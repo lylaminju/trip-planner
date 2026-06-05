@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
+import {
+  startCurrentLocationWatch,
+  type CurrentLocationPosition,
+} from "@/lib/current-location";
+import { toggleCollapsedDate } from "@/lib/date-collapse";
 import { buildItinerary } from "@/lib/itinerary";
 import {
   buildExportFilename,
@@ -21,8 +26,8 @@ import {
   schedulePlaceRequest,
   updateSegmentModeRequest,
 } from "@/lib/planner-api";
-import { toggleCollapsedDate } from "@/lib/date-collapse";
 import { toggleSelectedId } from "@/lib/selection";
+import { isTripOngoing } from "@/lib/trip-classification";
 import type {
   ItineraryItem,
   PlannerSnapshot,
@@ -70,6 +75,15 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     kind: "error" | "success";
     label: string;
   } | null>(null);
+  const [isCurrentLocationEnabled, setIsCurrentLocationEnabled] =
+    useState(false);
+  const [currentLocationPosition, setCurrentLocationPosition] =
+    useState<CurrentLocationPosition | null>(null);
+  const [currentLocationToast, setCurrentLocationToast] = useState<
+    string | null
+  >(null);
+  const currentLocationStopRef = useRef<(() => void) | null>(null);
+  const currentLocationToastTimeoutRef = useRef<number | null>(null);
 
   const itinerary = useMemo(
     () =>
@@ -86,6 +100,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   );
   const canEdit = snapshot.role !== "viewer";
   const tripTitle = snapshot.trip?.name ?? "Trip Planner";
+  const canShowCurrentLocation = isTripOngoing(snapshot.trip);
 
   const reload = useCallback(async () => {
     setSnapshot(await loadPlannerSnapshot(tripId));
@@ -110,6 +125,24 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
 
     return () => window.clearTimeout(timeout);
   }, [exportFeedback]);
+
+  useEffect(() => {
+    if (canShowCurrentLocation) {
+      return;
+    }
+
+    stopCurrentLocationWatch();
+    clearCurrentLocationToast();
+  }, [canShowCurrentLocation]);
+
+  useEffect(() => {
+    return () => {
+      currentLocationStopRef.current?.();
+      if (currentLocationToastTimeoutRef.current !== null) {
+        window.clearTimeout(currentLocationToastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function savePlace(payload: Record<string, unknown>, id?: number) {
     if (!canEdit) return;
@@ -326,6 +359,68 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
     });
   }
 
+  function clearCurrentLocationToast() {
+    if (currentLocationToastTimeoutRef.current !== null) {
+      window.clearTimeout(currentLocationToastTimeoutRef.current);
+      currentLocationToastTimeoutRef.current = null;
+    }
+    setCurrentLocationToast(null);
+  }
+
+  function showCurrentLocationToast(message: string) {
+    clearCurrentLocationToast();
+    setCurrentLocationToast(message);
+    currentLocationToastTimeoutRef.current = window.setTimeout(() => {
+      setCurrentLocationToast(null);
+      currentLocationToastTimeoutRef.current = null;
+    }, 3500);
+  }
+
+  function stopCurrentLocationWatch() {
+    currentLocationStopRef.current?.();
+    currentLocationStopRef.current = null;
+    setIsCurrentLocationEnabled(false);
+    setCurrentLocationPosition(null);
+  }
+
+  function toggleCurrentLocation() {
+    if (isCurrentLocationEnabled) {
+      stopCurrentLocationWatch();
+      clearCurrentLocationToast();
+      return;
+    }
+
+    clearCurrentLocationToast();
+
+    if (!canShowCurrentLocation) {
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      showCurrentLocationToast("Location is not supported by this browser.");
+      return;
+    }
+
+    try {
+      currentLocationStopRef.current = startCurrentLocationWatch(
+        navigator.geolocation,
+        (position) => {
+          setCurrentLocationPosition(position);
+          setIsCurrentLocationEnabled(true);
+          clearCurrentLocationToast();
+        },
+        (reason) => {
+          stopCurrentLocationWatch();
+          showCurrentLocationToast(currentLocationErrorMessage(reason));
+        },
+      );
+      setIsCurrentLocationEnabled(true);
+    } catch (reason) {
+      stopCurrentLocationWatch();
+      showCurrentLocationToast(currentLocationErrorMessage(reason));
+    }
+  }
+
   return (
     <main
       className={`app-shell mobile-sheet-${mobileSheetState} ${
@@ -343,12 +438,16 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         collapsedDates={collapsedDates}
         routeGeometries={routeGeometries}
         error={error}
+        currentLocationToast={currentLocationToast}
         exportFeedback={exportFeedback}
         isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
         canEdit={canEdit}
+        canShowCurrentLocation={canShowCurrentLocation}
+        isCurrentLocationActive={isCurrentLocationEnabled}
         onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
         onMobileSheetStateChange={setMobileSheetState}
+        onToggleCurrentLocation={toggleCurrentLocation}
         onAdd={openAddModal}
         onCopyExport={() => {
           copyMarkdownExport().catch(() => {
@@ -430,6 +529,7 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         mobileSheetState={mobileSheetState}
         routeGeometries={routeGeometries}
         routeGeometryError={routeGeometryError}
+        currentLocationPosition={currentLocationPosition}
         hidden={isPlannerPanelExpanded}
         onSelectPlace={selectItem}
         onSelectSegment={toggleSegmentSelection}
@@ -463,4 +563,21 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
 
 function errorMessage(reason: unknown, fallback: string): string {
   return reason instanceof Error ? reason.message : fallback;
+}
+
+function currentLocationErrorMessage(reason: unknown): string {
+  if (isGeolocationPermissionDenied(reason)) {
+    return "Location permission denied.";
+  }
+
+  return "Unable to access current location.";
+}
+
+function isGeolocationPermissionDenied(reason: unknown): boolean {
+  return (
+    typeof reason === "object" &&
+    reason !== null &&
+    "code" in reason &&
+    reason.code === 1
+  );
 }

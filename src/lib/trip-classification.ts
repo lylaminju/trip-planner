@@ -39,6 +39,21 @@ export function groupTripsByTiming(
   return groups;
 }
 
+export function isTripOngoing(
+  trip:
+    | Pick<TripSummary, "start_date" | "end_date" | "timezone">
+    | null
+    | undefined,
+  now = new Date(),
+): boolean {
+  if (!trip?.start_date || !trip.end_date) {
+    return false;
+  }
+
+  const today = localIsoDate(now, trip.timezone || DEFAULT_TRIP_TIMEZONE);
+  return trip.start_date <= today && trip.end_date >= today;
+}
+
 export function detectBrowserTimeZone(): string {
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

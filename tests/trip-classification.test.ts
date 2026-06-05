@@ -4,6 +4,7 @@ import type { TripSummary } from "@/lib/types";
 import {
   detectBrowserTimeZone,
   groupTripsByTiming,
+  isTripOngoing,
 } from "@/lib/trip-classification";
 
 const baseTrip: Omit<TripSummary, "id" | "name" | "role"> = {
@@ -76,6 +77,61 @@ describe("trip dashboard classification", () => {
     });
 
     expect(detectBrowserTimeZone()).toBe("America/Toronto");
+  });
+});
+
+describe("isTripOngoing", () => {
+  it("returns true when the trip-local current date is inside the trip range", () => {
+    expect(
+      isTripOngoing(
+        trip(1, "Ongoing", "2026-05-27", "2026-05-29"),
+        new Date("2026-05-28T16:00:00.000Z"),
+      ),
+    ).toBe(true);
+  });
+
+  it("returns false for missing-date, future, and past trips", () => {
+    const now = new Date("2026-05-28T16:00:00.000Z");
+
+    expect(isTripOngoing(trip(1, "Needs start", null, "2026-05-29"), now)).toBe(
+      false,
+    );
+    expect(isTripOngoing(trip(2, "Needs end", "2026-05-27", null), now)).toBe(
+      false,
+    );
+    expect(
+      isTripOngoing(trip(3, "Future", "2026-06-01", "2026-06-02"), now),
+    ).toBe(false);
+    expect(
+      isTripOngoing(trip(4, "Past", "2026-05-01", "2026-05-02"), now),
+    ).toBe(false);
+  });
+
+  it("uses the trip timezone when detecting ongoing trips", () => {
+    const now = new Date("2026-05-28T16:00:00.000Z");
+
+    expect(
+      isTripOngoing(
+        trip(1, "Toronto today", "2026-05-28", "2026-05-28", {
+          timezone: "America/Toronto",
+        }),
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      isTripOngoing(
+        trip(2, "Tokyo tomorrow", "2026-05-28", "2026-05-28", {
+          timezone: "Asia/Tokyo",
+        }),
+        now,
+      ),
+    ).toBe(false);
+  });
+
+  it("returns false when there is no trip", () => {
+    expect(isTripOngoing(null, new Date("2026-05-28T16:00:00.000Z"))).toBe(
+      false,
+    );
   });
 });
 

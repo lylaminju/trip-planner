@@ -29,6 +29,7 @@ type Props = {
   collapsedDates: ReadonlySet<string>;
   routeGeometries: Map<number, RouteGeometry>;
   error: string | null;
+  currentLocationToast: string | null;
   exportFeedback: {
     action: "copy" | "download";
     kind: "error" | "success";
@@ -37,8 +38,11 @@ type Props = {
   isExpanded: boolean;
   mobileSheetState: MobileSheetState;
   canEdit: boolean;
+  canShowCurrentLocation: boolean;
+  isCurrentLocationActive: boolean;
   onToggleExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
+  onToggleCurrentLocation: () => void;
   onAdd: () => void;
   onCopyExport: () => void;
   onDownloadExport: () => void;
@@ -151,6 +155,20 @@ export function PlannerPanel(props: Props) {
               Add Place
             </button>
           )}
+          {props.canShowCurrentLocation && (
+            <button
+              type="button"
+              className={`current-location-button ${
+                props.isCurrentLocationActive ? "active" : ""
+              }`}
+              aria-pressed={props.isCurrentLocationActive}
+              onClick={props.onToggleCurrentLocation}
+            >
+              {props.isCurrentLocationActive
+                ? "Hide my location"
+                : "Show my location"}
+            </button>
+          )}
           <button
             type="button"
             className="desktop-logout-button"
@@ -171,6 +189,12 @@ export function PlannerPanel(props: Props) {
           </button>
         </div>
       </header>
+
+      {props.currentLocationToast && props.canShowCurrentLocation && (
+        <div className="current-location-toast" role="alert">
+          {props.currentLocationToast}
+        </div>
+      )}
 
       {props.error && <p className="error-text">{props.error}</p>}
 

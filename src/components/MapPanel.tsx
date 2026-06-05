@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
+import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   getSelectedDatePositions,
@@ -15,9 +16,11 @@ import { loadGoogleMaps } from "./map-panel/google-maps-loader";
 import {
   buildItemColors,
   createMap,
+  renderCurrentLocationMarker,
   renderOverlays,
   shouldOffsetFocusForHalfSheet,
   updateOverlaySelection,
+  type CurrentLocationMarkerRecord,
   type MarkerRecord,
   type PolylineRecord,
 } from "./map-panel/map-overlays";
@@ -39,6 +42,7 @@ type Props = {
   mobileSheetState: MobileSheetState;
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
+  currentLocationPosition: CurrentLocationPosition | null;
   hidden?: boolean;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
@@ -49,6 +53,9 @@ export function MapPanel(props: Props) {
   const mapInstanceRef = useRef<any>(null);
   const markerRecordsRef = useRef<Map<string, MarkerRecord>>(new Map());
   const polylinesRef = useRef<Map<number, PolylineRecord>>(new Map());
+  const currentLocationMarkerRef = useRef<CurrentLocationMarkerRecord | null>(
+    null,
+  );
   const boundsSignatureRef = useRef<string>("");
   const infoWindowRef = useRef<any>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -178,6 +185,28 @@ export function MapPanel(props: Props) {
   }, [apiKey, isMapReady, loadFailed]);
 
   useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!apiKey || loadFailed || !isMapReady || !map || !window.google?.maps) {
+      return;
+    }
+
+    renderCurrentLocationMarker({
+      map,
+      position: props.currentLocationPosition,
+      markerRecordRef: currentLocationMarkerRef,
+    });
+  }, [apiKey, isMapReady, loadFailed, props.currentLocationPosition]);
+
+  useEffect(() => {
+    return () => {
+      if (currentLocationMarkerRef.current) {
+        currentLocationMarkerRef.current.marker.map = null;
+        currentLocationMarkerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     updateOverlaySelection(
       markerRecordsRef.current,
       polylinesRef.current,
@@ -274,9 +303,7 @@ export function MapPanel(props: Props) {
       return;
     }
 
-    let idleListener:
-      | { remove?: () => void }
-      | undefined;
+    let idleListener: { remove?: () => void } | undefined;
     const bounds = new window.google.maps.LatLngBounds();
     dedupedPositions.forEach((position) => {
       bounds.extend(position);
