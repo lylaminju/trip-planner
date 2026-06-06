@@ -4,17 +4,25 @@ A trip planning app for building dated itineraries from saved places, arranging 
 
 ## Features
 
-- **Place library:** Save canonical places with name, address, Google Maps URL, coordinates, and place-level notes.
-- **Repeated visits:** Add the same place to the itinerary multiple times as separate itinerary items, each with its own date, time, and visit note.
-- **Date buckets:** Itinerary items are grouped by date, sorted with timed visits first, and displayed with the day of week.
+- **Trip workspaces:** Create, edit, delete, and open trips with date ranges, timezones, and role-based access through trip memberships.
+- **Trip dashboard grouping:** Trips are grouped into Ongoing, Needs Dates, Upcoming, and Past sections using each trip's configured timezone.
+- **Place library:** Save canonical places with name, address, Google Maps URL, coordinates, place notes, and reference links.
+- **Repeated visits:** Add the same place to the itinerary multiple times as separate visits, each with its own date, time, and visit note.
+- **Date buckets:** Itinerary items are grouped by date, sorted with timed visits first, and displayed with compact weekday labels.
+- **Collapsible itinerary days:** Collapse or expand each date bucket independently to keep long itineraries manageable.
 - **Unscheduled places:** Places that are not scheduled on any date are derived from the place library and shown separately.
-- **Drag and drop scheduling:** Drag places into a date bucket, move scheduled visits between dates, or move visits back to Unscheduled.
-- **Date-scoped place picker:** Use the `+` button on a date bucket to open a sidecar picker and add existing places directly to that date.
+- **Drag and drop scheduling:** Drag places into a date bucket, move scheduled visits between dates, reorder timed visits, or move visits back to Unscheduled.
+- **Date-scoped place picker:** Use the `+` button on a date bucket to add existing places directly to that date.
 - **Route segments:** Consecutive timed visits create route segment rows with selectable travel modes: walking, transit, bicycling, or driving.
+- **Route detail controls:** Show or hide route segment rows, view cached route duration, and open a segment in Google Maps.
+- **Itinerary export:** Copy or download scheduled itinerary details as Markdown.
 - **Interactive Google Map:** Scheduled visits are shown as colored markers by day, with timed markers numbered to match the itinerary order.
+- **Date, place, and route focus:** Selecting a date, place, or route segment in the planner moves the map to the matching places or route endpoints.
 - **Unscheduled map markers:** Unscheduled places are shown on the map as gray markers.
+- **Current location marker:** During an ongoing trip, users can toggle a compact blue current-location marker on the map.
 - **Real route geometry:** When a server-side Google Routes API key is configured, route polylines use Google Routes geometry; otherwise the app falls back to straight lines.
 - **Minimal route API usage:** Route geometry is cached by route endpoints and travel mode, so repeated renders do not keep calling Google Routes.
+- **Responsive planner layout:** The planner supports desktop split view, expanded planner view, and mobile sheet states.
 - **Google Maps saved-list import:** A legacy script imports places from a known shared Google Maps saved-list endpoint into the retained SQLite migration database.
 
 ## Tech Stack
