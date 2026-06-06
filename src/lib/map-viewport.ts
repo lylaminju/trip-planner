@@ -1,4 +1,4 @@
-import type { ItineraryItem, Place } from "@/lib/types";
+import type { ItineraryItem, Place, RouteSegment } from "@/lib/types";
 
 export type MapPosition = {
   lat: number;
@@ -35,4 +35,24 @@ export function getSelectedDatePositions(
   return items
     .filter((item) => item.visit_date === activeDate)
     .map((item) => ({ lat: item.place.latitude, lng: item.place.longitude }));
+}
+
+export function getSelectedSegmentPositions(
+  items: ItineraryItem[],
+  routeSegments: RouteSegment[],
+  activeSegmentId: number | null,
+): MapPosition[] {
+  if (activeSegmentId === null) return [];
+
+  const segment = routeSegments.find((row) => row.id === activeSegmentId);
+  if (!segment) return [];
+
+  const fromItem = items.find((item) => item.id === segment.from_item_id);
+  const toItem = items.find((item) => item.id === segment.to_item_id);
+  if (!fromItem || !toItem) return [];
+
+  return [
+    { lat: fromItem.place.latitude, lng: fromItem.place.longitude },
+    { lat: toItem.place.latitude, lng: toItem.place.longitude },
+  ];
 }

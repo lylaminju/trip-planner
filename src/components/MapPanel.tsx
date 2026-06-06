@@ -8,6 +8,7 @@ import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   getSelectedDatePositions,
   getSelectedPlacePosition,
+  getSelectedSegmentPositions,
 } from "@/lib/map-viewport";
 import type { ItineraryView, RouteGeometry, RouteSegment } from "@/lib/types";
 
@@ -330,6 +331,66 @@ export function MapPanel(props: Props) {
     props.activeDate,
     props.hidden,
     props.mobileSheetState,
+  ]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (
+      !apiKey ||
+      loadFailed ||
+      !isMapReady ||
+      !map ||
+      !window.google?.maps ||
+      props.hidden
+    ) {
+      return;
+    }
+
+    const positions = getSelectedSegmentPositions(
+      itineraryItems,
+      props.routeSegments,
+      props.activeSegmentId,
+    );
+    if (positions.length !== 2) {
+      return;
+    }
+
+    const [from, to] = positions;
+    if (from.lat === to.lat && from.lng === to.lng) {
+      map.panTo(from);
+      if (shouldOffsetFocusForHalfSheet(props.mobileSheetState)) {
+        map.panBy(0, Math.round(window.innerHeight * 0.32));
+      }
+      return;
+    }
+
+    let idleListener: { remove?: () => void } | undefined;
+    const bounds = new window.google.maps.LatLngBounds();
+    bounds.extend(from);
+    bounds.extend(to);
+    map.fitBounds(bounds, 64);
+    if (shouldOffsetFocusForHalfSheet(props.mobileSheetState)) {
+      idleListener = window.google.maps.event?.addListenerOnce?.(
+        map,
+        "idle",
+        () => {
+          map.panBy(0, Math.round(window.innerHeight * 0.32));
+        },
+      );
+    }
+
+    return () => {
+      idleListener?.remove?.();
+    };
+  }, [
+    apiKey,
+    isMapReady,
+    itineraryItemsSignature,
+    loadFailed,
+    props.activeSegmentId,
+    props.hidden,
+    props.mobileSheetState,
+    routeSegmentsSignature,
   ]);
 
   if (!apiKey || loadFailed) {
