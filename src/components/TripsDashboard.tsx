@@ -187,7 +187,7 @@ export function TripsDashboard() {
         </header>
 
         <form className="trip-form" onSubmit={submitCreate}>
-          <label>
+          <label className="trip-form-name">
             <span>Name</span>
             <input
               value={form.name}
@@ -200,7 +200,7 @@ export function TripsDashboard() {
               required
             />
           </label>
-          <label>
+          <label className="trip-form-date-start">
             <span>Start</span>
             <input
               type="date"
@@ -213,7 +213,7 @@ export function TripsDashboard() {
               }}
             />
           </label>
-          <label>
+          <label className="trip-form-date-end">
             <span>End</span>
             <input
               type="date"
@@ -226,7 +226,7 @@ export function TripsDashboard() {
               }}
             />
           </label>
-          <label>
+          <label className="trip-form-timezone">
             <span>Timezone</span>
             <TimeZoneSelect
               value={form.timezone}
@@ -239,7 +239,11 @@ export function TripsDashboard() {
               }
             />
           </label>
-          <button type="submit" disabled={isSaving}>
+          <button
+            type="submit"
+            className="trip-form-submit"
+            disabled={isSaving}
+          >
             Create trip
           </button>
         </form>

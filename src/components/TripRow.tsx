@@ -23,32 +23,34 @@ export function TripRow(props: {
         <strong>{props.trip.name}</strong>
         <span>{formatTripDateLine(props.trip)}</span>
       </Link>
-      <span className={`trip-role trip-role-${props.trip.role}`}>
-        {props.trip.role}
-      </span>
-      {canEditMetadata && (
-        <div className="trip-row-actions">
-          <button
-            type="button"
-            className="icon-button"
-            title={editLabel}
-            aria-label={editLabel}
-            onClick={props.onEdit}
-          >
-            <PencilIcon />
-          </button>
-          <button
-            type="button"
-            className="icon-button danger-button"
-            title={deleteButtonLabel}
-            aria-label={deleteButtonLabel}
-            disabled={props.isDeleting}
-            onClick={props.onDelete}
-          >
-            {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
-          </button>
-        </div>
-      )}
+      <div className="trip-row-meta">
+        <span className={`trip-role trip-role-${props.trip.role}`}>
+          {props.trip.role}
+        </span>
+        {canEditMetadata && (
+          <div className="trip-row-actions">
+            <button
+              type="button"
+              className="icon-button"
+              title={editLabel}
+              aria-label={editLabel}
+              onClick={props.onEdit}
+            >
+              <PencilIcon />
+            </button>
+            <button
+              type="button"
+              className="icon-button danger-button"
+              title={deleteButtonLabel}
+              aria-label={deleteButtonLabel}
+              disabled={props.isDeleting}
+              onClick={props.onDelete}
+            >
+              {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
+            </button>
+          </div>
+        )}
+      </div>
     </article>
   );
 }

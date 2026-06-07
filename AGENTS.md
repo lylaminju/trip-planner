@@ -24,6 +24,7 @@ This file applies to the whole repository. Follow it when changing code here.
 - Avoid new dependencies unless the task explicitly requires one.
 - Keep props typed at component boundaries. Do not replace precise domain types with broad `any` to make extraction easier.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
+- In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.
 
 ## Verification
 
