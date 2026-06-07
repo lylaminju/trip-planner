@@ -62,12 +62,12 @@ export function createMap(
   const firstPlace = items[0]?.place ?? unscheduledPlaces[0] ?? null;
   const center = firstPlace
     ? { lat: firstPlace.latitude, lng: firstPlace.longitude }
-    : { lat: 40.7128, lng: -74.006 };
+    : { lat: 20, lng: 0 };
 
   return new googleMaps.maps.Map(container, {
     center,
     mapTypeControl: !isMobile,
-    zoom: 12,
+    zoom: firstPlace ? 12 : 2,
     mapId: "trip-planner-map",
   });
 }

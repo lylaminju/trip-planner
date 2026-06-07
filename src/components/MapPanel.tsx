@@ -45,6 +45,8 @@ type Props = {
   routeGeometryError: string | null;
   currentLocationPosition: CurrentLocationPosition | null;
   hidden?: boolean;
+  canEdit: boolean;
+  onAddPlace: () => void;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
 };
@@ -86,6 +88,8 @@ export function MapPanel(props: Props) {
     () => buildTimedMarkerLabels(props.itinerary),
     [props.itinerary],
   );
+  const hasPlaces =
+    itineraryItems.length > 0 || props.itinerary.unscheduled.length > 0;
 
   useEffect(() => {
     if (!apiKey || !mapRef.current) {
@@ -409,6 +413,17 @@ export function MapPanel(props: Props) {
       aria-hidden={props.hidden}
     >
       <div className="map-canvas" ref={mapRef} />
+      {!hasPlaces && (
+        <div className="map-empty-state">
+          <p className="map-empty-state-title">No places yet</p>
+          <p>Add your first place to start building the map.</p>
+          {props.canEdit && (
+            <button type="button" onClick={props.onAddPlace}>
+              Add place
+            </button>
+          )}
+        </div>
+      )}
       {props.routeGeometryError && (
         <div className="map-route-warning">
           <p>{props.routeGeometryError}</p>

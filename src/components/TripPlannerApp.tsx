@@ -561,6 +561,8 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         routeGeometryError={routeGeometryError}
         currentLocationPosition={currentLocationPosition}
         hidden={isPlannerPanelExpanded}
+        canEdit={canEdit}
+        onAddPlace={openAddModal}
         onSelectPlace={selectItem}
         onSelectSegment={toggleSegmentSelection}
       />
