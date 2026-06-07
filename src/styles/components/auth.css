@@ -1,23 +1,293 @@
-/* Login screen and authentication form styling. */
+/* Public landing page and authentication form styling. */
 .login-shell {
-  align-items: center;
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(15, 118, 110, 0.14),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      rgba(100, 116, 139, 0.18),
-      transparent 36%
-    ),
-    var(--bg);
-  display: flex;
-  justify-content: center;
   min-height: 100vh;
   min-height: 100dvh;
+}
+
+.landing-shell {
+  align-items: stretch;
+  background:
+    radial-gradient(
+      circle at 18% 8%,
+      rgba(15, 118, 110, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+  display: grid;
+  gap: 56px;
+  justify-content: stretch;
   padding: 24px;
+}
+
+.landing-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1120px;
+  width: 100%;
+}
+
+.landing-brand {
+  color: var(--text);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.landing-nav {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: flex-end;
+}
+
+.landing-nav a,
+.landing-secondary-action {
+  color: var(--muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.landing-hero {
+  align-items: center;
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(0, 0.82fr) minmax(520px, 1.18fr);
+  margin: 0 auto;
+  max-width: 1120px;
+  width: 100%;
+}
+
+.landing-hero-copy {
+  display: grid;
+  gap: 16px;
+}
+
+.landing-hero h1 {
+  font-size: clamp(40px, 7vw, 76px);
+  letter-spacing: -0.03em;
+  line-height: 0.96;
+  margin: 0;
+  max-width: 11ch;
+  text-wrap: balance;
+}
+
+.landing-hero-copy > p {
+  color: #475569;
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 38ch;
+}
+
+.landing-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.landing-primary-action,
+.landing-secondary-action {
+  align-items: center;
+  border-radius: 6px;
+  display: inline-flex;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+}
+
+.landing-primary-action {
+  background: var(--accent);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.landing-secondary-action {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.landing-primary-action:focus-visible,
+.landing-secondary-action:focus-visible,
+.landing-nav a:focus-visible,
+.landing-brand:focus-visible {
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+  outline: 2px solid transparent;
+}
+
+.landing-access-copy {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.landing-preview {
+  display: grid;
+  gap: 14px;
+}
+
+.landing-hero .landing-preview-copy {
+  display: none;
+}
+
+.landing-preview-copy,
+.landing-feature-proof,
+.landing-access-note,
+.landing-sign-in {
+  margin: 0 auto;
+  max-width: 1120px;
+  width: 100%;
+}
+
+.landing-product-frame {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.44fr) minmax(0, 0.56fr);
+  min-height: 280px;
+  overflow: hidden;
+}
+
+.landing-planner-panel {
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.landing-trip-name,
+.landing-section-label,
+.landing-day-label {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.landing-day-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+}
+
+.landing-itinerary-stop {
+  border-left: 3px solid #94a3b8;
+  color: #334155;
+  display: grid;
+  gap: 2px;
+  padding: 4px 0 4px 8px;
+}
+
+.landing-itinerary-stop.active {
+  border-left-color: var(--accent);
+}
+
+.landing-itinerary-stop span,
+.landing-route-segment {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.landing-route-segment {
+  align-items: center;
+  border-left: 1px solid var(--line);
+  display: flex;
+  gap: 7px;
+  margin-left: 8px;
+  padding: 4px 0 4px 8px;
+}
+
+.landing-route-mode,
+.landing-route-map-link {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 3px 6px;
+}
+
+.landing-route-map-link {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.landing-route-map-link svg {
+  height: 12px;
+  width: 12px;
+}
+
+.landing-map-panel {
+  background: linear-gradient(135deg, #e8f1ef, #eef2f6);
+  min-height: 280px;
+}
+
+.landing-map-lines {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.landing-map-road,
+.landing-map-route {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.landing-map-road {
+  stroke: #cbd5e1;
+  stroke-width: 10;
+}
+
+.landing-map-route {
+  stroke: var(--accent);
+  stroke-width: 5;
+}
+
+.landing-map-marker {
+  fill: var(--accent);
+  stroke: #ffffff;
+  stroke-width: 3;
+}
+
+.landing-feature-proof {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.landing-feature-item {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.landing-feature-item h2,
+.landing-access-note h2 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+
+.landing-feature-item p,
+.landing-access-note p,
+.landing-preview-copy p {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.landing-access-note {
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  padding: 18px;
 }
 
 .login-card {
@@ -32,7 +302,12 @@
   width: min(100%, 420px);
 }
 
-.login-copy h1 {
+.landing-sign-in {
+  max-width: 460px;
+}
+
+.login-copy h1,
+.login-copy h2 {
   font-size: 32px;
   line-height: 1;
   margin: 0 0 8px;
@@ -88,4 +363,60 @@
   min-height: 44px;
   padding: 10px 12px;
   width: 100%;
+}
+
+@media (max-width: 900px) {
+  .landing-shell {
+    gap: 36px;
+    padding: 18px 14px;
+  }
+
+  .landing-header {
+    align-items: flex-start;
+  }
+
+  .landing-nav {
+    flex-wrap: wrap;
+  }
+
+  .landing-hero,
+  .landing-access-note {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero h1 {
+    font-size: clamp(38px, 13vw, 58px);
+  }
+
+  .landing-product-frame {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-planner-panel {
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+  }
+
+  .landing-feature-proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-feature-proof {
+    grid-template-columns: 1fr;
+  }
+
+  .login-email-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(96px, 120px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-shell *,
+  .landing-shell *::before,
+  .landing-shell *::after {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+  }
 }
