@@ -3,6 +3,7 @@
 import { formatPlaceRow, formatSchedule } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
+import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
 import { CalendarPlusIcon, PencilIcon, TrashIcon } from "../Icons";
 
 export function ItineraryItemRow(props: {
@@ -15,12 +16,16 @@ export function ItineraryItemRow(props: {
   onSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  isDeleting: boolean;
 }) {
   const display = formatPlaceRow(props.item, { context: "itinerary" });
   const note = props.item.notes ?? props.item.place.notes;
   const dragLabel = `Drag ${props.item.place.name} to reorder or move date`;
   const editLabel = `Edit visit to ${props.item.place.name}`;
   const deleteLabel = `Delete visit to ${props.item.place.name}`;
+  const deleteButtonLabel = props.isDeleting
+    ? `Deleting visit to ${props.item.place.name}`
+    : deleteLabel;
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
@@ -85,11 +90,12 @@ export function ItineraryItemRow(props: {
           <button
             type="button"
             className="icon-button danger-button"
-            aria-label={deleteLabel}
-            title={deleteLabel}
+            aria-label={deleteButtonLabel}
+            title={deleteButtonLabel}
+            disabled={props.isDeleting}
             onClick={props.onDelete}
           >
-            <TrashIcon />
+            {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
           </button>
         </>
       )}
@@ -105,11 +111,15 @@ export function PlaceListRow(props: {
   onEdit: () => void;
   onAddVisit: () => void;
   onDelete: () => void;
+  isDeleting: boolean;
 }) {
   const display = formatPlaceRow(props.place);
   const addVisitLabel = `Add ${props.place.name} to itinerary`;
   const editLabel = `Edit place ${props.place.name}`;
   const deleteLabel = `Delete place ${props.place.name}`;
+  const deleteButtonLabel = props.isDeleting
+    ? `Deleting place ${props.place.name}`
+    : deleteLabel;
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
@@ -147,11 +157,12 @@ export function PlaceListRow(props: {
           <button
             type="button"
             className="icon-button danger-button"
-            aria-label={deleteLabel}
-            title={deleteLabel}
+            aria-label={deleteButtonLabel}
+            title={deleteButtonLabel}
+            disabled={props.isDeleting}
             onClick={props.onDelete}
           >
-            <TrashIcon />
+            {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
           </button>
         </>
       )}

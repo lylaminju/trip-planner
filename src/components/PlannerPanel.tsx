@@ -38,6 +38,8 @@ type Props = {
   isExpanded: boolean;
   mobileSheetState: MobileSheetState;
   canEdit: boolean;
+  deletingPlaceIds: ReadonlySet<number>;
+  deletingItineraryItemIds: ReadonlySet<number>;
   canShowCurrentLocation: boolean;
   isCurrentLocationActive: boolean;
   onToggleExpanded: () => void;
@@ -208,6 +210,8 @@ export function PlannerPanel(props: Props) {
         routeGeometries={props.routeGeometries}
         markerLabels={markerLabels}
         canEdit={props.canEdit}
+        deletingPlaceIds={props.deletingPlaceIds}
+        deletingItineraryItemIds={props.deletingItineraryItemIds}
         isExpanded={props.isExpanded}
         isOpen={isItinerariesOpen}
         isUnscheduledOpen={isUnscheduledOpen}
@@ -242,6 +246,7 @@ export function PlannerPanel(props: Props) {
         activePlaceId={props.activePlaceId}
         activeCanonicalPlaceId={props.activeCanonicalPlaceId}
         canEdit={props.canEdit}
+        deletingPlaceIds={props.deletingPlaceIds}
         isExpanded={props.isExpanded}
         isOpen={isPlacesOpen}
         onToggleOpen={() => setIsPlacesOpen((value) => !value)}

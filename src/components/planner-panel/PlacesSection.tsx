@@ -12,6 +12,7 @@ export function PlacesSection(props: {
   activePlaceId: number | null;
   activeCanonicalPlaceId: number | null;
   canEdit: boolean;
+  deletingPlaceIds: ReadonlySet<number>;
   isExpanded: boolean;
   isOpen: boolean;
   onToggleOpen: () => void;
@@ -40,6 +41,7 @@ export function PlacesSection(props: {
                 key={place.id}
                 place={place}
                 canEdit={props.canEdit}
+                isDeleting={props.deletingPlaceIds.has(place.id)}
                 active={
                   props.activeCanonicalPlaceId === place.id ||
                   (itemId !== null && props.activePlaceId === itemId)
