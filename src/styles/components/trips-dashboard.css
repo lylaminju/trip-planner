@@ -40,7 +40,15 @@
   align-items: end;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(140px, 1fr)) auto;
+}
+
+.trip-form {
+  grid-template-columns:
+    minmax(180px, 1.5fr)
+    minmax(118px, 0.82fr)
+    minmax(118px, 0.82fr)
+    minmax(140px, 1fr)
+    auto;
 }
 
 .trip-form {
