@@ -11,7 +11,7 @@
   display: grid;
   gap: 18px;
   margin: 0 auto;
-  max-width: 1120px;
+  max-width: 920px;
 }
 
 .trips-header {
@@ -29,6 +29,10 @@
 .trip-empty-text {
   color: var(--muted);
   margin: 4px 0 0;
+}
+
+.trips-header-actions {
+  flex-shrink: 0;
 }
 
 .trip-form,

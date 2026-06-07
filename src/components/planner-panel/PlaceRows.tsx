@@ -3,6 +3,7 @@
 import { formatPlaceRow, formatSchedule } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
+import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
 import { CalendarPlusIcon, PencilIcon, TrashIcon } from "../Icons";
 
 export function ItineraryItemRow(props: {
@@ -167,10 +168,6 @@ export function PlaceListRow(props: {
       )}
     </div>
   );
-}
-
-function DeleteLoadingSpinner() {
-  return <span className="delete-loading-spinner" aria-hidden="true" />;
 }
 
 function createDragPreview(source: ItineraryItem): HTMLElement {

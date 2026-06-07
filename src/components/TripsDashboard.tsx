@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
+import { logoutRequest } from "@/lib/planner-api";
 import {
   DEFAULT_TRIP_TIMEZONE,
   detectBrowserTimeZone,
@@ -26,6 +26,8 @@ import {
 } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
 import { TripEditForm } from "./TripEditForm";
+import { TripRow } from "./TripRow";
+import { updateTripFormField } from "./trip-form-state";
 import { TimeZoneSelect } from "./TimeZoneSelect";
 import type { TripFormState } from "./trip-form-types";
 
@@ -44,6 +46,9 @@ export function TripsDashboard() {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingTripIds, setDeletingTripIds] = useState<Set<number>>(
+    () => new Set(),
+  );
   const [hasHydrated, setHasHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
@@ -143,11 +148,26 @@ export function TripsDashboard() {
     }
 
     setError(null);
+    setDeletingTripIds((current) => new Set(current).add(trip.id));
     try {
       await deleteTrip(trip.id);
       setTrips((current) => current.filter((entry) => entry.id !== trip.id));
     } catch (reason) {
       setError(errorMessage(reason, "Failed to delete trip."));
+    } finally {
+      setDeletingTripIds((current) => {
+        const next = new Set(current);
+        next.delete(trip.id);
+        return next;
+      });
+    }
+  }
+
+  async function logout() {
+    try {
+      await logoutRequest();
+    } finally {
+      window.location.assign("/login");
     }
   }
 
@@ -159,6 +179,11 @@ export function TripsDashboard() {
             <h1>Trips</h1>
             <p>Manage trip workspaces and open the planner for each trip.</p>
           </div>
+          <div className="trips-header-actions">
+            <button type="button" onClick={logout}>
+              Log out
+            </button>
+          </div>
         </header>
 
         <form className="trip-form" onSubmit={submitCreate}>
@@ -166,12 +191,12 @@ export function TripsDashboard() {
             <span>Name</span>
             <input
               value={form.name}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  name: event.currentTarget.value,
-                }))
-              }
+              onChange={(event) => {
+                const { value } = event.currentTarget;
+                setForm((current) =>
+                  updateTripFormField(current, "name", value),
+                );
+              }}
               required
             />
           </label>
@@ -180,12 +205,12 @@ export function TripsDashboard() {
             <input
               type="date"
               value={form.startDate}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  startDate: event.currentTarget.value,
-                }))
-              }
+              onChange={(event) => {
+                const { value } = event.currentTarget;
+                setForm((current) =>
+                  updateTripFormField(current, "startDate", value),
+                );
+              }}
             />
           </label>
           <label>
@@ -193,12 +218,12 @@ export function TripsDashboard() {
             <input
               type="date"
               value={form.endDate}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  endDate: event.currentTarget.value,
-                }))
-              }
+              onChange={(event) => {
+                const { value } = event.currentTarget;
+                setForm((current) =>
+                  updateTripFormField(current, "endDate", value),
+                );
+              }}
             />
           </label>
           <label>
@@ -229,6 +254,7 @@ export function TripsDashboard() {
               trips={groups.ongoing}
               editing={editing}
               isSaving={isSaving}
+              deletingTripIds={deletingTripIds}
               timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
@@ -245,6 +271,7 @@ export function TripsDashboard() {
               trips={groups.needsDates}
               editing={editing}
               isSaving={isSaving}
+              deletingTripIds={deletingTripIds}
               timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
@@ -261,6 +288,7 @@ export function TripsDashboard() {
               trips={groups.upcoming}
               editing={editing}
               isSaving={isSaving}
+              deletingTripIds={deletingTripIds}
               timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
@@ -277,6 +305,7 @@ export function TripsDashboard() {
               trips={groups.past}
               editing={editing}
               isSaving={isSaving}
+              deletingTripIds={deletingTripIds}
               timeZoneOptions={editTimeZoneOptions}
               onEditStart={setEditingFromTrip}
               onEditCancel={() => setEditing(null)}
@@ -307,6 +336,7 @@ function TripSection(props: {
   trips: TripSummary[];
   editing: { tripId: number; form: TripFormState } | null;
   isSaving: boolean;
+  deletingTripIds: Set<number>;
   timeZoneOptions: TimeZoneOption[];
   onEditStart: (trip: TripSummary) => void;
   onEditCancel: () => void;
@@ -339,6 +369,7 @@ function TripSection(props: {
               <TripRow
                 key={trip.id}
                 trip={trip}
+                isDeleting={props.deletingTripIds.has(trip.id)}
                 onEdit={() => props.onEditStart(trip)}
                 onDelete={() => props.onDelete(trip)}
               />
@@ -347,41 +378,6 @@ function TripSection(props: {
         </div>
       )}
     </section>
-  );
-}
-
-function TripRow(props: {
-  trip: TripSummary;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const canEditMetadata = props.trip.role === "owner";
-
-  return (
-    <article className="trip-row">
-      <Link className="trip-row-main" href={`/trips/${props.trip.id}`}>
-        <strong>{props.trip.name}</strong>
-        <span>{formatDateRange(props.trip)}</span>
-        <span>{props.trip.timezone}</span>
-      </Link>
-      <span className={`trip-role trip-role-${props.trip.role}`}>
-        {props.trip.role}
-      </span>
-      {canEditMetadata && (
-        <div className="trip-row-actions">
-          <button type="button" onClick={props.onEdit}>
-            Edit
-          </button>
-          <button
-            type="button"
-            className="danger-button"
-            onClick={props.onDelete}
-          >
-            Delete
-          </button>
-        </div>
-      )}
-    </article>
   );
 }
 
@@ -401,12 +397,6 @@ function formFromTrip(trip: TripSummary): TripFormState {
     endDate: trip.end_date ?? "",
     timezone: trip.timezone,
   };
-}
-
-function formatDateRange(trip: TripSummary): string {
-  return trip.start_date && trip.end_date
-    ? `${trip.start_date} to ${trip.end_date}`
-    : "Needs dates";
 }
 
 function timeZoneReferenceDate(
