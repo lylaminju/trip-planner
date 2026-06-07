@@ -18,7 +18,7 @@ import {
   createItineraryItemRequest,
   deleteItineraryItemRequest,
   deletePlaceRequest,
-  loadPlannerSnapshot,
+  loadTripPlannerInitialData,
   logoutRequest,
   saveItineraryItemRequest,
   savePlaceRequest,
@@ -32,6 +32,9 @@ import type {
   ItineraryItem,
   PlannerSnapshot,
   Place,
+  Trip,
+  TripPlannerInitialData,
+  TripRole,
   TravelMode,
 } from "@/lib/types";
 
@@ -44,22 +47,25 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
   itineraryItems: [],
   routeSegments: [],
-  role: "viewer",
 };
 
 type TripPlannerAppProps = {
   tripId: number;
-  initialSnapshot?: PlannerSnapshot;
+  initialData?: TripPlannerInitialData;
 };
 
 export function TripPlannerApp({
   tripId,
-  initialSnapshot,
+  initialData,
 }: TripPlannerAppProps) {
-  const [snapshot, setSnapshot] = useState<PlannerSnapshot>(
-    () => initialSnapshot ?? EMPTY_SNAPSHOT,
+  const [trip, setTrip] = useState<Trip | null>(() => initialData?.trip ?? null);
+  const [role, setRole] = useState<TripRole>(
+    () => initialData?.role ?? "viewer",
   );
-  const didUseInitialSnapshotRef = useRef(Boolean(initialSnapshot));
+  const [plannerSnapshot, setPlannerSnapshot] = useState<PlannerSnapshot>(
+    () => initialData?.plannerSnapshot ?? EMPTY_SNAPSHOT,
+  );
+  const didUseInitialDataRef = useRef(Boolean(initialData));
   const [activeItemId, setActiveItemId] = useState<number | null>(null);
   const [activeCanonicalPlaceId, setActiveCanonicalPlaceId] = useState<
     number | null
@@ -101,28 +107,31 @@ export function TripPlannerApp({
   const itinerary = useMemo(
     () =>
       buildItinerary(
-        snapshot.itineraryItems,
-        snapshot.routeSegments,
-        snapshot.places,
+        plannerSnapshot.itineraryItems,
+        plannerSnapshot.routeSegments,
+        plannerSnapshot.places,
       ),
-    [snapshot],
+    [plannerSnapshot],
   );
   const { routeGeometries, routeGeometryError } = useRouteGeometries(
     tripId,
-    snapshot,
+    plannerSnapshot,
   );
-  const canEdit = snapshot.role !== "viewer";
-  const tripTitle = snapshot.trip?.name ?? "Trip Planner";
-  const canShowCurrentLocation = isTripOngoing(snapshot.trip);
+  const canEdit = role !== "viewer";
+  const tripTitle = trip?.name ?? "Trip Planner";
+  const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
 
   const reload = useCallback(async () => {
-    setSnapshot(await loadPlannerSnapshot(tripId));
+    const next = await loadTripPlannerInitialData(tripId);
+    setTrip(next.trip);
+    setRole(next.role);
+    setPlannerSnapshot(next.plannerSnapshot);
     setError(null);
   }, [tripId]);
 
   useEffect(() => {
-    if (didUseInitialSnapshotRef.current) {
-      didUseInitialSnapshotRef.current = false;
+    if (didUseInitialDataRef.current) {
+      didUseInitialDataRef.current = false;
       return;
     }
 
@@ -165,7 +174,7 @@ export function TripPlannerApp({
   async function savePlace(payload: Record<string, unknown>, id?: number) {
     if (!canEdit) return;
     try {
-      setSnapshot(await savePlaceRequest(tripId, payload, id));
+      setPlannerSnapshot(await savePlaceRequest(tripId, payload, id));
       setActiveCanonicalPlaceId(null);
       setIsAdding(false);
       setEditingPlace(null);
@@ -185,7 +194,7 @@ export function TripPlannerApp({
   ) {
     if (!canEdit) return;
     try {
-      setSnapshot(await saveItineraryItemRequest(tripId, payload, id));
+      setPlannerSnapshot(await saveItineraryItemRequest(tripId, payload, id));
       setEditingItem(null);
       setError(null);
     } catch (reason) {
@@ -201,9 +210,9 @@ export function TripPlannerApp({
 
     setDeletingPlaceIds((current) => new Set(current).add(id));
     try {
-      setSnapshot(await deletePlaceRequest(tripId, id));
+      setPlannerSnapshot(await deletePlaceRequest(tripId, id));
       setActiveItemId((current) => {
-        const deletedItemIds = snapshot.itineraryItems
+        const deletedItemIds = plannerSnapshot.itineraryItems
           .filter((item) => item.place_id === id)
           .map((item) => item.id);
 
@@ -227,7 +236,9 @@ export function TripPlannerApp({
     visitTime: string | null,
   ) {
     if (!canEdit) return;
-    setSnapshot(await schedulePlaceRequest(tripId, id, visitDate, visitTime));
+    setPlannerSnapshot(
+      await schedulePlaceRequest(tripId, id, visitDate, visitTime),
+    );
     setError(null);
   }
 
@@ -237,7 +248,9 @@ export function TripPlannerApp({
   ) {
     if (!canEdit) return;
     try {
-      setSnapshot(await createItineraryItemRequest(tripId, placeId, payload));
+      setPlannerSnapshot(
+        await createItineraryItemRequest(tripId, placeId, payload),
+      );
       setAddingVisitPlace(null);
       setError(null);
     } catch (reason) {
@@ -253,7 +266,7 @@ export function TripPlannerApp({
     visitTime: string | null,
   ) {
     if (!canEdit) return;
-    setSnapshot(
+    setPlannerSnapshot(
       await scheduleItineraryItemRequest(tripId, id, visitDate, visitTime),
     );
     setError(null);
@@ -265,7 +278,7 @@ export function TripPlannerApp({
 
     setDeletingItineraryItemIds((current) => new Set(current).add(id));
     try {
-      setSnapshot(await deleteItineraryItemRequest(tripId, id));
+      setPlannerSnapshot(await deleteItineraryItemRequest(tripId, id));
       setActiveItemId((current) => (current === id ? null : current));
       setActiveSegmentId(null);
       setActiveDate(null);
@@ -281,7 +294,7 @@ export function TripPlannerApp({
 
   async function updateSegmentMode(id: number, mode: TravelMode) {
     if (!canEdit) return;
-    setSnapshot(await updateSegmentModeRequest(tripId, id, mode));
+    setPlannerSnapshot(await updateSegmentModeRequest(tripId, id, mode));
     setError(null);
   }
 
@@ -470,7 +483,7 @@ export function TripPlannerApp({
       <PlannerPanel
         title={tripTitle}
         itinerary={itinerary}
-        places={snapshot.places}
+        places={plannerSnapshot.places}
         activePlaceId={activeItemId}
         activeCanonicalPlaceId={activeCanonicalPlaceId}
         activeSegmentId={activeSegmentId}
@@ -563,7 +576,7 @@ export function TripPlannerApp({
       />
       <MapPanel
         itinerary={itinerary}
-        routeSegments={snapshot.routeSegments}
+        routeSegments={plannerSnapshot.routeSegments}
         activePlaceId={activeItemId}
         activeCanonicalPlaceId={activeCanonicalPlaceId}
         activeSegmentId={activeSegmentId}

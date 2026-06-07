@@ -1,4 +1,9 @@
-import type { Place, PlannerSnapshot, TravelMode } from "@/lib/types";
+import type {
+  Place,
+  PlannerSnapshot,
+  TravelMode,
+  TripPlannerInitialData,
+} from "@/lib/types";
 
 import { resolveGoogleMapsUrl } from "./google-url-resolver";
 import type {
@@ -36,15 +41,15 @@ export async function getPlannerSnapshot(
   return supabasePlaceService.getPlannerSnapshot(tripId);
 }
 
-export async function getPlannerSnapshotForRequest(
+export async function getTripPlannerInitialDataForRequest(
   tripId: number,
   userId: string,
-): Promise<PlannerSnapshot> {
+): Promise<TripPlannerInitialData> {
   const membership = await requireTripRole(tripId, userId, "viewer");
   return {
     trip: await getTripById(tripId),
-    ...(await getPlannerSnapshot(tripId)),
     role: membership.role,
+    plannerSnapshot: await getPlannerSnapshot(tripId),
   };
 }
 

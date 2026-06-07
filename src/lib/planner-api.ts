@@ -1,8 +1,13 @@
-import type { PlannerSnapshot, RouteGeometry, TravelMode } from "./types";
+import type {
+  PlannerSnapshot,
+  RouteGeometry,
+  TravelMode,
+  TripPlannerInitialData,
+} from "./types";
 
-export async function loadPlannerSnapshot(
+export async function loadTripPlannerInitialData(
   tripId: number,
-): Promise<PlannerSnapshot> {
+): Promise<TripPlannerInitialData> {
   const response = await fetch(`${tripApiBase(tripId)}/planner`);
   if (!response.ok) {
     throw new Error("Failed to load places.");

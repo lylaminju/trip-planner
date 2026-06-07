@@ -5,7 +5,7 @@ import {
   requireAuthenticatedRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
-import { getPlannerSnapshotForRequest } from "@/server/place-service";
+import { getTripPlannerInitialDataForRequest } from "@/server/place-service";
 
 import { readTripIdParam, type TripParams } from "../_utils";
 
@@ -23,7 +23,7 @@ export async function GET(request: Request, { params }: TripParams) {
   try {
     return withRefreshedSession(
       NextResponse.json(
-        await getPlannerSnapshotForRequest(tripId, auth.user.id),
+        await getTripPlannerInitialDataForRequest(tripId, auth.user.id),
       ),
       auth.refreshedSession,
     );

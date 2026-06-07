@@ -89,9 +89,13 @@ export type ItineraryView = {
 };
 
 export type PlannerSnapshot = {
-  trip?: Trip;
   places: Place[];
   itineraryItems: ItineraryItem[];
   routeSegments: RouteSegment[];
-  role?: TripRole;
+};
+
+export type TripPlannerInitialData = {
+  trip: Trip;
+  role: TripRole;
+  plannerSnapshot: PlannerSnapshot;
 };

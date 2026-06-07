@@ -7,7 +7,7 @@ import {
   readAuthTokensFromCookieStore,
 } from "@/server/auth-session";
 import { TripAccessDeniedError } from "@/server/errors";
-import { getPlannerSnapshotForRequest } from "@/server/place-service";
+import { getTripPlannerInitialDataForRequest } from "@/server/place-service";
 
 type Props = {
   params: Promise<{ tripId: string }>;
@@ -30,7 +30,7 @@ export default async function TripPlannerPage({ params }: Props) {
   }
 
   try {
-    const initialSnapshot = await getPlannerSnapshotForRequest(
+    const initialData = await getTripPlannerInitialDataForRequest(
       parsedTripId,
       user.id,
     );
@@ -38,7 +38,7 @@ export default async function TripPlannerPage({ params }: Props) {
     return (
       <TripPlannerApp
         tripId={parsedTripId}
-        initialSnapshot={initialSnapshot}
+        initialData={initialData}
       />
     );
   } catch (error) {

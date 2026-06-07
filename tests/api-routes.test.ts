@@ -263,6 +263,11 @@ describe("API routes transport behavior", () => {
             id: 1,
             name: "New York City",
           },
+          plannerSnapshot: {
+            places: [],
+            itineraryItems: [],
+            routeSegments: [],
+          },
           role: "viewer",
         });
 

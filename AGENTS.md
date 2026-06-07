@@ -10,6 +10,16 @@ This file applies to the whole repository. Follow it when changing code here.
 - Put reusable data and API helpers in `src/lib/*`; keep component files free of raw fetch contract details when the contract is shared or verbose.
 - Put reusable hooks in `src/hooks/*`; hooks may own effects and related state transitions.
 
+## State Shape Boundaries
+
+- When adding server-loaded data or expanding an existing state object, verify that the type name still matches its ownership and update lifecycle.
+- Do not mix stable page context, such as trip metadata or permissions, into mutable collection snapshots unless all producers and consumers intentionally share the same contract.
+- Prefer separate state and types when data changes through different workflows:
+  - Page context: trip metadata, role, auth-derived permissions.
+  - Mutable planner data: places, itinerary items, route segments.
+  - UI state: selection, modals, collapsed panels, loading/deleting flags.
+- If a mutation response is used to replace client state, confirm whether it is a full replacement contract or a partial domain update. Rename types and functions when the distinction matters.
+
 ## File Size Guardrails
 
 - Target new or edited source files under 300 lines.
