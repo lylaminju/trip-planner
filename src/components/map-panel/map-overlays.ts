@@ -1,5 +1,5 @@
-import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type { CurrentLocationPosition } from "@/lib/current-location";
+import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
   ItineraryItem,
   ItineraryView,
@@ -21,6 +21,8 @@ import {
   placeMarkerKey,
   polylineSignature,
 } from "./map-signatures";
+
+const SINGLE_MARKER_INITIAL_ZOOM = 14;
 
 export type MarkerRecord = {
   marker: any;
@@ -94,6 +96,7 @@ export function renderOverlays(input: {
   }
 
   const bounds = new googleMaps.maps.LatLngBounds();
+  const markerPositions: Array<{ lat: number; lng: number }> = [];
   const itemsById = new Map(input.items.map((item) => [item.id, item]));
   const nextMarkerKeys = new Set<string>();
   const infoWindow = getInfoWindow(input.infoWindowRef);
@@ -102,6 +105,7 @@ export function renderOverlays(input: {
     const place = item.place;
     const position = { lat: place.latitude, lng: place.longitude };
     bounds.extend(position);
+    markerPositions.push(position);
     const color = input.itemColors.get(item.id) ?? "#64748b";
     const label = input.markerLabels.get(item.id) ?? null;
     const markerKey = itemMarkerKey(item.id);
@@ -139,6 +143,7 @@ export function renderOverlays(input: {
   for (const place of input.unscheduledPlaces) {
     const position = { lat: place.latitude, lng: place.longitude };
     bounds.extend(position);
+    markerPositions.push(position);
     const color = "#94a3b8";
     const markerKey = placeMarkerKey(place.id);
     nextMarkerKeys.add(markerKey);
@@ -229,6 +234,15 @@ export function renderOverlays(input: {
 
   if (!bounds.isEmpty() && input.boundsSignatureRef.current === "") {
     input.boundsSignatureRef.current = "initialized";
+    if (markerPositions.length === 1) {
+      input.map.panTo(markerPositions[0]);
+      input.map.setZoom?.(SINGLE_MARKER_INITIAL_ZOOM);
+      if (shouldOffsetFocusForHalfSheet(input.mobileSheetState)) {
+        input.map.panBy(0, Math.round(window.innerHeight * 0.32));
+      }
+      return;
+    }
+
     input.map.fitBounds(bounds, 48);
     if (shouldOffsetFocusForHalfSheet(input.mobileSheetState)) {
       window.google?.maps?.event?.addListenerOnce?.(input.map, "idle", () => {
