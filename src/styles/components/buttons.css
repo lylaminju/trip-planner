@@ -56,6 +56,17 @@ button:hover {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+button:disabled:hover {
+  background: #ffffff;
+  border-color: var(--line);
+  box-shadow: none;
+}
+
 .small-button:focus-visible,
 button:focus-visible {
   border-color: var(--accent);
@@ -71,6 +82,22 @@ button:focus-visible {
   background: #fef3f2;
   border-color: #f3c3bf;
   color: #912018;
+}
+
+.delete-loading-spinner {
+  animation: delete-spinner-rotate 800ms linear infinite;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  border-right-color: transparent;
+  display: inline-block;
+  height: 14px;
+  width: 14px;
+}
+
+@keyframes delete-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-text {

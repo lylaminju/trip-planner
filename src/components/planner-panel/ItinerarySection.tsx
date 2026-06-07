@@ -39,6 +39,8 @@ type Props = {
   routeGeometries: Map<number, RouteGeometry>;
   markerLabels: Map<number, string>;
   canEdit: boolean;
+  deletingPlaceIds: ReadonlySet<number>;
+  deletingItineraryItemIds: ReadonlySet<number>;
   isExpanded: boolean;
   isOpen: boolean;
   isUnscheduledOpen: boolean;
@@ -284,6 +286,9 @@ export function ItinerarySection(props: Props) {
                           markerColor={day.color}
                           onDragEnd={() => props.onDropTargetChange(null)}
                           canEdit={props.canEdit}
+                          isDeleting={props.deletingItineraryItemIds.has(
+                            item.id,
+                          )}
                           onSelect={() =>
                             props.onSelectPlace(
                               props.activePlaceId === item.id ? null : item.id,
@@ -380,6 +385,7 @@ export function ItinerarySection(props: Props) {
             onSelectCanonicalPlace={props.onSelectCanonicalPlace}
             onSelectSegment={props.onSelectSegment}
             canEdit={props.canEdit}
+            deletingPlaceIds={props.deletingPlaceIds}
             onAddVisit={props.onAddVisit}
             onEdit={props.onEdit}
             onDelete={props.onDelete}
@@ -426,6 +432,7 @@ function UnscheduledBlock(props: {
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
   canEdit: boolean;
+  deletingPlaceIds: ReadonlySet<number>;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
   onDelete: (id: number) => void;
@@ -475,6 +482,7 @@ function UnscheduledBlock(props: {
             place={place}
             active={props.activeCanonicalPlaceId === place.id}
             canEdit={props.canEdit}
+            isDeleting={props.deletingPlaceIds.has(place.id)}
             onSelect={() =>
               props.onSelectCanonicalPlace(
                 props.activeCanonicalPlaceId === place.id ? null : place.id,

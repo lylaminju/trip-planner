@@ -70,6 +70,12 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingPlaceIds, setDeletingPlaceIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [deletingItineraryItemIds, setDeletingItineraryItemIds] = useState<
+    Set<number>
+  >(() => new Set());
   const [exportFeedback, setExportFeedback] = useState<{
     action: "copy" | "download";
     kind: "error" | "success";
@@ -179,17 +185,28 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
 
   async function deletePlace(id: number) {
     if (!canEdit) return;
-    setSnapshot(await deletePlaceRequest(tripId, id));
-    setActiveItemId((current) => {
-      const deletedItemIds = snapshot.itineraryItems
-        .filter((item) => item.place_id === id)
-        .map((item) => item.id);
+    if (deletingPlaceIds.has(id)) return;
 
-      return deletedItemIds.includes(current ?? -1) ? null : current;
-    });
-    setActiveCanonicalPlaceId((current) => (current === id ? null : current));
-    setActiveSegmentId(null);
-    setError(null);
+    setDeletingPlaceIds((current) => new Set(current).add(id));
+    try {
+      setSnapshot(await deletePlaceRequest(tripId, id));
+      setActiveItemId((current) => {
+        const deletedItemIds = snapshot.itineraryItems
+          .filter((item) => item.place_id === id)
+          .map((item) => item.id);
+
+        return deletedItemIds.includes(current ?? -1) ? null : current;
+      });
+      setActiveCanonicalPlaceId((current) => (current === id ? null : current));
+      setActiveSegmentId(null);
+      setError(null);
+    } finally {
+      setDeletingPlaceIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+    }
   }
 
   async function schedulePlace(
@@ -232,11 +249,22 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
 
   async function deleteItineraryItem(id: number) {
     if (!canEdit) return;
-    setSnapshot(await deleteItineraryItemRequest(tripId, id));
-    setActiveItemId((current) => (current === id ? null : current));
-    setActiveSegmentId(null);
-    setActiveDate(null);
-    setError(null);
+    if (deletingItineraryItemIds.has(id)) return;
+
+    setDeletingItineraryItemIds((current) => new Set(current).add(id));
+    try {
+      setSnapshot(await deleteItineraryItemRequest(tripId, id));
+      setActiveItemId((current) => (current === id ? null : current));
+      setActiveSegmentId(null);
+      setActiveDate(null);
+      setError(null);
+    } finally {
+      setDeletingItineraryItemIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+    }
   }
 
   async function updateSegmentMode(id: number, mode: TravelMode) {
@@ -443,6 +471,8 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
         isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
         canEdit={canEdit}
+        deletingPlaceIds={deletingPlaceIds}
+        deletingItineraryItemIds={deletingItineraryItemIds}
         canShowCurrentLocation={canShowCurrentLocation}
         isCurrentLocationActive={isCurrentLocationEnabled}
         onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
