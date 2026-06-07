@@ -49,10 +49,17 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
 
 type TripPlannerAppProps = {
   tripId: number;
+  initialSnapshot?: PlannerSnapshot;
 };
 
-export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
-  const [snapshot, setSnapshot] = useState<PlannerSnapshot>(EMPTY_SNAPSHOT);
+export function TripPlannerApp({
+  tripId,
+  initialSnapshot,
+}: TripPlannerAppProps) {
+  const [snapshot, setSnapshot] = useState<PlannerSnapshot>(
+    () => initialSnapshot ?? EMPTY_SNAPSHOT,
+  );
+  const didUseInitialSnapshotRef = useRef(Boolean(initialSnapshot));
   const [activeItemId, setActiveItemId] = useState<number | null>(null);
   const [activeCanonicalPlaceId, setActiveCanonicalPlaceId] = useState<
     number | null
@@ -114,6 +121,11 @@ export function TripPlannerApp({ tripId }: TripPlannerAppProps) {
   }, [tripId]);
 
   useEffect(() => {
+    if (didUseInitialSnapshotRef.current) {
+      didUseInitialSnapshotRef.current = false;
+      return;
+    }
+
     reload().catch((reason) => {
       setError(
         reason instanceof Error ? reason.message : "Failed to load places.",
