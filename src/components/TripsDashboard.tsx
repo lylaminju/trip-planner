@@ -167,7 +167,7 @@ export function TripsDashboard() {
     try {
       await logoutRequest();
     } finally {
-      window.location.assign("/login");
+      window.location.assign("/");
     }
   }
 

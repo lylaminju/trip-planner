@@ -7,6 +7,10 @@ data/*.sqlite-shm
 data/*.sqlite-wal
 .DS_Store
 
+.agents/
+.claude/
+.gemini/
+.kiro/
 .omx/
 .superpowers/
 tsconfig.tsbuildinfo

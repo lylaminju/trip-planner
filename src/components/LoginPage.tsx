@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+import { LandingFooter } from "./landing/LandingFooter";
+import { LandingFeatureProof } from "./landing/LandingFeatureProof";
+import { LandingHero } from "./landing/LandingHero";
+
 export function LoginPage() {
   const [emailLocalPart, setEmailLocalPart] = useState("");
   const [emailDomain, setEmailDomain] = useState("gmail.com");
@@ -38,12 +42,17 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-shell">
-      <section className="login-card">
+    <main className="login-shell landing-shell">
+      <LandingHero />
+      <LandingFeatureProof />
+
+      <section
+        className="login-card landing-sign-in"
+        id="sign-in"
+        aria-labelledby="sign-in-title"
+      >
         <div className="login-copy">
-          <p className="login-kicker">Trip Planner</p>
-          <h1>Sign in</h1>
-          <p>Access is limited to manually created accounts.</p>
+          <h2 id="sign-in-title">Sign in</h2>
         </div>
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
@@ -87,6 +96,8 @@ export function LoginPage() {
           </button>
         </form>
       </section>
+
+      <LandingFooter />
     </main>
   );
 }

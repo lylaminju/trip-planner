@@ -14,7 +14,7 @@ export default async function TripsPage() {
   );
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   return <TripsDashboard />;

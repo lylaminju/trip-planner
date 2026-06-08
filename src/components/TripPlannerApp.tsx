@@ -374,7 +374,7 @@ export function TripPlannerApp({
     try {
       await logoutRequest();
     } finally {
-      window.location.assign("/login");
+      window.location.assign("/");
     }
   }
 
