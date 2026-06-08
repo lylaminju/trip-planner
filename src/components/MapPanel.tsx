@@ -44,8 +44,12 @@ type Props = {
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
   currentLocationPosition: CurrentLocationPosition | null;
+  currentLocationToast: string | null;
+  canShowCurrentLocation: boolean;
+  isCurrentLocationActive: boolean;
   hidden?: boolean;
   canEdit: boolean;
+  onToggleCurrentLocation: () => void;
   onAddPlace: () => void;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
@@ -408,7 +412,9 @@ export function MapPanel(props: Props) {
 
   return (
     <section
-      className={`panel panel-map ${props.hidden ? "panel-map-hidden" : ""}`}
+      className={`panel panel-map ${
+        props.canShowCurrentLocation ? "map-current-location-available" : ""
+      } ${props.hidden ? "panel-map-hidden" : ""}`}
       aria-label="Google map"
       aria-hidden={props.hidden}
     >
@@ -428,6 +434,35 @@ export function MapPanel(props: Props) {
         <div className="map-route-warning">
           <p>{props.routeGeometryError}</p>
         </div>
+      )}
+      {props.currentLocationToast && props.canShowCurrentLocation && (
+        <div className="map-current-location-toast" role="alert">
+          {props.currentLocationToast}
+        </div>
+      )}
+      {props.canShowCurrentLocation && (
+        <button
+          type="button"
+          className={`map-current-location-button ${
+            props.isCurrentLocationActive ? "active" : ""
+          }`}
+          aria-label={
+            props.isCurrentLocationActive
+              ? "Hide my location"
+              : "Show my location"
+          }
+          aria-pressed={props.isCurrentLocationActive}
+          title={
+            props.isCurrentLocationActive
+              ? "Hide my location"
+              : "Show my location"
+          }
+          onClick={props.onToggleCurrentLocation}
+        >
+          <span className="map-current-location-icon" aria-hidden="true">
+            <span />
+          </span>
+        </button>
       )}
     </section>
   );

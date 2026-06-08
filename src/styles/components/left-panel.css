@@ -3,40 +3,6 @@
   display: none;
 }
 
-.current-location-button {
-  align-items: center;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 6px;
-  color: #1d4ed8;
-  display: inline-flex;
-  font-weight: 700;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.current-location-button.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
-}
-
-.current-location-toast {
-  background: rgba(15, 23, 42, 0.94);
-  border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.35;
-  max-width: min(280px, calc(100% - 32px));
-  padding: 8px 10px;
-  position: absolute;
-  right: 16px;
-  top: 62px;
-  z-index: 30;
-}
-
 .section-heading-row {
   align-items: center;
   display: flex;

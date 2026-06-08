@@ -2575,7 +2575,7 @@ button {
   display: grid;
   gap: 12px;
   max-height: calc(100vh - 32px);
-  max-width: 620px;
+  max-width: 420px;
   overflow: auto;
   padding: 16px;
   width: calc(100vw - 32px);

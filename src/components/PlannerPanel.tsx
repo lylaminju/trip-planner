@@ -29,7 +29,6 @@ type Props = {
   collapsedDates: ReadonlySet<string>;
   routeGeometries: Map<number, RouteGeometry>;
   error: string | null;
-  currentLocationToast: string | null;
   exportFeedback: {
     action: "copy" | "download";
     kind: "error" | "success";
@@ -41,12 +40,10 @@ type Props = {
   canAddVisits: boolean;
   deletingPlaceIds: ReadonlySet<number>;
   deletingItineraryItemIds: ReadonlySet<number>;
-  canShowCurrentLocation: boolean;
-  isCurrentLocationActive: boolean;
   onToggleExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
-  onToggleCurrentLocation: () => void;
   onAdd: () => void;
+  onEditTrip?: () => void;
   onCopyExport: () => void;
   onDownloadExport: () => void;
   onLogout: () => void;
@@ -151,34 +148,8 @@ export function PlannerPanel(props: Props) {
         <span aria-hidden="true" />
       </button>
       <header className="app-header">
-        <h1>{props.title}</h1>
-        <div className="app-header-actions">
-          {props.canEdit && (
-            <button type="button" onClick={props.onAdd}>
-              Add Place
-            </button>
-          )}
-          {props.canShowCurrentLocation && (
-            <button
-              type="button"
-              className={`current-location-button ${
-                props.isCurrentLocationActive ? "active" : ""
-              }`}
-              aria-pressed={props.isCurrentLocationActive}
-              onClick={props.onToggleCurrentLocation}
-            >
-              {props.isCurrentLocationActive
-                ? "Hide my location"
-                : "Show my location"}
-            </button>
-          )}
-          <button
-            type="button"
-            className="desktop-logout-button"
-            onClick={props.onLogout}
-          >
-            Log out
-          </button>
+        <div className="app-header-title-row">
+          <h1>{props.title}</h1>
           <button
             type="button"
             className="panel-expand-toggle"
@@ -191,13 +162,26 @@ export function PlannerPanel(props: Props) {
             {props.isExpanded ? "<< Collapse" : "Expand >>"}
           </button>
         </div>
-      </header>
-
-      {props.currentLocationToast && props.canShowCurrentLocation && (
-        <div className="current-location-toast" role="alert">
-          {props.currentLocationToast}
+        <div className="app-header-action-row">
+          {props.canEdit && (
+            <button type="button" onClick={props.onAdd}>
+              Add Place
+            </button>
+          )}
+          {props.onEditTrip && (
+            <button type="button" onClick={props.onEditTrip}>
+              Edit trip
+            </button>
+          )}
+          <button
+            type="button"
+            className="desktop-logout-button"
+            onClick={props.onLogout}
+          >
+            Log out
+          </button>
         </div>
-      )}
+      </header>
 
       {props.error && <p className="error-text">{props.error}</p>}
 

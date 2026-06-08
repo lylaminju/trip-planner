@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 
 import type { TimeZoneOption } from "@/lib/timezones";
 import { TimeZoneSelect } from "./TimeZoneSelect";
@@ -10,7 +10,7 @@ export function TripEditForm(props: {
   timeZoneOptions: TimeZoneOption[];
   onChange: (form: TripFormState) => void;
   onCancel: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
   return (
     <form className="trip-row trip-edit-form" onSubmit={props.onSubmit}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import type { Place, VisitDateOption } from "@/lib/types";
 
@@ -26,7 +26,7 @@ export function AddEditPlaceModal({
   const [visitTimeHour, visitTimeMinute] = splitVisitTime(null);
   const isEditing = place !== null;
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
     setError(null);

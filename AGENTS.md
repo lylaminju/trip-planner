@@ -32,6 +32,9 @@ This file applies to the whole repository. Follow it when changing code here.
 - Preserve behavior first. Run existing tests and typecheck before and after behavior-preserving refactors.
 - Prefer extraction over rewrites: move code to clearer files before changing logic.
 - Avoid new dependencies unless the task explicitly requires one.
+- Do not introduce deprecated APIs, types, or framework patterns. When touching
+  recently updated libraries such as React or Next.js, verify current types and
+  docs instead of copying older repo usage blindly.
 - Keep props typed at component boundaries. Do not replace precise domain types with broad `any` to make extraction easier.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
 - In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.

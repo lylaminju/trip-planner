@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type SubmitEvent,
+} from "react";
 
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
 import {
@@ -33,6 +40,11 @@ import {
 import { toggleSelectedId } from "@/lib/selection";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
+import {
+  getTimeZoneOptions,
+  timeZoneDateFromIsoDate,
+} from "@/lib/timezones";
+import { updateTrip, type TripMetadataPayload } from "@/lib/trips-api";
 import type {
   ItineraryItem,
   PlannerSnapshot,
@@ -44,9 +56,11 @@ import type {
 } from "@/lib/types";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
+import { EditTripModal } from "./EditTripModal";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { MapPanel } from "./MapPanel";
 import { PlannerPanel } from "./PlannerPanel";
+import type { TripFormState } from "./trip-form-types";
 
 const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
@@ -84,8 +98,11 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     useState<MobileSheetState>("half");
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
+  const [editingTripForm, setEditingTripForm] =
+    useState<TripFormState | null>(null);
   const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingPlaceIds, setDeletingPlaceIds] = useState<Set<number>>(
     () => new Set(),
@@ -122,8 +139,17 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     plannerSnapshot,
   );
   const canEdit = role !== "viewer";
+  const canEditTripMetadata = role === "owner";
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
+  const editTripTimeZoneOptions = useMemo(
+    () =>
+      getTimeZoneOptions({
+        include: editingTripForm?.timezone ? [editingTripForm.timezone] : [],
+        now: timeZoneDateFromIsoDate(editingTripForm?.startDate),
+      }),
+    [editingTripForm?.startDate, editingTripForm?.timezone],
+  );
 
   const reload = useCallback(async () => {
     const next = await loadTripPlannerInitialData(tripId);
@@ -338,11 +364,36 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setIsAdding(false);
   }
 
+  function openEditTripModal() {
+    if (!canEditTripMetadata || !trip) return;
+    setError(null);
+    setEditingTripForm(formFromTrip(trip));
+  }
+
   function closeModal() {
     setIsAdding(false);
     setEditingPlace(null);
     setEditingItem(null);
     setAddingVisitPlace(null);
+  }
+
+  async function submitEditTrip(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingTripForm || !canEditTripMetadata) return;
+
+    setIsSavingTrip(true);
+    setError(null);
+
+    try {
+      const updatedTrip = await updateTrip(tripId, formPayload(editingTripForm));
+      setTrip(updatedTrip);
+      setEditingTripForm(null);
+      setError(null);
+    } catch (reason) {
+      setError(errorMessage(reason, "Failed to update trip."));
+    } finally {
+      setIsSavingTrip(false);
+    }
   }
 
   function toggleSegmentSelection(id: number | null) {
@@ -495,7 +546,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
         collapsedDates={collapsedDates}
         routeGeometries={routeGeometries}
         error={error}
-        currentLocationToast={currentLocationToast}
         exportFeedback={exportFeedback}
         isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
@@ -503,12 +553,10 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
         canAddVisits={canAddVisits}
         deletingPlaceIds={deletingPlaceIds}
         deletingItineraryItemIds={deletingItineraryItemIds}
-        canShowCurrentLocation={canShowCurrentLocation}
-        isCurrentLocationActive={isCurrentLocationEnabled}
         onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
         onMobileSheetStateChange={setMobileSheetState}
-        onToggleCurrentLocation={toggleCurrentLocation}
         onAdd={openAddModal}
+        onEditTrip={canEditTripMetadata ? openEditTripModal : undefined}
         onCopyExport={() => {
           copyMarkdownExport().catch(() => {
             setExportFeedback({
@@ -590,8 +638,12 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
         routeGeometries={routeGeometries}
         routeGeometryError={routeGeometryError}
         currentLocationPosition={currentLocationPosition}
+        currentLocationToast={currentLocationToast}
+        canShowCurrentLocation={canShowCurrentLocation}
+        isCurrentLocationActive={isCurrentLocationEnabled}
         hidden={isPlannerPanelExpanded}
         canEdit={canEdit}
+        onToggleCurrentLocation={toggleCurrentLocation}
         onAddPlace={openAddModal}
         onSelectPlace={selectItem}
         onSelectSegment={toggleSegmentSelection}
@@ -622,6 +674,16 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
           }
         />
       )}
+      {editingTripForm && (
+        <EditTripModal
+          form={editingTripForm}
+          isSaving={isSavingTrip}
+          timeZoneOptions={editTripTimeZoneOptions}
+          onChange={setEditingTripForm}
+          onCancel={() => setEditingTripForm(null)}
+          onSubmit={submitEditTrip}
+        />
+      )}
     </main>
   );
 }
@@ -650,6 +712,24 @@ function toTripDateRange(trip: Trip | null): ItineraryDateRange | undefined {
   return {
     startDate: trip.start_date,
     endDate: trip.end_date,
+  };
+}
+
+function formPayload(form: TripFormState): TripMetadataPayload {
+  return {
+    name: form.name,
+    start_date: form.startDate || null,
+    end_date: form.endDate || null,
+    timezone: form.timezone,
+  };
+}
+
+function formFromTrip(trip: Trip): TripFormState {
+  return {
+    name: trip.name,
+    startDate: trip.start_date ?? "",
+    endDate: trip.end_date ?? "",
+    timezone: trip.timezone,
   };
 }
 

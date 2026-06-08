@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 
 import { logoutRequest } from "@/lib/planner-api";
 import {
@@ -96,7 +96,7 @@ export function TripsDashboard() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function submitCreate(event: FormEvent<HTMLFormElement>) {
+  async function submitCreate(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
     setError(null);
@@ -118,7 +118,7 @@ export function TripsDashboard() {
     }
   }
 
-  async function submitEdit(event: FormEvent<HTMLFormElement>) {
+  async function submitEdit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editing) return;
 
@@ -345,7 +345,7 @@ function TripSection(props: {
   onEditStart: (trip: TripSummary) => void;
   onEditCancel: () => void;
   onEditChange: (form: TripFormState) => void;
-  onEditSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onEditSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
   onDelete: (trip: TripSummary) => void;
 }) {
   return (

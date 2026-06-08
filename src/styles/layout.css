@@ -31,21 +31,28 @@
 }
 
 .app-header {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-header h1 {
+  margin: 0;
+  min-width: 0;
+}
+
+.app-header-title-row,
+.app-header-action-row {
   align-items: center;
   display: flex;
   gap: 8px;
   justify-content: space-between;
 }
 
-.app-header h1 {
-  margin: 0;
-}
-
-.app-header-actions {
-  display: flex;
+.app-header-action-row {
   flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .mobile-logout-footer {
