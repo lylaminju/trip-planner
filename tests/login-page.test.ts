@@ -26,6 +26,9 @@ describe("LoginPage landing page", () => {
     expect(markup).toContain("11:10 Lunch stop");
     expect(markup).toContain("14:20 Afternoon walk");
     expect(markup).toContain("landing-route-segment");
+    expect(markup).toContain("place-row landing-itinerary-stop");
+    expect(markup).toContain("route-mode-select");
+    expect(markup).toContain("map-marker landing-map-marker");
     expect(markup).toContain("walking");
     expect(markup).toContain("transit");
     expect(markup).toContain("18 min");

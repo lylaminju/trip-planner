@@ -50,26 +50,28 @@
 }
 
 .landing-hero {
-  align-items: center;
+  align-items: stretch;
   display: grid;
-  gap: 28px;
-  grid-template-columns: minmax(0, 0.82fr) minmax(520px, 1.18fr);
+  gap: 24px;
+  grid-template-columns: 1fr;
   margin: 0 auto;
   max-width: 1120px;
   width: 100%;
 }
 
 .landing-hero-copy {
+  align-items: end;
   display: grid;
-  gap: 16px;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
 }
 
 .landing-hero h1 {
-  font-size: clamp(40px, 7vw, 76px);
-  letter-spacing: -0.03em;
-  line-height: 0.96;
+  font-size: 64px;
+  letter-spacing: 0;
+  line-height: 1;
   margin: 0;
-  max-width: 11ch;
+  max-width: 18ch;
   text-wrap: balance;
 }
 
@@ -154,11 +156,28 @@
 .landing-planner-panel {
   border-right: 1px solid var(--line);
   display: grid;
-  gap: 10px;
+  gap: 12px;
   padding: 14px;
 }
 
-.landing-trip-name,
+.landing-preview-header,
+.landing-preview-section-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.landing-preview-header h2 {
+  font-size: 18px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.landing-preview-add {
+  flex: 0 0 auto;
+}
+
 .landing-section-label,
 .landing-day-label {
   color: var(--accent);
@@ -168,53 +187,24 @@
 }
 
 .landing-day-card {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  display: grid;
-  gap: 7px;
-  padding: 10px;
+  margin: 0;
 }
 
 .landing-itinerary-stop {
-  border-left: 3px solid #94a3b8;
-  color: #334155;
-  display: grid;
-  gap: 2px;
-  padding: 4px 0 4px 8px;
-}
-
-.landing-itinerary-stop.active {
-  border-left-color: var(--accent);
-}
-
-.landing-itinerary-stop span,
-.landing-route-segment {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.landing-route-segment {
-  align-items: center;
-  border-left: 1px solid var(--line);
-  display: flex;
-  gap: 7px;
-  margin-left: 8px;
-  padding: 4px 0 4px 8px;
-}
-
-.landing-route-mode,
-.landing-route-map-link {
   background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--text);
-  padding: 3px 6px;
 }
 
-.landing-route-map-link {
-  align-items: center;
-  display: inline-flex;
-  justify-content: center;
+.landing-itinerary-stop .place-main {
+  pointer-events: none;
+}
+
+.landing-itinerary-stop .place-main > span {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.landing-route-segment {
+  cursor: default;
 }
 
 .landing-route-map-link svg {
@@ -225,6 +215,7 @@
 .landing-map-panel {
   background: linear-gradient(135deg, #e8f1ef, #eef2f6);
   min-height: 280px;
+  position: relative;
 }
 
 .landing-map-lines {
@@ -250,9 +241,26 @@
 }
 
 .landing-map-marker {
-  fill: var(--accent);
-  stroke: #ffffff;
-  stroke-width: 3;
+  --map-marker-size: 24px;
+  --map-marker-font-size: 12px;
+  background: var(--accent);
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.landing-map-marker-one {
+  left: 18%;
+  top: 26%;
+}
+
+.landing-map-marker-two {
+  left: 50%;
+  top: 45%;
+}
+
+.landing-map-marker-three {
+  left: 86%;
+  top: 65%;
 }
 
 .landing-feature-proof {
@@ -379,13 +387,13 @@
     flex-wrap: wrap;
   }
 
-  .landing-hero,
+  .landing-hero-copy,
   .landing-access-note {
     grid-template-columns: 1fr;
   }
 
   .landing-hero h1 {
-    font-size: clamp(38px, 13vw, 58px);
+    font-size: 48px;
   }
 
   .landing-product-frame {
@@ -403,6 +411,10 @@
 }
 
 @media (max-width: 560px) {
+  .landing-hero h1 {
+    font-size: 38px;
+  }
+
   .landing-feature-proof {
     grid-template-columns: 1fr;
   }

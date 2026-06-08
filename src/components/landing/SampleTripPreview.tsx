@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "@/components/Icons";
+import { ExternalLinkIcon, PencilIcon, TrashIcon } from "@/components/Icons";
 
 export function SampleTripPreview() {
   return (
@@ -21,14 +21,69 @@ export function SampleTripPreview() {
         aria-label="Sample planner and map preview"
       >
         <div className="landing-planner-panel">
-          <p className="landing-trip-name">Weekend trip, 4 days</p>
-          <div className="landing-day-card">
-            <p className="landing-day-label">Day 2</p>
-            <ItineraryStop time="09:30" name="First stop" active />
+          <header className="landing-preview-header">
+            <h2>Weekend trip, 4 days</h2>
+            <button type="button" className="landing-preview-add">
+              Add place
+            </button>
+          </header>
+          <div className="section-heading-row landing-preview-section-row">
+            <div className="section-toggle compact">
+              <h2>Itineraries</h2>
+            </div>
+            <button
+              type="button"
+              className="route-segment-toggle active"
+              aria-checked="true"
+            >
+              <span>Route details</span>
+              <span className="route-segment-switch-track" aria-hidden="true">
+                <span className="route-segment-switch-knob" />
+              </span>
+            </button>
+          </div>
+          <div className="day-block landing-day-card">
+            <h3 className="day-heading">
+              <span className="day-heading-title-group">
+                <button
+                  type="button"
+                  className="day-heading-button"
+                  style={{ borderColor: "#0f766e" }}
+                  aria-pressed="true"
+                >
+                  <span className="day-heading-prefix">Day 2</span>
+                  <span className="day-heading-text">Planned day</span>
+                </button>
+                <button
+                  type="button"
+                  className="day-collapse-button"
+                  aria-label="Collapse Planned day itinerary"
+                >
+                  <span aria-hidden="true">v</span>
+                </button>
+              </span>
+            </h3>
+            <ItineraryStop
+              time="09:30"
+              name="First stop"
+              markerLabel="1"
+              markerColor="#0f766e"
+              active
+            />
             <RouteSegment mode="walking" duration="18 min" />
-            <ItineraryStop time="11:10" name="Lunch stop" />
+            <ItineraryStop
+              time="11:10"
+              name="Lunch stop"
+              markerLabel="2"
+              markerColor="#0f766e"
+            />
             <RouteSegment mode="transit" duration="22 min" />
-            <ItineraryStop time="14:20" name="Afternoon walk" />
+            <ItineraryStop
+              time="14:20"
+              name="Afternoon walk"
+              markerLabel="3"
+              markerColor="#0f766e"
+            />
           </div>
         </div>
 
@@ -46,10 +101,16 @@ export function SampleTripPreview() {
               className="landing-map-route"
               d="M64 66 C108 98 140 90 178 116 C228 150 254 132 312 168"
             />
-            <circle className="landing-map-marker" cx="64" cy="66" r="10" />
-            <circle className="landing-map-marker" cx="178" cy="116" r="10" />
-            <circle className="landing-map-marker" cx="312" cy="168" r="10" />
           </svg>
+          <span className="map-marker landing-map-marker landing-map-marker-one">
+            1
+          </span>
+          <span className="map-marker landing-map-marker landing-map-marker-two">
+            2
+          </span>
+          <span className="map-marker landing-map-marker landing-map-marker-three">
+            3
+          </span>
         </div>
       </div>
     </section>
@@ -59,29 +120,70 @@ export function SampleTripPreview() {
 function ItineraryStop({
   time,
   name,
+  markerLabel,
+  markerColor,
   active = false,
 }: {
   time: string;
   name: string;
+  markerLabel: string;
+  markerColor: string;
   active?: boolean;
 }) {
   return (
     <div
-      className={`landing-itinerary-stop ${active ? "active" : ""}`}
+      className={`place-row landing-itinerary-stop ${active ? "active" : ""}`}
       aria-label={`${time} ${name}`}
     >
-      <span>{time}</span>
-      <strong>{name}</strong>
+      <span className="drag-handle" aria-hidden="true">
+        ::
+      </span>
+      <button type="button" className="place-main">
+        <strong className="place-title">
+          <span
+            className="place-marker-label"
+            style={{ backgroundColor: markerColor }}
+            aria-label={`Visit order ${markerLabel}`}
+          >
+            {markerLabel}
+          </span>
+          <span className="place-title-text">
+            <span className="place-time">{time}</span>
+            <span className="place-name">{name}</span>
+          </span>
+        </strong>
+        <span>Sample address</span>
+      </button>
+      <button type="button" className="icon-button" aria-label={`Edit ${name}`}>
+        <PencilIcon />
+      </button>
+      <button
+        type="button"
+        className="icon-button danger-button"
+        aria-label={`Delete ${name}`}
+      >
+        <TrashIcon />
+      </button>
     </div>
   );
 }
 
 function RouteSegment({ mode, duration }: { mode: string; duration: string }) {
   return (
-    <div className="landing-route-segment">
-      <span className="landing-route-mode">{mode}</span>
-      <span>{duration}</span>
-      <span className="landing-route-map-link" aria-label="Open in Google Maps">
+    <div className="segment-row landing-route-segment">
+      <select
+        className="route-mode-select"
+        aria-label="Travel mode between sample visits"
+        value={mode}
+        disabled
+      >
+        <option value={mode}>{mode}</option>
+      </select>
+      <span className="route-duration">{duration}</span>
+      <span
+        className="small-button landing-route-map-link"
+        aria-label="Open in Google Maps"
+      >
         <ExternalLinkIcon />
       </span>
     </div>
