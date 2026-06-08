@@ -146,6 +146,54 @@ describe("compareScheduledPlaces", () => {
 });
 
 describe("buildItinerary", () => {
+  it("creates empty itinerary days from a valid trip period", () => {
+    const result = buildItinerary([], [], [], {
+      startDate: "2026-06-01",
+      endDate: "2026-06-03",
+    });
+
+    expect(result.days.map((day) => [day.date, day.items])).toEqual([
+      ["2026-06-01", []],
+      ["2026-06-02", []],
+      ["2026-06-03", []],
+    ]);
+  });
+
+  it("keeps existing out-of-range visits visible after the trip-period days", () => {
+    const result = buildItinerary(
+      [
+        place({
+          id: 1,
+          name: "Inside",
+          visit_date: "2026-06-02",
+        }),
+        place({
+          id: 2,
+          name: "Outside",
+          visit_date: "2026-06-05",
+        }),
+      ],
+      [],
+      [],
+      {
+        startDate: "2026-06-01",
+        endDate: "2026-06-03",
+      },
+    );
+
+    expect(
+      result.days.map((day) => ({
+        date: day.date,
+        names: day.items.map((item) => item.place.name),
+      })),
+    ).toEqual([
+      { date: "2026-06-01", names: [] },
+      { date: "2026-06-02", names: ["Inside"] },
+      { date: "2026-06-03", names: [] },
+      { date: "2026-06-05", names: ["Outside"] },
+    ]);
+  });
+
   it("groups scheduled places by date with timed places before untimed places", () => {
     const result = buildItinerary(
       [

@@ -271,6 +271,13 @@
   width: 15px;
 }
 
+.day-empty-text {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 8px 0 2px;
+}
+
 .date-place-picker {
   background: #ffffff;
   border: 1px solid var(--line);

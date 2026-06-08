@@ -5,6 +5,7 @@ import type {
   Place,
   RouteSegment,
   SegmentView,
+  VisitDateOption,
 } from "./types";
 
 const DAY_COLOR_PALETTE = [
@@ -17,10 +18,25 @@ const DAY_COLOR_PALETTE = [
   "#be185d",
 ] as const;
 
+export type ItineraryDateRange = {
+  startDate: string | null;
+  endDate: string | null;
+};
+
+export function buildVisitDateOptions(
+  dateRange: ItineraryDateRange | undefined,
+): VisitDateOption[] {
+  return buildDateRange(dateRange).map((date, index) => ({
+    value: date,
+    label: `Day ${index + 1} · ${formatVisitDateOptionDate(date)}`,
+  }));
+}
+
 export function buildItinerary(
   items: ItineraryItem[],
   routeSegments: RouteSegment[],
   places: Place[] = [],
+  dateRange?: ItineraryDateRange,
 ): ItineraryView {
   const scheduled = items.filter(hasVisitDate);
   const scheduledPlaceIds = new Set(scheduled.map((item) => item.place_id));
@@ -28,9 +44,18 @@ export function buildItinerary(
     .filter((place) => !scheduledPlaceIds.has(place.id))
     .sort(comparePlacesByName);
 
-  const dates = Array.from(
+  const scheduledDates = Array.from(
     new Set(scheduled.map((item) => item.visit_date)),
   ).sort();
+  const tripDates = buildDateRange(dateRange);
+  const tripDateSet = new Set(tripDates);
+  const dates =
+    tripDates.length > 0
+      ? [
+          ...tripDates,
+          ...scheduledDates.filter((date) => !tripDateSet.has(date)),
+        ]
+      : scheduledDates;
   const segmentsByPair = new Map(
     routeSegments.map((segment) => [
       pairKey(segment.from_item_id, segment.to_item_id),
@@ -188,4 +213,54 @@ function pairKey(fromItemId: number, toItemId: number): string {
 
 function getDayColor(index: number, _totalDays: number): string {
   return DAY_COLOR_PALETTE[index % DAY_COLOR_PALETTE.length];
+}
+
+function buildDateRange(dateRange: ItineraryDateRange | undefined): string[] {
+  if (!dateRange?.startDate || !dateRange.endDate) {
+    return [];
+  }
+
+  const start = parseIsoDate(dateRange.startDate);
+  const end = parseIsoDate(dateRange.endDate);
+  if (!start || !end || start.time > end.time) {
+    return [];
+  }
+
+  const dates: string[] = [];
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  for (let time = start.time; time <= end.time; time += oneDayMs) {
+    dates.push(formatIsoDate(time));
+  }
+
+  return dates;
+}
+
+function parseIsoDate(value: string): { time: number } | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const time = Date.parse(`${value}T00:00:00Z`);
+  if (!Number.isFinite(time)) {
+    return null;
+  }
+
+  if (formatIsoDate(time) !== value) {
+    return null;
+  }
+
+  return { time };
+}
+
+function formatIsoDate(time: number): string {
+  return new Date(time).toISOString().slice(0, 10);
+}
+
+function formatVisitDateOptionDate(value: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00Z`));
 }

@@ -39,6 +39,7 @@ type Props = {
   routeGeometries: Map<number, RouteGeometry>;
   markerLabels: Map<number, string>;
   canEdit: boolean;
+  canAddVisits: boolean;
   deletingPlaceIds: ReadonlySet<number>;
   deletingItineraryItemIds: ReadonlySet<number>;
   isExpanded: boolean;
@@ -158,11 +159,14 @@ export function ItinerarySection(props: Props) {
             const collapsed = props.collapsedDates.has(day.date);
             const formattedDayHeading = formatItineraryDateHeading(day.date);
             const dayBodyId = `itinerary-day-${day.date}-body`;
+            const dayPrefix = `Day ${dayIndex + 1}`;
 
             return (
               <div
                 key={day.date}
-                className={`day-block ${props.activeDate === day.date ? "active" : ""}`}
+                className={`day-block ${
+                  props.activeDate === day.date ? "active" : ""
+                }`}
                 onDragEnter={
                   props.canEdit
                     ? (event) => activateDropTarget(event, day.date)
@@ -195,7 +199,7 @@ export function ItinerarySection(props: Props) {
                       aria-pressed={props.activeDate === day.date}
                       onClick={() => props.onSelectDate(day.date)}
                     >
-                      <span className="day-heading-prefix">{`Day ${dayIndex + 1}`}</span>
+                      <span className="day-heading-prefix">{dayPrefix}</span>
                       <span className="day-heading-text">
                         {formattedDayHeading}
                       </span>
@@ -227,6 +231,9 @@ export function ItinerarySection(props: Props) {
                   )}
                 </h3>
                 <div id={dayBodyId} hidden={collapsed}>
+                  {day.items.length === 0 && (
+                    <p className="day-empty-text">No visits scheduled.</p>
+                  )}
                   {day.items.map((item, index) => {
                     const nextItem = day.items[index + 1];
                     const segmentView = day.segments.find(
@@ -385,6 +392,7 @@ export function ItinerarySection(props: Props) {
             onSelectCanonicalPlace={props.onSelectCanonicalPlace}
             onSelectSegment={props.onSelectSegment}
             canEdit={props.canEdit}
+            canAddVisits={props.canAddVisits}
             deletingPlaceIds={props.deletingPlaceIds}
             onAddVisit={props.onAddVisit}
             onEdit={props.onEdit}
@@ -432,6 +440,7 @@ function UnscheduledBlock(props: {
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
   canEdit: boolean;
+  canAddVisits: boolean;
   deletingPlaceIds: ReadonlySet<number>;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
@@ -482,6 +491,7 @@ function UnscheduledBlock(props: {
             place={place}
             active={props.activeCanonicalPlaceId === place.id}
             canEdit={props.canEdit}
+            canAddVisit={props.canAddVisits}
             isDeleting={props.deletingPlaceIds.has(place.id)}
             onSelect={() =>
               props.onSelectCanonicalPlace(

@@ -88,6 +88,11 @@ export type ItineraryView = {
   unscheduled: Place[];
 };
 
+export type VisitDateOption = {
+  value: string;
+  label: string;
+};
+
 export type PlannerSnapshot = {
   places: Place[];
   itineraryItems: ItineraryItem[];

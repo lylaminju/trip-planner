@@ -2,17 +2,24 @@
 
 import { useState, type FormEvent } from "react";
 
-import type { Place } from "@/lib/types";
+import type { Place, VisitDateOption } from "@/lib/types";
 
 import { TrashIcon } from "./Icons";
+import { VisitDateField } from "./VisitDateField";
 
 type Props = {
   place: Place | null;
+  visitDateOptions: VisitDateOption[];
   onCancel: () => void;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
 };
 
-export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
+export function AddEditPlaceModal({
+  place,
+  visitDateOptions,
+  onCancel,
+  onSave,
+}: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [links, setLinks] = useState<string[]>(place?.links ?? [""]);
@@ -88,10 +95,11 @@ export function AddEditPlaceModal({ place, onCancel, onSave }: Props) {
 
         {!isEditing && (
           <div className="form-grid">
-            <label>
-              Initial visit date
-              <input type="date" name="visit_date" />
-            </label>
+            <VisitDateField
+              label="Initial visit date"
+              name="visit_date"
+              options={visitDateOptions}
+            />
             <div className="time-picker">
               <span className="field-label">Initial visit time</span>
               <div className="time-picker-grid">

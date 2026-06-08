@@ -8,7 +8,11 @@ import {
   type CurrentLocationPosition,
 } from "@/lib/current-location";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
-import { buildItinerary } from "@/lib/itinerary";
+import {
+  buildVisitDateOptions,
+  buildItinerary,
+  type ItineraryDateRange,
+} from "@/lib/itinerary";
 import {
   buildExportFilename,
   generateScheduledItineraryMarkdown,
@@ -105,14 +109,14 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const currentLocationToastTimeoutRef = useRef<number | null>(null);
 
   const itinerary = useMemo(
-    () =>
-      buildItinerary(
-        plannerSnapshot.itineraryItems,
-        plannerSnapshot.routeSegments,
-        plannerSnapshot.places,
-      ),
-    [plannerSnapshot],
+    () => buildItineraryForTrip(plannerSnapshot, trip),
+    [plannerSnapshot, trip],
   );
+  const visitDateOptions = useMemo(
+    () => buildVisitDateOptions(toTripDateRange(trip)),
+    [trip],
+  );
+  const canAddVisits = visitDateOptions.length > 0;
   const { routeGeometries, routeGeometryError } = useRouteGeometries(
     tripId,
     plannerSnapshot,
@@ -496,6 +500,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
         isExpanded={isPlannerPanelExpanded}
         mobileSheetState={mobileSheetState}
         canEdit={canEdit}
+        canAddVisits={canAddVisits}
         deletingPlaceIds={deletingPlaceIds}
         deletingItineraryItemIds={deletingItineraryItemIds}
         canShowCurrentLocation={canShowCurrentLocation}
@@ -594,6 +599,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       {(isAdding || editingPlace) && (
         <AddEditPlaceModal
           place={editingPlace}
+          visitDateOptions={visitDateOptions}
           onCancel={closeModal}
           onSave={(payload) => savePlace(payload, editingPlace?.id)}
         />
@@ -601,6 +607,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       {editingItem && (
         <EditItineraryItemModal
           item={editingItem}
+          visitDateOptions={visitDateOptions}
           onCancel={closeModal}
           onSave={(payload) => saveItineraryItem(payload, editingItem.id)}
         />
@@ -608,6 +615,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       {addingVisitPlace && (
         <EditItineraryItemModal
           place={addingVisitPlace}
+          visitDateOptions={visitDateOptions}
           onCancel={closeModal}
           onSave={(payload) =>
             createItineraryItem(addingVisitPlace.id, payload)
@@ -620,6 +628,29 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
 
 function errorMessage(reason: unknown, fallback: string): string {
   return reason instanceof Error ? reason.message : fallback;
+}
+
+function buildItineraryForTrip(
+  plannerSnapshot: PlannerSnapshot,
+  trip: Trip | null,
+) {
+  return buildItinerary(
+    plannerSnapshot.itineraryItems,
+    plannerSnapshot.routeSegments,
+    plannerSnapshot.places,
+    toTripDateRange(trip),
+  );
+}
+
+function toTripDateRange(trip: Trip | null): ItineraryDateRange | undefined {
+  if (!trip) {
+    return undefined;
+  }
+
+  return {
+    startDate: trip.start_date,
+    endDate: trip.end_date,
+  };
 }
 
 function currentLocationErrorMessage(reason: unknown): string {

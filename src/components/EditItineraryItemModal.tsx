@@ -2,11 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 
-import type { ItineraryItem, Place } from "@/lib/types";
+import type { ItineraryItem, Place, VisitDateOption } from "@/lib/types";
+
+import { VisitDateField } from "./VisitDateField";
 
 type Props = {
   item?: ItineraryItem;
   place?: Place;
+  visitDateOptions: VisitDateOption[];
   onCancel: () => void;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
 };
@@ -14,6 +17,7 @@ type Props = {
 export function EditItineraryItemModal({
   item,
   place,
+  visitDateOptions,
   onCancel,
   onSave,
 }: Props) {
@@ -96,14 +100,12 @@ export function EditItineraryItemModal({
         )}
 
         <div className="form-grid">
-          <label>
-            Visit date
-            <input
-              type="date"
-              name="visit_date"
-              defaultValue={item?.visit_date ?? ""}
-            />
-          </label>
+          <VisitDateField
+            label="Visit date"
+            name="visit_date"
+            defaultValue={item?.visit_date ?? ""}
+            options={visitDateOptions}
+          />
           <div className="time-picker">
             <span className="field-label">Visit time</span>
             <div className="time-picker-grid">

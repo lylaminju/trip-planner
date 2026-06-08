@@ -107,6 +107,7 @@ export function PlaceListRow(props: {
   place: Place;
   active: boolean;
   canEdit: boolean;
+  canAddVisit: boolean;
   onSelect: () => void;
   onEdit: () => void;
   onAddVisit: () => void;
@@ -114,7 +115,9 @@ export function PlaceListRow(props: {
   isDeleting: boolean;
 }) {
   const display = formatPlaceRow(props.place);
-  const addVisitLabel = `Add ${props.place.name} to itinerary`;
+  const addVisitLabel = props.canAddVisit
+    ? `Add ${props.place.name} to itinerary`
+    : `Set trip dates before adding ${props.place.name} to itinerary`;
   const editLabel = `Edit place ${props.place.name}`;
   const deleteLabel = `Delete place ${props.place.name}`;
   const deleteButtonLabel = props.isDeleting
@@ -141,6 +144,7 @@ export function PlaceListRow(props: {
             className="icon-button"
             aria-label={addVisitLabel}
             title={addVisitLabel}
+            disabled={!props.canAddVisit}
             onClick={props.onAddVisit}
           >
             <CalendarPlusIcon />

@@ -38,6 +38,7 @@ type Props = {
   isExpanded: boolean;
   mobileSheetState: MobileSheetState;
   canEdit: boolean;
+  canAddVisits: boolean;
   deletingPlaceIds: ReadonlySet<number>;
   deletingItineraryItemIds: ReadonlySet<number>;
   canShowCurrentLocation: boolean;
@@ -210,6 +211,7 @@ export function PlannerPanel(props: Props) {
         routeGeometries={props.routeGeometries}
         markerLabels={markerLabels}
         canEdit={props.canEdit}
+        canAddVisits={props.canAddVisits}
         deletingPlaceIds={props.deletingPlaceIds}
         deletingItineraryItemIds={props.deletingItineraryItemIds}
         isExpanded={props.isExpanded}
@@ -246,6 +248,7 @@ export function PlannerPanel(props: Props) {
         activePlaceId={props.activePlaceId}
         activeCanonicalPlaceId={props.activeCanonicalPlaceId}
         canEdit={props.canEdit}
+        canAddVisits={props.canAddVisits}
         deletingPlaceIds={props.deletingPlaceIds}
         isExpanded={props.isExpanded}
         isOpen={isPlacesOpen}

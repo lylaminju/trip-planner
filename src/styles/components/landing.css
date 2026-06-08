@@ -354,6 +354,10 @@ html:has(.landing-shell) {
     grid-template-columns: 1fr;
   }
 
+  .landing-primary-action-group {
+    justify-self: center;
+  }
+
   .landing-hero h1 {
     font-size: 56px;
     max-width: none;

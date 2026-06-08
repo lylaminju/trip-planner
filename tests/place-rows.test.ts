@@ -15,6 +15,7 @@ describe("PlaceRows", () => {
         place: place({ id: 7, name: "Bryant Park" }),
         active: false,
         canEdit: true,
+        canAddVisit: true,
         isDeleting: true,
         onSelect: vi.fn(),
         onEdit: vi.fn(),
@@ -51,6 +52,27 @@ describe("PlaceRows", () => {
     expect(markup).toContain("disabled");
     expect(markup).toContain("delete-loading-spinner");
     expect(markup).not.toContain("M4 7h16");
+  });
+
+  it("disables add visit when trip dates are not confirmed", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PlaceListRow, {
+        place: place({ id: 7, name: "Bryant Park" }),
+        active: false,
+        canEdit: true,
+        canAddVisit: false,
+        isDeleting: false,
+        onSelect: vi.fn(),
+        onEdit: vi.fn(),
+        onAddVisit: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain(
+      'aria-label="Set trip dates before adding Bryant Park to itinerary"',
+    );
+    expect(markup).toContain("disabled");
   });
 });
 
