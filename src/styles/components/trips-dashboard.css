@@ -25,7 +25,6 @@
   margin: 0;
 }
 
-.trips-header p,
 .trip-empty-text {
   color: var(--muted);
   margin: 4px 0 0;

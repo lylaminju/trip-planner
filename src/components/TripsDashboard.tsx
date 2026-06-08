@@ -177,7 +177,6 @@ export function TripsDashboard() {
         <header className="trips-header">
           <div>
             <h1>Trips</h1>
-            <p>Manage trip workspaces and open the planner for each trip.</p>
           </div>
           <div className="trips-header-actions">
             <button type="button" onClick={logout}>
