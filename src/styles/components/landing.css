@@ -214,6 +214,53 @@ html:has(.landing-shell) {
   width: 12px;
 }
 
+.landing-product-frame .route-segment-toggle,
+.landing-product-frame .day-heading-button,
+.landing-product-frame .day-collapse-button,
+.landing-product-frame .place-main,
+.landing-product-frame .icon-button,
+.landing-product-frame .route-mode-select,
+.landing-product-frame .segment-row {
+  pointer-events: none;
+}
+
+.landing-product-frame .icon-button,
+.landing-product-frame .small-button {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  display: inline-flex;
+  justify-content: center;
+  padding: 6px 8px;
+}
+
+.landing-product-frame .icon-button {
+  align-items: center;
+  flex: 0 0 32px;
+  height: 32px;
+  min-width: 36px;
+  padding: 0;
+  width: 32px;
+}
+
+.landing-product-frame .icon-button.danger-button {
+  color: var(--danger);
+}
+
+.landing-product-frame .small-button {
+  align-items: center;
+}
+
+.landing-product-frame .route-mode-select {
+  display: inline-flex;
+  width: auto;
+}
+
+.landing-product-frame .drag-handle {
+  flex: 0 0 22px;
+}
+
 .landing-map-panel {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0)),
@@ -390,7 +437,6 @@ html:has(.landing-shell) {
   .landing-feature-proof {
     grid-template-columns: 1fr;
   }
-
 }
 
 @media (prefers-reduced-motion: reduce) {

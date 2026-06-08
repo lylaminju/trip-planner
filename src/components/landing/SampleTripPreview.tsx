@@ -28,35 +28,27 @@ export function SampleTripPreview() {
             <div className="section-toggle compact">
               <h2>Itineraries</h2>
             </div>
-            <button
-              type="button"
+            <div
               className="route-segment-toggle active"
-              aria-checked="true"
             >
               <span>Route details</span>
               <span className="route-segment-switch-track" aria-hidden="true">
                 <span className="route-segment-switch-knob" />
               </span>
-            </button>
+            </div>
           </div>
           <div className="day-block landing-day-card">
             <h3 className="day-heading">
               <span className="day-heading-title-group">
-                <button
-                  type="button"
+                <span
                   className="day-heading-button"
                   style={{ borderColor: "#0f766e" }}
-                  aria-pressed="true"
                 >
                   <span className="day-heading-prefix">Day 1</span>
-                </button>
-                <button
-                  type="button"
-                  className="day-collapse-button"
-                  aria-label="Collapse itinerary"
-                >
+                </span>
+                <span className="day-collapse-button">
                   <span aria-hidden="true">v</span>
-                </button>
+                </span>
               </span>
             </h3>
             <ItineraryStop
@@ -164,7 +156,7 @@ function ItineraryStop({
       <span className="drag-handle" aria-hidden="true">
         ::
       </span>
-      <button type="button" className="place-main">
+      <div className="place-main">
         <strong className="place-title">
           <span
             className="place-marker-label"
@@ -179,17 +171,16 @@ function ItineraryStop({
           </span>
         </strong>
         <span className="place-note">{note}</span>
-      </button>
-      <button type="button" className="icon-button" aria-label={`Edit ${name}`}>
+      </div>
+      <span className="icon-button" aria-label={`Edit ${name}`}>
         <PencilIcon />
-      </button>
-      <button
-        type="button"
+      </span>
+      <span
         className="icon-button danger-button"
         aria-label={`Delete ${name}`}
       >
         <TrashIcon />
-      </button>
+      </span>
     </div>
   );
 }
@@ -197,14 +188,12 @@ function ItineraryStop({
 function RouteSegment({ mode, duration }: { mode: string; duration: string }) {
   return (
     <div className="segment-row landing-route-segment">
-      <select
+      <div
         className="route-mode-select"
         aria-label="Travel mode between sample visits"
-        value={mode}
-        disabled
       >
-        <option value={mode}>{mode}</option>
-      </select>
+        {mode}
+      </div>
       <span className="route-duration">{duration}</span>
       <span
         className="small-button landing-route-map-link"
