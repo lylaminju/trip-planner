@@ -1,1 +1,1 @@
-export const SERVICE_TITLE = "Plotinerary";
+export const SERVICE_TITLE = "TripGlance";

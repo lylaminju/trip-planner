@@ -1,5 +1,5 @@
 ---
-name: Plotinerary
+name: TripGlance
 description: A map-native itinerary planner that connects text timelines with visual routes.
 colors:
   background: "#f5f7f8"
@@ -48,13 +48,13 @@ components:
     padding: "7px 8px"
 ---
 
-# Design System: Plotinerary
+# Design System: TripGlance
 
 ## 1. Overview
 
 **Creative North Star: "Connected Travel Console"**
 
-Plotinerary should feel like one connected planning surface: itinerary timing,
+TripGlance should feel like one connected planning surface: itinerary timing,
 route choices, place metadata, and map context all visible without requiring the
 user to study the interface. The existing product system is restrained and
 task-first, using light neutral surfaces, compact controls, and a teal accent
@@ -189,7 +189,7 @@ shadow only when a surface floats above another surface or responds to state.
 
 Navigation is minimal. The authenticated app favors direct page headers and
 compact actions. The public landing page should use a slim header with the
-Plotinerary name, primary request-access action, and secondary sign-in link.
+TripGlance name, primary request-access action, and secondary sign-in link.
 
 ## 6. Do's and Don'ts
 

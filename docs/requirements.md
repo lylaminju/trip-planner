@@ -1,6 +1,6 @@
-# Plotinerary Project Requirements
+# TripGlance Project Requirements
 
-This document outlines the exact technical requirements, data schema, and UI structure necessary to build the Plotinerary web application.
+This document outlines the exact technical requirements, data schema, and UI structure necessary to build the TripGlance web application.
 
 ## 1. Tech Stack Overview
 

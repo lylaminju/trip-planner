@@ -14,7 +14,7 @@ describe("LoginPage landing page", () => {
     expect(markup).toContain("Opens your email app to request an invite.");
     expect(markup).toContain('href="#sign-in"');
     expect(markup).toContain("mailto:mjuudev@gmail.com");
-    expect(markup).toContain("Plotinerary%20access%20request");
+    expect(markup).toContain("TripGlance%20access%20request");
     expect(markup).toContain("By Minju Park");
     expect(markup).toContain("LinkedIn");
     expect(markup).toContain("https://www.linkedin.com/in/lylaminju");

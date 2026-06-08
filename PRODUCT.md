@@ -6,20 +6,20 @@ product
 
 ## Users
 
-Public visitors are people evaluating whether Plotinerary is worth requesting
+Public visitors are people evaluating whether TripGlance is worth requesting
 access to before the service has public signup. They need to understand the
 planning workflow quickly, without reading a long product tour. Existing
 invite-only users also need a clear path to sign in.
 
 ## Product Purpose
 
-Plotinerary helps people turn saved places into a dated itinerary that is easy
+TripGlance helps people turn saved places into a dated itinerary that is easy
 to understand in both text and map form. Its core value is a single planning
 surface where timeline items, map markers, and routes stay connected so a trip
 can be planned and reviewed at a glance.
 
-The production service name is Plotinerary. The name is documented in
-`docs/decisions/2026-06-08-service-name-plotinerary.md`.
+The production service name is TripGlance. The name is documented in
+`docs/decisions/2026-06-08-service-name-tripglance.md`.
 
 ## Brand Personality
 

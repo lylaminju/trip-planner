@@ -70,11 +70,14 @@ html:has(.landing-shell) {
 }
 
 .landing-hero h1 {
-  font-size: 64px;
+  font-size: 52px;
   letter-spacing: 0;
-  line-height: 0.95;
   margin: 0;
   max-width: none;
+}
+
+.landing-hero h1 span {
+  display: block;
 }
 
 .landing-hero-support {
@@ -84,7 +87,7 @@ html:has(.landing-shell) {
 
 .landing-hero-support > p {
   color: #475569;
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.5;
   margin: 0;
   max-width: 34ch;
@@ -123,7 +126,9 @@ html:has(.landing-shell) {
 .landing-access-copy {
   color: var(--muted);
   font-size: 13px;
+  margin: 0;
   white-space: nowrap;
+  text-align: center;
 }
 
 .landing-preview {

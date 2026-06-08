@@ -1,4 +1,4 @@
-# Plotinerary
+# TripGlance
 
 A trip planning app for building dated itineraries from saved places, arranging visits by day and time, and viewing the plan on Google Maps. This app is deployed on Vercel.
 

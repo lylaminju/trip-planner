@@ -10,7 +10,7 @@
 ## Confirmed Direction
 
 Use the **Focused Console** landing direction from the brainstorming session.
-The creative north star is **Connected Travel Console**: show Plotinerary as
+The creative north star is **Connected Travel Console**: show TripGlance as
 one connected planning surface where itinerary timing, route segment controls,
 and map routes are visible together.
 
@@ -23,9 +23,9 @@ collaboration, or route concepts that do not exist.
 - Public visitors evaluating the app before requesting invite-only access.
 - Existing invite-only users who need to sign in.
 
-The production service name is **Plotinerary**. The name was selected after the
+The production service name is **TripGlance**. The name was selected after the
 landing-page direction was drafted; see
-`docs/decisions/2026-06-08-service-name-plotinerary.md`.
+`docs/decisions/2026-06-08-service-name-tripglance.md`.
 
 ## Primary Action
 
@@ -44,7 +44,7 @@ Existing-user action: **Sign in**
 ## Page Structure
 
 1. Slim header
-   - `Plotinerary` name.
+   - `TripGlance` name.
    - `Sign in` anchor.
 
 2. Hero

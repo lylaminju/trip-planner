@@ -28,9 +28,14 @@ export function LandingHero() {
 
       <section className="landing-hero" id="top">
         <div className="landing-hero-copy">
-          <h1>{SERVICE_TITLE}</h1>
+          <h1>
+            Trip planning,
+            <span>at a glance.</span>
+          </h1>
           <div className="landing-hero-support">
-            <p>See the itinerary and the route at the same time.</p>
+            <p>
+              Plan the itinerary and map the route <br /> in one view.
+            </p>
             <div className="landing-primary-action-group">
               <a className="landing-primary-action" href={requestAccessHref}>
                 Request access
