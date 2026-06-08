@@ -6,7 +6,7 @@ import { LandingFooter } from "./landing/LandingFooter";
 import { LandingFeatureProof } from "./landing/LandingFeatureProof";
 import { LandingHero } from "./landing/LandingHero";
 
-export function LoginPage() {
+export function LandingPage() {
   const [emailLocalPart, setEmailLocalPart] = useState("");
   const [emailDomain, setEmailDomain] = useState("gmail.com");
   const [password, setPassword] = useState("");
@@ -42,25 +42,25 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-shell landing-shell">
+    <main className="landing-shell">
       <LandingHero />
       <LandingFeatureProof />
 
       <section
-        className="login-card landing-sign-in"
+        className="sign-in-card landing-sign-in"
         id="sign-in"
         aria-labelledby="sign-in-title"
       >
-        <div className="login-copy">
+        <div className="sign-in-copy">
           <h2 id="sign-in-title">Sign in</h2>
         </div>
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="sign-in-form" onSubmit={handleSubmit}>
           <label>
             <span>Email</span>
-            <span className="login-email-row">
+            <span className="sign-in-email-row">
               <input
                 autoComplete="email"
-                className="login-email-local"
+                className="sign-in-email-local"
                 name="email_local"
                 type="text"
                 value={emailLocalPart}
@@ -68,11 +68,11 @@ export function LoginPage() {
                   setEmailLocalPart(event.currentTarget.value)
                 }
               />
-              <span className="login-email-at" aria-hidden="true">
+              <span className="sign-in-email-at" aria-hidden="true">
                 @
               </span>
               <input
-                className="login-email-domain"
+                className="sign-in-email-domain"
                 name="email_domain"
                 type="text"
                 value={emailDomain}

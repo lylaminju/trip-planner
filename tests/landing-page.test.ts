@@ -2,12 +2,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { LoginPage } from "@/components/LoginPage";
+import { LandingPage } from "@/components/LandingPage";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 
-describe("LoginPage landing page", () => {
+describe("LandingPage", () => {
   it("renders public landing CTAs with request access as the primary action", () => {
-    const markup = renderToStaticMarkup(createElement(LoginPage));
+    const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain(SERVICE_TITLE);
     expect(markup).toContain("Request access");
@@ -21,7 +21,7 @@ describe("LoginPage landing page", () => {
   });
 
   it("shows a faithful planner preview with route segment rows", () => {
-    const markup = renderToStaticMarkup(createElement(LoginPage));
+    const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain("Weekend trip");
     expect(markup).toContain("Day 2");
@@ -44,7 +44,7 @@ describe("LoginPage landing page", () => {
   });
 
   it("keeps the existing sign-in form on the same page", () => {
-    const markup = renderToStaticMarkup(createElement(LoginPage));
+    const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain('id="sign-in"');
     expect(markup).toContain("<h2");

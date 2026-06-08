@@ -2,7 +2,8 @@
 @import "../styles/reset.css";
 @import "../styles/base.css";
 @import "../styles/layout.css";
-@import "../styles/components/auth.css";
+@import "../styles/components/landing.css";
+@import "../styles/components/sign-in.css";
 @import "../styles/components/buttons.css";
 @import "../styles/components/modals.css";
 @import "../styles/components/trips-dashboard.css";

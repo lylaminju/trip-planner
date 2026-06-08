@@ -1,8 +1,4 @@
-/* Public landing page and authentication form styling. */
-.login-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
-}
+/* Public landing page and sign-in form styling. */
 
 html:has(.landing-shell) {
   scroll-behavior: smooth;
@@ -20,6 +16,8 @@ html:has(.landing-shell) {
   display: grid;
   gap: 56px;
   justify-content: stretch;
+  min-height: 100vh;
+  min-height: 100dvh;
   padding: 24px;
 }
 
@@ -300,17 +298,6 @@ html:has(.landing-shell) {
   margin: 0;
 }
 
-.login-card {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(216, 222, 228, 0.92);
-  border-radius: 20px;
-  display: grid;
-  gap: 20px;
-  max-width: 420px;
-  padding: 28px;
-  width: min(100%, 420px);
-}
-
 .landing-sign-in {
   max-width: 460px;
 }
@@ -347,65 +334,6 @@ html:has(.landing-shell) {
 .landing-footer a:hover,
 .landing-footer a:focus-visible {
   color: var(--text);
-}
-
-.login-copy h1,
-.login-copy h2 {
-  font-size: 32px;
-  line-height: 1;
-  margin: 0 0 8px;
-}
-
-.login-copy p {
-  color: var(--muted);
-  margin: 0;
-}
-
-.login-kicker {
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-
-.login-form {
-  display: grid;
-  gap: 14px;
-}
-
-.login-form label {
-  display: grid;
-  gap: 6px;
-}
-
-.login-form span {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.login-email-row {
-  align-items: center;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(0, 1fr) auto minmax(120px, 148px);
-}
-
-.login-email-at {
-  color: var(--muted);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.login-form input,
-.login-form .login-email-domain {
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  min-height: 44px;
-  padding: 10px 12px;
-  width: 100%;
 }
 
 @media (max-width: 900px) {
@@ -463,9 +391,6 @@ html:has(.landing-shell) {
     grid-template-columns: 1fr;
   }
 
-  .login-email-row {
-    grid-template-columns: minmax(0, 1fr) auto minmax(96px, 120px);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
