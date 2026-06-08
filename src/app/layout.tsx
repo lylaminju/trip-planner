@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { SERVICE_TITLE } from "@/lib/service-brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trip Planner",
+  title: SERVICE_TITLE,
   description: "Local-first itinerary planner",
 };
 

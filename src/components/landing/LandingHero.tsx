@@ -1,21 +1,25 @@
+import { SERVICE_TITLE } from "@/lib/service-brand";
+
 import { SampleTripPreview } from "./SampleTripPreview";
 
 export const ACCESS_EMAIL = "mjuudev@gmail.com";
-const ACCESS_SUBJECT = "Trip Planner access request";
-const ACCESS_BODY = "Hi, I would like to request access to Trip Planner.";
+const ACCESS_SUBJECT = `${SERVICE_TITLE} access request`;
+const ACCESS_BODY = `Hi, I would like to request access to ${SERVICE_TITLE}.`;
 
 export const requestAccessHref = `mailto:${ACCESS_EMAIL}?subject=${encodeURIComponent(
   ACCESS_SUBJECT,
-)}&body=${encodeURIComponent(
-  ACCESS_BODY,
-)}`;
+)}&body=${encodeURIComponent(ACCESS_BODY)}`;
 
 export function LandingHero() {
   return (
     <>
       <header className="landing-header">
-        <a className="landing-brand" href="#top" aria-label="Trip Planner home">
-          Trip Planner
+        <a
+          className="landing-brand"
+          href="#top"
+          aria-label={`${SERVICE_TITLE} home`}
+        >
+          {SERVICE_TITLE}
         </a>
         <nav className="landing-nav" aria-label="Landing page">
           <a href="#sign-in">Sign in</a>
@@ -24,7 +28,7 @@ export function LandingHero() {
 
       <section className="landing-hero" id="top">
         <div className="landing-hero-copy">
-          <h1>Trip Planner</h1>
+          <h1>{SERVICE_TITLE}</h1>
           <div className="landing-hero-support">
             <p>See the itinerary and the route at the same time.</p>
             <div className="landing-primary-action-group">

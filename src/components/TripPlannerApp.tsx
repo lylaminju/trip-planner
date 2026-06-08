@@ -27,6 +27,7 @@ import {
   updateSegmentModeRequest,
 } from "@/lib/planner-api";
 import { toggleSelectedId } from "@/lib/selection";
+import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
 import type {
   ItineraryItem,
@@ -54,11 +55,10 @@ type TripPlannerAppProps = {
   initialData?: TripPlannerInitialData;
 };
 
-export function TripPlannerApp({
-  tripId,
-  initialData,
-}: TripPlannerAppProps) {
-  const [trip, setTrip] = useState<Trip | null>(() => initialData?.trip ?? null);
+export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
+  const [trip, setTrip] = useState<Trip | null>(
+    () => initialData?.trip ?? null,
+  );
   const [role, setRole] = useState<TripRole>(
     () => initialData?.role ?? "viewer",
   );
@@ -118,7 +118,7 @@ export function TripPlannerApp({
     plannerSnapshot,
   );
   const canEdit = role !== "viewer";
-  const tripTitle = trip?.name ?? "Trip Planner";
+  const tripTitle = trip?.name ?? SERVICE_TITLE;
   const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
 
   const reload = useCallback(async () => {

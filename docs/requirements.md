@@ -1,6 +1,6 @@
-# Trip Planner Project Requirements
+# Plotinerary Project Requirements
 
-This document outlines the exact technical requirements, data schema, and UI structure necessary to build the Trip Planner web application.
+This document outlines the exact technical requirements, data schema, and UI structure necessary to build the Plotinerary web application.
 
 ## 1. Tech Stack Overview
 

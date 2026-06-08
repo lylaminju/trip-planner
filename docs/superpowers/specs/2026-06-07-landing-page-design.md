@@ -10,7 +10,7 @@
 ## Confirmed Direction
 
 Use the **Focused Console** landing direction from the brainstorming session.
-The creative north star is **Connected Travel Console**: show Trip Planner as
+The creative north star is **Connected Travel Console**: show Plotinerary as
 one connected planning surface where itinerary timing, route segment controls,
 and map routes are visible together.
 
@@ -23,8 +23,9 @@ collaboration, or route concepts that do not exist.
 - Public visitors evaluating the app before requesting invite-only access.
 - Existing invite-only users who need to sign in.
 
-The temporary product name remains **Trip Planner**. The production service name
-is not decided in this work.
+The production service name is **Plotinerary**. The name was selected after the
+landing-page direction was drafted; see
+`docs/decisions/2026-06-08-service-name-plotinerary.md`.
 
 ## Primary Action
 
@@ -33,11 +34,6 @@ Primary CTA: **Request access**
 - Opens an email to `mjuudev@gmail.com`.
 - Use a prefilled subject/body suitable for an access request.
 - Copy should make invite-only access clear without sounding like an error.
-
-Secondary CTA: **View sample trip**
-
-- Scrolls to the on-page sample preview section.
-- Does not open a real demo route.
 
 Existing-user action: **Sign in**
 
@@ -48,16 +44,14 @@ Existing-user action: **Sign in**
 ## Page Structure
 
 1. Slim header
-   - Temporary `Trip Planner` name.
-   - `Sample trip` anchor.
+   - `Plotinerary` name.
    - `Sign in` anchor.
 
 2. Hero
    - Concise product promise.
    - One short support sentence.
    - Primary `Request access` button.
-   - Secondary `View sample trip` button.
-   - Invite-only microcopy.
+   - Email-app microcopy for the access request.
 
 3. Hero product preview
    - Static two-pane preview based on the current planner shape.
@@ -67,16 +61,10 @@ Existing-user action: **Sign in**
 
 4. Short feature proof
    - Brief, concrete summaries only.
-   - Suggested topics: saved places, daily timeline, route segments, map view.
+   - Suggested topics: Google Maps places, daily timeline, route segments, map view.
    - Avoid a generic repeated icon-card grid as the main proof.
 
-5. Sample trip section
-   - Scroll target for `View sample trip` / `Sample trip`.
-   - Uses static sample preview content, not authenticated app data.
-   - May reserve a future media slot for a short demo video, but the PR does not
-     require video assets.
-
-6. Sign-in section
+5. Sign-in section
    - Contains the existing email/password form on the landing page.
    - Visually secondary to request access.
    - Preserve current login API behavior and error handling.
@@ -102,7 +90,6 @@ Do not include:
 - Named route objects such as "Morning route".
 - Live status, current navigation, or real-time claims.
 - Public demo controls.
-- Final service naming.
 - Decorative travel illustrations that compete with the planner preview.
 
 ## Visual System

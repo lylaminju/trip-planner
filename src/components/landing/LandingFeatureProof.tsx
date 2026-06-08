@@ -1,3 +1,5 @@
+import { SERVICE_TITLE } from "@/lib/service-brand";
+
 const FEATURES = [
   {
     title: "Google Maps places",
@@ -21,7 +23,7 @@ export function LandingFeatureProof() {
   return (
     <section
       className="landing-feature-proof"
-      aria-label="Trip Planner feature summary"
+      aria-label={`${SERVICE_TITLE} feature summary`}
     >
       {FEATURES.map((feature) => (
         <article key={feature.title} className="landing-feature-item">

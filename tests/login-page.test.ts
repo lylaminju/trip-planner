@@ -3,17 +3,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { LoginPage } from "@/components/LoginPage";
+import { SERVICE_TITLE } from "@/lib/service-brand";
 
 describe("LoginPage landing page", () => {
   it("renders public landing CTAs with request access as the primary action", () => {
     const markup = renderToStaticMarkup(createElement(LoginPage));
 
-    expect(markup).toContain("Trip Planner");
+    expect(markup).toContain(SERVICE_TITLE);
     expect(markup).toContain("Request access");
     expect(markup).toContain("Opens your email app to request an invite.");
     expect(markup).toContain('href="#sign-in"');
     expect(markup).toContain("mailto:mjuudev@gmail.com");
-    expect(markup).toContain("Trip%20Planner%20access%20request");
+    expect(markup).toContain("Plotinerary%20access%20request");
     expect(markup).toContain("By Minju Park");
     expect(markup).toContain("LinkedIn");
     expect(markup).toContain("https://www.linkedin.com/in/lylaminju");

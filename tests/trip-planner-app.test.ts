@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { TripPlannerApp } from "@/components/TripPlannerApp";
+import { SERVICE_TITLE } from "@/lib/service-brand";
 import type { TripPlannerInitialData } from "@/lib/types";
 
 describe("TripPlannerApp", () => {
@@ -34,6 +35,6 @@ describe("TripPlannerApp", () => {
     );
 
     expect(markup).toContain("Tokyo Spring");
-    expect(markup).not.toContain("Trip Planner");
+    expect(markup).not.toContain(SERVICE_TITLE);
   });
 });
