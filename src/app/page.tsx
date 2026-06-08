@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { LoginPage } from "@/components/LoginPage";
 import {
   getAuthenticatedUser,
   readAuthTokensFromCookieStore,
@@ -12,9 +13,9 @@ export default async function HomePage() {
     readAuthTokensFromCookieStore(cookieStore),
   );
 
-  if (!user) {
-    redirect("/login");
+  if (user) {
+    redirect("/trips");
   }
 
-  redirect("/trips");
+  return <LoginPage />;
 }

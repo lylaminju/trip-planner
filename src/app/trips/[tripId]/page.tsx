@@ -20,7 +20,7 @@ export default async function TripPlannerPage({ params }: Props) {
   );
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const { tripId } = await params;

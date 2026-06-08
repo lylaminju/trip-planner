@@ -4,7 +4,7 @@
 
 **Goal:** Build the issue #11 public landing page while preserving invite-only login behavior.
 
-**Architecture:** Keep `/login` as the unauthenticated entry route, but replace the sign-in-only screen with a landing page that embeds the existing login form as a secondary section. Split static landing UI into focused sibling components under `src/components/landing/` so `LoginPage.tsx` remains the client-owned auth/form container.
+**Architecture:** Use `/` as the unauthenticated public landing route that embeds the existing login form as a secondary section. Remove `/login` so `/` is the only landing-page URL. Split static landing UI into focused sibling components under `src/components/landing/` so `LoginPage.tsx` remains the client-owned auth/form container.
 
 **Tech Stack:** Next.js App Router, React 19, TypeScript, native CSS, Vitest server-render checks.
 
@@ -830,7 +830,7 @@ Suggested message:
 ```text
 feat: add public landing page for access requests
 
-Replace the sign-in-only unauthenticated page with a public landing surface that explains the planner through a faithful static preview while keeping existing login behavior on the same page.
+Replace the root unauthenticated page with a public landing surface that explains the planner through a faithful static preview while keeping existing login behavior on the same page.
 
 Constraint: Accounts remain invite-only and manually created
 Rejected: Public demo route | requires unauthenticated sample data and access-boundary work outside issue 11
