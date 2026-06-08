@@ -180,10 +180,6 @@ html:has(.landing-shell) {
   margin: 0;
 }
 
-.landing-preview-add {
-  flex: 0 0 auto;
-}
-
 .landing-section-label,
 .landing-day-label {
   color: var(--accent);

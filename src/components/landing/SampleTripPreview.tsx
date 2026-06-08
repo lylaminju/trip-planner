@@ -23,9 +23,6 @@ export function SampleTripPreview() {
         <div className="landing-planner-panel">
           <header className="landing-preview-header">
             <h2>Weekend trip</h2>
-            <button type="button" className="landing-preview-add">
-              Add place
-            </button>
           </header>
           <div className="section-heading-row landing-preview-section-row">
             <div className="section-toggle compact">
@@ -51,39 +48,38 @@ export function SampleTripPreview() {
                   style={{ borderColor: "#0f766e" }}
                   aria-pressed="true"
                 >
-                  <span className="day-heading-prefix">Day 2</span>
-                  <span className="day-heading-text">Planned day</span>
+                  <span className="day-heading-prefix">Day 1</span>
                 </button>
                 <button
                   type="button"
                   className="day-collapse-button"
-                  aria-label="Collapse Planned day itinerary"
+                  aria-label="Collapse itinerary"
                 >
                   <span aria-hidden="true">v</span>
                 </button>
               </span>
             </h3>
             <ItineraryStop
-              time="09:30"
-              name="First stop"
-              note="Opens early, good starting point"
+              time="10:00"
+              name="Brunch cafe"
+              note="Late breakfast and coffee"
               markerLabel="1"
               markerColor="#0f766e"
               active
             />
             <RouteSegment mode="walking" duration="18 min" />
             <ItineraryStop
-              time="11:10"
-              name="Lunch stop"
-              note="Reservation note saved here"
+              time="11:50"
+              name="Museum"
+              note="Exhibits and a short gallery loop"
               markerLabel="2"
               markerColor="#0f766e"
             />
             <RouteSegment mode="transit" duration="22 min" />
             <ItineraryStop
-              time="14:20"
-              name="Afternoon walk"
-              note="Check hours before leaving"
+              time="16:30"
+              name="Bookstore"
+              note="New releases and a few slow laps"
               markerLabel="3"
               markerColor="#0f766e"
             />

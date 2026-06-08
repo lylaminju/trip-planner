@@ -24,13 +24,13 @@ describe("LandingPage", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain("Weekend trip");
-    expect(markup).toContain("Day 2");
-    expect(markup).toContain("09:30 First stop");
-    expect(markup).toContain("11:10 Lunch stop");
-    expect(markup).toContain("14:20 Afternoon walk");
-    expect(markup).toContain("Opens early, good starting point");
-    expect(markup).toContain("Reservation note saved here");
-    expect(markup).toContain("Check hours before leaving");
+    expect(markup).toContain("Day 1");
+    expect(markup).toContain("10:00 Brunch cafe");
+    expect(markup).toContain("11:50 Museum");
+    expect(markup).toContain("16:30 Bookstore");
+    expect(markup).toContain("Late breakfast and coffee");
+    expect(markup).toContain("Exhibits and a short gallery loop");
+    expect(markup).toContain("New releases and a few slow laps");
     expect(markup).toContain("landing-route-segment");
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain("route-mode-select");
