@@ -31,6 +31,7 @@
 ## Task 1: Lock Landing Page Contract With Tests
 
 **Files:**
+
 - Create: `tests/login-page.test.ts`
 - Read: `src/components/LoginPage.tsx`
 
@@ -61,7 +62,7 @@ describe("LoginPage landing page", () => {
   it("shows a faithful planner preview with route segment rows", () => {
     const markup = renderToStaticMarkup(createElement(LoginPage));
 
-    expect(markup).toContain("Weekend trip, 4 days");
+    expect(markup).toContain("Weekend trip");
     expect(markup).toContain("Day 2");
     expect(markup).toContain("09:30 First stop");
     expect(markup).toContain("11:10 Lunch stop");
@@ -102,6 +103,7 @@ Expected: fail because the current page only renders the existing centered sign-
 ## Task 2: Extract Static Landing Preview Components
 
 **Files:**
+
 - Create: `src/components/landing/SampleTripPreview.tsx`
 - Create: `src/components/landing/LandingFeatureProof.tsx`
 - Create: `src/components/landing/LandingAccessNote.tsx`
@@ -116,7 +118,11 @@ import { ExternalLinkIcon } from "@/components/Icons";
 
 export function SampleTripPreview() {
   return (
-    <section className="landing-preview" id="sample-trip" aria-labelledby="sample-trip-title">
+    <section
+      className="landing-preview"
+      id="sample-trip"
+      aria-labelledby="sample-trip-title"
+    >
       <div className="landing-preview-copy">
         <p className="landing-section-label">Sample trip</p>
         <h2 id="sample-trip-title">A planner view that matches the map.</h2>
@@ -126,9 +132,12 @@ export function SampleTripPreview() {
         </p>
       </div>
 
-      <div className="landing-product-frame" aria-label="Sample planner and map preview">
+      <div
+        className="landing-product-frame"
+        aria-label="Sample planner and map preview"
+      >
         <div className="landing-planner-panel">
-          <p className="landing-trip-name">Weekend trip, 4 days</p>
+          <p className="landing-trip-name">Weekend trip</p>
           <div className="landing-day-card">
             <p className="landing-day-label">Day 2</p>
             <ItineraryStop time="09:30" name="First stop" active />
@@ -141,9 +150,18 @@ export function SampleTripPreview() {
 
         <div className="landing-map-panel" aria-hidden="true">
           <svg className="landing-map-lines" viewBox="0 0 360 260" role="img">
-            <path className="landing-map-road" d="M32 58 C88 32 114 96 166 76 S246 42 318 76" />
-            <path className="landing-map-road" d="M58 202 C116 158 154 214 208 172 S282 130 324 172" />
-            <path className="landing-map-route" d="M64 66 C108 98 140 90 178 116 C228 150 254 132 312 168" />
+            <path
+              className="landing-map-road"
+              d="M32 58 C88 32 114 96 166 76 S246 42 318 76"
+            />
+            <path
+              className="landing-map-road"
+              d="M58 202 C116 158 154 214 208 172 S282 130 324 172"
+            />
+            <path
+              className="landing-map-route"
+              d="M64 66 C108 98 140 90 178 116 C228 150 254 132 312 168"
+            />
             <circle className="landing-map-marker" cx="64" cy="66" r="10" />
             <circle className="landing-map-marker" cx="178" cy="116" r="10" />
             <circle className="landing-map-marker" cx="312" cy="168" r="10" />
@@ -201,7 +219,7 @@ const FEATURES = [
   },
   {
     title: "Route segments",
-    body: "Choose travel mode between consecutive visits without leaving the plan.",
+    body: "Choose travel mode between consecutive visits.",
   },
   {
     title: "Map view",
@@ -211,7 +229,10 @@ const FEATURES = [
 
 export function LandingFeatureProof() {
   return (
-    <section className="landing-feature-proof" aria-label="Trip Planner feature summary">
+    <section
+      className="landing-feature-proof"
+      aria-label="Trip Planner feature summary"
+    >
       {FEATURES.map((feature) => (
         <article key={feature.title} className="landing-feature-item">
           <h2>{feature.title}</h2>
@@ -230,10 +251,15 @@ Create `src/components/landing/LandingAccessNote.tsx`:
 ```tsx
 export function LandingAccessNote() {
   return (
-    <section className="landing-access-note" aria-labelledby="early-access-title">
+    <section
+      className="landing-access-note"
+      aria-labelledby="early-access-title"
+    >
       <div>
         <p className="landing-section-label">Early access</p>
-        <h2 id="early-access-title">Request access now. Watch a real demo later.</h2>
+        <h2 id="early-access-title">
+          Request access now. Watch a real demo later.
+        </h2>
       </div>
       <p>
         Accounts are invite-only while Trip Planner is prepared for public use.
@@ -257,6 +283,7 @@ Expected: still fail until `LoginPage` renders the new components.
 ## Task 3: Build Landing Hero and Wire LoginPage
 
 **Files:**
+
 - Create: `src/components/landing/LandingHero.tsx`
 - Modify: `src/components/LoginPage.tsx`
 - Test: `tests/login-page.test.ts`
@@ -270,8 +297,7 @@ import { SampleTripPreview } from "./SampleTripPreview";
 
 const ACCESS_EMAIL = "mjuudev@gmail.com";
 const ACCESS_SUBJECT = "Trip Planner access request";
-const ACCESS_BODY =
-  "Hi, I would like to request access to Trip Planner.";
+const ACCESS_BODY = "Hi, I would like to request access to Trip Planner.";
 
 export const requestAccessHref = `mailto:${encodeURIComponent(
   ACCESS_EMAIL,
@@ -323,62 +349,64 @@ export function LandingHero() {
 Replace the current return block in `src/components/LoginPage.tsx` with a landing layout while preserving state and `handleSubmit`:
 
 ```tsx
-  return (
-    <main className="login-shell landing-shell">
-      <LandingHero />
-      <LandingFeatureProof />
-      <LandingAccessNote />
+return (
+  <main className="login-shell landing-shell">
+    <LandingHero />
+    <LandingFeatureProof />
+    <LandingAccessNote />
 
-      <section className="login-card landing-sign-in" id="sign-in" aria-labelledby="sign-in-title">
-        <div className="login-copy">
-          <p className="login-kicker">Existing users</p>
-          <h2 id="sign-in-title">Sign in</h2>
-          <p>Access is limited to manually created accounts.</p>
-        </div>
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Email</span>
-            <span className="login-email-row">
-              <input
-                autoComplete="email"
-                className="login-email-local"
-                name="email_local"
-                type="text"
-                value={emailLocalPart}
-                onChange={(event) =>
-                  setEmailLocalPart(event.currentTarget.value)
-                }
-              />
-              <span className="login-email-at" aria-hidden="true">
-                @
-              </span>
-              <input
-                className="login-email-domain"
-                name="email_domain"
-                type="text"
-                value={emailDomain}
-                onChange={(event) => setEmailDomain(event.currentTarget.value)}
-              />
-            </span>
-          </label>
-          <label>
-            <span>Password</span>
+    <section
+      className="login-card landing-sign-in"
+      id="sign-in"
+      aria-labelledby="sign-in-title"
+    >
+      <div className="login-copy">
+        <p className="login-kicker">Existing users</p>
+        <h2 id="sign-in-title">Sign in</h2>
+        <p>Access is limited to manually created accounts.</p>
+      </div>
+      <form className="login-form" onSubmit={handleSubmit}>
+        <label>
+          <span>Email</span>
+          <span className="login-email-row">
             <input
-              autoComplete="current-password"
-              name="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.currentTarget.value)}
+              autoComplete="email"
+              className="login-email-local"
+              name="email_local"
+              type="text"
+              value={emailLocalPart}
+              onChange={(event) => setEmailLocalPart(event.currentTarget.value)}
             />
-          </label>
-          {error && <p className="error-text">{error}</p>}
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-      </section>
-    </main>
-  );
+            <span className="login-email-at" aria-hidden="true">
+              @
+            </span>
+            <input
+              className="login-email-domain"
+              name="email_domain"
+              type="text"
+              value={emailDomain}
+              onChange={(event) => setEmailDomain(event.currentTarget.value)}
+            />
+          </span>
+        </label>
+        <label>
+          <span>Password</span>
+          <input
+            autoComplete="current-password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.currentTarget.value)}
+          />
+        </label>
+        {error && <p className="error-text">{error}</p>}
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+    </section>
+  </main>
+);
 ```
 
 Add imports at the top:
@@ -402,6 +430,7 @@ Expected: pass once the new components render and the existing form remains.
 ## Task 4: Add Landing Styles
 
 **Files:**
+
 - Modify: `src/styles/components/auth.css`
 - Test: `tests/login-page.test.ts`
 
@@ -413,7 +442,11 @@ Modify `src/styles/components/auth.css` so these selectors exist. Keep the exist
 .landing-shell {
   align-items: stretch;
   background:
-    radial-gradient(circle at 18% 8%, rgba(15, 118, 110, 0.12), transparent 30%),
+    radial-gradient(
+      circle at 18% 8%,
+      rgba(15, 118, 110, 0.12),
+      transparent 30%
+    ),
     linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
   display: grid;
   gap: 56px;
@@ -778,6 +811,7 @@ Expected: pass. CSS changes should not break static render output.
 ## Task 5: Verify And Commit Implementation
 
 **Files:**
+
 - Modify: all files from Tasks 1-4
 
 - [ ] **Step 1: Run full test suite**

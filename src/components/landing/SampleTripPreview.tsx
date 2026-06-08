@@ -22,7 +22,7 @@ export function SampleTripPreview() {
       >
         <div className="landing-planner-panel">
           <header className="landing-preview-header">
-            <h2>Weekend trip, 4 days</h2>
+            <h2>Weekend trip</h2>
             <button type="button" className="landing-preview-add">
               Add place
             </button>
@@ -66,6 +66,7 @@ export function SampleTripPreview() {
             <ItineraryStop
               time="09:30"
               name="First stop"
+              note="Opens early, good starting point"
               markerLabel="1"
               markerColor="#0f766e"
               active
@@ -74,6 +75,7 @@ export function SampleTripPreview() {
             <ItineraryStop
               time="11:10"
               name="Lunch stop"
+              note="Reservation note saved here"
               markerLabel="2"
               markerColor="#0f766e"
             />
@@ -81,6 +83,7 @@ export function SampleTripPreview() {
             <ItineraryStop
               time="14:20"
               name="Afternoon walk"
+              note="Check hours before leaving"
               markerLabel="3"
               markerColor="#0f766e"
             />
@@ -98,34 +101,61 @@ export function SampleTripPreview() {
               d="M58 202 C116 158 154 214 208 172 S282 130 324 172"
             />
             <path
-              className="landing-map-route"
-              d="M64 66 C108 98 140 90 178 116 C228 150 254 132 312 168"
+              className="landing-map-route-halo"
+              d="M64 66 C108 98 140 90 178 116"
             />
+            <path
+              className="landing-map-route-halo"
+              d="M178 116 C228 150 254 132 312 168"
+            />
+            <path
+              className="landing-map-route"
+              d="M64 66 C108 98 140 90 178 116"
+            />
+            <path
+              className="landing-map-route"
+              d="M178 116 C228 150 254 132 312 168"
+            />
+            <MapPreviewMarker x={64} y={66} label="1" />
+            <MapPreviewMarker x={178} y={116} label="2" />
+            <MapPreviewMarker x={312} y={168} label="3" />
           </svg>
-          <span className="map-marker landing-map-marker landing-map-marker-one">
-            1
-          </span>
-          <span className="map-marker landing-map-marker landing-map-marker-two">
-            2
-          </span>
-          <span className="map-marker landing-map-marker landing-map-marker-three">
-            3
-          </span>
         </div>
       </div>
     </section>
   );
 }
 
+function MapPreviewMarker({
+  x,
+  y,
+  label,
+}: {
+  x: number;
+  y: number;
+  label: string;
+}) {
+  return (
+    <g className="landing-map-marker" transform={`translate(${x} ${y})`}>
+      <circle className="landing-map-marker-circle" r="10" />
+      <text className="landing-map-marker-label" y="0.5">
+        {label}
+      </text>
+    </g>
+  );
+}
+
 function ItineraryStop({
   time,
   name,
+  note,
   markerLabel,
   markerColor,
   active = false,
 }: {
   time: string;
   name: string;
+  note: string;
   markerLabel: string;
   markerColor: string;
   active?: boolean;
@@ -152,7 +182,7 @@ function ItineraryStop({
             <span className="place-name">{name}</span>
           </span>
         </strong>
-        <span>Sample address</span>
+        <span className="place-note">{note}</span>
       </button>
       <button type="button" className="icon-button" aria-label={`Edit ${name}`}>
         <PencilIcon />

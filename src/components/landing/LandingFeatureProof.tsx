@@ -1,7 +1,7 @@
 const FEATURES = [
   {
-    title: "Saved places",
-    body: "Start with places and map links, then decide when each visit belongs.",
+    title: "Google Maps places",
+    body: "Paste a Google Maps link to add the stop with its map data ready.",
   },
   {
     title: "Daily timeline",
@@ -9,7 +9,7 @@ const FEATURES = [
   },
   {
     title: "Route segments",
-    body: "Choose travel mode between consecutive visits without leaving the plan.",
+    body: "Choose travel mode between consecutive visits.",
   },
   {
     title: "Map view",

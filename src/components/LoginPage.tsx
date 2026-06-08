@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { LandingAccessNote } from "./landing/LandingAccessNote";
+import { LandingFooter } from "./landing/LandingFooter";
 import { LandingFeatureProof } from "./landing/LandingFeatureProof";
 import { LandingHero } from "./landing/LandingHero";
 
@@ -45,7 +45,6 @@ export function LoginPage() {
     <main className="login-shell landing-shell">
       <LandingHero />
       <LandingFeatureProof />
-      <LandingAccessNote />
 
       <section
         className="login-card landing-sign-in"
@@ -53,9 +52,7 @@ export function LoginPage() {
         aria-labelledby="sign-in-title"
       >
         <div className="login-copy">
-          <p className="login-kicker">Existing users</p>
           <h2 id="sign-in-title">Sign in</h2>
-          <p>Access is limited to manually created accounts.</p>
         </div>
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
@@ -99,6 +96,8 @@ export function LoginPage() {
           </button>
         </form>
       </section>
+
+      <LandingFooter />
     </main>
   );
 }

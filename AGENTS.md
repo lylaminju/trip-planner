@@ -36,6 +36,12 @@ This file applies to the whole repository. Follow it when changing code here.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
 - In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.
 
+## Testing Guidelines
+
+- Prefer assertions that protect stable behavior, structure, routing, and integration contracts over assertions that freeze incidental UI copy.
+- Avoid `not.toContain()` checks for removed marketing text, placeholder text, or helper copy unless the absence is a real product requirement or safety constraint.
+- When copy is expected to change during design iteration, assert the durable affordance instead, for example the CTA link target, form field name, route id, component class, or accessible landmark.
+
 ## Verification
 
 - Standard checks after code changes: `npm test` and `npx tsc --noEmit`.
