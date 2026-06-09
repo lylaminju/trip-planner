@@ -7,6 +7,11 @@ import type {
   SegmentView,
   VisitDateOption,
 } from "./types";
+import {
+  hasValidVisitTime,
+  hasVisitDate,
+  parseVisitTime,
+} from "./visit-time";
 
 const DAY_COLOR_PALETTE = [
   "#dc2626",
@@ -134,24 +139,6 @@ function comparePlacesByName(a: Place, b: Place): number {
   return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
 
-function hasVisitDate(
-  item: ItineraryItem,
-): item is ItineraryItem & { visit_date: string } {
-  return typeof item.visit_date === "string" && item.visit_date.length > 0;
-}
-
-function hasVisitTimeText(
-  item: ItineraryItem,
-): item is ItineraryItem & { visit_time: string } {
-  return typeof item.visit_time === "string" && item.visit_time.length > 0;
-}
-
-function hasValidVisitTime(
-  item: ItineraryItem,
-): item is ItineraryItem & { visit_time: string } {
-  return hasVisitTimeText(item) && getVisitTimeMinutes(item) !== null;
-}
-
 function compareVisitTimes(
   a: ItineraryItem & { visit_time: string },
   b: ItineraryItem & { visit_time: string },
@@ -184,27 +171,6 @@ function getVisitTimeMinutes(
   item: ItineraryItem & { visit_time: string },
 ): number | null {
   return parseVisitTime(item.visit_time);
-}
-
-function parseVisitTime(value: string): number | null {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(value);
-
-  if (!match) {
-    return null;
-  }
-
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
-    return null;
-  }
-
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-    return null;
-  }
-
-  return hours * 60 + minutes;
 }
 
 function pairKey(fromItemId: number, toItemId: number): string {

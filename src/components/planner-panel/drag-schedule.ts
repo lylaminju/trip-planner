@@ -1,6 +1,11 @@
 import type { DragEvent } from "react";
 
 import type { ItineraryItem, ItineraryView } from "@/lib/types";
+import {
+  formatVisitTime,
+  hasVisitTimeText,
+  parseVisitTime,
+} from "@/lib/visit-time";
 
 export const UNSCHEDULED_DROP_TARGET = "unscheduled";
 
@@ -106,28 +111,10 @@ export function getFirstItemIdForPlace(
 function hasVisitTime(
   item: ItineraryItem | null,
 ): item is ItineraryItem & { visit_time: string } {
-  return typeof item?.visit_time === "string" && item.visit_time.length > 0;
+  return hasVisitTimeText(item);
 }
 
 export { hasVisitTime };
-
-function parseVisitTime(value: string | null): number | null {
-  if (!value) return null;
-  const match = /^(\d{1,2}):(\d{2})$/.exec(value);
-  if (!match) return null;
-
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
-
-  return hours * 60 + minutes;
-}
-
-function formatVisitTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return `${String(hours).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
-}
 
 function getAllItems(itinerary: ItineraryView): ItineraryItem[] {
   return [...itinerary.days.flatMap((day) => day.items)];

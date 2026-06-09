@@ -2,7 +2,14 @@
 
 import { useState, type SubmitEvent } from "react";
 
+import { nullableValue, stringValue } from "@/lib/form-data";
 import type { ItineraryItem, Place, VisitDateOption } from "@/lib/types";
+import {
+  composeVisitTime,
+  HOUR_OPTIONS,
+  MINUTE_OPTIONS,
+  splitVisitTime,
+} from "@/lib/visit-time";
 
 import { VisitDateField } from "./VisitDateField";
 
@@ -45,7 +52,10 @@ export function EditItineraryItemModal({
     const form = new FormData(event.currentTarget);
     const payload = {
       visit_date: nullableValue(form, "visit_date"),
-      visit_time: composeVisitTime(form),
+      visit_time: composeVisitTime(
+        stringValue(form, "visit_time_hour"),
+        stringValue(form, "visit_time_minute"),
+      ),
       notes: nullableValue(form, "notes"),
     };
 
@@ -150,41 +160,3 @@ export function EditItineraryItemModal({
     </div>
   );
 }
-
-function stringValue(form: FormData, key: string): string {
-  return String(form.get(key) ?? "").trim();
-}
-
-function nullableValue(form: FormData, key: string): string | null {
-  const value = stringValue(form, key);
-  return value || null;
-}
-
-function composeVisitTime(form: FormData): string | null {
-  const hour = stringValue(form, "visit_time_hour");
-  const minute = stringValue(form, "visit_time_minute");
-
-  if (!hour && !minute) {
-    return null;
-  }
-
-  if (!hour || !minute) {
-    return null;
-  }
-
-  return `${hour}:${minute}`;
-}
-
-function splitVisitTime(value: string | null): [string, string] {
-  if (!value) return ["", ""];
-
-  const match = /^(\d{2}):(\d{2})$/.exec(value);
-  if (!match) return ["", ""];
-
-  return [match[1], match[2]];
-}
-
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) =>
-  String(hour).padStart(2, "0"),
-);
-const MINUTE_OPTIONS = ["00", "10", "20", "30", "40", "50"] as const;
