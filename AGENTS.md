@@ -39,6 +39,12 @@ This file applies to the whole repository. Follow it when changing code here.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
 - In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.
 
+## UI Layout Stability
+
+- Avoid expected layout shifts during normal user workflows. When labels, durations, counts, badges, loading states, or option text can vary, reserve stable space for repeated controls where practical.
+- Keep repeated row actions in consistent columns so scanning stays predictable. Prefer fixed or bounded columns, tabular numerals, placeholders that preserve space, and right-aligned numeric metadata over letting action buttons drift horizontally.
+- Do not reserve excessive empty space for rare outliers. Size stable columns around the longest common display value, then allow wrapping or overflow handling only for genuinely unusual content.
+
 ## Testing Guidelines
 
 - Prefer assertions that protect stable behavior, structure, routing, and integration contracts over assertions that freeze incidental UI copy.
