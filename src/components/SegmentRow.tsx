@@ -1,10 +1,27 @@
 "use client";
 
+import { useRef, useState } from "react";
+
 import { buildGoogleMapsDirectionsUrl } from "@/lib/maps-url";
 import type { Place, RouteSegment, TravelMode } from "@/lib/types";
-import { ExternalLinkIcon } from "./Icons";
+import {
+  BicyclingIcon,
+  DrivingIcon,
+  ExternalLinkIcon,
+  TransitIcon,
+  WalkingIcon,
+} from "./Icons";
 
-const MODES: TravelMode[] = ["walking", "transit", "bicycling", "driving"];
+const MODE_OPTIONS: Array<{
+  value: TravelMode;
+  label: string;
+  Icon: typeof WalkingIcon;
+}> = [
+  { value: "walking", label: "Walking", Icon: WalkingIcon },
+  { value: "transit", label: "Transit", Icon: TransitIcon },
+  { value: "bicycling", label: "Bicycling", Icon: BicyclingIcon },
+  { value: "driving", label: "Driving", Icon: DrivingIcon },
+];
 
 type Props = {
   segment: RouteSegment;
@@ -27,6 +44,13 @@ export function SegmentRow({
   onSelect,
   onModeChange,
 }: Props) {
+  const [modeMenuOpen, setModeMenuOpen] = useState(false);
+  const [modeMenuPosition, setModeMenuPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const selectedMode = getModeOption(segment.mode);
   const url = buildGoogleMapsDirectionsUrl({
     origin: { latitude: from.latitude, longitude: from.longitude },
     destination: { latitude: to.latitude, longitude: to.longitude },
@@ -35,22 +59,84 @@ export function SegmentRow({
 
   return (
     <div className={`segment-row ${active ? "active" : ""}`} onClick={onSelect}>
-      <select
-        className="route-mode-select"
-        aria-label={`Travel mode from ${from.name} to ${to.name}`}
-        value={segment.mode}
-        disabled={!canEdit}
+      <div
+        className="route-mode-picker"
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setModeMenuOpen(false);
+          }
+        }}
         onClick={(event) => event.stopPropagation()}
-        onChange={(event) =>
-          onModeChange(event.currentTarget.value as TravelMode)
-        }
       >
-        {MODES.map((mode) => (
-          <option key={mode} value={mode}>
-            {mode}
-          </option>
-        ))}
-      </select>
+        <button
+          type="button"
+          ref={triggerRef}
+          className="route-mode-trigger"
+          aria-label={`Travel mode: ${selectedMode.label}`}
+          aria-haspopup="menu"
+          aria-expanded={modeMenuOpen}
+          title={`Travel mode: ${selectedMode.label}`}
+          disabled={!canEdit}
+          onClick={() => {
+            if (modeMenuOpen) {
+              setModeMenuOpen(false);
+              return;
+            }
+
+            const triggerBounds = triggerRef.current?.getBoundingClientRect();
+            setModeMenuPosition(
+              triggerBounds
+                ? {
+                    left: Math.max(
+                      8,
+                      Math.min(triggerBounds.left, window.innerWidth - 140),
+                    ),
+                    top: triggerBounds.bottom + 4,
+                  }
+                : null,
+            );
+            setModeMenuOpen(true);
+          }}
+        >
+          <selectedMode.Icon />
+          <span className="route-mode-chevron" aria-hidden="true" />
+        </button>
+        {modeMenuOpen && (
+          <div
+            className="route-mode-menu"
+            role="menu"
+            style={
+              modeMenuPosition
+                ? {
+                    left: `${modeMenuPosition.left}px`,
+                    top: `${modeMenuPosition.top}px`,
+                  }
+                : undefined
+            }
+          >
+            {MODE_OPTIONS.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                className={`route-mode-option ${
+                  value === segment.mode ? "active" : ""
+                }`}
+                role="menuitemradio"
+                aria-checked={value === segment.mode}
+                onClick={() => {
+                  setModeMenuOpen(false);
+                  if (value !== segment.mode) {
+                    onModeChange(value);
+                  }
+                }}
+              >
+                <Icon />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       {durationSeconds !== undefined && (
         <span className="route-duration">
           {formatRouteDuration(durationSeconds)}
@@ -68,6 +154,10 @@ export function SegmentRow({
       </a>
     </div>
   );
+}
+
+function getModeOption(mode: TravelMode) {
+  return MODE_OPTIONS.find((option) => option.value === mode) ?? MODE_OPTIONS[0];
 }
 
 function formatRouteDuration(seconds: number): string {

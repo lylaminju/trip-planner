@@ -219,13 +219,14 @@ html:has(.landing-shell) {
 .landing-product-frame .day-collapse-button,
 .landing-product-frame .place-main,
 .landing-product-frame .icon-button,
-.landing-product-frame .route-mode-select,
+.landing-product-frame .route-mode-trigger,
 .landing-product-frame .segment-row {
   pointer-events: none;
 }
 
 .landing-product-frame .icon-button,
-.landing-product-frame .small-button {
+.landing-product-frame .small-button,
+.landing-product-frame .route-mode-trigger {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -252,9 +253,16 @@ html:has(.landing-shell) {
   align-items: center;
 }
 
-.landing-product-frame .route-mode-select {
-  display: inline-flex;
-  width: auto;
+.landing-product-frame .route-mode-trigger {
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  width: 40px;
+}
+
+.landing-product-frame .route-mode-trigger svg {
+  height: 15px;
+  width: 15px;
 }
 
 .landing-product-frame .drag-handle {

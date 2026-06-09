@@ -233,14 +233,14 @@
     padding: 6px 0 6px 10px;
   }
 
-  .route-mode-select,
+  .route-mode-trigger,
   .segment-row .small-button {
     min-height: 26px;
   }
 
-  .route-mode-select {
-    padding-bottom: 4px;
-    padding-top: 4px;
+  .route-mode-trigger {
+    height: 28px;
+    width: 40px;
   }
 
   .segment-row .small-button {

@@ -33,11 +33,11 @@ describe("LandingPage", () => {
     expect(markup).toContain("New releases and a few slow laps");
     expect(markup).toContain("landing-route-segment");
     expect(markup).toContain("place-row landing-itinerary-stop");
-    expect(markup).toContain("route-mode-select");
+    expect(markup).toContain("route-mode-trigger");
     expect(markup).toContain("landing-map-marker-label");
     expect(markup).toContain("landing-map-route-halo");
-    expect(markup).toContain("walking");
-    expect(markup).toContain("transit");
+    expect(markup).toContain('aria-label="Travel mode: Walking"');
+    expect(markup).toContain('aria-label="Travel mode: Transit"');
     expect(markup).toContain("18 min");
     expect(markup).toContain("22 min");
     expect(markup).toContain("landing-route-map-link");

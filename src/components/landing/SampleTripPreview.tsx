@@ -1,4 +1,13 @@
-import { ExternalLinkIcon, PencilIcon, TrashIcon } from "@/components/Icons";
+import {
+  BicyclingIcon,
+  DrivingIcon,
+  ExternalLinkIcon,
+  PencilIcon,
+  TransitIcon,
+  TrashIcon,
+  WalkingIcon,
+} from "@/components/Icons";
+import type { TravelMode } from "@/lib/types";
 
 export function SampleTripPreview() {
   return (
@@ -185,14 +194,24 @@ function ItineraryStop({
   );
 }
 
-function RouteSegment({ mode, duration }: { mode: string; duration: string }) {
+function RouteSegment({
+  mode,
+  duration,
+}: {
+  mode: TravelMode;
+  duration: string;
+}) {
+  const modeOption = getRouteModeOption(mode);
+
   return (
     <div className="segment-row landing-route-segment">
       <div
-        className="route-mode-select"
-        aria-label="Travel mode between sample visits"
+        className="route-mode-trigger"
+        aria-label={`Travel mode: ${modeOption.label}`}
+        title={`Travel mode: ${modeOption.label}`}
       >
-        {mode}
+        <modeOption.Icon />
+        <span className="route-mode-chevron" aria-hidden="true" />
       </div>
       <span className="route-duration">{duration}</span>
       <span
@@ -203,4 +222,18 @@ function RouteSegment({ mode, duration }: { mode: string; duration: string }) {
       </span>
     </div>
   );
+}
+
+function getRouteModeOption(mode: TravelMode) {
+  switch (mode) {
+    case "bicycling":
+      return { label: "Bicycling", Icon: BicyclingIcon };
+    case "driving":
+      return { label: "Driving", Icon: DrivingIcon };
+    case "transit":
+      return { label: "Transit", Icon: TransitIcon };
+    case "walking":
+    default:
+      return { label: "Walking", Icon: WalkingIcon };
+  }
 }
