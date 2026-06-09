@@ -12,6 +12,32 @@ const visitDateOptions: VisitDateOption[] = [
 ];
 
 describe("visit date controls", () => {
+  it("allows add-place submission without a typed name for URL auto-fill", () => {
+    const addMarkup = renderToStaticMarkup(
+      createElement(AddEditPlaceModal, {
+        place: null,
+        visitDateOptions,
+        onCancel: vi.fn(),
+        onSave: vi.fn(),
+      }),
+    );
+    const editMarkup = renderToStaticMarkup(
+      createElement(AddEditPlaceModal, {
+        place: place({ name: "Existing stop" }),
+        visitDateOptions,
+        onCancel: vi.fn(),
+        onSave: vi.fn(),
+      }),
+    );
+
+    const addNameInput = addMarkup.match(/<input[^>]*name="name"[^>]*>/)?.[0];
+    const editNameInput = editMarkup.match(/<input[^>]*name="name"[^>]*>/)?.[0];
+
+    expect(addNameInput).toContain('placeholder="Auto-filled when possible"');
+    expect(addNameInput).not.toContain('required=""');
+    expect(editNameInput).toContain('required=""');
+  });
+
   it("uses a valid trip-day select when adding an initial visit", () => {
     const markup = renderToStaticMarkup(
       createElement(AddEditPlaceModal, {

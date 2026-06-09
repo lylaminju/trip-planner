@@ -92,7 +92,7 @@ export function AddEditPlaceModal({
           Name
           <input
             name="name"
-            required
+            required={isEditing}
             defaultValue={place?.name ?? ""}
             placeholder="Auto-filled when possible"
           />
