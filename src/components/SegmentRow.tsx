@@ -137,11 +137,16 @@ export function SegmentRow({
           </div>
         )}
       </div>
-      {durationSeconds !== undefined && (
-        <span className="route-duration">
-          {formatRouteDuration(durationSeconds)}
-        </span>
-      )}
+      <span
+        className={`route-duration ${
+          durationSeconds === undefined ? "placeholder" : ""
+        }`}
+        aria-hidden={durationSeconds === undefined}
+      >
+        {durationSeconds === undefined
+          ? "9 hr 59 min"
+          : formatRouteDuration(durationSeconds)}
+      </span>
       <a
         className="small-button"
         href={url}

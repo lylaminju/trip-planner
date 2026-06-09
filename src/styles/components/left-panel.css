@@ -371,9 +371,17 @@
 
 .route-duration {
   color: var(--muted);
+  flex: 0 0 10ch;
   font-size: 12px;
+  font-feature-settings: "tnum";
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
   white-space: nowrap;
+}
+
+.route-duration.placeholder {
+  visibility: hidden;
 }
 
 .itinerary-divider {

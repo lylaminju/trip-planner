@@ -51,6 +51,25 @@ describe("SegmentRow", () => {
     expect(markup).toContain("22 min");
     expect(markup).toContain("travelmode=transit");
   });
+
+  it("reserves the duration column when duration data is not available", () => {
+    const markup = renderToStaticMarkup(
+      createElement(SegmentRow, {
+        segment: routeSegment({ mode: "driving" }),
+        from: place({ name: "Cafe" }),
+        to: place({ id: 2, name: "Museum" }),
+        active: false,
+        canEdit: true,
+        onSelect: vi.fn(),
+        onModeChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('class="route-duration placeholder"');
+    expect(markup).toContain('aria-hidden="true"');
+    expect(markup).toContain("9 hr 59 min");
+    expect(markup).toContain("travelmode=driving");
+  });
 });
 
 function place(overrides: Partial<Place> = {}): Place {
