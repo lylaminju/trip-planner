@@ -154,34 +154,42 @@
   }
 
   .app-header {
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .app-header-title-row {
+    gap: 10px;
+    padding-bottom: 10px;
   }
 
   .app-header h1 {
-    font-size: 24px;
+    font-size: 21px;
     line-height: 1.1;
   }
 
-  .app-header-action-row {
-    flex-shrink: 0;
+  .app-header-dashboard-link {
+    font-size: 12px;
   }
 
-  .desktop-logout-button {
-    display: none;
+  .section-primary-action {
+    min-height: 36px;
+    white-space: nowrap;
   }
 
-  .mobile-logout-footer {
-    display: block;
+  .app-logout-footer {
     margin-top: 16px;
     padding: 12px 0 0;
   }
 
-  .mobile-logout-button {
+  .app-logout-button {
     width: 100%;
   }
 
   .section-block {
     margin-top: 14px;
+  }
+
+  .section-block + .section-block {
     padding-top: 14px;
   }
 
@@ -230,7 +238,7 @@
     align-items: center;
     flex-wrap: wrap;
     margin-left: 8px;
-    padding: 6px 0 6px 10px;
+    padding: 6px 0 6px 16px;
   }
 
   .route-mode-trigger,
@@ -278,11 +286,13 @@
   }
 
   .date-place-picker-list {
+    align-content: start;
     flex: 1;
+    grid-auto-rows: max-content;
     max-height: none;
   }
 
   .date-place-picker-row {
-    min-height: 48px;
+    min-height: 56px;
   }
 }

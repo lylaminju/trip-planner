@@ -42,6 +42,36 @@ export function CalendarPlusIcon() {
   );
 }
 
+export function ChevronLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+export function PanelExpandIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 5h16" />
+      <path d="M4 19h16" />
+      <path d="M9 9 5 12l4 3" />
+      <path d="M15 9l4 3-4 3" />
+    </svg>
+  );
+}
+
+export function PanelCollapseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 5h16" />
+      <path d="M4 19h16" />
+      <path d="m5 9 4 3-4 3" />
+      <path d="m19 9-4 3 4 3" />
+    </svg>
+  );
+}
+
 export function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

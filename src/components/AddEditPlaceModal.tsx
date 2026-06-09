@@ -17,6 +17,7 @@ import { VisitDateField } from "./VisitDateField";
 type Props = {
   place: Place | null;
   visitDateOptions: VisitDateOption[];
+  defaultVisitDate?: string | null;
   onCancel: () => void;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
 };
@@ -24,6 +25,7 @@ type Props = {
 export function AddEditPlaceModal({
   place,
   visitDateOptions,
+  defaultVisitDate,
   onCancel,
   onSave,
 }: Props) {
@@ -108,6 +110,7 @@ export function AddEditPlaceModal({
             <VisitDateField
               label="Initial visit date"
               name="visit_date"
+              defaultValue={defaultVisitDate}
               options={visitDateOptions}
             />
             <div className="time-picker">

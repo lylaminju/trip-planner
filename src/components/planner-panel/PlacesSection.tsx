@@ -17,6 +17,7 @@ export function PlacesSection(props: {
   isExpanded: boolean;
   isOpen: boolean;
   onToggleOpen: () => void;
+  onAddPlace: () => void;
   onSelectPlace: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
@@ -27,11 +28,23 @@ export function PlacesSection(props: {
 }) {
   return (
     <section className="section-block">
-      <SectionToggle
-        title={`Places (${props.places.length})`}
-        open={props.isOpen}
-        onToggle={props.onToggleOpen}
-      />
+      <div className="section-heading-row">
+        <SectionToggle
+          title={`Places (${props.places.length})`}
+          open={props.isOpen}
+          onToggle={props.onToggleOpen}
+          compact
+        />
+        {props.canEdit && (
+          <button
+            type="button"
+            className="section-primary-action"
+            onClick={props.onAddPlace}
+          >
+            Add Place
+          </button>
+        )}
+      </div>
       {props.isOpen && (
         <div className={`places-board ${props.isExpanded ? "expanded" : ""}`}>
           {props.places.map((place) => {

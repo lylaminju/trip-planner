@@ -40,6 +40,7 @@ import {
 import { toggleSelectedId } from "@/lib/selection";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
+import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import {
   getTimeZoneOptions,
   timeZoneDateFromIsoDate,
@@ -101,6 +102,9 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const [editingTripForm, setEditingTripForm] =
     useState<TripFormState | null>(null);
   const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
+  const [addPlaceVisitDate, setAddPlaceVisitDate] = useState<string | null>(
+    null,
+  );
   const [isAdding, setIsAdding] = useState(false);
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +145,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const canEdit = role !== "viewer";
   const canEditTripMetadata = role === "owner";
   const tripTitle = trip?.name ?? SERVICE_TITLE;
+  const tripPeriodLabel = formatTripPeriodLabel(trip);
   const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
   const editTripTimeZoneOptions = useMemo(
     () =>
@@ -210,6 +215,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       setEditingPlace(null);
       setEditingItem(null);
       setAddingVisitPlace(null);
+      setAddPlaceVisitDate(null);
       setError(null);
     } catch (reason) {
       const message = errorMessage(reason, "Failed to save place.");
@@ -328,12 +334,13 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setError(null);
   }
 
-  function openAddModal() {
+  function openAddModal(visitDate: string | null = null) {
     if (!canEdit) return;
     setError(null);
     setEditingPlace(null);
     setEditingItem(null);
     setAddingVisitPlace(null);
+    setAddPlaceVisitDate(visitDate);
     setIsAdding(true);
   }
 
@@ -343,6 +350,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setEditingPlace(place);
     setEditingItem(null);
     setAddingVisitPlace(null);
+    setAddPlaceVisitDate(null);
     setIsAdding(true);
   }
 
@@ -352,6 +360,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setEditingPlace(null);
     setEditingItem(item);
     setAddingVisitPlace(null);
+    setAddPlaceVisitDate(null);
     setIsAdding(false);
   }
 
@@ -361,6 +370,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setEditingPlace(null);
     setEditingItem(null);
     setAddingVisitPlace(place);
+    setAddPlaceVisitDate(null);
     setIsAdding(false);
   }
 
@@ -375,6 +385,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setEditingPlace(null);
     setEditingItem(null);
     setAddingVisitPlace(null);
+    setAddPlaceVisitDate(null);
   }
 
   async function submitEditTrip(event: SubmitEvent<HTMLFormElement>) {
@@ -537,6 +548,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     >
       <PlannerPanel
         title={tripTitle}
+        tripPeriodLabel={tripPeriodLabel}
         itinerary={itinerary}
         places={plannerSnapshot.places}
         activePlaceId={activeItemId}
@@ -652,6 +664,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
         <AddEditPlaceModal
           place={editingPlace}
           visitDateOptions={visitDateOptions}
+          defaultVisitDate={editingPlace ? null : addPlaceVisitDate}
           onCancel={closeModal}
           onSave={(payload) => savePlace(payload, editingPlace?.id)}
         />

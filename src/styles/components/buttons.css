@@ -53,6 +53,9 @@ button {
 button:hover {
   background: #f8fafc;
   border-color: #b9c5d1;
+}
+
+.small-button:hover {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 

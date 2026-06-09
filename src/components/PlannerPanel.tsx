@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type CSSProperties, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
@@ -15,11 +16,18 @@ import type {
 } from "@/lib/types";
 
 import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
+import {
+  ChevronLeftIcon,
+  PanelCollapseIcon,
+  PanelExpandIcon,
+  PencilIcon,
+} from "./Icons";
 import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
 
 type Props = {
   title: string;
+  tripPeriodLabel: string | null;
   itinerary: ItineraryView;
   places: Place[];
   activePlaceId: number | null;
@@ -42,7 +50,7 @@ type Props = {
   deletingItineraryItemIds: ReadonlySet<number>;
   onToggleExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
-  onAdd: () => void;
+  onAdd: (visitDate?: string | null) => void;
   onEditTrip?: () => void;
   onCopyExport: () => void;
   onDownloadExport: () => void;
@@ -149,36 +157,42 @@ export function PlannerPanel(props: Props) {
       </button>
       <header className="app-header">
         <div className="app-header-title-row">
-          <h1>{props.title}</h1>
+          <div className="app-header-title-stack">
+            <Link className="app-header-dashboard-link" href="/trips">
+              <ChevronLeftIcon />
+              <span>Trips dashboard</span>
+            </Link>
+            <div className="app-header-name-row">
+              <h1>{props.title}</h1>
+              {props.onEditTrip && (
+                <button
+                  type="button"
+                  className="icon-button app-header-edit-trip-button"
+                  aria-label="Edit trip details"
+                  title="Edit trip details"
+                  onClick={props.onEditTrip}
+                >
+                  <PencilIcon />
+                </button>
+              )}
+            </div>
+            {props.tripPeriodLabel && (
+              <p className="app-header-period">{props.tripPeriodLabel}</p>
+            )}
+          </div>
           <button
             type="button"
-            className="panel-expand-toggle"
+            className="icon-button panel-expand-toggle"
             aria-pressed={props.isExpanded}
+            aria-label={
+              props.isExpanded ? "Restore split view" : "Expand planner panel"
+            }
             title={
               props.isExpanded ? "Restore split view" : "Expand planner panel"
             }
             onClick={props.onToggleExpanded}
           >
-            {props.isExpanded ? "<< Collapse" : "Expand >>"}
-          </button>
-        </div>
-        <div className="app-header-action-row">
-          {props.canEdit && (
-            <button type="button" onClick={props.onAdd}>
-              Add Place
-            </button>
-          )}
-          {props.onEditTrip && (
-            <button type="button" onClick={props.onEditTrip}>
-              Edit trip
-            </button>
-          )}
-          <button
-            type="button"
-            className="desktop-logout-button"
-            onClick={props.onLogout}
-          >
-            Log out
+            {props.isExpanded ? <PanelCollapseIcon /> : <PanelExpandIcon />}
           </button>
         </div>
       </header>
@@ -237,6 +251,7 @@ export function PlannerPanel(props: Props) {
         isExpanded={props.isExpanded}
         isOpen={isPlacesOpen}
         onToggleOpen={() => setIsPlacesOpen((value) => !value)}
+        onAddPlace={() => props.onAdd()}
         onSelectPlace={props.onSelectPlace}
         onSelectCanonicalPlace={props.onSelectCanonicalPlace}
         onSelectSegment={props.onSelectSegment}
@@ -255,6 +270,10 @@ export function PlannerPanel(props: Props) {
             places={props.places}
             style={{ left: picker.left, top: picker.top }}
             onClose={() => setPicker(null)}
+            onCreatePlace={() => {
+              props.onAdd(picker.date);
+              setPicker(null);
+            }}
             onSelect={(place) => {
               props.onSchedulePlace(place.id, picker.date, null);
               setPicker(null);
@@ -262,10 +281,10 @@ export function PlannerPanel(props: Props) {
           />,
           document.body,
         )}
-      <footer className="mobile-logout-footer">
+      <footer className="app-logout-footer">
         <button
           type="button"
-          className="mobile-logout-button"
+          className="app-logout-button"
           onClick={props.onLogout}
         >
           Log out

@@ -53,6 +53,20 @@ describe("visit date controls", () => {
     expect(markup).not.toContain('type="date" name="visit_date"');
   });
 
+  it("preselects a target visit date when creating from a day picker", () => {
+    const markup = renderToStaticMarkup(
+      createElement(AddEditPlaceModal, {
+        place: null,
+        visitDateOptions,
+        defaultVisitDate: "2026-06-02",
+        onCancel: vi.fn(),
+        onSave: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('<option value="2026-06-02" selected="">');
+  });
+
   it("keeps an existing out-of-range visit date without offering free date entry", () => {
     const markup = renderToStaticMarkup(
       createElement(EditItineraryItemModal, {

@@ -8,13 +8,14 @@ import {
 } from "@/lib/place-display";
 import type { Place } from "@/lib/types";
 
-import { CloseIcon } from "../Icons";
+import { CloseIcon, PlusIcon } from "../Icons";
 
 export function DatePlacePicker(props: {
   date: string;
   places: Place[];
   style: CSSProperties;
   onClose: () => void;
+  onCreatePlace: () => void;
   onSelect: (place: Place) => void;
 }) {
   const dateHeading = formatItineraryDateHeading(props.date);
@@ -37,6 +38,14 @@ export function DatePlacePicker(props: {
           <CloseIcon />
         </button>
       </div>
+      <button
+        type="button"
+        className="date-place-picker-create"
+        onClick={props.onCreatePlace}
+      >
+        <PlusIcon />
+        <span>New place</span>
+      </button>
       <div className="date-place-picker-list">
         {props.places.length === 0 ? (
           <p className="date-place-picker-empty">No places yet.</p>
