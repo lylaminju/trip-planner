@@ -191,6 +191,19 @@ Navigation is minimal. The authenticated app favors direct page headers and
 compact actions. The public landing page should use a slim header with the
 TripGlance name, primary request-access action, and secondary sign-in link.
 
+### Repeated Lists
+
+Repeated rows should feel mechanically consistent. When adjacent list items show
+variable metadata such as offsets, abbreviations, dates, counts, durations,
+badges, or actions, keep comparable values in stable columns so the eye can scan
+down without horizontal jitter. Prefer fixed or bounded metadata columns,
+reserved optional slots, tabular numerals, and consistent text alignment over
+letting each row size itself around its content.
+
+Do not reserve oversized space for rare outliers. Size stable columns around the
+longest common value and use truncation, wrapping, or secondary disclosure only
+for genuinely unusual content.
+
 ## 6. Do's and Don'ts
 
 Do:

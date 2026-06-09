@@ -12,6 +12,8 @@ import {
 type TimeZoneOptionParts = {
   name: string;
   meta: string;
+  offset: string;
+  abbreviation: string;
   city: string;
 };
 
@@ -21,13 +23,16 @@ export function timeZoneOptionParts(
   const separator = " - ";
   const separatorIndex = option.label.indexOf(separator);
   const hasMeta = separatorIndex > -1;
-  const name = hasMeta
+  const rawName = hasMeta
     ? option.label.slice(separatorIndex + separator.length)
     : option.label;
   const meta = hasMeta ? option.label.slice(0, separatorIndex) : "";
+  const [offset = "", ...abbreviationParts] = meta.split(" ");
+  const abbreviation = abbreviationParts.join(" ");
+  const name = rawName.replace(/_/g, " ");
   const city = name.split("/").pop()?.replace(/_/g, " ") ?? name;
 
-  return { name, meta, city };
+  return { name, meta, offset, abbreviation, city };
 }
 
 export function filterTimeZoneOptions(
@@ -70,7 +75,13 @@ export function TimeZoneSelect(props: {
     props.options.find((option) => option.value === props.value) ?? null;
   const selectedParts = selectedOption
     ? timeZoneOptionParts(selectedOption)
-    : { name: props.value, meta: "", city: props.value };
+    : {
+        name: props.value,
+        meta: "",
+        offset: "",
+        abbreviation: "",
+        city: props.value,
+      };
   const filteredOptions = useMemo(
     () => filterTimeZoneOptions(props.options, query),
     [props.options, query],
@@ -171,11 +182,17 @@ export function TimeZoneSelect(props: {
                   aria-selected={isSelected}
                 >
                   <span className="timezone-select-option-main">
-                    <span className="timezone-select-city">{parts.city}</span>
                     <span className="timezone-select-name">{parts.name}</span>
                   </span>
                   {parts.meta ? (
-                    <span className="timezone-select-meta">{parts.meta}</span>
+                    <span className="timezone-select-option-meta">
+                      <span className="timezone-select-offset">
+                        {parts.offset}
+                      </span>
+                      <span className="timezone-select-abbreviation">
+                        {parts.abbreviation}
+                      </span>
+                    </span>
                   ) : null}
                 </button>
               );
