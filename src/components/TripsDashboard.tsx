@@ -27,6 +27,7 @@ import {
 import type { TripSummary } from "@/lib/types";
 import { TripEditForm } from "./TripEditForm";
 import { TripRow } from "./TripRow";
+import { FoldedMapIcon } from "./Icons";
 import { updateTripFormField } from "./trip-form-state";
 import { TimeZoneSelect } from "./TimeZoneSelect";
 import type { TripFormState } from "./trip-form-types";
@@ -334,7 +335,7 @@ export function TripsDashboard() {
   }
 }
 
-function TripSection(props: {
+export function TripSection(props: {
   title: string;
   trips: TripSummary[];
   editing: { tripId: number; form: TripFormState } | null;
@@ -354,7 +355,14 @@ function TripSection(props: {
         <span>{props.trips.length}</span>
       </div>
       {props.trips.length === 0 ? (
-        <p className="trip-empty-text">No trips in this section.</p>
+        <div className="trip-list">
+          <div
+            className="trip-empty-bucket"
+            aria-label="No trips in this section."
+          >
+            <FoldedMapIcon />
+          </div>
+        </div>
       ) : (
         <div className="trip-list">
           {props.trips.map((trip) =>

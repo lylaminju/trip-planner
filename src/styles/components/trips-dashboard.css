@@ -85,7 +85,6 @@
 }
 
 .trip-section {
-  border-top: 1px solid var(--line);
   padding-top: 16px;
 }
 
@@ -118,8 +117,32 @@
   border-radius: 8px;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-height: 60px;
   padding: 10px;
+}
+
+.trip-empty-bucket {
+  align-items: center;
+  background: #ffffff;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: flex;
+  justify-content: center;
+  min-height: 60px;
+  padding: 10px;
+}
+
+.trip-empty-bucket svg {
+  fill: none;
+  height: 34px;
+  opacity: 0.62;
+  stroke: var(--line);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 34px;
 }
 
 .trip-edit-form {
@@ -193,6 +216,11 @@
   .trip-row {
     align-items: stretch;
     grid-template-columns: 1fr;
+  }
+
+  .trip-row,
+  .trip-empty-bucket {
+    min-height: 104px;
   }
 
   .trip-form-name,

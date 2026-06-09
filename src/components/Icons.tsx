@@ -20,6 +20,15 @@ export function TrashIcon() {
   );
 }
 
+export function FoldedMapIcon() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path d="M14 24L26 18L38 24L50 18V48L38 54L26 48L14 54V24Z" />
+      <path d="M26 18V48M38 24V54" />
+    </svg>
+  );
+}
+
 export function CalendarPlusIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
