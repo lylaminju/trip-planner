@@ -221,6 +221,7 @@ html:has(.landing-shell) {
 
   .landing-hero-actions {
     flex-wrap: nowrap;
+    width: 100%;
   }
 
   .landing-primary-action,
@@ -228,6 +229,14 @@ html:has(.landing-shell) {
     font-size: 14px;
     padding-inline: 10px;
     white-space: nowrap;
+  }
+
+  .landing-primary-action {
+    flex: 1 1 auto;
+  }
+
+  .landing-secondary-action {
+    flex: 0 1 auto;
   }
 
   .landing-footer {
