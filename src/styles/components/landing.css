@@ -14,7 +14,7 @@ html:has(.landing-shell) {
     ),
     linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
   display: grid;
-  gap: 56px;
+  gap: 72px;
   justify-content: stretch;
   min-height: 100vh;
   min-height: 100dvh;
@@ -161,6 +161,7 @@ html:has(.landing-shell) {
   border-top: 1px solid rgba(216, 222, 228, 0.92);
   color: var(--muted);
   display: flex;
+  flex-wrap: nowrap;
   gap: 16px;
   justify-content: space-between;
   padding: 16px 0 0;
@@ -171,6 +172,7 @@ html:has(.landing-shell) {
   font-size: 14px;
   font-weight: 700;
   margin: 0;
+  white-space: nowrap;
 }
 
 .landing-footer-links {
@@ -178,6 +180,7 @@ html:has(.landing-shell) {
   flex-wrap: wrap;
   gap: 14px;
   justify-content: flex-end;
+  white-space: nowrap;
 }
 
 .landing-footer a {
@@ -192,7 +195,7 @@ html:has(.landing-shell) {
 
 @media (max-width: 900px) {
   .landing-shell {
-    gap: 36px;
+    gap: 40px;
     padding: 18px 14px;
   }
 
@@ -209,14 +212,6 @@ html:has(.landing-shell) {
     max-width: none;
   }
 
-  .landing-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .landing-footer-links {
-    justify-content: flex-start;
-  }
 }
 
 @media (max-width: 560px) {
@@ -233,6 +228,15 @@ html:has(.landing-shell) {
     font-size: 14px;
     padding-inline: 10px;
     white-space: nowrap;
+  }
+
+  .landing-footer {
+    gap: 10px;
+  }
+
+  .landing-footer-brand,
+  .landing-footer a {
+    font-size: 13px;
   }
 }
 

@@ -49,7 +49,7 @@ export function LandingPage() {
         aria-labelledby="sign-in-title"
       >
         <div className="sign-in-copy">
-          <h2 id="sign-in-title">Sign in</h2>
+          <h2 id="sign-in-title">Open your trip planner</h2>
         </div>
         <form className="sign-in-form" onSubmit={handleSubmit}>
           <label>

@@ -62,3 +62,9 @@
   background: #0d6962;
   border-color: #0d6962;
 }
+
+@media (max-width: 900px) {
+  .sign-in-copy h2 {
+    font-size: 26px;
+  }
+}

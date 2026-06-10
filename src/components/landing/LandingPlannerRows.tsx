@@ -1,0 +1,175 @@
+import {
+  BicyclingIcon,
+  CalendarPlusIcon,
+  DrivingIcon,
+  ExternalLinkIcon,
+  PencilIcon,
+  TransitIcon,
+  TrashIcon,
+  WalkingIcon,
+} from "@/components/Icons";
+import type { TravelMode } from "@/lib/types";
+
+type LandingItineraryStopProps = {
+  time: string;
+  name: string;
+  note: string;
+  markerLabel: string;
+  markerColor: string;
+  active?: boolean;
+};
+
+export function LandingItineraryStop({
+  time,
+  name,
+  note,
+  markerLabel,
+  markerColor,
+  active = false,
+}: LandingItineraryStopProps) {
+  const rowClassName = active
+    ? "place-row landing-itinerary-stop active"
+    : "place-row landing-itinerary-stop";
+
+  return (
+    <div className={rowClassName} aria-label={`${time} ${name}`}>
+      <span className="drag-handle" aria-hidden="true">
+        ::
+      </span>
+      <div className="place-main">
+        <strong className="place-title">
+          <span
+            className="place-marker-label"
+            style={{ backgroundColor: markerColor }}
+            aria-label={`Visit order ${markerLabel}`}
+          >
+            {markerLabel}
+          </span>
+          <span className="place-title-text">
+            <span className="place-time">{time}</span>
+            <span className="place-name">{name}</span>
+          </span>
+        </strong>
+        <span className="place-note">{note}</span>
+      </div>
+      <span className="icon-button" aria-label={`Edit ${name}`}>
+        <PencilIcon />
+      </span>
+      <span className="icon-button danger-button" aria-label={`Delete ${name}`}>
+        <TrashIcon />
+      </span>
+    </div>
+  );
+}
+
+type LandingRouteSegmentProps = {
+  mode: TravelMode;
+  duration: string;
+};
+
+type LandingPlaceListRowProps = {
+  name: string;
+  detail: string;
+};
+
+export function LandingPlaceListRow({
+  name,
+  detail,
+}: LandingPlaceListRowProps) {
+  return (
+    <div className="place-row landing-itinerary-stop" aria-label={name}>
+      <div className="place-main">
+        <strong className="place-title">
+          <span className="place-title-text">
+            <span className="place-name">{name}</span>
+          </span>
+        </strong>
+        <span>{detail}</span>
+      </div>
+      <span className="icon-button" aria-label={`Add ${name} to itinerary`}>
+        <CalendarPlusIcon />
+      </span>
+      <span className="icon-button" aria-label={`Edit place ${name}`}>
+        <PencilIcon />
+      </span>
+      <span
+        className="icon-button danger-button"
+        aria-label={`Delete place ${name}`}
+      >
+        <TrashIcon />
+      </span>
+    </div>
+  );
+}
+
+export function LandingMobileSheetHandle() {
+  return (
+    <div className="mobile-sheet-handle landing-preview-sheet-handle">
+      <span aria-hidden="true" />
+    </div>
+  );
+}
+
+export function LandingRouteSegment({
+  mode,
+  duration,
+}: LandingRouteSegmentProps) {
+  const modeOption = getRouteModeOption(mode);
+
+  return (
+    <div className="segment-row landing-route-segment">
+      <div className="route-mode-picker">
+        <span
+          className="route-mode-trigger"
+          aria-label={`Travel mode: ${modeOption.label}`}
+          title={`Travel mode: ${modeOption.label}`}
+        >
+          <modeOption.Icon />
+          <span className="route-mode-chevron" aria-hidden="true" />
+        </span>
+      </div>
+      <span className="route-duration">{duration}</span>
+      <span
+        className="small-button landing-route-map-link"
+        aria-label="Open in Google Maps"
+      >
+        <ExternalLinkIcon />
+      </span>
+    </div>
+  );
+}
+
+export function LandingRouteDetailsToggle({ active }: { active: boolean }) {
+  const className = active
+    ? "route-segment-toggle active"
+    : "route-segment-toggle";
+
+  return (
+    <button
+      aria-checked={active}
+      className={className}
+      role="switch"
+      title={`${active ? "Hide" : "Show"} route segments`}
+      type="button"
+    >
+      <span>Route details</span>
+      <span className="route-segment-switch-track" aria-hidden="true">
+        <span className="route-segment-switch-knob" />
+      </span>
+    </button>
+  );
+}
+
+function getRouteModeOption(mode: TravelMode) {
+  switch (mode) {
+    case "bicycling":
+      return { label: "Bicycling", Icon: BicyclingIcon };
+    case "driving":
+      return { label: "Driving", Icon: DrivingIcon };
+    case "transit":
+      return { label: "Transit", Icon: TransitIcon };
+    case "walking":
+    default:
+      return { label: "Walking", Icon: WalkingIcon };
+  }
+}

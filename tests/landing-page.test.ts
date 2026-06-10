@@ -3,6 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { LandingPage } from "@/components/LandingPage";
+import {
+  LandingRouteDetailsToggle,
+  LandingRouteSegment,
+} from "@/components/landing/LandingPlannerRows";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 
 describe("LandingPage", () => {
@@ -28,7 +32,6 @@ describe("LandingPage", () => {
   it("shows a faithful planner preview with route segment rows", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
-    expect(markup).toContain("Weekend trip");
     expect(markup).toContain("Day 1");
     expect(markup).toContain("10:00 Brunch cafe");
     expect(markup).toContain("11:50 Museum");
@@ -38,6 +41,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("New releases and a few slow laps");
     expect(markup).toContain("landing-route-segment");
     expect(markup).toContain("place-row landing-itinerary-stop");
+    expect(markup).toContain("landing-preview-sheet-handle");
     expect(markup).toContain("route-mode-trigger");
     expect(markup).toContain("landing-map-marker-label");
     expect(markup).toContain("landing-map-route-halo");
@@ -59,15 +63,60 @@ describe("LandingPage", () => {
     expect(markup).toContain("Place it on the day");
     expect(markup).toContain("Check the route");
     expect(markup).toContain("landing-workflow-product-frame");
+    expect(markup).toContain("landing-preview-sheet-handle");
     expect(markup).toContain("Paste a Google Maps link");
     expect(markup).toContain("Google Maps link");
     expect(markup).toContain("maps.app.goo.gl/brunch-cafe");
     expect(markup).toContain("Add Place");
+    expect(markup).toContain("Place details ready");
+    expect(markup).toContain('aria-label="Add Brunch cafe to itinerary"');
     expect(markup).not.toContain("Add stop");
+    expect(markup).not.toContain("landing-workflow-marker-label");
+    expect(markup).not.toContain("landing-workflow-saved-place");
     expect(markup).not.toContain("landing-workflow-visual");
     expect(markup).not.toContain("Maps link ready");
     expect(markup).not.toContain("Selected workflow step");
     expect(markup).not.toContain("Google Maps places");
+  });
+
+  it("renders landing route segments with the product route row structure", () => {
+    const markup = renderToStaticMarkup(
+      createElement(LandingRouteSegment, {
+        mode: "walking",
+        duration: "18 min",
+      }),
+    );
+
+    expect(markup).toContain('class="segment-row landing-route-segment"');
+    expect(markup).toContain("route-mode-picker");
+    expect(markup).toContain("route-mode-trigger");
+    expect(markup).toContain("route-mode-chevron");
+    expect(markup).toContain("route-duration");
+    expect(markup).toContain("small-button landing-route-map-link");
+    expect(markup).toContain('aria-label="Travel mode: Walking"');
+    expect(markup).not.toContain("landing-route-segment active");
+    expect(markup).not.toContain("landing-workflow-route");
+  });
+
+  it("renders route details toggle states with the product switch structure", () => {
+    const offMarkup = renderToStaticMarkup(
+      createElement(LandingRouteDetailsToggle, { active: false }),
+    );
+    const onMarkup = renderToStaticMarkup(
+      createElement(LandingRouteDetailsToggle, { active: true }),
+    );
+
+    expect(offMarkup).toContain('class="route-segment-toggle"');
+    expect(offMarkup).toContain('role="switch"');
+    expect(offMarkup).toContain('aria-checked="false"');
+    expect(offMarkup).toContain("Route details");
+    expect(offMarkup).toContain("route-segment-switch-track");
+    expect(offMarkup).not.toContain("route-segment-toggle active");
+
+    expect(onMarkup).toContain('class="route-segment-toggle active"');
+    expect(onMarkup).toContain('role="switch"');
+    expect(onMarkup).toContain('aria-checked="true"');
+    expect(onMarkup).toContain("route-segment-switch-knob");
   });
 
   it("keeps the existing sign-in form on the same page", () => {
@@ -75,7 +124,7 @@ describe("LandingPage", () => {
 
     expect(markup).toContain('id="sign-in"');
     expect(markup).toContain("<h2");
-    expect(markup).toContain("Sign in</h2>");
+    expect(markup).toContain("Open your trip planner</h2>");
     expect(markup).toContain('name="email"');
     expect(markup).toContain('type="email"');
     expect(markup).toContain('name="password"');

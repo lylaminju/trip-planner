@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 
+import { PlusIcon } from "@/components/Icons";
 import {
-  ExternalLinkIcon,
-  PencilIcon,
-  PlusIcon,
-  TransitIcon,
-  TrashIcon,
-  WalkingIcon,
-} from "@/components/Icons";
+  LandingItineraryStop,
+  LandingMobileSheetHandle,
+  LandingPlaceListRow,
+  LandingRouteDetailsToggle,
+  LandingRouteSegment,
+} from "@/components/landing/LandingPlannerRows";
 
 type WorkflowStepId = "add-place" | "place-day" | "check-route";
 
@@ -47,10 +47,6 @@ export function LandingFeatureProof() {
       <div className="landing-workflow-copy">
         <p className="landing-section-label">How it works</p>
         <h2 id="landing-workflow-title">From saved place to mapped day.</h2>
-        <p>
-          Follow a place from map link, to itinerary row, to route check without
-          switching planning surfaces.
-        </p>
       </div>
 
       <div className="landing-workflow-demo">
@@ -98,6 +94,7 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
   if (stepId === "add-place") {
     return (
       <div className="landing-workflow-planner-panel">
+        <LandingMobileSheetHandle />
         <div className="landing-workflow-section-row">
           <strong>Places</strong>
         </div>
@@ -111,125 +108,70 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
           </div>
         </div>
 
-        <div className="landing-workflow-saved-place">
-          <span className="landing-workflow-marker-label">1</span>
-          <div>
-            <strong>Brunch cafe</strong>
-            <span>Place details ready</span>
-          </div>
-        </div>
+        <LandingPlaceListRow
+          name="Brunch cafe"
+          detail="Place details ready"
+        />
       </div>
     );
   }
 
   return (
     <div className="landing-workflow-planner-panel">
-      <div className="landing-workflow-section-row">
-        <strong>Itineraries</strong>
+      <LandingMobileSheetHandle />
+      <div className="section-heading-row landing-preview-section-row landing-workflow-section-row">
+        <div className="section-toggle compact">
+          <h2>Itineraries</h2>
+        </div>
+        <LandingRouteDetailsToggle active={stepId === "check-route"} />
       </div>
 
-      <div className="landing-workflow-day-card">
-        <div className="landing-workflow-day-heading">
-          <strong>Day 1</strong>
-        </div>
+      <div className="day-block landing-day-card">
+        <h3 className="day-heading">
+          <span className="day-heading-title-group">
+            <span
+              className="day-heading-button"
+              style={{ borderColor: "#0f766e" }}
+            >
+              <span className="day-heading-prefix">Day 1</span>
+            </span>
+            <span className="day-collapse-button">
+              <span aria-hidden="true">v</span>
+            </span>
+          </span>
+        </h3>
 
-        <WorkflowStop
+        <LandingItineraryStop
           time="10:00"
           name="Brunch cafe"
           note="Late breakfast and coffee"
           markerLabel="1"
+          markerColor="#0f766e"
           active
         />
         {stepId === "check-route" && (
-          <WorkflowRoute mode="walking" duration="18 min" active />
+          <LandingRouteSegment mode="walking" duration="18 min" />
         )}
-        <WorkflowStop
+        <LandingItineraryStop
           time="11:50"
           name="Museum"
           note="Exhibits and a short gallery loop"
           markerLabel="2"
-          muted={stepId === "place-day"}
+          markerColor="#0f766e"
         />
         {stepId === "check-route" && (
-          <WorkflowRoute mode="transit" duration="22 min" />
+          <LandingRouteSegment mode="transit" duration="22 min" />
         )}
         {stepId === "check-route" && (
-          <WorkflowStop
+          <LandingItineraryStop
             time="16:30"
             name="Bookstore"
             note="New releases and a few slow laps"
             markerLabel="3"
+            markerColor="#0f766e"
           />
         )}
       </div>
-    </div>
-  );
-}
-
-function WorkflowStop({
-  time,
-  name,
-  note,
-  markerLabel,
-  active = false,
-  muted = false,
-}: {
-  time: string;
-  name: string;
-  note: string;
-  markerLabel: string;
-  active?: boolean;
-  muted?: boolean;
-}) {
-  return (
-    <div
-      className={`landing-workflow-stop ${active ? "active" : ""} ${
-        muted ? "muted" : ""
-      }`}
-      aria-label={`${time} ${name}`}
-    >
-      <span className="landing-workflow-marker-label">{markerLabel}</span>
-      <div className="landing-workflow-stop-main">
-        <strong>
-          <span>{time}</span>
-          <span>{name}</span>
-        </strong>
-        <span>{note}</span>
-      </div>
-      <span className="landing-workflow-icon-button" aria-hidden="true">
-        <PencilIcon />
-      </span>
-      <span
-        className="landing-workflow-icon-button landing-workflow-danger-button"
-        aria-hidden="true"
-      >
-        <TrashIcon />
-      </span>
-    </div>
-  );
-}
-
-function WorkflowRoute({
-  mode,
-  duration,
-  active = false,
-}: {
-  mode: "transit" | "walking";
-  duration: string;
-  active?: boolean;
-}) {
-  const Icon = mode === "walking" ? WalkingIcon : TransitIcon;
-  const label = mode === "walking" ? "Walking" : "Transit";
-
-  return (
-    <div className={`landing-workflow-route ${active ? "active" : ""}`}>
-      <span className="landing-workflow-route-mode" aria-label={label}>
-        <Icon />
-      </span>
-      <span>{duration}</span>
-      <span className="landing-workflow-map-link" aria-hidden="true">
-        <ExternalLinkIcon />
-      </span>
     </div>
   );
 }

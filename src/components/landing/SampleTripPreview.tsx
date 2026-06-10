@@ -1,13 +1,9 @@
 import {
-  BicyclingIcon,
-  DrivingIcon,
-  ExternalLinkIcon,
-  PencilIcon,
-  TransitIcon,
-  TrashIcon,
-  WalkingIcon,
-} from "@/components/Icons";
-import type { TravelMode } from "@/lib/types";
+  LandingItineraryStop,
+  LandingMobileSheetHandle,
+  LandingRouteDetailsToggle,
+  LandingRouteSegment,
+} from "@/components/landing/LandingPlannerRows";
 
 export function SampleTripPreview() {
   return (
@@ -30,19 +26,12 @@ export function SampleTripPreview() {
         aria-label="Sample planner and map preview"
       >
         <div className="landing-planner-panel">
-          <header className="landing-preview-header">
-            <h2>Weekend trip</h2>
-          </header>
+          <LandingMobileSheetHandle />
           <div className="section-heading-row landing-preview-section-row">
             <div className="section-toggle compact">
               <h2>Itineraries</h2>
             </div>
-            <div className="route-segment-toggle active">
-              <span>Route details</span>
-              <span className="route-segment-switch-track" aria-hidden="true">
-                <span className="route-segment-switch-knob" />
-              </span>
-            </div>
+            <LandingRouteDetailsToggle active />
           </div>
           <div className="day-block landing-day-card">
             <h3 className="day-heading">
@@ -58,7 +47,7 @@ export function SampleTripPreview() {
                 </span>
               </span>
             </h3>
-            <ItineraryStop
+            <LandingItineraryStop
               time="10:00"
               name="Brunch cafe"
               note="Late breakfast and coffee"
@@ -66,16 +55,16 @@ export function SampleTripPreview() {
               markerColor="#0f766e"
               active
             />
-            <RouteSegment mode="walking" duration="18 min" />
-            <ItineraryStop
+            <LandingRouteSegment mode="walking" duration="18 min" />
+            <LandingItineraryStop
               time="11:50"
               name="Museum"
               note="Exhibits and a short gallery loop"
               markerLabel="2"
               markerColor="#0f766e"
             />
-            <RouteSegment mode="transit" duration="22 min" />
-            <ItineraryStop
+            <LandingRouteSegment mode="transit" duration="22 min" />
+            <LandingItineraryStop
               time="16:30"
               name="Bookstore"
               note="New releases and a few slow laps"
@@ -138,97 +127,4 @@ function MapPreviewMarker({
       </text>
     </g>
   );
-}
-
-function ItineraryStop({
-  time,
-  name,
-  note,
-  markerLabel,
-  markerColor,
-  active = false,
-}: {
-  time: string;
-  name: string;
-  note: string;
-  markerLabel: string;
-  markerColor: string;
-  active?: boolean;
-}) {
-  return (
-    <div
-      className={`place-row landing-itinerary-stop ${active ? "active" : ""}`}
-      aria-label={`${time} ${name}`}
-    >
-      <span className="drag-handle" aria-hidden="true">
-        ::
-      </span>
-      <div className="place-main">
-        <strong className="place-title">
-          <span
-            className="place-marker-label"
-            style={{ backgroundColor: markerColor }}
-            aria-label={`Visit order ${markerLabel}`}
-          >
-            {markerLabel}
-          </span>
-          <span className="place-title-text">
-            <span className="place-time">{time}</span>
-            <span className="place-name">{name}</span>
-          </span>
-        </strong>
-        <span className="place-note">{note}</span>
-      </div>
-      <span className="icon-button" aria-label={`Edit ${name}`}>
-        <PencilIcon />
-      </span>
-      <span className="icon-button danger-button" aria-label={`Delete ${name}`}>
-        <TrashIcon />
-      </span>
-    </div>
-  );
-}
-
-function RouteSegment({
-  mode,
-  duration,
-}: {
-  mode: TravelMode;
-  duration: string;
-}) {
-  const modeOption = getRouteModeOption(mode);
-
-  return (
-    <div className="segment-row landing-route-segment">
-      <div
-        className="route-mode-trigger"
-        aria-label={`Travel mode: ${modeOption.label}`}
-        title={`Travel mode: ${modeOption.label}`}
-      >
-        <modeOption.Icon />
-        <span className="route-mode-chevron" aria-hidden="true" />
-      </div>
-      <span className="route-duration">{duration}</span>
-      <span
-        className="small-button landing-route-map-link"
-        aria-label="Open in Google Maps"
-      >
-        <ExternalLinkIcon />
-      </span>
-    </div>
-  );
-}
-
-function getRouteModeOption(mode: TravelMode) {
-  switch (mode) {
-    case "bicycling":
-      return { label: "Bicycling", Icon: BicyclingIcon };
-    case "driving":
-      return { label: "Driving", Icon: DrivingIcon };
-    case "transit":
-      return { label: "Transit", Icon: TransitIcon };
-    case "walking":
-    default:
-      return { label: "Walking", Icon: WalkingIcon };
-  }
 }
