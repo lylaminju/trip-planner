@@ -10,8 +10,13 @@ describe("LandingPage", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain(SERVICE_TITLE);
-    expect(markup).toContain("Request access");
-    expect(markup).toContain("Opens your email app to request an invite.");
+    expect(markup).toContain("Trip planning,");
+    expect(markup).toContain("at a glance.");
+    expect(markup).toContain("Plan the itinerary and map the route");
+    expect(markup).toContain("Request invite");
+    expect(markup).toContain("Already invited? Sign in");
+    expect(markup).toContain("Email <a href=\"mailto:mjuudev@gmail.com");
+    expect(markup).toContain("mjuudev@gmail.com</a> directly if your email app does not open.");
     expect(markup).toContain('href="#sign-in"');
     expect(markup).toContain("mailto:mjuudev@gmail.com");
     expect(markup).toContain("TripGlance%20access%20request");
@@ -41,6 +46,28 @@ describe("LandingPage", () => {
     expect(markup).toContain("18 min");
     expect(markup).toContain("22 min");
     expect(markup).toContain("landing-route-map-link");
+    expect(markup).toContain('aria-label="Edit Brunch cafe"');
+    expect(markup).toContain('aria-label="Delete Brunch cafe"');
+  });
+
+  it("shows an interactive workflow proof for the middle section", () => {
+    const markup = renderToStaticMarkup(createElement(LandingPage));
+
+    expect(markup).toContain("From saved place to mapped day");
+    expect(markup).toContain('role="tablist"');
+    expect(markup).toContain("Add a Maps place");
+    expect(markup).toContain("Place it on the day");
+    expect(markup).toContain("Check the route");
+    expect(markup).toContain("landing-workflow-visual");
+    expect(markup).toContain("landing-workflow-product-frame");
+    expect(markup).toContain("Paste a Google Maps link");
+    expect(markup).toContain("Google Maps link");
+    expect(markup).toContain("maps.app.goo.gl/brunch-cafe");
+    expect(markup).toContain("Add Place");
+    expect(markup).not.toContain("Add stop");
+    expect(markup).not.toContain("Maps link ready");
+    expect(markup).not.toContain("Selected workflow step");
+    expect(markup).not.toContain("Google Maps places");
   });
 
   it("keeps the existing sign-in form on the same page", () => {
@@ -49,8 +76,9 @@ describe("LandingPage", () => {
     expect(markup).toContain('id="sign-in"');
     expect(markup).toContain("<h2");
     expect(markup).toContain("Sign in</h2>");
-    expect(markup).toContain('name="email_local"');
-    expect(markup).toContain('name="email_domain"');
+    expect(markup).toContain('name="email"');
+    expect(markup).toContain('type="email"');
     expect(markup).toContain('name="password"');
+    expect(markup).not.toContain("Use the email attached to your invite.");
   });
 });

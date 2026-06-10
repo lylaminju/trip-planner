@@ -1,14 +1,7 @@
 import { SERVICE_TITLE } from "@/lib/service-brand";
 
+import { ACCESS_EMAIL, requestAccessHref } from "./access";
 import { SampleTripPreview } from "./SampleTripPreview";
-
-export const ACCESS_EMAIL = "mjuudev@gmail.com";
-const ACCESS_SUBJECT = `${SERVICE_TITLE} access request`;
-const ACCESS_BODY = `Hi, I would like to request access to ${SERVICE_TITLE}.`;
-
-export const requestAccessHref = `mailto:${ACCESS_EMAIL}?subject=${encodeURIComponent(
-  ACCESS_SUBJECT,
-)}&body=${encodeURIComponent(ACCESS_BODY)}`;
 
 export function LandingHero() {
   return (
@@ -22,6 +15,7 @@ export function LandingHero() {
           {SERVICE_TITLE}
         </a>
         <nav className="landing-nav" aria-label="Landing page">
+          <a href={requestAccessHref}>Request invite</a>
           <a href="#sign-in">Sign in</a>
         </nav>
       </header>
@@ -33,17 +27,24 @@ export function LandingHero() {
             <span>at a glance.</span>
           </h1>
           <div className="landing-hero-support">
-            <p>
+            <p className="landing-hero-description">
               Plan the itinerary and map the route <br /> in one view.
             </p>
-            <div className="landing-primary-action-group">
+            <div className="landing-hero-actions">
               <a className="landing-primary-action" href={requestAccessHref}>
-                Request access
+                Request invite
               </a>
-              <p className="landing-access-copy">
-                Opens your email app to request an invite.
-              </p>
+              <a className="landing-secondary-action" href="#sign-in">
+                Already invited? Sign in
+              </a>
             </div>
+            <p className="landing-access-copy">
+              Email{" "}
+              <a href={requestAccessHref}>
+                {ACCESS_EMAIL}
+              </a>{" "}
+              directly if your email app does not open.
+            </p>
           </div>
         </div>
         <SampleTripPreview />

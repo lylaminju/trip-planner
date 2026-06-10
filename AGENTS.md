@@ -45,6 +45,12 @@ This file applies to the whole repository. Follow it when changing code here.
 - Keep repeated row actions in consistent columns so scanning stays predictable. Prefer fixed or bounded columns, tabular numerals, placeholders that preserve space, and right-aligned numeric metadata over letting action buttons drift horizontally.
 - Do not reserve excessive empty space for rare outliers. Size stable columns around the longest common display value, then allow wrapping or overflow handling only for genuinely unusual content.
 
+## CSS Cascade Rules
+
+- When static previews or landing pages reuse app component classes, verify `src/app/globals.css` import order before relying on overrides.
+- Do not rely on equal-specificity overrides across component CSS files; scope through the preview container or use the exact combined class.
+- Prefer preview-owned classes when a static preview should not inherit live app spacing, interaction, or layout behavior.
+
 ## Testing Guidelines
 
 - Prefer assertions that protect stable behavior, structure, routing, and integration contracts over assertions that freeze incidental UI copy.

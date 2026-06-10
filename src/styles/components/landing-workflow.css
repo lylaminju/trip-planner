@@ -1,0 +1,407 @@
+/* Landing page workflow proof styling. */
+
+.landing-workflow-proof {
+  display: grid;
+  gap: 18px;
+}
+
+.landing-workflow-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.landing-workflow-copy h2 {
+  font-size: 30px;
+  margin: 0;
+}
+
+.landing-workflow-copy > .landing-section-label {
+  font-size: 13px;
+}
+
+.landing-workflow-copy p,
+.landing-preview-copy p {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.landing-workflow-demo {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+}
+
+.landing-workflow-tabs {
+  display: grid;
+  gap: 8px;
+}
+
+.landing-workflow-tab {
+  align-items: start;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 12px;
+  text-align: left;
+}
+
+.landing-workflow-tab[aria-selected="true"] {
+  border-color: rgba(15, 118, 110, 0.5);
+}
+
+.landing-workflow-step-number {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.landing-workflow-step-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.landing-workflow-step-copy span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.landing-workflow-visual {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.landing-workflow-visual-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  justify-content: space-between;
+}
+
+.landing-workflow-visual-header strong {
+  font-size: 18px;
+}
+
+.landing-workflow-product-frame {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(300px, 1fr);
+  min-height: 390px;
+  overflow: hidden;
+}
+
+.landing-workflow-planner-panel {
+  align-content: start;
+  align-items: start;
+  border-right: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.landing-workflow-section-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.landing-workflow-section-row strong {
+  font-size: 17px;
+}
+
+.landing-workflow-link-card {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.landing-workflow-link-card > span,
+.landing-workflow-saved-place span,
+.landing-workflow-day-heading span,
+.landing-workflow-stop-main > span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.landing-workflow-link-card strong {
+  color: var(--text);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.landing-workflow-link-action {
+  align-items: center;
+  background: var(--accent);
+  border-radius: 6px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 6px;
+  justify-self: start;
+  padding: 7px 10px;
+}
+
+.landing-workflow-link-action svg,
+.landing-workflow-icon-button svg,
+.landing-workflow-map-link svg,
+.landing-workflow-route-mode svg {
+  height: 14px;
+  width: 14px;
+}
+
+.landing-workflow-link-action svg,
+.landing-workflow-icon-button svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.landing-workflow-saved-place,
+.landing-workflow-stop {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  padding: 8px;
+}
+
+.landing-workflow-saved-place {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.landing-workflow-saved-place div,
+.landing-workflow-stop-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.landing-workflow-marker-label {
+  align-items: center;
+  background: var(--accent);
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.landing-workflow-day-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+}
+
+.landing-workflow-day-heading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.landing-workflow-stop.active {
+  background: rgba(15, 118, 110, 0.05);
+  border-color: rgba(15, 118, 110, 0.48);
+  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.32);
+}
+
+.landing-workflow-stop.muted {
+  opacity: 0.68;
+}
+
+.landing-workflow-stop-main strong {
+  align-items: baseline;
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.landing-workflow-stop-main strong span:first-child {
+  color: var(--muted);
+  flex: 0 0 auto;
+  font-size: 12px;
+}
+
+.landing-workflow-stop-main strong span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.landing-workflow-icon-button,
+.landing-workflow-map-link,
+.landing-workflow-route-mode {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.landing-workflow-icon-button {
+  height: 30px;
+  width: 30px;
+}
+
+.landing-workflow-danger-button {
+  color: var(--danger);
+}
+
+.landing-workflow-route {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 6px 8px;
+}
+
+.landing-workflow-route.active {
+  color: var(--text);
+}
+
+.landing-workflow-route-mode,
+.landing-workflow-map-link {
+  height: 28px;
+  width: 36px;
+}
+
+.landing-workflow-map-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0)),
+    #eef2f6;
+  min-height: 390px;
+  min-width: 0;
+  position: relative;
+}
+
+.landing-workflow-map-lines {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.landing-workflow-map-road,
+.landing-workflow-map-route,
+.landing-workflow-map-route-halo {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.landing-workflow-map-road {
+  stroke: #d8dee4;
+  stroke-width: 8;
+}
+
+.landing-workflow-map-route-halo {
+  stroke: transparent;
+  stroke-width: 7;
+}
+
+.landing-workflow-map-route-halo.active {
+  stroke: rgba(255, 255, 255, 0.9);
+}
+
+.landing-workflow-map-route {
+  stroke: var(--accent);
+  stroke-opacity: 0.72;
+  stroke-width: 3;
+}
+
+.landing-workflow-map-marker {
+  filter: drop-shadow(0 1px 4px rgba(15, 23, 42, 0.3));
+}
+
+.landing-workflow-map-marker-circle {
+  fill: #64748b;
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.landing-workflow-map-marker.active .landing-workflow-map-marker-circle {
+  fill: var(--accent);
+}
+
+.landing-workflow-map-marker-label {
+  dominant-baseline: middle;
+  fill: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+@media (max-width: 900px) {
+  .landing-workflow-demo,
+  .landing-workflow-product-frame {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-workflow-product-frame {
+    min-height: 710px;
+  }
+
+  .landing-workflow-map-panel {
+    min-height: 318px;
+  }
+
+  .landing-workflow-planner-panel {
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-workflow-tab {
+    padding: 10px;
+  }
+
+  .landing-workflow-visual {
+    padding: 12px;
+  }
+
+  .landing-workflow-stop {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .landing-workflow-stop .landing-workflow-icon-button {
+    display: none;
+  }
+}

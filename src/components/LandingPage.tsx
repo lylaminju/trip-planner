@@ -7,8 +7,7 @@ import { LandingFeatureProof } from "./landing/LandingFeatureProof";
 import { LandingHero } from "./landing/LandingHero";
 
 export function LandingPage() {
-  const [emailLocalPart, setEmailLocalPart] = useState("");
-  const [emailDomain, setEmailDomain] = useState("gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,13 +17,11 @@ export function LandingPage() {
     setIsSubmitting(true);
     setError(null);
 
-    const email = `${emailLocalPart.trim()}@${emailDomain}`;
-
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = (await response.json()) as { error?: string };
 
@@ -57,28 +54,13 @@ export function LandingPage() {
         <form className="sign-in-form" onSubmit={handleSubmit}>
           <label>
             <span>Email</span>
-            <span className="sign-in-email-row">
-              <input
-                autoComplete="email"
-                className="sign-in-email-local"
-                name="email_local"
-                type="text"
-                value={emailLocalPart}
-                onChange={(event) =>
-                  setEmailLocalPart(event.currentTarget.value)
-                }
-              />
-              <span className="sign-in-email-at" aria-hidden="true">
-                @
-              </span>
-              <input
-                className="sign-in-email-domain"
-                name="email_domain"
-                type="text"
-                value={emailDomain}
-                onChange={(event) => setEmailDomain(event.currentTarget.value)}
-              />
-            </span>
+            <input
+              autoComplete="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.currentTarget.value)}
+            />
           </label>
           <label>
             <span>Password</span>

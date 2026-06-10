@@ -37,9 +37,7 @@ export function SampleTripPreview() {
             <div className="section-toggle compact">
               <h2>Itineraries</h2>
             </div>
-            <div
-              className="route-segment-toggle active"
-            >
+            <div className="route-segment-toggle active">
               <span>Route details</span>
               <span className="route-segment-switch-track" aria-hidden="true">
                 <span className="route-segment-switch-knob" />
@@ -184,10 +182,7 @@ function ItineraryStop({
       <span className="icon-button" aria-label={`Edit ${name}`}>
         <PencilIcon />
       </span>
-      <span
-        className="icon-button danger-button"
-        aria-label={`Delete ${name}`}
-      >
+      <span className="icon-button danger-button" aria-label={`Delete ${name}`}>
         <TrashIcon />
       </span>
     </div>
