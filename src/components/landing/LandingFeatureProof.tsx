@@ -18,25 +18,21 @@ const WORKFLOW_STEPS = [
     id: "add-place",
     title: "Add a Maps place",
     body: "Paste a Google Maps link and keep the place ready for planning.",
-    panelTitle: "Add Place",
   },
   {
     id: "place-day",
     title: "Place it on the day",
     body: "Set the visit time, notes, and order without losing map context.",
-    panelTitle: "Day 1",
   },
   {
     id: "check-route",
     title: "Check the route",
     body: "Compare route segments and markers before the day gets crowded.",
-    panelTitle: "Route details",
   },
 ] satisfies Array<{
   id: WorkflowStepId;
   title: string;
   body: string;
-  panelTitle: string;
 }>;
 
 export function LandingFeatureProof() {
@@ -85,19 +81,13 @@ export function LandingFeatureProof() {
 
         <div
           aria-labelledby={`workflow-tab-${selectedStep.id}`}
-          className="landing-workflow-visual"
+          className="landing-workflow-product-frame"
           id={`workflow-panel-${selectedStep.id}`}
           aria-live="polite"
           role="tabpanel"
         >
-          <div className="landing-workflow-visual-header">
-            <strong>{selectedStep.panelTitle}</strong>
-          </div>
-
-          <div className="landing-workflow-product-frame">
-            <WorkflowPlannerState stepId={selectedStep.id} />
-            <WorkflowMapState stepId={selectedStep.id} />
-          </div>
+          <WorkflowPlannerState stepId={selectedStep.id} />
+          <WorkflowMapState stepId={selectedStep.id} />
         </div>
       </div>
     </section>

@@ -58,13 +58,13 @@ describe("LandingPage", () => {
     expect(markup).toContain("Add a Maps place");
     expect(markup).toContain("Place it on the day");
     expect(markup).toContain("Check the route");
-    expect(markup).toContain("landing-workflow-visual");
     expect(markup).toContain("landing-workflow-product-frame");
     expect(markup).toContain("Paste a Google Maps link");
     expect(markup).toContain("Google Maps link");
     expect(markup).toContain("maps.app.goo.gl/brunch-cafe");
     expect(markup).toContain("Add Place");
     expect(markup).not.toContain("Add stop");
+    expect(markup).not.toContain("landing-workflow-visual");
     expect(markup).not.toContain("Maps link ready");
     expect(markup).not.toContain("Selected workflow step");
     expect(markup).not.toContain("Google Maps places");

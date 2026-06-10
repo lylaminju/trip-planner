@@ -71,29 +71,8 @@
   line-height: 1.45;
 }
 
-.landing-workflow-visual {
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  display: grid;
-  gap: 12px;
-  overflow: hidden;
-  padding: 14px;
-}
-
-.landing-workflow-visual-header {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  justify-content: space-between;
-}
-
-.landing-workflow-visual-header strong {
-  font-size: 18px;
-}
-
 .landing-workflow-product-frame {
+  background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 12px;
   display: grid;
@@ -391,10 +370,6 @@
 @media (max-width: 560px) {
   .landing-workflow-tab {
     padding: 10px;
-  }
-
-  .landing-workflow-visual {
-    padding: 12px;
   }
 
   .landing-workflow-stop {
