@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { PlusIcon } from "@/components/Icons";
+import { LandingAbstractMap } from "@/components/landing/LandingAbstractMap";
 import {
   LandingItineraryStop,
   LandingMobileSheetHandle,
@@ -108,10 +109,7 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
           </div>
         </div>
 
-        <LandingPlaceListRow
-          name="Brunch cafe"
-          detail="Place details ready"
-        />
+        <LandingPlaceListRow name="Brunch cafe" detail="Place details ready" />
       </div>
     );
   }
@@ -182,42 +180,38 @@ function WorkflowMapState({ stepId }: { stepId: WorkflowStepId }) {
 
   return (
     <div className="landing-workflow-map-panel" aria-hidden="true">
-      <svg className="landing-workflow-map-lines" viewBox="0 0 360 260">
-        <path
-          className="landing-workflow-map-road"
-          d="M32 58 C88 32 114 96 166 76 S246 42 318 76"
-        />
-        <path
-          className="landing-workflow-map-road"
-          d="M58 202 C116 158 154 214 208 172 S282 130 324 172"
-        />
-        <path
-          className={`landing-workflow-map-route-halo ${
-            showsFullRoute ? "active" : ""
-          }`}
-          d="M64 66 C108 98 140 90 178 116"
-        />
-        {showsFullRoute && (
+      <svg
+        className="landing-workflow-map-lines"
+        preserveAspectRatio="xMidYMid slice"
+        viewBox="-100 -80 560 420"
+      >
+        <g className="landing-map-plane" transform="rotate(-2 180 130)">
+          <LandingAbstractMap />
           <path
-            className="landing-workflow-map-route-halo active"
-            d="M178 116 C228 150 254 132 312 168"
+            className={`landing-workflow-map-route-halo ${
+              showsFullRoute ? "active" : ""
+            }`}
+            d="M56 44 V146 H177"
           />
-        )}
-        {showsSecondMarker && (
-          <path
-            className="landing-workflow-map-route"
-            d="M64 66 C108 98 140 90 178 116"
-          />
-        )}
-        {showsFullRoute && (
-          <path
-            className="landing-workflow-map-route"
-            d="M178 116 C228 150 254 132 312 168"
-          />
-        )}
-        <WorkflowMapMarker x={64} y={66} label="1" active />
-        {showsSecondMarker && <WorkflowMapMarker x={178} y={116} label="2" />}
-        {showsFullRoute && <WorkflowMapMarker x={312} y={168} label="3" />}
+          {showsFullRoute && (
+            <path
+              className="landing-workflow-map-route-halo active"
+              d="M177 146 H281 V242"
+            />
+          )}
+          {showsSecondMarker && (
+            <path className="landing-workflow-map-route" d="M56 44 V146 H177" />
+          )}
+          {showsFullRoute && (
+            <path
+              className="landing-workflow-map-route"
+              d="M177 146 H281 V242"
+            />
+          )}
+          <WorkflowMapMarker x={56} y={44} label="1" active />
+          {showsSecondMarker && <WorkflowMapMarker x={177} y={146} label="2" />}
+          {showsFullRoute && <WorkflowMapMarker x={281} y={242} label="3" />}
+        </g>
       </svg>
     </div>
   );

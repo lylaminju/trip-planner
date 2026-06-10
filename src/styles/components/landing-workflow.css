@@ -148,21 +148,21 @@
 }
 
 .landing-workflow-map-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0)),
-    #eef2f6;
+  background: #eef2f6;
   min-height: 400px;
   min-width: 0;
+  overflow: hidden;
   position: relative;
 }
 
 .landing-workflow-map-lines {
   display: block;
   height: 100%;
+  position: relative;
   width: 100%;
+  z-index: 1;
 }
 
-.landing-workflow-map-road,
 .landing-workflow-map-route,
 .landing-workflow-map-route-halo {
   fill: none;
@@ -170,14 +170,9 @@
   stroke-linejoin: round;
 }
 
-.landing-workflow-map-road {
-  stroke: #d8dee4;
-  stroke-width: 8;
-}
-
 .landing-workflow-map-route-halo {
   stroke: transparent;
-  stroke-width: 7;
+  stroke-width: 8;
 }
 
 .landing-workflow-map-route-halo.active {
@@ -186,8 +181,8 @@
 
 .landing-workflow-map-route {
   stroke: var(--accent);
-  stroke-opacity: 0.72;
-  stroke-width: 3;
+  stroke-opacity: 0.88;
+  stroke-width: 4;
 }
 
 .landing-workflow-map-marker {

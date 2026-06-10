@@ -19,8 +19,10 @@ describe("LandingPage", () => {
     expect(markup).toContain("Plan the itinerary and map the route");
     expect(markup).toContain("Request invite");
     expect(markup).toContain("Already invited? Sign in");
-    expect(markup).toContain("Email <a href=\"mailto:mjuudev@gmail.com");
-    expect(markup).toContain("mjuudev@gmail.com</a> directly if your email app does not open.");
+    expect(markup).toContain('Email <a href="mailto:mjuudev@gmail.com');
+    expect(markup).toContain(
+      "mjuudev@gmail.com</a> directly if your email app does not open.",
+    );
     expect(markup).toContain('href="#sign-in"');
     expect(markup).toContain("mailto:mjuudev@gmail.com");
     expect(markup).toContain("TripGlance%20access%20request");
@@ -43,8 +45,12 @@ describe("LandingPage", () => {
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain("landing-preview-sheet-handle");
     expect(markup).toContain("route-mode-trigger");
+    expect(markup).toContain("landing-abstract-map-block");
     expect(markup).toContain("landing-map-marker-label");
     expect(markup).toContain("landing-map-route-halo");
+    expect(markup).not.toContain("landing-map-road");
+    expect(markup).not.toContain("OpenStreetMap");
+    expect(markup).not.toContain("landing-map-osm");
     expect(markup).toContain('aria-label="Travel mode: Walking"');
     expect(markup).toContain('aria-label="Travel mode: Transit"');
     expect(markup).toContain("18 min");
@@ -74,6 +80,8 @@ describe("LandingPage", () => {
     expect(markup).not.toContain("landing-workflow-marker-label");
     expect(markup).not.toContain("landing-workflow-saved-place");
     expect(markup).not.toContain("landing-workflow-visual");
+    expect(markup).not.toContain("landing-workflow-map-road");
+    expect(markup).not.toContain("OpenStreetMap");
     expect(markup).not.toContain("Maps link ready");
     expect(markup).not.toContain("Selected workflow step");
     expect(markup).not.toContain("Google Maps places");

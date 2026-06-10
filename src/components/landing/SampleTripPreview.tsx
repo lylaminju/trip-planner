@@ -4,6 +4,7 @@ import {
   LandingRouteDetailsToggle,
   LandingRouteSegment,
 } from "@/components/landing/LandingPlannerRows";
+import { LandingAbstractMap } from "@/components/landing/LandingAbstractMap";
 
 export function SampleTripPreview() {
   return (
@@ -75,34 +76,22 @@ export function SampleTripPreview() {
         </div>
 
         <div className="landing-map-panel" aria-hidden="true">
-          <svg className="landing-map-lines" viewBox="0 0 360 260" role="img">
-            <path
-              className="landing-map-road"
-              d="M32 58 C88 32 114 96 166 76 S246 42 318 76"
-            />
-            <path
-              className="landing-map-road"
-              d="M58 202 C116 158 154 214 208 172 S282 130 324 172"
-            />
-            <path
-              className="landing-map-route-halo"
-              d="M64 66 C108 98 140 90 178 116"
-            />
-            <path
-              className="landing-map-route-halo"
-              d="M178 116 C228 150 254 132 312 168"
-            />
-            <path
-              className="landing-map-route"
-              d="M64 66 C108 98 140 90 178 116"
-            />
-            <path
-              className="landing-map-route"
-              d="M178 116 C228 150 254 132 312 168"
-            />
-            <MapPreviewMarker x={64} y={66} label="1" />
-            <MapPreviewMarker x={178} y={116} label="2" />
-            <MapPreviewMarker x={312} y={168} label="3" />
+          <svg
+            className="landing-map-lines"
+            preserveAspectRatio="xMidYMid slice"
+            viewBox="-100 -80 560 420"
+            role="img"
+          >
+            <g className="landing-map-plane" transform="rotate(-2 180 130)">
+              <LandingAbstractMap />
+              <path className="landing-map-route-halo" d="M56 44 V146 H177" />
+              <path className="landing-map-route-halo" d="M177 146 H281 V242" />
+              <path className="landing-map-route" d="M56 44 V146 H177" />
+              <path className="landing-map-route" d="M177 146 H281 V242" />
+              <MapPreviewMarker x={56} y={44} label="1" />
+              <MapPreviewMarker x={177} y={146} label="2" />
+              <MapPreviewMarker x={281} y={242} label="3" />
+            </g>
           </svg>
         </div>
       </div>

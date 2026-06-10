@@ -165,21 +165,55 @@
 }
 
 .landing-map-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0)),
-    #eef2f6;
+  background: #eef2f6;
   min-height: 280px;
   min-width: 0;
+  overflow: hidden;
   position: relative;
 }
 
 .landing-map-lines {
   display: block;
   height: 100%;
+  position: relative;
   width: 100%;
+  z-index: 1;
 }
 
-.landing-map-road,
+.landing-abstract-map-ground {
+  fill: #eef2f6;
+}
+
+.landing-abstract-map-block {
+  fill: #ffffff;
+  stroke: rgba(148, 163, 184, 0.38);
+  stroke-width: 1;
+}
+
+.landing-abstract-map-block.is-muted {
+  fill: #e2e8f0;
+}
+
+.landing-abstract-map-block.is-soft {
+  fill: #f8fafc;
+}
+
+.landing-abstract-map-block.is-park {
+  fill: rgba(20, 184, 166, 0.12);
+  stroke: rgba(20, 184, 166, 0.24);
+}
+
+.landing-abstract-map-water {
+  fill: rgba(14, 165, 233, 0.12);
+}
+
+.landing-abstract-map-arterial {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.26);
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
 .landing-map-route,
 .landing-map-route-halo {
   fill: none;
@@ -187,20 +221,15 @@
   stroke-linejoin: round;
 }
 
-.landing-map-road {
-  stroke: #d8dee4;
-  stroke-width: 8;
-}
-
 .landing-map-route-halo {
   stroke: rgba(255, 255, 255, 0.9);
-  stroke-width: 7;
+  stroke-width: 8;
 }
 
 .landing-map-route {
   stroke: var(--accent);
-  stroke-opacity: 0.72;
-  stroke-width: 3;
+  stroke-opacity: 0.88;
+  stroke-width: 4;
 }
 
 .landing-map-marker {
