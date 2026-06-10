@@ -48,10 +48,9 @@ export function LandingPage() {
         id="sign-in"
         aria-labelledby="sign-in-title"
       >
-        <div className="sign-in-copy">
-          <h2 id="sign-in-title">Open your trip planner</h2>
-        </div>
+        <div className="sign-in-copy" aria-hidden="true" />
         <form className="sign-in-form" onSubmit={handleSubmit}>
+          <h2 id="sign-in-title">Open your trip planner</h2>
           <label>
             <span>Email</span>
             <input

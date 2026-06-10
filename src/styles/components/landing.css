@@ -1,6 +1,7 @@
 /* Public landing page and sign-in form styling. */
 
-html:has(.landing-shell) {
+html:has(.landing-shell),
+body:has(.landing-shell) {
   scroll-behavior: smooth;
 }
 
@@ -14,11 +15,11 @@ html:has(.landing-shell) {
     ),
     linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
   display: grid;
-  gap: 72px;
+  gap: 240px;
   justify-content: stretch;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow-x: clip;
   padding: 24px;
 }
 
@@ -152,7 +153,6 @@ html:has(.landing-shell) {
 }
 
 .landing-sign-in {
-  max-width: 460px;
   min-width: 0;
 }
 
@@ -211,7 +211,6 @@ html:has(.landing-shell) {
     font-size: 56px;
     max-width: none;
   }
-
 }
 
 @media (max-width: 560px) {
@@ -250,7 +249,8 @@ html:has(.landing-shell) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:has(.landing-shell) {
+  html:has(.landing-shell),
+  body:has(.landing-shell) {
     scroll-behavior: auto;
   }
 
