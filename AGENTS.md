@@ -51,6 +51,14 @@ This file applies to the whole repository. Follow it when changing code here.
 - Do not rely on equal-specificity overrides across component CSS files; scope through the preview container or use the exact combined class.
 - Prefer preview-owned classes when a static preview should not inherit live app spacing, interaction, or layout behavior.
 
+## CSS Design Tokens
+
+- Define color, shadow, overlay, focus-ring, and map/SVG paint values in `src/styles/theme.css`.
+- Do not put raw `#hex`, `rgb()`, or `rgba()` color values in component CSS or inline React styles. Use semantic custom properties such as `--surface-muted`, `--border-strong`, `--focus-ring`, or `--danger-bg`.
+- Prefer semantic role tokens over literal palette names in component CSS. A component should ask for a role such as selected border, hover surface, or floating shadow, not a numbered gray.
+- Keep token additions intentional. Add a new token only when an existing role does not describe the use case clearly.
+- Allowed exceptions outside `theme.css`: `transparent`, `currentColor`, non-color numeric values, and third-party asset data that cannot reasonably use CSS variables.
+
 ## Testing Guidelines
 
 - Prefer assertions that protect stable behavior, structure, routing, and integration contracts over assertions that freeze incidental UI copy.

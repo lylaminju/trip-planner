@@ -1,6 +1,6 @@
 /* Map panel, markers, warnings, and info-window styling. */
 .panel-map {
-  background: #eef2f6;
+  background: var(--surface-map);
   height: 100%;
   min-height: 360px;
   position: relative;
@@ -20,11 +20,11 @@
 }
 
 .map-route-warning {
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-floating);
   border: 1px solid var(--line);
   border-radius: 6px;
   bottom: 12px;
-  box-shadow: 0 8px 18px rgba(31, 41, 51, 0.12);
+  box-shadow: var(--shadow-map-card);
   color: var(--muted);
   font-size: 12px;
   left: 12px;
@@ -50,12 +50,12 @@
 
 .map-current-location-button {
   align-items: center;
-  background: #ffffff;
-  border: 1px solid rgba(31, 41, 51, 0.16);
+  background: var(--surface-panel);
+  border: 1px solid var(--border-map-control);
   border-radius: 999px;
   bottom: 28px;
-  box-shadow: 0 2px 6px rgba(31, 41, 51, 0.18);
-  color: #3f4750;
+  box-shadow: var(--shadow-map-control);
+  color: var(--text-control);
   cursor: pointer;
   display: inline-flex;
   height: 44px;
@@ -73,12 +73,12 @@
 }
 
 .map-current-location-button:hover {
-  background: #f8fafc;
-  border-color: rgba(31, 41, 51, 0.24);
+  background: var(--surface-muted);
+  border-color: var(--border-map-control-hover);
 }
 
 .map-current-location-button:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.28);
+  outline: 3px solid var(--accent-outline-color);
   outline-offset: 2px;
 }
 
@@ -87,16 +87,16 @@
 }
 
 .map-current-location-button.active {
-  border-color: rgba(15, 118, 110, 0.42);
+  border-color: var(--accent-border-muted);
   color: var(--accent);
 }
 
 .map-current-location-toast {
-  background: rgba(15, 23, 42, 0.94);
+  background: var(--surface-inverse);
   border-radius: 8px;
   bottom: 72px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  color: #ffffff;
+  box-shadow: var(--shadow-floating-large);
+  color: var(--text-on-accent);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.35;
@@ -148,10 +148,10 @@
 }
 
 .map-empty-state {
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-floating);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 12px 28px rgba(31, 41, 51, 0.14);
+  box-shadow: var(--shadow-map-empty);
   color: var(--muted);
   display: grid;
   gap: 8px;
@@ -190,17 +190,17 @@
 
 .map-marker {
   align-items: center;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--surface-panel);
   border-radius: 999px;
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.28);
-  color: #ffffff;
+  box-shadow: var(--shadow-map-marker);
+  color: var(--text-on-accent);
   display: flex;
   font-size: var(--map-marker-font-size, 10px);
   font-weight: 700;
   height: var(--map-marker-size, 16px);
   justify-content: center;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.4);
+  text-shadow: var(--text-shadow-map-marker);
   transition:
     font-size 120ms ease,
     height 120ms ease,
@@ -230,8 +230,8 @@
 
 .current-location-marker-pulse {
   animation: current-location-pulse 1800ms ease-out infinite;
-  background: rgba(37, 99, 235, 0.2);
-  border: 1px solid rgba(37, 99, 235, 0.3);
+  background: var(--current-location-pulse-bg);
+  border: 1px solid var(--current-location-pulse-border);
   border-radius: 999px;
   height: 22px;
   position: absolute;
@@ -239,10 +239,10 @@
 }
 
 .current-location-marker-dot {
-  background: #2563eb;
-  border: 3px solid #ffffff;
+  background: var(--current-location);
+  border: 3px solid var(--surface-panel);
   border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.28);
+  box-shadow: var(--shadow-current-location);
   height: 12px;
   position: relative;
   width: 12px;

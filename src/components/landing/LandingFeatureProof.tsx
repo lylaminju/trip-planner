@@ -129,7 +129,7 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
           <span className="day-heading-title-group">
             <span
               className="day-heading-button"
-              style={{ borderColor: "#0f766e" }}
+              style={{ borderColor: "var(--accent)" }}
             >
               <span className="day-heading-prefix">Day 1</span>
             </span>
@@ -144,7 +144,7 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
           name="Brunch cafe"
           note="Late breakfast and coffee"
           markerLabel="1"
-          markerColor="#0f766e"
+          markerColor="var(--accent)"
           active
         />
         {stepId === "check-route" && (
@@ -155,7 +155,7 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
           name="Museum"
           note="Exhibits and a short gallery loop"
           markerLabel="2"
-          markerColor="#0f766e"
+          markerColor="var(--accent)"
         />
         {stepId === "check-route" && (
           <LandingRouteSegment mode="transit" duration="22 min" />
@@ -166,7 +166,7 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
             name="Bookstore"
             note="New releases and a few slow laps"
             markerLabel="3"
-            markerColor="#0f766e"
+            markerColor="var(--accent)"
           />
         )}
       </div>

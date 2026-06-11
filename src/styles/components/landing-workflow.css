@@ -39,7 +39,7 @@
 
 .landing-workflow-tab {
   align-items: start;
-  background: #ffffff;
+  background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
@@ -50,7 +50,7 @@
 }
 
 .landing-workflow-tab[aria-selected="true"] {
-  border-color: rgba(15, 118, 110, 0.5);
+  border-color: var(--accent-border-strong);
 }
 
 .landing-workflow-step-number {
@@ -71,7 +71,7 @@
 }
 
 .landing-workflow-product-frame {
-  background: #ffffff;
+  background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 12px;
   display: grid;
@@ -102,7 +102,7 @@
 }
 
 .landing-workflow-link-card {
-  background: #f8fafc;
+  background: var(--surface-muted);
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
@@ -128,7 +128,7 @@
   align-items: center;
   background: var(--accent);
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--text-on-accent);
   display: inline-flex;
   font-size: 13px;
   font-weight: 800;
@@ -148,7 +148,7 @@
 }
 
 .landing-workflow-map-panel {
-  background: #eef2f6;
+  background: var(--surface-map);
   min-height: 400px;
   min-width: 0;
   overflow: hidden;
@@ -176,7 +176,7 @@
 }
 
 .landing-workflow-map-route-halo.active {
-  stroke: rgba(255, 255, 255, 0.9);
+  stroke: var(--map-route-halo);
 }
 
 .landing-workflow-map-route {
@@ -186,12 +186,12 @@
 }
 
 .landing-workflow-map-marker {
-  filter: drop-shadow(0 1px 4px rgba(15, 23, 42, 0.3));
+  filter: var(--filter-map-marker);
 }
 
 .landing-workflow-map-marker-circle {
-  fill: #64748b;
-  stroke: #ffffff;
+  fill: var(--map-marker-muted);
+  stroke: var(--surface-panel);
   stroke-width: 2;
 }
 
@@ -201,7 +201,7 @@
 
 .landing-workflow-map-marker-label {
   dominant-baseline: middle;
-  fill: #ffffff;
+  fill: var(--text-on-accent);
   font-size: 11px;
   font-weight: 700;
   pointer-events: none;
@@ -229,7 +229,7 @@
     border-radius: 14px 14px 0 0;
     border-right: 0;
     border-top: 1px solid var(--line);
-    box-shadow: 0 -10px 24px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--shadow-mobile-panel);
     order: 2;
     padding-top: 0;
   }
