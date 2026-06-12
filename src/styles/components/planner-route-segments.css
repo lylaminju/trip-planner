@@ -1,0 +1,204 @@
+/* Route detail toggle, route segment rows, and travel-mode picker. */
+.route-duration {
+  color: var(--muted);
+  flex: 0 0 10ch;
+  font-size: 12px;
+  font-feature-settings: "tnum";
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.route-duration.placeholder {
+  visibility: hidden;
+}
+
+.route-segment-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 6px;
+  padding: 0;
+  transition: color 120ms ease;
+}
+
+.route-segment-toggle:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.route-segment-toggle.active {
+  color: var(--accent);
+}
+
+.route-segment-switch-track {
+  background: var(--border-muted);
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 34px;
+  height: 18px;
+  padding: 2px;
+  transition: background-color 120ms ease;
+  width: 34px;
+}
+
+.route-segment-toggle.active .route-segment-switch-track {
+  background: var(--accent);
+}
+
+.route-segment-switch-knob {
+  background: var(--surface-panel);
+  border-radius: 50%;
+  height: 14px;
+  transform: translateX(0);
+  transition: transform 120ms ease;
+  width: 14px;
+}
+
+.route-segment-toggle.active .route-segment-switch-knob {
+  transform: translateX(16px);
+}
+
+.segment-row {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 8px;
+  padding: 5px 6px 5px 16px;
+  position: relative;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.segment-row::before {
+  background: var(--line);
+  bottom: 4px;
+  content: "";
+  left: 4px;
+  position: absolute;
+  top: 4px;
+  width: 2px;
+}
+
+.segment-row:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.segment-row.active::before {
+  background: var(--accent-selected-border);
+}
+
+.segment-row .small-button {
+  font-size: 12px;
+}
+
+.route-mode-picker {
+  display: inline-flex;
+  position: relative;
+}
+
+.route-mode-trigger,
+.route-mode-option {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  justify-content: center;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.route-mode-trigger {
+  background: var(--surface-panel);
+  gap: 4px;
+  height: 30px;
+  padding: 0;
+  width: 42px;
+}
+
+.route-mode-trigger svg,
+.route-mode-option svg {
+  flex: 0 0 auto;
+  height: 15px;
+  width: 15px;
+}
+
+.route-mode-trigger:hover,
+.route-mode-trigger[aria-expanded="true"],
+.route-mode-option:hover {
+  background-color: var(--surface-muted);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-control);
+}
+
+.route-mode-trigger:focus-visible,
+.route-mode-option:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.route-mode-trigger:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.72;
+}
+
+.route-mode-chevron {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  color: var(--muted);
+  flex: 0 0 auto;
+  height: 0;
+  transition: transform 120ms ease;
+  width: 0;
+}
+
+.route-mode-trigger[aria-expanded="true"] .route-mode-chevron {
+  transform: rotate(180deg);
+}
+
+.route-mode-menu {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  gap: 2px;
+  min-width: 132px;
+  padding: 4px;
+  position: fixed;
+  z-index: 60;
+}
+
+.route-mode-option {
+  background: transparent;
+  border-color: transparent;
+  gap: 8px;
+  justify-content: flex-start;
+  padding: 7px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.route-mode-option.active {
+  background: var(--accent-soft-bg);
+  border-color: var(--accent-soft-border);
+  color: var(--accent);
+}

@@ -1,0 +1,211 @@
+/* Day columns, itinerary insertion zones, and empty itinerary buckets. */
+.day-block {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 12px 0;
+  padding: 8px;
+  position: relative;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.day-block.active {
+  background: var(--accent-selected-bg);
+  border-color: var(--accent-selected-border);
+  box-shadow: var(--selected-ring);
+}
+
+.day-heading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.day-heading-title-group {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.day-heading-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-left: 4px solid;
+  border-radius: 0 6px 6px 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex: 0 1 auto;
+  font: inherit;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 9px;
+  padding-left: 8px;
+  text-align: left;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+  width: auto;
+}
+
+.day-heading-button:hover {
+  background: var(--surface-subtle);
+  box-shadow: var(--shadow-control);
+}
+
+.day-heading-prefix {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.day-collapse-button {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 28px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 28px;
+}
+
+.day-collapse-button:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.day-add-place-button {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--active-line);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 28px;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+
+.day-add-place-button:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+}
+
+.day-add-place-button svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 15px;
+}
+
+.day-empty-text {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 8px 0 2px;
+}
+
+.unscheduled-block {
+  background: var(--surface-muted);
+  border: 1px dashed var(--border-muted);
+  border-radius: 8px;
+  margin: 12px 0;
+  padding: 10px;
+}
+
+.unscheduled-block h3 {
+  color: var(--muted);
+  margin: 0;
+}
+
+.day-block.drop-target,
+.unscheduled-block.drop-target {
+  border-color: var(--active-line);
+  box-shadow: inset 0 0 0 1px var(--active-line);
+}
+
+.itinerary-board.expanded {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.itinerary-board.expanded > .day-block,
+.itinerary-board.expanded > .unscheduled-block {
+  flex: 0 0 var(--board-column-width);
+  margin: 12px 0;
+}
+
+.itinerary-divider {
+  border-top: 2px solid var(--line);
+  margin: 10px 0 8px;
+}
+
+.itinerary-item-stack {
+  position: relative;
+}
+
+.itinerary-insertion-zone,
+.itinerary-end-insertion-zone {
+  align-items: center;
+  display: flex;
+  height: 20px;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: -10px;
+  z-index: 3;
+}
+
+.itinerary-insertion-zone span,
+.itinerary-end-insertion-zone span {
+  background: var(--active-line);
+  border-radius: 999px;
+  display: block;
+  height: 2px;
+  opacity: 0;
+  position: absolute;
+  top: 9px;
+  transition: opacity 120ms ease;
+  width: 100%;
+}
+
+.itinerary-insertion-zone.active span,
+.itinerary-end-insertion-zone.active span {
+  opacity: 1;
+}
+
+.itinerary-end-insertion-zone {
+  bottom: -10px;
+  top: auto;
+}
+
+.itinerary-end-insertion-zone span {
+  top: 9px;
+}
