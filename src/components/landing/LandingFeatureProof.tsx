@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { PlusIcon } from "@/components/Icons";
+import { ChevronRightIcon, PlusIcon } from "@/components/Icons";
 import { LandingAbstractMap } from "@/components/landing/LandingAbstractMap";
 import {
   LandingItineraryStop,
@@ -127,14 +127,16 @@ function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
       <div className="day-block landing-day-card">
         <h3 className="day-heading">
           <span className="day-heading-title-group">
-            <span
-              className="day-heading-button"
-              style={{ borderColor: "var(--accent)" }}
-            >
-              <span className="day-heading-prefix">Day 1</span>
-            </span>
             <span className="day-collapse-button">
-              <span aria-hidden="true">v</span>
+              <ChevronRightIcon />
+            </span>
+            <span className="day-heading-button">
+              <span
+                className="day-heading-prefix"
+                style={{ color: "var(--accent)" }}
+              >
+                Day 1
+              </span>
             </span>
           </span>
         </h3>

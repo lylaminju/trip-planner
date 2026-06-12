@@ -135,6 +135,11 @@
   width: 32px;
 }
 
+.landing-product-frame .day-collapse-button svg,
+.landing-workflow-product-frame .day-collapse-button svg {
+  transform: rotate(90deg);
+}
+
 .landing-product-frame .icon-button.danger-button,
 .landing-workflow-product-frame .icon-button.danger-button {
   color: var(--danger);

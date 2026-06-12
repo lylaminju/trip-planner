@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -74,7 +75,30 @@ describe("PlaceRows", () => {
     );
     expect(markup).toContain("disabled");
   });
+
+  it("styles drag handles as borderless row affordances", () => {
+    const css = readFileSync(
+      "src/styles/components/planner-place-rows.css",
+      "utf8",
+    );
+    const rule = cssRule(css, ".drag-handle");
+
+    expect(rule).toContain("background: transparent;");
+    expect(rule).toContain("border: 0;");
+    expect(rule).toContain("border-radius: 6px;");
+    expect(rule).toContain("padding: 0;");
+    expect(rule).toContain("flex: 0 0 32px;");
+  });
 });
+
+function cssRule(css: string, selector: string) {
+  const start = css.indexOf(`${selector} {`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = css.indexOf("\n}", start);
+  expect(end).toBeGreaterThanOrEqual(0);
+
+  return css.slice(start, end + 2);
+}
 
 function place(overrides: Partial<Place> = {}): Place {
   return {

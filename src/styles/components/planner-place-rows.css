@@ -124,12 +124,26 @@
 }
 
 .drag-handle {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
   color: var(--muted);
   cursor: grab;
   flex: 0 0 32px;
   font-weight: 700;
   letter-spacing: 0;
+  padding: 0;
   user-select: none;
+}
+
+.drag-handle:hover {
+  background: var(--surface-subtle);
+  color: var(--ink);
+}
+
+.drag-handle:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 
 .drag-handle:active {

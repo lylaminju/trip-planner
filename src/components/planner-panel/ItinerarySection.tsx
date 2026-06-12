@@ -11,7 +11,7 @@ import type {
   TravelMode,
 } from "@/lib/types";
 
-import { PlusIcon } from "../Icons";
+import { ChevronRightIcon, PlusIcon } from "../Icons";
 import { SegmentRow } from "../SegmentRow";
 import { EndInsertionDropZone, InsertionDropZone } from "./DropZones";
 import { ItineraryItemRow, PlaceListRow } from "./PlaceRows";
@@ -194,18 +194,6 @@ export function ItinerarySection(props: Props) {
                   <span className="day-heading-title-group">
                     <button
                       type="button"
-                      className="day-heading-button"
-                      style={{ borderColor: day.color }}
-                      aria-pressed={props.activeDate === day.date}
-                      onClick={() => props.onSelectDate(day.date)}
-                    >
-                      <span className="day-heading-prefix">{dayPrefix}</span>
-                      <span className="day-heading-text">
-                        {formattedDayHeading}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
                       className="day-collapse-button"
                       aria-expanded={!collapsed}
                       aria-controls={dayBodyId}
@@ -213,7 +201,23 @@ export function ItinerarySection(props: Props) {
                       title={`${collapsed ? "Expand" : "Collapse"} ${formattedDayHeading} itinerary`}
                       onClick={() => props.onToggleDateCollapsed(day.date)}
                     >
-                      <span aria-hidden="true">{collapsed ? ">" : "v"}</span>
+                      <ChevronRightIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className="day-heading-button"
+                      aria-pressed={props.activeDate === day.date}
+                      onClick={() => props.onSelectDate(day.date)}
+                    >
+                      <span
+                        className="day-heading-prefix"
+                        style={{ color: day.color }}
+                      >
+                        {dayPrefix}
+                      </span>
+                      <span className="day-heading-text">
+                        {formattedDayHeading}
+                      </span>
                     </button>
                   </span>
                   {props.canEdit && (
@@ -284,7 +288,10 @@ export function ItinerarySection(props: Props) {
                           />
                         )}
                         {showUntimedDivider && (
-                          <div className="itinerary-divider" aria-hidden="true" />
+                          <div
+                            className="itinerary-divider"
+                            aria-hidden="true"
+                          />
                         )}
                         <ItineraryItemRow
                           item={item}
