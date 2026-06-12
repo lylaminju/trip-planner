@@ -1,0 +1,92 @@
+/* Fixed-position picker for adding saved places to a day. */
+.date-place-picker {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-floating-large);
+  margin-top: 0;
+  padding: 10px;
+  position: fixed;
+  width: 320px;
+  z-index: 30;
+}
+
+.date-place-picker-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.date-place-picker-create {
+  align-items: center;
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  color: var(--accent);
+  display: inline-flex;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+  min-height: 36px;
+  width: 100%;
+}
+
+.date-place-picker-create svg {
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 16px;
+}
+
+.date-place-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: 340px;
+  overflow: auto;
+}
+
+.date-place-picker-empty {
+  color: var(--muted);
+  margin: 4px 0;
+}
+
+.date-place-picker-row {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  text-align: left;
+}
+
+.date-place-picker-row:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.date-place-picker-row-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.date-place-picker-row-main strong,
+.date-place-picker-row-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-place-picker-row-main span {
+  color: var(--muted);
+  font-size: 12px;
+}

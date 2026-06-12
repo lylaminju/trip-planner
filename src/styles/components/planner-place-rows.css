@@ -1,0 +1,171 @@
+/* Place rows, shared row states, drag handles, and drag preview. */
+.place-row,
+.segment-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.place-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 6px 0;
+  padding: 6px;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.place-row:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-muted);
+}
+
+.places-board.expanded {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.places-board.expanded > .place-row {
+  flex: 0 0 var(--board-column-width);
+  margin: 0;
+}
+
+.place-row.active,
+.segment-row.active {
+  background: var(--accent-selected-bg);
+  border-color: var(--accent-selected-border);
+  box-shadow: var(--selected-ring);
+}
+
+.place-main {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  padding: 4px;
+  text-align: left;
+}
+
+.place-main:focus-visible {
+  border-color: transparent;
+}
+
+.place-title {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+}
+
+.place-title-text {
+  align-items: baseline;
+  color: inherit;
+  display: flex;
+  min-width: 0;
+}
+
+.place-main .place-marker-label {
+  align-items: center;
+  border: 2px solid var(--surface-panel);
+  border-radius: 999px;
+  box-shadow: var(--shadow-place-marker);
+  color: var(--text-on-accent);
+  display: inline-flex;
+  flex: 0 0 18px;
+  font-size: 10px;
+  font-weight: 700;
+  height: 18px;
+  justify-content: center;
+  line-height: 1;
+  margin-right: 6px;
+  min-width: 18px;
+  width: 18px;
+}
+
+.place-main .place-time {
+  color: var(--active-line);
+  flex: 0 0 auto;
+  margin-right: 6px;
+}
+
+.place-main .place-name {
+  color: inherit;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-main > span {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.place-main .place-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drag-handle,
+.drag-handle-placeholder {
+  align-items: center;
+  align-self: stretch;
+  display: inline-flex;
+  justify-content: center;
+  width: 32px;
+}
+
+.drag-handle {
+  color: var(--muted);
+  cursor: grab;
+  flex: 0 0 32px;
+  font-weight: 700;
+  letter-spacing: 0;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle-placeholder {
+  flex: 0 0 32px;
+}
+
+.place-row .icon-button {
+  flex-basis: 30px;
+  min-width: 30px;
+  width: 30px;
+}
+
+.place-drag-preview {
+  background: var(--surface-panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: var(--shadow-drag-preview);
+  color: var(--text);
+  display: grid;
+  gap: 2px;
+  left: -9999px;
+  max-width: 320px;
+  padding: 8px 10px;
+  pointer-events: none;
+  position: fixed;
+  top: -9999px;
+  width: max-content;
+  z-index: 9999;
+}
+
+.place-drag-preview span {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

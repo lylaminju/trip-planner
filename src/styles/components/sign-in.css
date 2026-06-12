@@ -1,7 +1,7 @@
 .sign-in-card {
   align-items: stretch;
-  background: #ffffff;
-  border: 1px solid rgba(216, 222, 228, 0.92);
+  background: var(--surface-panel);
+  border: 1px solid var(--border-translucent);
   border-radius: 16px;
   display: grid;
   grid-template-columns: minmax(380px, 1.35fr) minmax(300px, 0.8fr);
@@ -19,7 +19,7 @@
 .sign-in-copy {
   aspect-ratio: 2554 / 1536;
   background: url("/sign-in-bg.jpg") center / cover no-repeat;
-  border-right: 1px solid rgba(216, 222, 228, 0.92);
+  border-right: 1px solid var(--border-translucent);
   min-height: 440px;
 }
 
@@ -34,7 +34,7 @@
 .sign-in-form {
   align-content: center;
   align-items: stretch;
-  background: #f8fafc;
+  background: var(--surface-muted);
   box-sizing: border-box;
   display: grid;
   grid-template-columns: 36px minmax(0, 1fr) 36px;
@@ -65,7 +65,7 @@
 }
 
 .sign-in-form input {
-  background: #ffffff;
+  background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 6px;
   box-sizing: border-box;
@@ -78,7 +78,7 @@
 
 .sign-in-form input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+  box-shadow: var(--focus-ring-soft);
   outline: none;
 }
 
@@ -86,7 +86,7 @@
   background: var(--accent);
   border-color: var(--accent);
   box-sizing: border-box;
-  color: #ffffff;
+  color: var(--text-on-accent);
   font-weight: 800;
   max-width: 100%;
   min-height: 42px;
@@ -95,20 +95,20 @@
 }
 
 .landing-sign-in button:hover {
-  background: #0d6962;
-  border-color: #0d6962;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .landing-sign-in button:disabled,
 .landing-sign-in button:disabled:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: #ffffff;
+  color: var(--text-on-accent);
 }
 
 .landing-sign-in .error-text {
-  background: #fef3f2;
-  border: 1px solid #f3c3bf;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: 6px;
   font-size: 13px;
   margin: 0;
@@ -132,7 +132,7 @@
 
   .sign-in-copy {
     aspect-ratio: auto;
-    border-bottom: 1px solid rgba(216, 222, 228, 0.92);
+    border-bottom: 1px solid var(--border-translucent);
     border-right: 0;
     min-height: clamp(220px, 58vw, 240px);
   }

@@ -10,5 +10,9 @@
 @import "../styles/components/modals.css";
 @import "../styles/components/trips-dashboard.css";
 @import "../styles/components/left-panel.css";
+@import "../styles/components/planner-day-blocks.css";
+@import "../styles/components/planner-place-picker.css";
+@import "../styles/components/planner-place-rows.css";
+@import "../styles/components/planner-route-segments.css";
 @import "../styles/components/map.css";
 @import "../styles/mobile.css";

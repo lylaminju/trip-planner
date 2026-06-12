@@ -39,7 +39,7 @@ export function SampleTripPreview() {
               <span className="day-heading-title-group">
                 <span
                   className="day-heading-button"
-                  style={{ borderColor: "#0f766e" }}
+                  style={{ borderColor: "var(--accent)" }}
                 >
                   <span className="day-heading-prefix">Day 1</span>
                 </span>
@@ -53,7 +53,7 @@ export function SampleTripPreview() {
               name="Brunch cafe"
               note="Late breakfast and coffee"
               markerLabel="1"
-              markerColor="#0f766e"
+              markerColor="var(--accent)"
               active
             />
             <LandingRouteSegment mode="walking" duration="18 min" />
@@ -62,7 +62,7 @@ export function SampleTripPreview() {
               name="Museum"
               note="Exhibits and a short gallery loop"
               markerLabel="2"
-              markerColor="#0f766e"
+              markerColor="var(--accent)"
             />
             <LandingRouteSegment mode="transit" duration="22 min" />
             <LandingItineraryStop
@@ -70,7 +70,7 @@ export function SampleTripPreview() {
               name="Bookstore"
               note="New releases and a few slow laps"
               markerLabel="3"
-              markerColor="#0f766e"
+              markerColor="var(--accent)"
             />
           </div>
         </div>

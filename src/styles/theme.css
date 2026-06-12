@@ -1,13 +1,87 @@
 /* Design tokens and shared CSS custom properties. */
 :root {
   color-scheme: light;
-  --bg: #f5f7f8;
-  --panel: #ffffff;
-  --text: #1f2933;
-  --muted: #64748b;
-  --line: #d8dee4;
+
+  --surface-base: #f5f7f8;
+  --surface-panel: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-subtle: #f1f5f9;
+  --surface-map: #eef2f6;
+  --surface-map-muted: #e2e8f0;
+  --surface-floating: rgba(255, 255, 255, 0.94);
+  --surface-inverse: rgba(15, 23, 42, 0.94);
+
+  --text-primary: #1f2933;
+  --text-secondary: #64748b;
+  --text-tertiary: #475569;
+  --text-control: #3f4750;
+  --text-on-accent: #ffffff;
+
+  --border-default: #d8dee4;
+  --border-strong: #b9c5d1;
+  --border-muted: #cbd5e1;
+  --border-translucent: rgba(216, 222, 228, 0.92);
+  --border-map-control: rgba(31, 41, 51, 0.16);
+  --border-map-control-hover: rgba(31, 41, 51, 0.24);
+
   --accent: #0f766e;
-  --active-line: #3f4750;
+  --accent-hover: #0d6962;
+  --accent-soft-bg: rgba(15, 118, 110, 0.08);
+  --accent-soft-border: rgba(15, 118, 110, 0.22);
+  --accent-selected-bg: rgba(15, 118, 110, 0.05);
+  --accent-selected-border: rgba(15, 118, 110, 0.48);
+  --accent-selected-outline: rgba(15, 118, 110, 0.32);
+  --accent-border-muted: rgba(15, 118, 110, 0.42);
+  --accent-border-strong: rgba(15, 118, 110, 0.5);
+  --accent-focus-color: rgba(15, 118, 110, 0.18);
+  --accent-focus-color-soft: rgba(15, 118, 110, 0.14);
+  --accent-focus-color-strong: rgba(15, 118, 110, 0.22);
+  --accent-outline-color: rgba(15, 118, 110, 0.28);
+
   --danger: #b42318;
+  --danger-strong: #912018;
+  --danger-bg: #fef3f2;
+  --danger-border: #f3c3bf;
+
+  --map-block-stroke: rgba(148, 163, 184, 0.38);
+  --map-park-bg: rgba(20, 184, 166, 0.12);
+  --map-park-border: rgba(20, 184, 166, 0.24);
+  --map-water-bg: rgba(14, 165, 233, 0.12);
+  --map-road-stroke: rgba(148, 163, 184, 0.26);
+  --map-route-halo: rgba(255, 255, 255, 0.9);
+  --map-marker-muted: var(--text-secondary);
+
+  --current-location: #2563eb;
+  --current-location-pulse-bg: rgba(37, 99, 235, 0.2);
+  --current-location-pulse-border: rgba(37, 99, 235, 0.3);
+
+  --focus-ring: 0 0 0 3px var(--accent-focus-color);
+  --focus-ring-soft: 0 0 0 3px var(--accent-focus-color-soft);
+  --focus-ring-strong: 0 0 0 3px var(--accent-focus-color-strong);
+  --selected-ring: inset 0 0 0 1px var(--accent-selected-outline);
+
+  --shadow-control: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-popover: 0 12px 28px rgba(15, 23, 42, 0.14);
+  --shadow-floating-large: 0 14px 34px rgba(15, 23, 42, 0.18);
+  --shadow-drag-preview: 0 10px 28px rgba(15, 23, 42, 0.18);
+  --shadow-mobile-sheet: 0 -14px 34px rgba(15, 23, 42, 0.18);
+  --shadow-mobile-panel: 0 -10px 24px rgba(15, 23, 42, 0.12);
+  --shadow-map-card: 0 8px 18px rgba(31, 41, 51, 0.12);
+  --shadow-map-empty: 0 12px 28px rgba(31, 41, 51, 0.14);
+  --shadow-map-control: 0 2px 6px rgba(31, 41, 51, 0.18);
+  --shadow-map-marker: 0 1px 6px rgba(15, 23, 42, 0.28);
+  --shadow-place-marker: 0 1px 4px rgba(15, 23, 42, 0.2);
+  --shadow-current-location: 0 2px 8px rgba(15, 23, 42, 0.28);
+  --filter-map-marker: drop-shadow(0 1px 4px rgba(15, 23, 42, 0.3));
+  --text-shadow-map-marker: 0 1px 2px rgba(15, 23, 42, 0.4);
+  --overlay-backdrop: rgba(15, 23, 42, 0.38);
+
+  --bg: var(--surface-base);
+  --panel: var(--surface-panel);
+  --text: var(--text-primary);
+  --ink: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border-default);
+  --active-line: var(--text-control);
   --board-column-width: 440px;
 }

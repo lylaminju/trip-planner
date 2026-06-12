@@ -10,10 +10,10 @@ body:has(.landing-shell) {
   background:
     radial-gradient(
       circle at 18% 8%,
-      rgba(15, 118, 110, 0.12),
+      var(--map-park-bg),
       transparent 30%
     ),
-    linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+    linear-gradient(180deg, var(--surface-panel) 0%, var(--bg) 100%);
   display: grid;
   gap: 240px;
   justify-content: stretch;
@@ -92,7 +92,7 @@ body:has(.landing-shell) {
 }
 
 .landing-hero-description {
-  color: #475569;
+  color: var(--text-tertiary);
   font-size: 18px;
   line-height: 1.5;
   margin: 0;
@@ -120,11 +120,11 @@ body:has(.landing-shell) {
 
 .landing-primary-action {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--text-on-accent);
 }
 
 .landing-secondary-action {
-  background: #ffffff;
+  background: var(--surface-panel);
   border: 1px solid var(--line);
   color: var(--text);
 }
@@ -134,7 +134,7 @@ body:has(.landing-shell) {
 .landing-access-copy a:focus-visible,
 .landing-nav a:focus-visible,
 .landing-brand:focus-visible {
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+  box-shadow: var(--focus-ring);
   outline: 2px solid transparent;
 }
 
@@ -158,7 +158,7 @@ body:has(.landing-shell) {
 
 .landing-footer {
   align-items: center;
-  border-top: 1px solid rgba(216, 222, 228, 0.92);
+  border-top: 1px solid var(--border-translucent);
   color: var(--muted);
   display: flex;
   flex-wrap: nowrap;
