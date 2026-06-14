@@ -1,5 +1,6 @@
 import type { Trip, TripMembership, TripSummary } from "@/lib/types";
 
+import { TripValidationError } from "./errors";
 import { getSupabaseClient } from "./supabase";
 import { requireTripRole } from "./trip-access";
 
@@ -107,6 +108,16 @@ export async function updateTripForRequest(
   input: TripUpdateInput,
 ): Promise<TripSummary> {
   const membership = await requireTripRole(tripId, userId, "owner");
+  const currentTrip = await getTripById(tripId);
+  validateTripDateRange({
+    start_date:
+      input.start_date !== undefined
+        ? input.start_date
+        : currentTrip.start_date,
+    end_date:
+      input.end_date !== undefined ? input.end_date : currentTrip.end_date,
+  });
+
   const { data, error } = await getSupabaseClient()
     .from("trips")
     .update({ ...input, updated_at: new Date().toISOString() })
@@ -135,4 +146,15 @@ export async function deleteTripForRequest(
 
 function throwSupabaseError(error: { message: string }): never {
   throw new Error(`Supabase query failed: ${error.message}`);
+}
+
+function validateTripDateRange(input: {
+  start_date: string | null;
+  end_date: string | null;
+}): void {
+  if (input.start_date && input.end_date && input.start_date > input.end_date) {
+    throw new TripValidationError(
+      "Trip start date must be before or equal to end date.",
+    );
+  }
 }

@@ -21,6 +21,9 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
+  "overrides": {
+    "postcss": "8.5.15"
+  },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/google.maps": "^3.64.1",

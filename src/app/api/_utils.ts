@@ -10,6 +10,7 @@ import {
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
   TripAccessDeniedError,
+  TripValidationError,
 } from "@/server/errors";
 import {
   getAuthenticatedUser,
@@ -77,6 +78,10 @@ export function mapRouteError(error: unknown): NextResponse | null {
 
   if (error instanceof TripAccessDeniedError) {
     return jsonError(error.message, 403);
+  }
+
+  if (error instanceof TripValidationError) {
+    return jsonError(error.message, 400);
   }
 
   if (error instanceof GoogleMapsUrlValidationError) {

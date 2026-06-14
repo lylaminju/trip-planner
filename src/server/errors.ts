@@ -26,6 +26,13 @@ export class TripAccessDeniedError extends Error {
   }
 }
 
+export class TripValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TripValidationError";
+  }
+}
+
 export class GoogleMapsUrlValidationError extends Error {
   constructor(message: string) {
     super(message);
