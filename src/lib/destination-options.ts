@@ -1,42 +1,18 @@
+import { DESTINATIONS } from "../data/destinations";
+
 export type DestinationOption = {
   slug: string;
   name: string;
+  countryCode: string;
   imagePath: string;
-  aliases: string[];
 };
 
-export const DESTINATION_OPTIONS: DestinationOption[] = [
-  {
-    slug: "new-york-city",
-    name: "New York City",
-    imagePath: "/city-covers/new-york-city.webp",
-    aliases: ["new york", "new york city", "nyc"],
-  },
-  {
-    slug: "los-angeles",
-    name: "Los Angeles",
-    imagePath: "/city-covers/los-angeles.webp",
-    aliases: ["la", "los angeles", "los angeles ca"],
-  },
-  {
-    slug: "san-francisco",
-    name: "San Francisco",
-    imagePath: "/city-covers/san-francisco.webp",
-    aliases: ["san francisco", "sf", "san francisco ca"],
-  },
-  {
-    slug: "toronto",
-    name: "Toronto",
-    imagePath: "/city-covers/toronto.webp",
-    aliases: ["toronto", "toronto on"],
-  },
-  {
-    slug: "banff-national-park",
-    name: "Banff National Park",
-    imagePath: "/city-covers/banff-national-park.webp",
-    aliases: ["banff", "banff national park"],
-  },
-];
+export const DESTINATION_OPTIONS: DestinationOption[] = DESTINATIONS.map(
+  (destination) => ({
+    ...destination,
+    imagePath: destinationImagePath(destination.slug),
+  }),
+);
 
 export function filterDestinationOptions(query: string): DestinationOption[] {
   const normalizedQuery = normalizeDestinationText(query);
@@ -60,11 +36,9 @@ export function findDestinationOption(
   return (
     DESTINATION_OPTIONS.find((option) => {
       const normalizedName = normalizeDestinationText(option.name);
+      const normalizedSlug = normalizeDestinationText(option.slug);
       return (
-        normalizedName === normalizedValue ||
-        option.aliases.some(
-          (alias) => normalizeDestinationText(alias) === normalizedValue,
-        )
+        normalizedName === normalizedValue || normalizedSlug === normalizedValue
       );
     }) ?? null
   );
@@ -81,9 +55,13 @@ export function normalizeDestinationText(
 }
 
 function destinationSearchText(option: DestinationOption): string {
-  return [option.name, option.slug, ...option.aliases]
+  return [option.name, option.slug]
     .map((value) => normalizeDestinationText(value))
     .join(" ");
+}
+
+function destinationImagePath(slug: string): string {
+  return `/city-covers/${slug}.webp`;
 }
 
 function sortDestinationOptions(

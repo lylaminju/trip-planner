@@ -1,21 +1,553 @@
 [
   {
-    "slug": "new-york-city",
-    "label": "New York City",
-    "sourcePage": "https://en.wikipedia.org/wiki/New_York_City",
-    "commonsTitle": "File:View of Empire State Building from Rockefeller Center New York City dllu (cropped).jpg",
-    "file": "/city-covers/new-york-city.webp",
-    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg/1920px-View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg",
+    "slug": "amsterdam",
+    "label": "Amsterdam",
+    "sourcePage": "https://en.wikipedia.org/wiki/Amsterdam",
+    "commonsTitle": "File:Imagen de los canales concéntricos en Ámsterdam.png",
+    "file": "/city-covers/amsterdam.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Imagen_de_los_canales_conc%C3%A9ntricos_en_%C3%81msterdam.png/1920px-Imagen_de_los_canales_conc%C3%A9ntricos_en_%C3%81msterdam.png",
     "width": 1400,
-    "height": 788,
+    "height": 935,
     "attribution": {
-      "objectName": "View of Empire State Building from Rockefeller Center New York City dllu (cropped)",
-      "artist": "Dllu",
-      "credit": "This image has been extracted from another file",
+      "objectName": "Imagen de los canales concéntricos en Ámsterdam",
+      "artist": "Andrés Barrios",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Imagen_de_los_canales_conc%C3%A9ntricos_en_%C3%81msterdam.png"
+    }
+  },
+  {
+    "slug": "athens",
+    "label": "Athens",
+    "sourcePage": "https://en.wikipedia.org/wiki/Athens",
+    "commonsTitle": "File:Monastiraki Square and Acropolis in Athens (44149181684).jpg",
+    "file": "/city-covers/athens.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Monastiraki_Square_and_Acropolis_in_Athens_%2844149181684%29.jpg/1920px-Monastiraki_Square_and_Acropolis_in_Athens_%2844149181684%29.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "Monastiraki Square and Acropolis in Athens (44149181684)",
+      "artist": "dronepicr",
+      "credit": "Monastiraki Square and Acropolis in Athens",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Monastiraki_Square_and_Acropolis_in_Athens_(44149181684).jpg"
+    }
+  },
+  {
+    "slug": "banff-national-park",
+    "label": "Banff National Park",
+    "sourcePage": "https://en.wikipedia.org/wiki/Banff_National_Park",
+    "commonsTitle": "File:Moraine Lake 17092005.jpg",
+    "file": "/city-covers/banff-national-park.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Moraine_Lake_17092005.jpg/1920px-Moraine_Lake_17092005.jpg",
+    "width": 1400,
+    "height": 1050,
+    "attribution": {
+      "objectName": "Moraine Lake 17092005",
+      "artist": "Gorgo",
+      "credit": "Photo taken by author",
+      "licenseShortName": "Public domain",
+      "licenseUrl": "",
+      "usageTerms": "Public domain",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "bangkok",
+    "label": "Bangkok",
+    "sourcePage": "https://en.wikipedia.org/wiki/Bangkok",
+    "commonsTitle": "File:Templo Wat Arun, Bangkok, Tailandia, 2013-08-22, DD 30.jpg",
+    "file": "/city-covers/bangkok.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Templo_Wat_Arun%2C_Bangkok%2C_Tailandia%2C_2013-08-22%2C_DD_30.jpg/1920px-Templo_Wat_Arun%2C_Bangkok%2C_Tailandia%2C_2013-08-22%2C_DD_30.jpg",
+    "width": 1400,
+    "height": 936,
+    "attribution": {
+      "objectName": "Templo Wat Arun, Bangkok, Tailandia, 2013-08-22, DD 30",
+      "artist": "Diego Delso",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Templo_Wat_Arun,_Bangkok,_Tailandia,_2013-08-22,_DD_30.jpg"
+    }
+  },
+  {
+    "slug": "barcelona",
+    "label": "Barcelona",
+    "sourcePage": "https://en.wikipedia.org/wiki/Barcelona",
+    "commonsTitle": "File:Aerial view of Barcelona, Spain (51227309370) edited.jpg",
+    "file": "/city-covers/barcelona.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Aerial_view_of_Barcelona%2C_Spain_%2851227309370%29_edited.jpg/1920px-Aerial_view_of_Barcelona%2C_Spain_%2851227309370%29_edited.jpg",
+    "width": 1400,
+    "height": 612,
+    "attribution": {
+      "objectName": "Aerial view of Barcelona, Spain (51227309370) edited",
+      "artist": "dronepicr",
+      "credit": "Aerial view of Barcelona, Spain (51227309370).jpg",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Aerial_view_of_Barcelona,_Spain_(51227309370)_edited.jpg"
+    }
+  },
+  {
+    "slug": "beijing",
+    "label": "Beijing",
+    "sourcePage": "https://en.wikipedia.org/wiki/Beijing",
+    "commonsTitle": "File:The Forbidden City - View from Coal Hill.jpg",
+    "file": "/city-covers/beijing.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/The_Forbidden_City_-_View_from_Coal_Hill.jpg/1920px-The_Forbidden_City_-_View_from_Coal_Hill.jpg",
+    "width": 1400,
+    "height": 700,
+    "attribution": {
+      "objectName": "The Forbidden City - View from Coal Hill",
+      "artist": "Pixelflake",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:The_Forbidden_City_-_View_from_Coal_Hill.jpg"
+    }
+  },
+  {
+    "slug": "berlin",
+    "label": "Berlin",
+    "sourcePage": "https://en.wikipedia.org/wiki/Berlin",
+    "commonsTitle": "File:Museumsinsel Berlin Juli 2021 1 (cropped) b.jpg",
+    "file": "/city-covers/berlin.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Museumsinsel_Berlin_Juli_2021_1_%28cropped%29_b.jpg/1920px-Museumsinsel_Berlin_Juli_2021_1_%28cropped%29_b.jpg",
+    "width": 1400,
+    "height": 817,
+    "attribution": {
+      "objectName": "Museumsinsel Berlin Juli 2021 1 (cropped) b",
+      "artist": "File:Museumsinsel Berlin Juli 2021 1 (cropped).jpg : Kasa Fue derivative work: Georgfotoart",
+      "credit": "This file was derived from: Museumsinsel Berlin Juli 2021 1 (cropped).jpg :",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Museumsinsel_Berlin_Juli_2021_1_(cropped)_b.jpg"
+    }
+  },
+  {
+    "slug": "buenos-aires",
+    "label": "Buenos Aires",
+    "sourcePage": "https://en.wikipedia.org/wiki/Buenos_Aires",
+    "commonsTitle": "File:Puerto Madero, Buenos Aires (40689219792) (cropped).jpg",
+    "file": "/city-covers/buenos-aires.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Puerto_Madero%2C_Buenos_Aires_%2840689219792%29_%28cropped%29.jpg/1920px-Puerto_Madero%2C_Buenos_Aires_%2840689219792%29_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 573,
+    "attribution": {
+      "objectName": "Puerto Madero, Buenos Aires (40689219792) (cropped)",
+      "artist": "Deensel",
+      "credit": "Puerto Madero, Buenos Aires",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Puerto_Madero,_Buenos_Aires_(40689219792)_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "cairo",
+    "label": "Cairo",
+    "sourcePage": "https://en.wikipedia.org/wiki/Cairo",
+    "commonsTitle": "File:Giza Pyramids, Cairo (53723848834).jpg",
+    "file": "/city-covers/cairo.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Giza_Pyramids%2C_Cairo_%2853723848834%29.jpg/1920px-Giza_Pyramids%2C_Cairo_%2853723848834%29.jpg",
+    "width": 1400,
+    "height": 935,
+    "attribution": {
+      "objectName": "Giza Pyramids, Cairo (53723848834)",
+      "artist": "Mustang Joe",
+      "credit": "Giza Pyramids, Cairo",
+      "licenseShortName": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "usageTerms": "Creative Commons Zero, Public Domain Dedication",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Giza_Pyramids,_Cairo_(53723848834).jpg"
+    }
+  },
+  {
+    "slug": "calgary",
+    "label": "Calgary",
+    "sourcePage": "https://en.wikipedia.org/wiki/Calgary",
+    "commonsTitle": "File:Downtown Calgary 2020-4.jpg",
+    "file": "/city-covers/calgary.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Downtown_Calgary_2020-4.jpg",
+    "width": 1200,
+    "height": 577,
+    "attribution": {
+      "objectName": "Downtown Calgary 2020-4",
+      "artist": "AceYYC",
+      "credit": "Own work",
       "licenseShortName": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
       "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
       "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "cancun",
+    "label": "Cancun",
+    "sourcePage": "https://en.wikipedia.org/wiki/Cancun",
+    "commonsTitle": "File:Cancun Strand Luftbild (22179809191).jpg",
+    "file": "/city-covers/cancun.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Cancun_Strand_Luftbild_%2822179809191%29.jpg/1920px-Cancun_Strand_Luftbild_%2822179809191%29.jpg",
+    "width": 1400,
+    "height": 787,
+    "attribution": {
+      "objectName": "Cancun Strand Luftbild (22179809191)",
+      "artist": "dronepicr",
+      "credit": "Cancun Strand Luftbild",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Cancun_Strand_Luftbild_(22179809191).jpg"
+    }
+  },
+  {
+    "slug": "cape-town",
+    "label": "Cape Town",
+    "sourcePage": "https://en.wikipedia.org/wiki/Cape_Town",
+    "commonsTitle": "File:Camps bay (53460319478) (cropped).jpg",
+    "file": "/city-covers/cape-town.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Camps_bay_%2853460319478%29_%28cropped%29.jpg/1920px-Camps_bay_%2853460319478%29_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 809,
+    "attribution": {
+      "objectName": "Camps bay (53460319478) (cropped)",
+      "artist": "Der Berzerker from Washington, DC, USA",
+      "credit": "camps bay",
+      "licenseShortName": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Camps_bay_(53460319478)_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "chicago",
+    "label": "Chicago",
+    "sourcePage": "https://en.wikipedia.org/wiki/Chicago",
+    "commonsTitle": "File:Chicago River ferry b.jpg",
+    "file": "/city-covers/chicago.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Chicago_River_ferry_b.jpg/1920px-Chicago_River_ferry_b.jpg",
+    "width": 1400,
+    "height": 990,
+    "attribution": {
+      "objectName": "Chicago River ferry b",
+      "artist": "File:Chicago River ferry.jpg : John Picken derivative work: Georgfotoart",
+      "credit": "This file was derived from: Chicago River ferry.jpg :",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Chicago_River_ferry_b.jpg"
+    }
+  },
+  {
+    "slug": "copenhagen",
+    "label": "Copenhagen",
+    "sourcePage": "https://en.wikipedia.org/wiki/Copenhagen",
+    "commonsTitle": "File:Nyhavn Copenhagen 2.jpg",
+    "file": "/city-covers/copenhagen.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Nyhavn_Copenhagen_2.jpg/1920px-Nyhavn_Copenhagen_2.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "Nyhavn Copenhagen 2",
+      "artist": "kallerna",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Nyhavn_Copenhagen_2.jpg"
+    }
+  },
+  {
+    "slug": "doha",
+    "label": "Doha",
+    "sourcePage": "https://en.wikipedia.org/wiki/Doha",
+    "commonsTitle": "File:Doha Corniche Skyline View 1.jpg",
+    "file": "/city-covers/doha.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Doha_Corniche_Skyline_View_1.jpg/1920px-Doha_Corniche_Skyline_View_1.jpg",
+    "width": 1400,
+    "height": 689,
+    "attribution": {
+      "objectName": "Doha Corniche Skyline View 1",
+      "artist": "Zairon",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "usageTerms": "Creative Commons Attribution 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Doha_Corniche_Skyline_View_1.jpg"
+    }
+  },
+  {
+    "slug": "dubai",
+    "label": "Dubai",
+    "sourcePage": "https://en.wikipedia.org/wiki/Dubai",
+    "commonsTitle": "File:Dubai Skyline mit Burj Khalifa (cropped).jpg",
+    "file": "/city-covers/dubai.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Dubai_Skyline_mit_Burj_Khalifa_%28cropped%29.jpg/1920px-Dubai_Skyline_mit_Burj_Khalifa_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 579,
+    "attribution": {
+      "objectName": "Dubai Skyline mit Burj Khalifa (cropped)",
+      "artist": "Tim Reckmann from Hamm, Deutschland",
+      "credit": "This image has been extracted from another file",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Dubai_Skyline_mit_Burj_Khalifa_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "dublin",
+    "label": "Dublin",
+    "sourcePage": "https://en.wikipedia.org/wiki/Dublin",
+    "commonsTitle": "File:Dublin Custom House in 2025.jpg",
+    "file": "/city-covers/dublin.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Dublin_Custom_House_in_2025.jpg/1920px-Dublin_Custom_House_in_2025.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "Dublin Custom House in 2025",
+      "artist": "Christian David",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Dublin_Custom_House_in_2025.jpg"
+    }
+  },
+  {
+    "slug": "edinburgh",
+    "label": "Edinburgh",
+    "sourcePage": "https://en.wikipedia.org/wiki/Edinburgh",
+    "commonsTitle": "File:Skyline of Edinburgh.jpg",
+    "file": "/city-covers/edinburgh.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Skyline_of_Edinburgh.jpg/1920px-Skyline_of_Edinburgh.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "Skyline of Edinburgh",
+      "artist": "Andrew Colin",
+      "credit": "https://www.flickr.com/photos/adcolin/27748883351/in/photolist-Jh5hgi-dT7Mrh-8YCp14-4gNCgZ-mpaoVZ-AM21HM-aX9KCX-dDpcak-qNitbk-p2m5H7-7cuyHA-ar2pTJ-pUGEWE-7UQdtd-7UQfpA-8YFrno-rhKQae-9ubdv8-dKq64P-pVjyw9-9AYUqJ-c4h5f1-oos2Xu-jqmbQH-qSjC3i-rS6vN5-njWKYN-cCqWj3-cgX8YA-jqwWXG-jqmPxn-r4guqK-hgJ8AT-e8ia6o-djgV1u-jqneMy-7iFwWs-qcPiVu-dzPDy1-7Uw519-o717Lv-qcPfqo-8Q7PC4-6vkKsm-bvukt3-atcJsz-aoAap3-qoTnTf-btAG8A-jqoi5W",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Skyline_of_Edinburgh.jpg"
+    }
+  },
+  {
+    "slug": "florence",
+    "label": "Florence",
+    "sourcePage": "https://en.wikipedia.org/wiki/Florence",
+    "commonsTitle": "File:FirenzeDec092023 01.jpg",
+    "file": "/city-covers/florence.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/FirenzeDec092023_01.jpg/1920px-FirenzeDec092023_01.jpg",
+    "width": 1400,
+    "height": 935,
+    "attribution": {
+      "objectName": "FirenzeDec092023 01",
+      "artist": "Hagai Agmon-Snir حچاي اچمون-سنير חגי אגמון-שניר",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:FirenzeDec092023_01.jpg"
+    }
+  },
+  {
+    "slug": "hanoi",
+    "label": "Hanoi",
+    "sourcePage": "https://en.wikipedia.org/wiki/Hanoi",
+    "commonsTitle": "File:Tran Quoc Pagoda, Hanoi, Vietnam, 20240123 1625 3394.jpg",
+    "file": "/city-covers/hanoi.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Tran_Quoc_Pagoda%2C_Hanoi%2C_Vietnam%2C_20240123_1625_3394.jpg/1920px-Tran_Quoc_Pagoda%2C_Hanoi%2C_Vietnam%2C_20240123_1625_3394.jpg",
+    "width": 1400,
+    "height": 935,
+    "attribution": {
+      "objectName": "Tran Quoc Pagoda, Hanoi, Vietnam, 20240123 1625 3394",
+      "artist": "Jakub Hałun",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "usageTerms": "Creative Commons Attribution 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Tran_Quoc_Pagoda,_Hanoi,_Vietnam,_20240123_1625_3394.jpg"
+    }
+  },
+  {
+    "slug": "ho-chi-minh-city",
+    "label": "Ho Chi Minh City",
+    "sourcePage": "https://en.wikipedia.org/wiki/Ho_Chi_Minh_City",
+    "commonsTitle": "File:Ho Chi Minh City panorama 2019 (cropped2).jpg",
+    "file": "/city-covers/ho-chi-minh-city.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Ho_Chi_Minh_City_panorama_2019_%28cropped2%29.jpg/1920px-Ho_Chi_Minh_City_panorama_2019_%28cropped2%29.jpg",
+    "width": 1400,
+    "height": 1050,
+    "attribution": {
+      "objectName": "Ho Chi Minh City panorama 2019 (cropped2)",
+      "artist": "Lê Minh Phát",
+      "credit": "https://www.flickr.com/photos/leminhphat/48721940151/",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Ho_Chi_Minh_City_panorama_2019_(cropped2).jpg"
+    }
+  },
+  {
+    "slug": "hong-kong",
+    "label": "Hong Kong",
+    "sourcePage": "https://en.wikipedia.org/wiki/Hong_Kong",
+    "commonsTitle": "File:Hong Kong Harbour Night 2019-06-11.jpg",
+    "file": "/city-covers/hong-kong.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Hong_Kong_Harbour_Night_2019-06-11.jpg/1920px-Hong_Kong_Harbour_Night_2019-06-11.jpg",
+    "width": 1400,
+    "height": 663,
+    "attribution": {
+      "objectName": "Hong Kong Harbour Night 2019-06-11",
+      "artist": "Benh LIEU SONG ( Flickr )",
+      "credit": "Hong Kong Harbour Night 2019",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Hong_Kong_Harbour_Night_2019-06-11.jpg"
+    }
+  },
+  {
+    "slug": "honolulu",
+    "label": "Honolulu",
+    "sourcePage": "https://en.wikipedia.org/wiki/Honolulu",
+    "commonsTitle": "File:2022 Views from Diamond Head 02.jpg",
+    "file": "/city-covers/honolulu.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/2022_Views_from_Diamond_Head_02.jpg/1920px-2022_Views_from_Diamond_Head_02.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "2022 Views from Diamond Head 02",
+      "artist": "Farragutful",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:2022_Views_from_Diamond_Head_02.jpg"
+    }
+  },
+  {
+    "slug": "istanbul",
+    "label": "Istanbul",
+    "sourcePage": "https://en.wikipedia.org/wiki/Istanbul",
+    "commonsTitle": "File:Historical peninsula and modern skyline of Istanbul.jpg",
+    "file": "/city-covers/istanbul.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Historical_peninsula_and_modern_skyline_of_Istanbul.jpg/1920px-Historical_peninsula_and_modern_skyline_of_Istanbul.jpg",
+    "width": 1400,
+    "height": 677,
+    "attribution": {
+      "objectName": "Historical peninsula and modern skyline of Istanbul",
+      "artist": "Hunanuk",
+      "credit": "File:Fatihistanbul.jpg",
+      "licenseShortName": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "usageTerms": "Creative Commons Zero, Public Domain Dedication",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Historical_peninsula_and_modern_skyline_of_Istanbul.jpg"
+    }
+  },
+  {
+    "slug": "kuala-lumpur",
+    "label": "Kuala Lumpur",
+    "sourcePage": "https://en.wikipedia.org/wiki/Kuala_Lumpur",
+    "commonsTitle": "File:58 Kuala Lumpur sunrise city skyline with Petronas Towers and KL Tower.jpg",
+    "file": "/city-covers/kuala-lumpur.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/58_Kuala_Lumpur_sunrise_city_skyline_with_Petronas_Towers_and_KL_Tower.jpg/1920px-58_Kuala_Lumpur_sunrise_city_skyline_with_Petronas_Towers_and_KL_Tower.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "58 Kuala Lumpur sunrise city skyline with Petronas Towers and KL Tower",
+      "artist": "Marek Ślusarczyk ( Tupungato ) Photo portfolio",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "usageTerms": "Creative Commons Attribution 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:58_Kuala_Lumpur_sunrise_city_skyline_with_Petronas_Towers_and_KL_Tower.jpg"
+    }
+  },
+  {
+    "slug": "kyoto",
+    "label": "Kyoto",
+    "sourcePage": "https://en.wikipedia.org/wiki/Kyoto",
+    "commonsTitle": "File:Kiyomizu.jpg",
+    "file": "/city-covers/kyoto.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Kiyomizu.jpg",
+    "width": 1400,
+    "height": 935,
+    "attribution": {
+      "objectName": "Kiyomizu",
+      "artist": "Jordy Meow",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Kiyomizu.jpg"
+    }
+  },
+  {
+    "slug": "las-vegas",
+    "label": "Las Vegas",
+    "sourcePage": "https://en.wikipedia.org/wiki/Las_Vegas",
+    "commonsTitle": "File:Las Vegas from above (40064746644).jpg",
+    "file": "/city-covers/las-vegas.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Las_Vegas_from_above_%2840064746644%29.jpg/1920px-Las_Vegas_from_above_%2840064746644%29.jpg",
+    "width": 1400,
+    "height": 799,
+    "attribution": {
+      "objectName": "Las Vegas from above (40064746644)",
+      "artist": "Mike McBey",
+      "credit": "Las Vegas from above",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Las_Vegas_from_above_(40064746644).jpg"
+    }
+  },
+  {
+    "slug": "lisbon",
+    "label": "Lisbon",
+    "sourcePage": "https://en.wikipedia.org/wiki/Lisbon",
+    "commonsTitle": "File:Lisboa - Portugal (52597836992).jpg",
+    "file": "/city-covers/lisbon.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Lisboa_-_Portugal_%2852597836992%29.jpg/1920px-Lisboa_-_Portugal_%2852597836992%29.jpg",
+    "width": 1400,
+    "height": 898,
+    "attribution": {
+      "objectName": "Lisboa - Portugal (52597836992)",
+      "artist": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+      "credit": "Lisboa - Portugal 🇵🇹",
+      "licenseShortName": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Lisboa_-_Portugal_(52597836992).jpg"
+    }
+  },
+  {
+    "slug": "london",
+    "label": "London",
+    "sourcePage": "https://en.wikipedia.org/wiki/London",
+    "commonsTitle": "File:London Skyline (125508655).jpeg",
+    "file": "/city-covers/london.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/London_Skyline_%28125508655%29.jpeg/1920px-London_Skyline_%28125508655%29.jpeg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "London Skyline",
+      "artist": "Ilya Grigorik",
+      "credit": "Imported from 500px ( archived version ) by the Archive Team . ( detail page )",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:London_Skyline_(125508655).jpeg"
     }
   },
   {
@@ -38,6 +570,291 @@
     }
   },
   {
+    "slug": "madrid",
+    "label": "Madrid",
+    "sourcePage": "https://en.wikipedia.org/wiki/Madrid",
+    "commonsTitle": "File:Plaza Mayor De Madrid (215862629) edited.jpeg",
+    "file": "/city-covers/madrid.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/a/af/Plaza_Mayor_De_Madrid_%28215862629%29_edited.jpeg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "Plaza Mayor De Madrid",
+      "artist": "Francisco Anzola",
+      "credit": "Imported from 500px ( archived version ) by the Archive Team . ( detail page )",
+      "licenseShortName": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "usageTerms": "Creative Commons Attribution 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Plaza_Mayor_De_Madrid_(215862629)_edited.jpeg"
+    }
+  },
+  {
+    "slug": "marrakech",
+    "label": "Marrakech",
+    "sourcePage": "https://en.wikipedia.org/wiki/Marrakech",
+    "commonsTitle": "File:Jemaa el-Fnaa at night.jpg",
+    "file": "/city-covers/marrakech.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Jemaa_el-Fnaa_at_night.jpg/1920px-Jemaa_el-Fnaa_at_night.jpg",
+    "width": 1400,
+    "height": 937,
+    "attribution": {
+      "objectName": "Jemaa el-Fnaa at night",
+      "artist": "procsilas",
+      "credit": "https://www.flickr.com/photos/procsilas/3135243575/sizes/o/in/photostream/",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Jemaa_el-Fnaa_at_night.jpg"
+    }
+  },
+  {
+    "slug": "mexico-city",
+    "label": "Mexico City",
+    "sourcePage": "https://en.wikipedia.org/wiki/Mexico_City",
+    "commonsTitle": "File:Sobrevuelos CDMX HJ2A4913 (25514321687) (cropped).jpg",
+    "file": "/city-covers/mexico-city.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sobrevuelos_CDMX_HJ2A4913_%2825514321687%29_%28cropped%29.jpg/1920px-Sobrevuelos_CDMX_HJ2A4913_%2825514321687%29_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 735,
+    "attribution": {
+      "objectName": "Sobrevuelos CDMX HJ2A4913 (25514321687) (cropped)",
+      "artist": "Gobierno CDMX",
+      "credit": "HJ2A4913",
+      "licenseShortName": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "usageTerms": "Creative Commons Zero, Public Domain Dedication",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Sobrevuelos_CDMX_HJ2A4913_(25514321687)_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "miami",
+    "label": "Miami",
+    "sourcePage": "https://en.wikipedia.org/wiki/Miami",
+    "commonsTitle": "File:Miami skyline from the ocean.jpg",
+    "file": "/city-covers/miami.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Miami_skyline_from_the_ocean.jpg/1920px-Miami_skyline_from_the_ocean.jpg",
+    "width": 1400,
+    "height": 875,
+    "attribution": {
+      "objectName": "Miami skyline from the ocean",
+      "artist": "Matthew T Rader",
+      "credit": "matthewtrader.com Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Miami_skyline_from_the_ocean.jpg"
+    }
+  },
+  {
+    "slug": "milan",
+    "label": "Milan",
+    "sourcePage": "https://en.wikipedia.org/wiki/Milan",
+    "commonsTitle": "File:Milano, Duomo with Milan Cathedral and Galleria Vittorio Emanuele II, 2016.jpg",
+    "file": "/city-covers/milan.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Milano%2C_Duomo_with_Milan_Cathedral_and_Galleria_Vittorio_Emanuele_II%2C_2016.jpg/1920px-Milano%2C_Duomo_with_Milan_Cathedral_and_Galleria_Vittorio_Emanuele_II%2C_2016.jpg",
+    "width": 1400,
+    "height": 821,
+    "attribution": {
+      "objectName": "Milano, Duomo with Milan Cathedral and Galleria Vittorio Emanuele II, 2016",
+      "artist": "Steffen Schmitz",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Milano,_Duomo_with_Milan_Cathedral_and_Galleria_Vittorio_Emanuele_II,_2016.jpg"
+    }
+  },
+  {
+    "slug": "montreal",
+    "label": "Montreal",
+    "sourcePage": "https://en.wikipedia.org/wiki/Montreal",
+    "commonsTitle": "File:Mtl from mont royal (cropped).jpg",
+    "file": "/city-covers/montreal.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Mtl_from_mont_royal_%28cropped%29.jpg/1920px-Mtl_from_mont_royal_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 742,
+    "attribution": {
+      "objectName": "Mtl from mont royal (cropped)",
+      "artist": "Vreee",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Mtl_from_mont_royal_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "munich",
+    "label": "Munich",
+    "sourcePage": "https://en.wikipedia.org/wiki/Munich",
+    "commonsTitle": "File:Stadtbild München.jpg",
+    "file": "/city-covers/munich.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/1920px-Stadtbild_M%C3%BCnchen.jpg",
+    "width": 1400,
+    "height": 947,
+    "attribution": {
+      "objectName": "Stadtbild München",
+      "artist": "Thomas Wolf , www.foto-tw.de",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0 de",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0 de",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Stadtbild_M%C3%BCnchen.jpg"
+    }
+  },
+  {
+    "slug": "new-york-city",
+    "label": "New York City",
+    "sourcePage": "https://en.wikipedia.org/wiki/New_York_City",
+    "commonsTitle": "File:View of Empire State Building from Rockefeller Center New York City dllu (cropped).jpg",
+    "file": "/city-covers/new-york-city.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg/1920px-View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "View of Empire State Building from Rockefeller Center New York City dllu (cropped)",
+      "artist": "Dllu",
+      "credit": "This image has been extracted from another file",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "osaka",
+    "label": "Osaka",
+    "sourcePage": "https://en.wikipedia.org/wiki/Osaka",
+    "commonsTitle": "File:Osaka Castle 02bs3200.jpg",
+    "file": "/city-covers/osaka.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Osaka_Castle_02bs3200.jpg/1920px-Osaka_Castle_02bs3200.jpg",
+    "width": 1400,
+    "height": 917,
+    "attribution": {
+      "objectName": "Osaka Castle 02bs3200",
+      "artist": "663highland",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+      "usageTerms": "Creative Commons Attribution 2.5",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Osaka_Castle_02bs3200.jpg"
+    }
+  },
+  {
+    "slug": "paris",
+    "label": "Paris",
+    "sourcePage": "https://en.wikipedia.org/wiki/Paris",
+    "commonsTitle": "File:La Tour Eiffel vue de la Tour Saint-Jacques, Paris août 2014 (2).jpg",
+    "file": "/city-covers/paris.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg/1920px-La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg",
+    "width": 1400,
+    "height": 875,
+    "attribution": {
+      "objectName": "La Tour Eiffel vue de la Tour Saint-Jacques, Paris août 2014 (2)",
+      "artist": "Yann Caradec from Paris, France",
+      "credit": "La Tour Eiffel vue de la Tour Saint-Jacques",
+      "licenseShortName": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques,_Paris_ao%C3%BBt_2014_(2).jpg"
+    }
+  },
+  {
+    "slug": "prague",
+    "label": "Prague",
+    "sourcePage": "https://en.wikipedia.org/wiki/Prague",
+    "commonsTitle": "File:Prague (6365119737).jpg",
+    "file": "/city-covers/prague.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Prague_%286365119737%29.jpg/1920px-Prague_%286365119737%29.jpg",
+    "width": 1400,
+    "height": 833,
+    "attribution": {
+      "objectName": "Prague (6365119737)",
+      "artist": "Moyan Brenn from Italy",
+      "credit": "Flickr",
+      "licenseShortName": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "usageTerms": "Creative Commons Attribution 2.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Prague_(6365119737).jpg"
+    }
+  },
+  {
+    "slug": "quebec-city",
+    "label": "Quebec City",
+    "sourcePage": "https://en.wikipedia.org/wiki/Quebec_City",
+    "commonsTitle": "File:Quebec City, Canada.jpg",
+    "file": "/city-covers/quebec-city.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Quebec_City%2C_Canada.jpg/1920px-Quebec_City%2C_Canada.jpg",
+    "width": 1400,
+    "height": 875,
+    "attribution": {
+      "objectName": "Quebec City, Canada",
+      "artist": "Quintin Soloviev",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "usageTerms": "Creative Commons Attribution 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Quebec_City,_Canada.jpg"
+    }
+  },
+  {
+    "slug": "reykjavik",
+    "label": "Reykjavik",
+    "sourcePage": "https://en.wikipedia.org/wiki/Reykjavik",
+    "commonsTitle": "File:Reykjavik hallgrimskirkja (Unsplash).jpg",
+    "file": "/city-covers/reykjavik.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Reykjavik_hallgrimskirkja_%28Unsplash%29.jpg/1920px-Reykjavik_hallgrimskirkja_%28Unsplash%29.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "Reykjavik hallgrimskirkja (Unsplash)",
+      "artist": "Tim Trad timtrad",
+      "credit": "https://unsplash.com/photos/B6nTLkA0psY Image at the Wayback Machine Gallery at the Wayback Machine",
+      "licenseShortName": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "usageTerms": "Creative Commons Zero, Public Domain Dedication",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Reykjavik_hallgrimskirkja_(Unsplash).jpg"
+    }
+  },
+  {
+    "slug": "rio-de-janeiro",
+    "label": "Rio de Janeiro",
+    "sourcePage": "https://en.wikipedia.org/wiki/Rio_de_Janeiro",
+    "commonsTitle": "File:Cidade Maravilhosa.jpg",
+    "file": "/city-covers/rio-de-janeiro.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Cidade_Maravilhosa.jpg/1920px-Cidade_Maravilhosa.jpg",
+    "width": 1400,
+    "height": 748,
+    "attribution": {
+      "objectName": "Cidade Maravilhosa",
+      "artist": "Rafael Rabello de Barros",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Cidade_Maravilhosa.jpg"
+    }
+  },
+  {
+    "slug": "rome",
+    "label": "Rome",
+    "sourcePage": "https://en.wikipedia.org/wiki/Rome",
+    "commonsTitle": "File:Trevi Fountain, Rome, Italy 2 - May 2007.jpg",
+    "file": "/city-covers/rome.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Trevi_Fountain%2C_Rome%2C_Italy_2_-_May_2007.jpg/1920px-Trevi_Fountain%2C_Rome%2C_Italy_2_-_May_2007.jpg",
+    "width": 1400,
+    "height": 930,
+    "attribution": {
+      "objectName": "Trevi Fountain, Rome, Italy 2 - May 2007",
+      "artist": "Diliff",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "usageTerms": "Creative Commons Attribution 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Trevi_Fountain,_Rome,_Italy_2_-_May_2007.jpg"
+    }
+  },
+  {
     "slug": "san-francisco",
     "label": "San Francisco",
     "sourcePage": "https://en.wikipedia.org/wiki/San_Francisco",
@@ -53,6 +870,101 @@
       "licenseShortName": "CC0",
       "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
       "usageTerms": "Creative Commons Zero, Public Domain Dedication",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "seoul",
+    "label": "Seoul",
+    "sourcePage": "https://en.wikipedia.org/wiki/Seoul",
+    "commonsTitle": "File:Bukchon-ro 11-gil 02.jpg",
+    "file": "/city-covers/seoul.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Bukchon-ro_11-gil_02.jpg/1920px-Bukchon-ro_11-gil_02.jpg",
+    "width": 1400,
+    "height": 932,
+    "attribution": {
+      "objectName": "Bukchon-ro 11-gil 02",
+      "artist": "Tristan Surtel",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "singapore",
+    "label": "Singapore",
+    "sourcePage": "https://en.wikipedia.org/wiki/Singapore",
+    "commonsTitle": "File:Singapore skyline at sunset viewed from Gardens by the Bay East - 20120426.jpg",
+    "file": "/city-covers/singapore.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Singapore_skyline_at_sunset_viewed_from_Gardens_by_the_Bay_East_-_20120426.jpg/1920px-Singapore_skyline_at_sunset_viewed_from_Gardens_by_the_Bay_East_-_20120426.jpg",
+    "width": 1400,
+    "height": 892,
+    "attribution": {
+      "objectName": "Singapore skyline at sunset viewed from Gardens by the Bay East - 20120426",
+      "artist": "Chensiyuan",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Singapore_skyline_at_sunset_viewed_from_Gardens_by_the_Bay_East_-_20120426.jpg"
+    }
+  },
+  {
+    "slug": "sydney",
+    "label": "Sydney",
+    "sourcePage": "https://en.wikipedia.org/wiki/Sydney",
+    "commonsTitle": "File:Sydney Opera House and Harbour Bridge Dusk (2) 2019-06-21.jpg",
+    "file": "/city-covers/sydney.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Sydney_Opera_House_and_Harbour_Bridge_Dusk_%282%29_2019-06-21.jpg/1920px-Sydney_Opera_House_and_Harbour_Bridge_Dusk_%282%29_2019-06-21.jpg",
+    "width": 1400,
+    "height": 700,
+    "attribution": {
+      "objectName": "Sydney Opera House and Harbour Bridge Dusk (2) 2019-06-21",
+      "artist": "Benh LIEU SONG ( Flickr )",
+      "credit": "Sydney's Landmarks 2",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Sydney_Opera_House_and_Harbour_Bridge_Dusk_(2)_2019-06-21.jpg"
+    }
+  },
+  {
+    "slug": "taipei",
+    "label": "Taipei",
+    "sourcePage": "https://en.wikipedia.org/wiki/Taipei",
+    "commonsTitle": "File:Taipei Skyline 2022.06.29.jpg",
+    "file": "/city-covers/taipei.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Taipei_Skyline_2022.06.29.jpg/1920px-Taipei_Skyline_2022.06.29.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "Taipei Skyline 2022.06.29",
+      "artist": "毛貓大少爺",
+      "credit": "https://www.flickr.com/photos/92975612@N02/52185140077/",
+      "licenseShortName": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 2.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "tokyo",
+    "label": "Tokyo",
+    "sourcePage": "https://en.wikipedia.org/wiki/Tokyo",
+    "commonsTitle": "File:Skyscrapers of Shinjuku 2009 January.jpg",
+    "file": "/city-covers/tokyo.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Skyscrapers_of_Shinjuku_2009_January.jpg/1920px-Skyscrapers_of_Shinjuku_2009_January.jpg",
+    "width": 1400,
+    "height": 746,
+    "attribution": {
+      "objectName": "Skyscrapers of Shinjuku 2009 January",
+      "artist": "Morio",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
       "descriptionUrl": ""
     }
   },
@@ -76,22 +988,117 @@
     }
   },
   {
-    "slug": "banff-national-park",
-    "label": "Banff National Park",
-    "sourcePage": "https://en.wikipedia.org/wiki/Banff_National_Park",
-    "commonsTitle": "File:Moraine Lake 17092005.jpg",
-    "file": "/city-covers/banff-national-park.webp",
-    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Moraine_Lake_17092005.jpg/1920px-Moraine_Lake_17092005.jpg",
+    "slug": "vancouver",
+    "label": "Vancouver",
+    "sourcePage": "https://en.wikipedia.org/wiki/Vancouver",
+    "commonsTitle": "File:Skyline of Vancouver, Canada.jpg",
+    "file": "/city-covers/vancouver.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Skyline_of_Vancouver%2C_Canada.jpg/1920px-Skyline_of_Vancouver%2C_Canada.jpg",
     "width": 1400,
-    "height": 1050,
+    "height": 840,
     "attribution": {
-      "objectName": "Moraine Lake 17092005",
-      "artist": "Gorgo",
-      "credit": "Photo taken by author",
-      "licenseShortName": "Public domain",
-      "licenseUrl": "",
-      "usageTerms": "Public domain",
+      "objectName": "Skyline of Vancouver, Canada",
+      "artist": "Quintin Soloviev",
+      "credit": "Own work",
+      "licenseShortName": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "usageTerms": "Creative Commons Attribution 4.0",
       "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "venice",
+    "label": "Venice",
+    "sourcePage": "https://en.wikipedia.org/wiki/Venice",
+    "commonsTitle": "File:Venezia aerial view.jpg",
+    "file": "/city-covers/venice.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Venezia_aerial_view.jpg/1920px-Venezia_aerial_view.jpg",
+    "width": 1400,
+    "height": 784,
+    "attribution": {
+      "objectName": "Venezia aerial view",
+      "artist": "kallerna",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Venezia_aerial_view.jpg"
+    }
+  },
+  {
+    "slug": "victoria",
+    "label": "Victoria, BC",
+    "sourcePage": "https://en.wikipedia.org/wiki/Victoria,_British_Columbia",
+    "commonsTitle": "File:The Empress and Inner Harbour, Victoria, southwest view 20240827 2.jpg",
+    "file": "/city-covers/victoria.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/The_Empress_and_Inner_Harbour%2C_Victoria%2C_southwest_view_20240827_2.jpg/1920px-The_Empress_and_Inner_Harbour%2C_Victoria%2C_southwest_view_20240827_2.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "The Empress and Inner Harbour, Victoria, southwest view 20240827 2",
+      "artist": "DXR",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "vienna",
+    "label": "Vienna",
+    "sourcePage": "https://en.wikipedia.org/wiki/Vienna",
+    "commonsTitle": "File:Belvedere, Vienna September 2016.jpg",
+    "file": "/city-covers/vienna.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Belvedere%2C_Vienna_September_2016.jpg/1920px-Belvedere%2C_Vienna_September_2016.jpg",
+    "width": 1400,
+    "height": 746,
+    "attribution": {
+      "objectName": "Belvedere, Vienna September 2016",
+      "artist": "Martin Falbisoner",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Belvedere,_Vienna_September_2016.jpg"
+    }
+  },
+  {
+    "slug": "washington-dc",
+    "label": "Washington, DC",
+    "sourcePage": "https://en.wikipedia.org/wiki/Washington%2C_D.C.",
+    "commonsTitle": "File:National mall facing east.jpg",
+    "file": "/city-covers/washington-dc.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/National_mall_facing_east.jpg/1920px-National_mall_facing_east.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "National mall facing east",
+      "artist": "Gustav V.",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:National_mall_facing_east.jpg"
+    }
+  },
+  {
+    "slug": "zurich",
+    "label": "Zurich",
+    "sourcePage": "https://en.wikipedia.org/wiki/Z%C3%BCrich",
+    "commonsTitle": "File:Zürich view Quaibrücke 20200702.jpg",
+    "file": "/city-covers/zurich.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Z%C3%BCrich_view_Quaibr%C3%BCcke_20200702.jpg/1920px-Z%C3%BCrich_view_Quaibr%C3%BCcke_20200702.jpg",
+    "width": 1400,
+    "height": 728,
+    "attribution": {
+      "objectName": "Zürich view Quaibrücke 20200702",
+      "artist": "Daniel Kraft",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Z%C3%BCrich_view_Quaibr%C3%BCcke_20200702.jpg"
     }
   }
 ]
