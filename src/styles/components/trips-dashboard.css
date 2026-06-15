@@ -190,8 +190,14 @@
 .trip-form-submit {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--surface-panel);
+  color: var(--text-on-accent);
   flex: 0 0 auto;
+}
+
+.trip-form-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-on-accent);
 }
 
 .trip-form-clear {

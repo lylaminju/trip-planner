@@ -63,4 +63,15 @@ describe("TripsDashboard", () => {
       /(?:^|\n)\.destination-combobox-popover\s*{[^}]*left:\s*0;[^}]*right:\s*0;[^}]*width:\s*auto;/s,
     );
   });
+
+  it("keeps the create trip hover state styled as a primary action", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard.css",
+      "utf8",
+    );
+
+    expect(css).toMatch(
+      /(?:^|\n)\.trip-form-submit:hover:not\(:disabled\)\s*{[^}]*background:\s*var\(--accent-hover\);[^}]*border-color:\s*var\(--accent-hover\);[^}]*color:\s*var\(--text-on-accent\);/s,
+    );
+  });
 });
