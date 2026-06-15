@@ -1,0 +1,97 @@
+[
+  {
+    "slug": "new-york-city",
+    "label": "New York City",
+    "sourcePage": "https://en.wikipedia.org/wiki/New_York_City",
+    "commonsTitle": "File:View of Empire State Building from Rockefeller Center New York City dllu (cropped).jpg",
+    "file": "/city-covers/new-york-city.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg/1920px-View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "View of Empire State Building from Rockefeller Center New York City dllu (cropped)",
+      "artist": "Dllu",
+      "credit": "This image has been extracted from another file",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "los-angeles",
+    "label": "Los Angeles",
+    "sourcePage": "https://en.wikipedia.org/wiki/Los_Angeles",
+    "commonsTitle": "File:Hollywood Sign (Zuschnitt).jpg",
+    "file": "/city-covers/los-angeles.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Hollywood_Sign_%28Zuschnitt%29.jpg/1920px-Hollywood_Sign_%28Zuschnitt%29.jpg",
+    "width": 1400,
+    "height": 875,
+    "attribution": {
+      "objectName": "Hollywood Sign (Zuschnitt)",
+      "artist": "Thomas Wolf, www.foto-tw.de",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "san-francisco",
+    "label": "San Francisco",
+    "sourcePage": "https://en.wikipedia.org/wiki/San_Francisco",
+    "commonsTitle": "File:San Francisco Downtown Aerial, August 2025.jpg",
+    "file": "/city-covers/san-francisco.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/San_Francisco_Downtown_Aerial%2C_August_2025.jpg/1920px-San_Francisco_Downtown_Aerial%2C_August_2025.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "San Francisco Downtown Aerial, August 2025",
+      "artist": "Spicypepper999",
+      "credit": "Own work",
+      "licenseShortName": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "usageTerms": "Creative Commons Zero, Public Domain Dedication",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "toronto",
+    "label": "Toronto",
+    "sourcePage": "https://en.wikipedia.org/wiki/Toronto",
+    "commonsTitle": "File:Toronto Skyline Summer 2020.jpg",
+    "file": "/city-covers/toronto.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/6/65/Toronto_Skyline_Summer_2020.jpg",
+    "width": 1400,
+    "height": 788,
+    "attribution": {
+      "objectName": "Toronto Skyline Summer 2020",
+      "artist": "Aaron Davis",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": ""
+    }
+  },
+  {
+    "slug": "banff-national-park",
+    "label": "Banff National Park",
+    "sourcePage": "https://en.wikipedia.org/wiki/Banff_National_Park",
+    "commonsTitle": "File:Moraine Lake 17092005.jpg",
+    "file": "/city-covers/banff-national-park.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Moraine_Lake_17092005.jpg/1920px-Moraine_Lake_17092005.jpg",
+    "width": 1400,
+    "height": 1050,
+    "attribution": {
+      "objectName": "Moraine Lake 17092005",
+      "artist": "Gorgo",
+      "credit": "Photo taken by author",
+      "licenseShortName": "Public domain",
+      "licenseUrl": "",
+      "usageTerms": "Public domain",
+      "descriptionUrl": ""
+    }
+  }
+]

@@ -35,6 +35,7 @@ function buildTrip(startDate: string | null, endDate: string | null): Trip {
     id: 1,
     created_by: "user-1",
     name: "Tokyo Spring",
+    destination: "Toronto",
     start_date: startDate,
     end_date: endDate,
     timezone: "Asia/Tokyo",

@@ -88,6 +88,14 @@ function parseTripUpdateInput(value: unknown): TripUpdateInput | NextResponse {
     input.name = name;
   }
 
+  if ("destination" in body) {
+    const destination = stringOrNull(body.destination);
+    if (!destination) {
+      return jsonError("Trip destination is required.", 400);
+    }
+    input.destination = destination;
+  }
+
   if ("start_date" in body) {
     const startDate = nullableDate(body.start_date, "Trip start date");
     if (startDate instanceof Response) return startDate;

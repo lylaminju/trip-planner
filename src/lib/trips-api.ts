@@ -2,6 +2,7 @@ import type { TripSummary } from "./types";
 
 export type TripMetadataPayload = {
   name: string;
+  destination: string;
   start_date: string | null;
   end_date: string | null;
   timezone: string;
@@ -9,7 +10,7 @@ export type TripMetadataPayload = {
 
 export async function loadTrips(): Promise<TripSummary[]> {
   const response = await fetch("/api/trips");
-  const data = await response.json();
+  const data = await readJsonResponse(response, "Failed to load trips.");
 
   if (!response.ok) {
     throw new Error(
@@ -37,7 +38,7 @@ export async function updateTrip(
 
 export async function deleteTrip(tripId: number): Promise<void> {
   const response = await fetch(`/api/trips/${tripId}`, { method: "DELETE" });
-  const data = await response.json();
+  const data = await readJsonResponse(response, "Failed to delete trip.");
 
   if (!response.ok) {
     throw new Error(
@@ -56,7 +57,7 @@ async function tripJsonRequest(
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const data = await response.json();
+  const data = await readJsonResponse(response, "Failed to save trip.");
 
   if (!response.ok) {
     throw new Error(
@@ -65,4 +66,18 @@ async function tripJsonRequest(
   }
 
   return data;
+}
+
+async function readJsonResponse(
+  response: Response,
+  fallbackError: string,
+): Promise<Record<string, unknown>> {
+  try {
+    return (await response.json()) as Record<string, unknown>;
+  } catch {
+    if (!response.ok) {
+      return { error: fallbackError };
+    }
+    throw new Error(fallbackError);
+  }
 }

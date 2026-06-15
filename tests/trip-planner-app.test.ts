@@ -90,6 +90,7 @@ function buildInitialData(
       id: 1,
       created_by: "user-1",
       name: "Tokyo Spring",
+      destination: "Tokyo",
       start_date: "2026-04-01",
       end_date: "2026-04-07",
       timezone: "Asia/Tokyo",

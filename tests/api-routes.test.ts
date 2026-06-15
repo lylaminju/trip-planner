@@ -134,6 +134,7 @@ describe("API routes transport behavior", () => {
       const response = await POST(
         jsonRequest("POST", {
           name: "Tokyo",
+          destination: "Tokyo",
           start_date: "2026-09-01",
           end_date: "2026-09-08",
           timezone: "Asia/Tokyo",
@@ -145,6 +146,7 @@ describe("API routes transport behavior", () => {
         trip: expect.objectContaining({
           id: 2,
           name: "Tokyo",
+          destination: "Tokyo",
           role: "owner",
           timezone: "Asia/Tokyo",
         }),
@@ -167,9 +169,22 @@ describe("API routes transport behavior", () => {
         error: "Trip name is required.",
       });
 
+      const missingDestination = await POST(
+        jsonRequest("POST", {
+          name: "Missing destination",
+          destination: "   ",
+          timezone: "America/Toronto",
+        }),
+      );
+      expect(missingDestination.status).toBe(400);
+      await expect(missingDestination.json()).resolves.toEqual({
+        error: "Trip destination is required.",
+      });
+
       const badDateRange = await POST(
         jsonRequest("POST", {
           name: "Bad range",
+          destination: "Toronto",
           start_date: "2026-09-08",
           end_date: "2026-09-01",
           timezone: "America/Toronto",
@@ -178,6 +193,22 @@ describe("API routes transport behavior", () => {
       expect(badDateRange.status).toBe(400);
       await expect(badDateRange.json()).resolves.toEqual({
         error: "Trip start date must be before or equal to end date.",
+      });
+    });
+  });
+
+  it("rejects blank trip destination on metadata edit", async () => {
+    await withFreshTripApiEnv(async () => {
+      const tripRoute = await import("@/app/api/trips/[tripId]/route");
+
+      const response = await tripRoute.PATCH(
+        jsonRequest("PATCH", { destination: "   " }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: "Trip destination is required.",
       });
     });
   });
@@ -703,6 +734,7 @@ async function withFreshTripApiEnv(
       id: 1,
       created_by: "user-1",
       name: "New York City",
+      destination: "New York City",
       start_date: "2026-05-27",
       end_date: "2026-05-29",
       timezone: "America/Toronto",

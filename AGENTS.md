@@ -49,6 +49,7 @@ This file applies to the whole repository. Follow it when changing code here.
 
 - When static previews or landing pages reuse app component classes, verify `src/app/globals.css` import order before relying on overrides.
 - Do not rely on equal-specificity overrides across component CSS files; scope through the preview container or use the exact combined class.
+- Avoid broad descendant element selectors such as `.component span` or `.component > span:not(...)` for component rows that may contain nested icons, badges, metadata, or featured/variant styling. Give each semantic child its own class and target that class directly.
 - Prefer preview-owned classes when a static preview should not inherit live app spacing, interaction, or layout behavior.
 
 ## CSS Design Tokens
@@ -62,6 +63,7 @@ This file applies to the whole repository. Follow it when changing code here.
 ## Testing Guidelines
 
 - Prefer assertions that protect stable behavior, structure, routing, and integration contracts over assertions that freeze incidental UI copy.
+- Avoid implementation-specific tests that assert raw CSS selectors, source text, or internal markup details unless that exact structure is a durable contract. Prefer behavior, accessibility, computed output, or user-visible affordances.
 - Do not add tests that only restate behavior already covered at the same layer; new tests should protect a new branch, regression risk, or integration contract.
 - Prefer the narrowest test that proves the behavior under change. Avoid duplicate coverage across utility, component, and integration layers unless each layer catches a distinct failure mode.
 - Avoid `not.toContain()` checks for removed marketing text, placeholder text, or helper copy unless the absence is a real product requirement or safety constraint.

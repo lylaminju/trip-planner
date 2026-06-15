@@ -35,6 +35,7 @@ function tripClient() {
     id: 1,
     created_by: "user-1",
     name: "New York City",
+    destination: "New York City",
     start_date: "2026-05-27",
     end_date: "2026-05-29",
     timezone: "America/Toronto",

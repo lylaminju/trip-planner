@@ -5,6 +5,7 @@ export type Trip = {
   id: number;
   created_by: string | null;
   name: string;
+  destination: string;
   start_date: string | null;
   end_date: string | null;
   timezone: string;

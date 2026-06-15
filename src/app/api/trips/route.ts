@@ -75,6 +75,11 @@ function parseTripCreateInput(
     return jsonError("Trip name is required.", 400);
   }
 
+  const destination = stringOrNull(body.destination);
+  if (!destination) {
+    return jsonError("Trip destination is required.", 400);
+  }
+
   const startDate = nullableDate(body.start_date, "Trip start date");
   if (startDate instanceof Response) {
     return startDate;
@@ -99,6 +104,7 @@ function parseTripCreateInput(
 
   return {
     name,
+    destination,
     start_date: startDate,
     end_date: endDate,
     timezone,

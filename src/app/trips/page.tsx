@@ -17,5 +17,12 @@ export default async function TripsPage() {
     redirect("/");
   }
 
-  return <TripsDashboard />;
+  const userName =
+    typeof user.user_metadata?.name === "string"
+      ? user.user_metadata.name
+      : typeof user.user_metadata?.full_name === "string"
+        ? user.user_metadata.full_name
+        : null;
+
+  return <TripsDashboard userName={userName} userEmail={user.email} />;
 }

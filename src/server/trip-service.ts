@@ -6,6 +6,7 @@ import { requireTripRole } from "./trip-access";
 
 export type TripCreateInput = {
   name: string;
+  destination: string;
   start_date: string | null;
   end_date: string | null;
   timezone: string;
@@ -17,7 +18,7 @@ export async function getTripById(tripId: number): Promise<Trip> {
   const { data, error } = await getSupabaseClient()
     .from("trips")
     .select(
-      "id, created_by, name, start_date, end_date, timezone, created_at, updated_at",
+      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
     )
     .eq("id", tripId)
     .single();
@@ -48,7 +49,7 @@ export async function listTripsForRequest(
   const { data: tripRows, error: tripError } = await getSupabaseClient()
     .from("trips")
     .select(
-      "id, created_by, name, start_date, end_date, timezone, created_at, updated_at",
+      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
     )
     .in(
       "id",
@@ -74,12 +75,13 @@ export async function createTripForRequest(
     .insert({
       created_by: userId,
       name: input.name,
+      destination: input.destination,
       start_date: input.start_date,
       end_date: input.end_date,
       timezone: input.timezone,
     })
     .select(
-      "id, created_by, name, start_date, end_date, timezone, created_at, updated_at",
+      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
     )
     .single();
 
@@ -123,7 +125,7 @@ export async function updateTripForRequest(
     .update({ ...input, updated_at: new Date().toISOString() })
     .eq("id", tripId)
     .select(
-      "id, created_by, name, start_date, end_date, timezone, created_at, updated_at",
+      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
     )
     .single();
 

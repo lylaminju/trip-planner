@@ -6,7 +6,7 @@ import { TripRow } from "@/components/TripRow";
 import type { TripSummary } from "@/lib/types";
 
 describe("TripRow", () => {
-  it("keeps timezone beside the date range and uses titled icon actions", () => {
+  it("renders a cover card with trip metadata and titled icon actions", () => {
     const markup = renderToStaticMarkup(
       createElement(TripRow, {
         trip: tripSummary(),
@@ -15,9 +15,11 @@ describe("TripRow", () => {
       }),
     );
 
-    expect(markup).toContain(
-      "2026-06-01 to 2026-06-02 (America/Toronto)",
-    );
+    expect(markup).toContain("/city-covers/toronto.webp");
+    expect(markup).toContain("Jun 1 - 2, 2026");
+    expect(markup).toContain("2 days");
+    expect(markup).toContain("Toronto");
+    expect(markup).toContain('class="trip-destination-icon"');
     expect(markup).toContain('title="Edit trip Toronto June"');
     expect(markup).toContain('aria-label="Edit trip Toronto June"');
     expect(markup).toContain('title="Delete trip Toronto June"');
@@ -43,6 +45,33 @@ describe("TripRow", () => {
     expect(markup).toContain("delete-loading-spinner");
     expect(markup).not.toContain("M4 7h16");
   });
+
+  it("reserves the destination row for legacy trips without a destination", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TripRow, {
+        trip: { ...tripSummary(), destination: null } as unknown as TripSummary,
+        onEdit: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('class="trip-destination"');
+    expect(markup).toContain("Destination needed");
+  });
+
+  it("keeps missing trip dates visually compact", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TripRow, {
+        trip: { ...tripSummary(), start_date: null, end_date: null },
+        onEdit: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('aria-label="Dates not set"');
+    expect(markup).toContain(">-<");
+    expect(markup).not.toContain("Add dates to sort this trip");
+  });
 });
 
 function tripSummary(): TripSummary {
@@ -50,6 +79,7 @@ function tripSummary(): TripSummary {
     id: 12,
     created_by: "user-1",
     name: "Toronto June",
+    destination: "Toronto",
     start_date: "2026-06-01",
     end_date: "2026-06-02",
     timezone: "America/Toronto",

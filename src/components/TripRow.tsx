@@ -1,11 +1,15 @@
 import Link from "next/link";
 
+import { getTripCoverImage } from "@/lib/city-covers";
+import { isTripOngoing } from "@/lib/trip-classification";
+import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import type { TripSummary } from "@/lib/types";
 import { DeleteLoadingSpinner } from "./DeleteLoadingSpinner";
-import { PencilIcon, TrashIcon } from "./Icons";
+import { MapPinIcon, PencilIcon, TrashIcon } from "./Icons";
 
 export function TripRow(props: {
   trip: TripSummary;
+  isFeatured?: boolean;
   onEdit: () => void;
   onDelete: () => void;
   isDeleting?: boolean;
@@ -16,17 +20,49 @@ export function TripRow(props: {
   const deleteButtonLabel = props.isDeleting
     ? `Deleting trip ${props.trip.name}`
     : deleteLabel;
+  const periodLabel = formatTripPeriodLabel(props.trip);
+  const destinationLabel =
+    props.trip.destination?.trim() || "Destination needed";
+  const coverImage = getTripCoverImage({
+    destination: props.trip.destination,
+  });
+  const durationLabel = formatTripDurationLabel(props.trip);
+  const isOngoing = isTripOngoing(props.trip);
 
   return (
-    <article className="trip-row">
+    <article
+      className={props.isFeatured ? "trip-row featured-trip" : "trip-row"}
+    >
       <Link className="trip-row-main" href={`/trips/${props.trip.id}`}>
+        <span
+          className="trip-cover"
+          aria-hidden="true"
+          style={{ backgroundImage: `url("${coverImage}")` }}
+        />
         <strong>{props.trip.name}</strong>
-        <span>{formatTripDateLine(props.trip)}</span>
+        <span className="trip-destination">
+          <span className="trip-destination-icon">
+            <MapPinIcon />
+          </span>
+          <span className="trip-destination-text">{destinationLabel}</span>
+        </span>
+        <span
+          className="trip-period"
+          aria-label={periodLabel ? undefined : "Dates not set"}
+        >
+          {periodLabel ?? "-"}
+        </span>
       </Link>
-      <div className="trip-row-meta">
+      <div className="trip-card-meta">
+        {durationLabel && (
+          <span className="trip-duration">{durationLabel}</span>
+        )}
+        {isOngoing && <span className="trip-duration">Ongoing</span>}
         <span className={`trip-role trip-role-${props.trip.role}`}>
           {props.trip.role}
         </span>
+      </div>
+      <div className="trip-row-meta">
         {canEditMetadata && (
           <div className="trip-row-actions">
             <button
@@ -55,11 +91,15 @@ export function TripRow(props: {
   );
 }
 
-function formatTripDateLine(trip: TripSummary): string {
-  const dateRange =
-    trip.start_date && trip.end_date
-      ? `${trip.start_date} to ${trip.end_date}`
-      : "Needs dates";
+function formatTripDurationLabel(trip: TripSummary): string | null {
+  if (!trip.start_date || !trip.end_date) return "Needs dates";
 
-  return `${dateRange} (${trip.timezone})`;
+  const start = new Date(`${trip.start_date}T00:00:00Z`).getTime();
+  const end = new Date(`${trip.end_date}T00:00:00Z`).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return null;
+  }
+
+  const days = Math.round((end - start) / 86_400_000) + 1;
+  return days === 1 ? "1 day" : `${days} days`;
 }

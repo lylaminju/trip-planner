@@ -7,6 +7,7 @@ describe("updateTripFormField", () => {
   it("updates a field from a captured value without reading a deferred event", () => {
     const form: TripFormState = {
       name: "Old name",
+      destination: "",
       startDate: "2026-06-01",
       endDate: "2026-06-02",
       timezone: "America/Toronto",

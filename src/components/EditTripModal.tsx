@@ -4,6 +4,7 @@ import type { SubmitEvent } from "react";
 
 import type { TimeZoneOption } from "@/lib/timezones";
 
+import { DestinationCombobox } from "./DestinationCombobox";
 import { TimeZoneSelect } from "./TimeZoneSelect";
 import { updateTripFormField } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
@@ -47,6 +48,18 @@ export function EditTripModal(props: Props) {
               )
             }
             required
+          />
+        </label>
+
+        <label>
+          Destination
+          <DestinationCombobox
+            value={props.form.destination}
+            onChange={(destination) =>
+              props.onChange(
+                updateTripFormField(props.form, "destination", destination),
+              )
+            }
           />
         </label>
 

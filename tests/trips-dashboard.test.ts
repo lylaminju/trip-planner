@@ -9,17 +9,26 @@ vi.mock("next/navigation", () => ({
 import { TripSection, TripsDashboard } from "@/components/TripsDashboard";
 
 describe("TripsDashboard", () => {
-  it("renders a log-out button in the dashboard header", () => {
+  it("renders the shell with profile fallback and log-out control", () => {
     const markup = renderToStaticMarkup(createElement(TripsDashboard));
 
-    expect(markup).toContain('class="trips-header-actions"');
+    expect(markup).toContain('class="trips-dashboard-shell"');
+    expect(markup).toContain("Hi, Traveler!");
+    expect(markup).toContain('class="trips-brand-rail"');
     expect(markup).toContain("Log out");
+    expect(markup).not.toContain("Total trips");
+    expect(markup).toContain('type="button" class="trip-form-clear"');
+    expect(markup).toContain('class="destination-combobox"');
+    expect(markup).toContain('placeholder="Search or type destination"');
+    expect(markup).toContain("Clear");
+    expect(markup).toContain("Create trip");
+    expect(markup.indexOf("Create trip")).toBeLessThan(markup.indexOf("Clear"));
   });
 
   it("renders empty trip sections as bucket-sized placeholders", () => {
     const markup = renderToStaticMarkup(
       createElement(TripSection, {
-        title: "Upcoming Trips",
+        title: "Past Trips",
         trips: [],
         editing: null,
         isSaving: false,
@@ -34,6 +43,7 @@ describe("TripsDashboard", () => {
     );
 
     expect(markup).toContain('class="trip-empty-bucket"');
+    expect(markup).toContain("0 trips");
     expect(markup).toContain('aria-label="No trips in this section."');
     expect(markup).toContain('viewBox="0 0 64 64"');
     expect(markup).not.toContain(
