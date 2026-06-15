@@ -36,6 +36,10 @@ export function groupTripsByTiming(
     }
   }
 
+  groups.past.sort((left, right) =>
+    (right.end_date ?? "").localeCompare(left.end_date ?? ""),
+  );
+
   return groups;
 }
 

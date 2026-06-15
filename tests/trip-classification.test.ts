@@ -58,6 +58,23 @@ describe("trip dashboard classification", () => {
     expect(groups.past.map((entry) => entry.name)).toEqual(["Tokyo tomorrow"]);
   });
 
+  it("sorts past trips by most recent end date first", () => {
+    const groups = groupTripsByTiming(
+      [
+        trip(1, "Oldest", "2026-03-01", "2026-03-03"),
+        trip(2, "Newest", "2026-05-10", "2026-05-12"),
+        trip(3, "Middle", "2026-04-04", "2026-04-08"),
+      ],
+      new Date("2026-05-28T16:00:00.000Z"),
+    );
+
+    expect(groups.past.map((entry) => entry.name)).toEqual([
+      "Newest",
+      "Middle",
+      "Oldest",
+    ]);
+  });
+
   it("detects the browser timezone and falls back when unavailable", () => {
     const resolvedOptions = vi
       .spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions")
