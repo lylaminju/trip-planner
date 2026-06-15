@@ -35,7 +35,6 @@ describe("TripsDashboard", () => {
         editing: null,
         isSaving: false,
         deletingTripIds: new Set<number>(),
-        timeZoneOptions: [],
         onEditStart: vi.fn(),
         onEditCancel: vi.fn(),
         onEditChange: vi.fn(),
@@ -51,6 +50,44 @@ describe("TripsDashboard", () => {
     expect(markup).not.toContain(
       '<p class="trip-empty-text">No trips in this section.</p>',
     );
+  });
+
+  it("converts the selected trip into an edit card without the legacy edit row", () => {
+    const trip = tripSummary();
+    const markup = renderToStaticMarkup(
+      createElement(TripSection, {
+        title: "Ongoing & Upcoming",
+        trips: [trip],
+        featuredTripId: trip.id,
+        editing: {
+          tripId: trip.id,
+          form: {
+            name: trip.name,
+            destination: trip.destination ?? "",
+            startDate: trip.start_date ?? "",
+            endDate: trip.end_date ?? "",
+            timezone: trip.timezone,
+          },
+        },
+        isSaving: false,
+        deletingTripIds: new Set<number>(),
+        onEditStart: vi.fn(),
+        onEditCancel: vi.fn(),
+        onEditChange: vi.fn(),
+        onEditSubmit: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('class="trip-row featured-trip trip-row-editing"');
+    expect(markup).toContain("/city-covers/toronto.webp");
+    expect(markup).toContain('value="Toronto June"');
+    expect(markup).toContain('value="2026-06-01"');
+    expect(markup).toContain("Save changes");
+    expect(markup).toContain("Cancel");
+    expect(markup).not.toContain('class="trip-row trip-edit-form"');
+    expect(markup).not.toContain(">Edit trip<");
+    expect(markup).not.toContain('aria-label="Timezone"');
   });
 
   it("sizes the destination dropdown to the input field", () => {
@@ -74,4 +111,36 @@ describe("TripsDashboard", () => {
       /(?:^|\n)\.trip-form-submit:hover:not\(:disabled\)\s*{[^}]*background:\s*var\(--accent-hover\);[^}]*border-color:\s*var\(--accent-hover\);[^}]*color:\s*var\(--text-on-accent\);/s,
     );
   });
+
+  it("increases desktop trip card text without resizing chips or icon buttons", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard.css",
+      "utf8",
+    );
+
+    expect(css).toMatch(
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-main strong\s*{[^}]*font-size:\s*17px;/,
+    );
+    expect(css).toMatch(
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-main \.trip-destination,\s*\.trip-row-main \.trip-period\s*{[^}]*font-size:\s*14px;/,
+    );
+    expect(css).not.toMatch(
+      /@media \(min-width: 921px\)\s*{[^}]*\.(?:trip-duration|trip-role|icon-button)\s*{[^}]*font-size:/s,
+    );
+  });
 });
+
+function tripSummary() {
+  return {
+    id: 12,
+    created_by: "user-1",
+    name: "Toronto June",
+    destination: "Toronto",
+    start_date: "2026-06-01",
+    end_date: "2026-06-02",
+    timezone: "America/Toronto",
+    role: "owner" as const,
+    created_at: "2026-05-20 00:00:00",
+    updated_at: "2026-05-20 00:00:00",
+  };
+}
