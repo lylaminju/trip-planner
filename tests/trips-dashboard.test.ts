@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -48,6 +50,17 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('viewBox="0 0 64 64"');
     expect(markup).not.toContain(
       '<p class="trip-empty-text">No trips in this section.</p>',
+    );
+  });
+
+  it("sizes the destination dropdown to the input field", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard.css",
+      "utf8",
+    );
+
+    expect(css).toMatch(
+      /(?:^|\n)\.destination-combobox-popover\s*{[^}]*left:\s*0;[^}]*right:\s*0;[^}]*width:\s*auto;/s,
     );
   });
 });

@@ -41,11 +41,13 @@ export const DESTINATION_OPTIONS: DestinationOption[] = [
 export function filterDestinationOptions(query: string): DestinationOption[] {
   const normalizedQuery = normalizeDestinationText(query);
   if (!normalizedQuery) {
-    return DESTINATION_OPTIONS;
+    return sortDestinationOptions(DESTINATION_OPTIONS);
   }
 
-  return DESTINATION_OPTIONS.filter((option) =>
-    destinationSearchText(option).includes(normalizedQuery),
+  return sortDestinationOptions(
+    DESTINATION_OPTIONS.filter((option) =>
+      destinationSearchText(option).includes(normalizedQuery),
+    ),
   );
 }
 
@@ -82,4 +84,12 @@ function destinationSearchText(option: DestinationOption): string {
   return [option.name, option.slug, ...option.aliases]
     .map((value) => normalizeDestinationText(value))
     .join(" ");
+}
+
+function sortDestinationOptions(
+  options: DestinationOption[],
+): DestinationOption[] {
+  return [...options].sort((first, second) =>
+    first.name.localeCompare(second.name),
+  );
 }
