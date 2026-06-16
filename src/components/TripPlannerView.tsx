@@ -1,0 +1,252 @@
+"use client";
+
+import type { SubmitEvent } from "react";
+
+import type { CurrentLocationPosition } from "@/lib/current-location";
+import type { MobileSheetState } from "@/lib/mobile-sheet";
+import type {
+  ItineraryItem,
+  ItineraryView,
+  Place,
+  PlannerSnapshot,
+  RouteGeometry,
+  TravelMode,
+  VisitDateOption,
+} from "@/lib/types";
+import type { TimeZoneOption } from "@/lib/timezones";
+
+import { AddEditPlaceModal } from "./AddEditPlaceModal";
+import { EditItineraryItemModal } from "./EditItineraryItemModal";
+import { EditTripModal } from "./EditTripModal";
+import { MapPanel } from "./MapPanel";
+import { PlannerPanel } from "./PlannerPanel";
+import type { TripFormState } from "./trip-form-types";
+import { errorMessage } from "./trip-planner-app-utils";
+
+type ExportFeedback = {
+  action: "copy" | "download";
+  kind: "error" | "success";
+  label: string;
+} | null;
+
+type Props = {
+  mobileSheetState: MobileSheetState;
+  isPlannerPanelExpanded: boolean;
+  tripTitle: string;
+  tripPeriodLabel: string | null;
+  itinerary: ItineraryView;
+  plannerSnapshot: PlannerSnapshot;
+  activeItemId: number | null;
+  activeCanonicalPlaceId: number | null;
+  activeSegmentId: number | null;
+  activeDate: string | null;
+  collapsedDates: ReadonlySet<string>;
+  routeGeometries: Map<number, RouteGeometry>;
+  routeGeometryError: string | null;
+  error: string | null;
+  exportFeedback: ExportFeedback;
+  canEdit: boolean;
+  canEditTripMetadata: boolean;
+  canAddVisits: boolean;
+  deletingPlaceIds: ReadonlySet<number>;
+  deletingItineraryItemIds: ReadonlySet<number>;
+  currentLocationPosition: CurrentLocationPosition | null;
+  currentLocationToast: string | null;
+  canShowCurrentLocation: boolean;
+  isCurrentLocationEnabled: boolean;
+  isAdding: boolean;
+  editingPlace: Place | null;
+  editingItem: ItineraryItem | null;
+  addingVisitPlace: Place | null;
+  addPlaceVisitDate: string | null;
+  editingTripForm: TripFormState | null;
+  isSavingTrip: boolean;
+  editTripTimeZoneOptions: TimeZoneOption[];
+  visitDateOptions: VisitDateOption[];
+  onTogglePlannerExpanded: () => void;
+  onMobileSheetStateChange: (state: MobileSheetState) => void;
+  onOpenAddModal: (visitDate?: string | null) => void;
+  onOpenEditTripModal: () => void;
+  onCopyMarkdownExport: () => void;
+  onDownloadMarkdownExport: () => void;
+  onLogout: () => void;
+  onOpenAddVisitModal: (place: Place) => void;
+  onOpenEditModal: (place: Place) => void;
+  onOpenEditItemModal: (item: ItineraryItem) => void;
+  onDeletePlace: (id: number) => Promise<void>;
+  onSelectItem: (id: number | null) => void;
+  onSelectCanonicalPlace: (id: number | null) => void;
+  onToggleSegmentSelection: (id: number | null) => void;
+  onToggleDateCollapsed: (date: string) => void;
+  onSelectDate: (date: string) => void;
+  onSchedulePlace: (
+    id: number,
+    visitDate: string | null,
+    visitTime: string | null,
+  ) => Promise<void>;
+  onScheduleItineraryItem: (
+    id: number,
+    visitDate: string | null,
+    visitTime: string | null,
+  ) => Promise<void>;
+  onDeleteItineraryItem: (id: number) => Promise<void>;
+  onUpdateSegmentMode: (id: number, mode: TravelMode) => Promise<void>;
+  onToggleCurrentLocation: () => void;
+  onCloseModal: () => void;
+  onSavePlace: (payload: Record<string, unknown>, id?: number) => Promise<void>;
+  onSaveItineraryItem: (
+    payload: Record<string, unknown>,
+    id: number,
+  ) => Promise<void>;
+  onCreateItineraryItem: (
+    placeId: number,
+    payload: Record<string, unknown>,
+  ) => Promise<void>;
+  onSetEditingTripForm: (form: TripFormState | null) => void;
+  onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
+  onSetError: (message: string | null) => void;
+};
+
+export function TripPlannerView(props: Props) {
+  const addingVisitPlace = props.addingVisitPlace;
+  const editingItem = props.editingItem;
+
+  return (
+    <main
+      className={`app-shell mobile-sheet-${props.mobileSheetState} ${
+        props.isPlannerPanelExpanded ? "left-panel-expanded" : ""
+      }`}
+    >
+      <PlannerPanel
+        title={props.tripTitle}
+        tripPeriodLabel={props.tripPeriodLabel}
+        itinerary={props.itinerary}
+        places={props.plannerSnapshot.places}
+        activePlaceId={props.activeItemId}
+        activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+        activeSegmentId={props.activeSegmentId}
+        activeDate={props.activeDate}
+        collapsedDates={props.collapsedDates}
+        routeGeometries={props.routeGeometries}
+        error={props.error}
+        exportFeedback={props.exportFeedback}
+        isExpanded={props.isPlannerPanelExpanded}
+        mobileSheetState={props.mobileSheetState}
+        canEdit={props.canEdit}
+        canAddVisits={props.canAddVisits}
+        deletingPlaceIds={props.deletingPlaceIds}
+        deletingItineraryItemIds={props.deletingItineraryItemIds}
+        onToggleExpanded={props.onTogglePlannerExpanded}
+        onMobileSheetStateChange={props.onMobileSheetStateChange}
+        onAdd={props.onOpenAddModal}
+        onEditTrip={
+          props.canEditTripMetadata ? props.onOpenEditTripModal : undefined
+        }
+        onCopyExport={props.onCopyMarkdownExport}
+        onDownloadExport={props.onDownloadMarkdownExport}
+        onLogout={props.onLogout}
+        onAddVisit={props.onOpenAddVisitModal}
+        onEdit={props.onOpenEditModal}
+        onEditItem={props.onOpenEditItemModal}
+        onDelete={(id) =>
+          props.onDeletePlace(id).catch((reason) => {
+            props.onSetError(errorMessage(reason, "Failed to delete place."));
+          })
+        }
+        onSelectPlace={props.onSelectItem}
+        onSelectCanonicalPlace={props.onSelectCanonicalPlace}
+        onSelectSegment={props.onToggleSegmentSelection}
+        onToggleDateCollapsed={props.onToggleDateCollapsed}
+        onSelectDate={props.onSelectDate}
+        onSchedulePlace={(id, date, time) =>
+          props.onSchedulePlace(id, date, time).catch((reason) => {
+            props.onSetError(errorMessage(reason, "Failed to schedule place."));
+          })
+        }
+        onScheduleItem={(id, date, time) =>
+          props.onScheduleItineraryItem(id, date, time).catch((reason) => {
+            props.onSetError(
+              errorMessage(reason, "Failed to schedule itinerary item."),
+            );
+          })
+        }
+        onDeleteItem={(id) =>
+          props.onDeleteItineraryItem(id).catch((reason) => {
+            props.onSetError(
+              errorMessage(reason, "Failed to delete itinerary item."),
+            );
+          })
+        }
+        onModeChange={(id, mode) =>
+          props.onUpdateSegmentMode(id, mode).catch((reason) => {
+            props.onSetError(
+              errorMessage(reason, "Failed to update route mode."),
+            );
+          })
+        }
+      />
+      <MapPanel
+        itinerary={props.itinerary}
+        routeSegments={props.plannerSnapshot.routeSegments}
+        activePlaceId={props.activeItemId}
+        activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+        activeSegmentId={props.activeSegmentId}
+        activeDate={props.activeDate}
+        mobileSheetState={props.mobileSheetState}
+        routeGeometries={props.routeGeometries}
+        routeGeometryError={props.routeGeometryError}
+        currentLocationPosition={props.currentLocationPosition}
+        currentLocationToast={props.currentLocationToast}
+        canShowCurrentLocation={props.canShowCurrentLocation}
+        isCurrentLocationActive={props.isCurrentLocationEnabled}
+        hidden={props.isPlannerPanelExpanded}
+        canEdit={props.canEdit}
+        onToggleCurrentLocation={props.onToggleCurrentLocation}
+        onAddPlace={props.onOpenAddModal}
+        onSelectPlace={props.onSelectItem}
+        onSelectSegment={props.onToggleSegmentSelection}
+      />
+      {(props.isAdding || props.editingPlace) && (
+        <AddEditPlaceModal
+          place={props.editingPlace}
+          visitDateOptions={props.visitDateOptions}
+          defaultVisitDate={props.editingPlace ? null : props.addPlaceVisitDate}
+          onCancel={props.onCloseModal}
+          onSave={(payload) =>
+            props.onSavePlace(payload, props.editingPlace?.id)
+          }
+        />
+      )}
+      {editingItem && (
+        <EditItineraryItemModal
+          item={editingItem}
+          visitDateOptions={props.visitDateOptions}
+          onCancel={props.onCloseModal}
+          onSave={(payload) =>
+            props.onSaveItineraryItem(payload, editingItem.id)
+          }
+        />
+      )}
+      {addingVisitPlace && (
+        <EditItineraryItemModal
+          place={addingVisitPlace}
+          visitDateOptions={props.visitDateOptions}
+          onCancel={props.onCloseModal}
+          onSave={(payload) =>
+            props.onCreateItineraryItem(addingVisitPlace.id, payload)
+          }
+        />
+      )}
+      {props.editingTripForm && (
+        <EditTripModal
+          form={props.editingTripForm}
+          isSaving={props.isSavingTrip}
+          timeZoneOptions={props.editTripTimeZoneOptions}
+          onChange={props.onSetEditingTripForm}
+          onCancel={() => props.onSetEditingTripForm(null)}
+          onSubmit={props.onSubmitEditTrip}
+        />
+      )}
+    </main>
+  );
+}

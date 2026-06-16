@@ -49,13 +49,23 @@ export function readAuthTokensFromCookieHeader(
   for (const chunk of cookieHeader.split(";")) {
     const [rawName, ...rawValue] = chunk.trim().split("=");
     if (!rawName || rawValue.length === 0) continue;
-    cookies.set(rawName, decodeURIComponent(rawValue.join("=")));
+    const decodedValue = decodeCookieValue(rawValue.join("="));
+    if (decodedValue === null) continue;
+    cookies.set(rawName, decodedValue);
   }
 
   return {
     accessToken: cookies.get(ACCESS_TOKEN_COOKIE) ?? null,
     refreshToken: cookies.get(REFRESH_TOKEN_COOKIE) ?? null,
   };
+}
+
+function decodeCookieValue(value: string): string | null {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
 }
 
 export function readAuthTokensFromCookieStore(

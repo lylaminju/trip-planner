@@ -39,6 +39,13 @@ This file applies to the whole repository. Follow it when changing code here.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
 - In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.
 
+## Code Health Guardrails
+
+- Do not commit scratch files or one-off probe files. Keep temporary experiments outside the repo, or convert them into real tests or documentation before committing.
+- Treat request-derived strings as untrusted input. Parsing helpers for cookies, URLs, headers, and form data should fail closed, and malformed-input regression tests are required when they affect auth, routing, or persistence.
+- Keep exported return types limited to the production contract. Do not expose fields used only by tests. If a preservation or detail field is an intentional API, production code should consume it or tests should clearly document the contract.
+- When touching files over the file-size guardrail, extract a focused hook, helper, or subcomponent as part of the change unless that would make the diff materially riskier.
+
 ## UI Layout Stability
 
 - Avoid expected layout shifts during normal user workflows. When labels, durations, counts, badges, loading states, or option text can vary, reserve stable space for repeated controls where practical.

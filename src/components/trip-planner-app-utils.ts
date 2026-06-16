@@ -1,0 +1,54 @@
+import { buildItinerary, type ItineraryDateRange } from "@/lib/itinerary";
+import type { TripMetadataPayload } from "@/lib/trips-api";
+import type { PlannerSnapshot, Trip } from "@/lib/types";
+
+import type { TripFormState } from "./trip-form-types";
+
+export function errorMessage(reason: unknown, fallback: string): string {
+  return reason instanceof Error ? reason.message : fallback;
+}
+
+export function buildItineraryForTrip(
+  plannerSnapshot: PlannerSnapshot,
+  trip: Trip | null,
+) {
+  return buildItinerary(
+    plannerSnapshot.itineraryItems,
+    plannerSnapshot.routeSegments,
+    plannerSnapshot.places,
+    toTripDateRange(trip),
+  );
+}
+
+export function toTripDateRange(
+  trip: Trip | null,
+): ItineraryDateRange | undefined {
+  if (!trip) {
+    return undefined;
+  }
+
+  return {
+    startDate: trip.start_date,
+    endDate: trip.end_date,
+  };
+}
+
+export function formPayload(form: TripFormState): TripMetadataPayload {
+  return {
+    name: form.name,
+    destination: form.destination,
+    start_date: form.startDate || null,
+    end_date: form.endDate || null,
+    timezone: form.timezone,
+  };
+}
+
+export function formFromTrip(trip: Trip): TripFormState {
+  return {
+    name: trip.name,
+    destination: trip.destination,
+    startDate: trip.start_date ?? "",
+    endDate: trip.end_date ?? "",
+    timezone: trip.timezone,
+  };
+}
