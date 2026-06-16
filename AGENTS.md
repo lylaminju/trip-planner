@@ -39,6 +39,13 @@ This file applies to the whole repository. Follow it when changing code here.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
 - In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.
 
+## Code Health Guardrails
+
+- Do not commit scratch files or one-off probe files. Keep temporary experiments outside the repo, or convert them into real tests or documentation before committing.
+- Treat request-derived strings as untrusted input. Parsing helpers for cookies, URLs, headers, and form data should fail closed, and malformed-input regression tests are required when they affect auth, routing, or persistence.
+- Keep exported return types limited to the production contract. Do not expose fields used only by tests. If a preservation or detail field is an intentional API, production code should consume it or tests should clearly document the contract.
+- When touching files over the file-size guardrail, extract a focused hook, helper, or subcomponent as part of the change unless that would make the diff materially riskier.
+
 ## UI Layout Stability
 
 - Avoid expected layout shifts during normal user workflows. When labels, durations, counts, badges, loading states, or option text can vary, reserve stable space for repeated controls where practical.
@@ -50,6 +57,8 @@ This file applies to the whole repository. Follow it when changing code here.
 - When static previews or landing pages reuse app component classes, verify `src/app/globals.css` import order before relying on overrides.
 - Do not rely on equal-specificity overrides across component CSS files; scope through the preview container or use the exact combined class.
 - Avoid broad descendant element selectors such as `.component span` or `.component > span:not(...)` for component rows that may contain nested icons, badges, metadata, or featured/variant styling. Give each semantic child its own class and target that class directly.
+- Prefer component-level CSS custom properties or explicit variant classes over deep descendant selector chains when styling variants and interactive states.
+- If a selector crosses more than one component ownership boundary, first consider moving the variant values to the owning component and keeping state selectors close to the reusable control.
 - Prefer preview-owned classes when a static preview should not inherit live app spacing, interaction, or layout behavior.
 
 ## CSS Design Tokens

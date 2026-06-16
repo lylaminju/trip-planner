@@ -74,10 +74,9 @@ describe("reconcileRouteSegments", () => {
       { from_item_id: 1, to_item_id: 2, mode: "walking" },
     ]);
     expect(result.toDeleteIds).toEqual([]);
-    expect(result.toKeepIds).toEqual([]);
   });
 
-  it("preserves mode for unchanged valid pairs", () => {
+  it("leaves unchanged valid pairs untouched", () => {
     const existing = segment(8, 1, 2, "transit");
     const result = reconcileRouteSegments(
       [
@@ -87,9 +86,8 @@ describe("reconcileRouteSegments", () => {
       [existing],
     );
 
-    expect(result.toKeepIds).toEqual([8]);
+    expect(result.toDeleteIds).toEqual([]);
     expect(result.toInsert).toEqual([]);
-    expect(result.preservedModes.get("1->2")).toBe("transit");
   });
 
   it("deletes invalid pairs after time changes reorder the day", () => {
@@ -103,7 +101,6 @@ describe("reconcileRouteSegments", () => {
     );
 
     expect(result.toDeleteIds).toEqual([1]);
-    expect(result.toKeepIds).toEqual([2]);
     expect(result.toInsert).toEqual([
       { from_item_id: 3, to_item_id: 1, mode: "walking" },
     ]);
@@ -118,7 +115,6 @@ describe("reconcileRouteSegments", () => {
       [segment(1, 1, 2, "driving"), segment(2, 1, 2, "walking")],
     );
 
-    expect(result.toKeepIds).toEqual([1]);
     expect(result.toDeleteIds).toEqual([2]);
     expect(result.toInsert).toEqual([]);
   });
@@ -136,7 +132,6 @@ describe("reconcileRouteSegments", () => {
     expect(result.toInsert).toEqual([
       { from_item_id: 1, to_item_id: 3, mode: "walking" },
     ]);
-    expect(result.toKeepIds).toEqual([]);
     expect(result.toDeleteIds).toEqual([]);
   });
 });

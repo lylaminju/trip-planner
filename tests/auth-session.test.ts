@@ -20,4 +20,15 @@ describe("auth-session helpers", () => {
       refreshToken: null,
     });
   });
+
+  it("ignores malformed percent-encoded cookies", () => {
+    expect(
+      readAuthTokensFromCookieHeader(
+        "trip-planner-access-token=%E0%A4%A; trip-planner-refresh-token=def",
+      ),
+    ).toEqual({
+      accessToken: null,
+      refreshToken: "def",
+    });
+  });
 });

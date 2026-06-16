@@ -9,10 +9,8 @@ export type SegmentInsert = {
 };
 
 export type ReconciliationPlan = {
-  toKeepIds: number[];
   toDeleteIds: number[];
   toInsert: SegmentInsert[];
-  preservedModes: Map<string, TravelMode>;
 };
 
 export function reconcileRouteSegments(
@@ -25,9 +23,7 @@ export function reconcileRouteSegments(
   );
   const keptPairKeys = new Set<string>();
 
-  const toKeepIds: number[] = [];
   const toDeleteIds: number[] = [];
-  const preservedModes = new Map<string, TravelMode>();
 
   for (const segment of existingSegments) {
     const key = pairKey(segment.from_item_id, segment.to_item_id);
@@ -38,8 +34,6 @@ export function reconcileRouteSegments(
     }
 
     keptPairKeys.add(key);
-    toKeepIds.push(segment.id);
-    preservedModes.set(key, segment.mode);
   }
 
   const toInsert: SegmentInsert[] = desiredPairs
@@ -53,7 +47,7 @@ export function reconcileRouteSegments(
       mode: "walking",
     }));
 
-  return { toKeepIds, toDeleteIds, toInsert, preservedModes };
+  return { toDeleteIds, toInsert };
 }
 
 function buildDesiredPairs(items: ItineraryItem[]): Array<[number, number]> {

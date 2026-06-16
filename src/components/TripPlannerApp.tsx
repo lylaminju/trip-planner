@@ -9,21 +9,12 @@ import {
   type SubmitEvent,
 } from "react";
 
+import { useCurrentLocationControl } from "@/hooks/useCurrentLocationControl";
+import { useItineraryExport } from "@/hooks/useItineraryExport";
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
-import {
-  startCurrentLocationWatch,
-  type CurrentLocationPosition,
-} from "@/lib/current-location";
+import { useTripPlannerModals } from "@/hooks/useTripPlannerModals";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
-import {
-  buildVisitDateOptions,
-  buildItinerary,
-  type ItineraryDateRange,
-} from "@/lib/itinerary";
-import {
-  buildExportFilename,
-  generateScheduledItineraryMarkdown,
-} from "@/lib/itinerary-markdown";
+import { buildVisitDateOptions } from "@/lib/itinerary";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   createItineraryItemRequest,
@@ -41,27 +32,23 @@ import { toggleSelectedId } from "@/lib/selection";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
-import {
-  getTimeZoneOptions,
-  timeZoneDateFromIsoDate,
-} from "@/lib/timezones";
-import { updateTrip, type TripMetadataPayload } from "@/lib/trips-api";
+import { getTimeZoneOptions, timeZoneDateFromIsoDate } from "@/lib/timezones";
+import { updateTrip } from "@/lib/trips-api";
 import type {
-  ItineraryItem,
   PlannerSnapshot,
-  Place,
   Trip,
   TripPlannerInitialData,
   TripRole,
   TravelMode,
 } from "@/lib/types";
 
-import { AddEditPlaceModal } from "./AddEditPlaceModal";
-import { EditTripModal } from "./EditTripModal";
-import { EditItineraryItemModal } from "./EditItineraryItemModal";
-import { MapPanel } from "./MapPanel";
-import { PlannerPanel } from "./PlannerPanel";
-import type { TripFormState } from "./trip-form-types";
+import {
+  buildItineraryForTrip,
+  errorMessage,
+  formPayload,
+  toTripDateRange,
+} from "./trip-planner-app-utils";
+import { TripPlannerView } from "./TripPlannerView";
 
 const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
@@ -97,15 +84,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const [isPlannerPanelExpanded, setIsPlannerPanelExpanded] = useState(false);
   const [mobileSheetState, setMobileSheetState] =
     useState<MobileSheetState>("half");
-  const [editingPlace, setEditingPlace] = useState<Place | null>(null);
-  const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
-  const [editingTripForm, setEditingTripForm] =
-    useState<TripFormState | null>(null);
-  const [addingVisitPlace, setAddingVisitPlace] = useState<Place | null>(null);
-  const [addPlaceVisitDate, setAddPlaceVisitDate] = useState<string | null>(
-    null,
-  );
-  const [isAdding, setIsAdding] = useState(false);
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingPlaceIds, setDeletingPlaceIds] = useState<Set<number>>(
@@ -114,20 +92,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const [deletingItineraryItemIds, setDeletingItineraryItemIds] = useState<
     Set<number>
   >(() => new Set());
-  const [exportFeedback, setExportFeedback] = useState<{
-    action: "copy" | "download";
-    kind: "error" | "success";
-    label: string;
-  } | null>(null);
-  const [isCurrentLocationEnabled, setIsCurrentLocationEnabled] =
-    useState(false);
-  const [currentLocationPosition, setCurrentLocationPosition] =
-    useState<CurrentLocationPosition | null>(null);
-  const [currentLocationToast, setCurrentLocationToast] = useState<
-    string | null
-  >(null);
-  const currentLocationStopRef = useRef<(() => void) | null>(null);
-  const currentLocationToastTimeoutRef = useRef<number | null>(null);
 
   const itinerary = useMemo(
     () => buildItineraryForTrip(plannerSnapshot, trip),
@@ -146,7 +110,37 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const canEditTripMetadata = role === "owner";
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
+  const { exportFeedback, copyMarkdownExport, downloadMarkdownExport } =
+    useItineraryExport(tripTitle, itinerary);
   const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
+  const {
+    currentLocationPosition,
+    currentLocationToast,
+    isCurrentLocationEnabled,
+    toggleCurrentLocation,
+  } = useCurrentLocationControl(canShowCurrentLocation);
+  const {
+    addPlaceVisitDate,
+    addingVisitPlace,
+    closeModal,
+    editingItem,
+    editingPlace,
+    editingTripForm,
+    isAdding,
+    openAddModal,
+    openAddVisitModal,
+    openEditItemModal,
+    openEditModal,
+    openEditTripModal,
+    setAddingVisitPlace,
+    setEditingItem,
+    setEditingTripForm,
+  } = useTripPlannerModals({
+    canEdit,
+    canEditTripMetadata,
+    trip,
+    clearError: () => setError(null),
+  });
   const editTripTimeZoneOptions = useMemo(
     () =>
       getTimeZoneOptions({
@@ -177,45 +171,12 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     });
   }, [reload]);
 
-  useEffect(() => {
-    if (!exportFeedback) return;
-
-    const timeout = window.setTimeout(
-      () => setExportFeedback(null),
-      exportFeedback.kind === "error" ? 3500 : 2000,
-    );
-
-    return () => window.clearTimeout(timeout);
-  }, [exportFeedback]);
-
-  useEffect(() => {
-    if (canShowCurrentLocation) {
-      return;
-    }
-
-    stopCurrentLocationWatch();
-    clearCurrentLocationToast();
-  }, [canShowCurrentLocation]);
-
-  useEffect(() => {
-    return () => {
-      currentLocationStopRef.current?.();
-      if (currentLocationToastTimeoutRef.current !== null) {
-        window.clearTimeout(currentLocationToastTimeoutRef.current);
-      }
-    };
-  }, []);
-
   async function savePlace(payload: Record<string, unknown>, id?: number) {
     if (!canEdit) return;
     try {
       setPlannerSnapshot(await savePlaceRequest(tripId, payload, id));
       setActiveCanonicalPlaceId(null);
-      setIsAdding(false);
-      setEditingPlace(null);
-      setEditingItem(null);
-      setAddingVisitPlace(null);
-      setAddPlaceVisitDate(null);
+      closeModal();
       setError(null);
     } catch (reason) {
       const message = errorMessage(reason, "Failed to save place.");
@@ -334,60 +295,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setError(null);
   }
 
-  function openAddModal(visitDate: string | null = null) {
-    if (!canEdit) return;
-    setError(null);
-    setEditingPlace(null);
-    setEditingItem(null);
-    setAddingVisitPlace(null);
-    setAddPlaceVisitDate(visitDate);
-    setIsAdding(true);
-  }
-
-  function openEditModal(place: Place) {
-    if (!canEdit) return;
-    setError(null);
-    setEditingPlace(place);
-    setEditingItem(null);
-    setAddingVisitPlace(null);
-    setAddPlaceVisitDate(null);
-    setIsAdding(true);
-  }
-
-  function openEditItemModal(item: ItineraryItem) {
-    if (!canEdit) return;
-    setError(null);
-    setEditingPlace(null);
-    setEditingItem(item);
-    setAddingVisitPlace(null);
-    setAddPlaceVisitDate(null);
-    setIsAdding(false);
-  }
-
-  function openAddVisitModal(place: Place) {
-    if (!canEdit) return;
-    setError(null);
-    setEditingPlace(null);
-    setEditingItem(null);
-    setAddingVisitPlace(place);
-    setAddPlaceVisitDate(null);
-    setIsAdding(false);
-  }
-
-  function openEditTripModal() {
-    if (!canEditTripMetadata || !trip) return;
-    setError(null);
-    setEditingTripForm(formFromTrip(trip));
-  }
-
-  function closeModal() {
-    setIsAdding(false);
-    setEditingPlace(null);
-    setEditingItem(null);
-    setAddingVisitPlace(null);
-    setAddPlaceVisitDate(null);
-  }
-
   async function submitEditTrip(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editingTripForm || !canEditTripMetadata) return;
@@ -396,7 +303,10 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setError(null);
 
     try {
-      const updatedTrip = await updateTrip(tripId, formPayload(editingTripForm));
+      const updatedTrip = await updateTrip(
+        tripId,
+        formPayload(editingTripForm),
+      );
       setTrip(updatedTrip);
       setEditingTripForm(null);
       setError(null);
@@ -436,6 +346,13 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setCollapsedDates((current) => toggleCollapsedDate(current, date));
   }
 
+  function selectDate(date: string) {
+    setActiveDate((current) => (current === date ? null : date));
+    setActiveItemId(null);
+    setActiveCanonicalPlaceId(null);
+    setActiveSegmentId(null);
+  }
+
   async function logout() {
     try {
       await logoutRequest();
@@ -444,323 +361,71 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     }
   }
 
-  async function copyMarkdownExport() {
-    const markdown = generateScheduledItineraryMarkdown(tripTitle, itinerary);
-
-    try {
-      await navigator.clipboard.writeText(markdown);
-      setExportFeedback({ action: "copy", kind: "success", label: "Copied" });
-    } catch {
-      setExportFeedback({
-        action: "copy",
-        kind: "error",
-        label: "Copy failed",
-      });
-    }
-  }
-
-  function downloadMarkdownExport() {
-    const markdown = generateScheduledItineraryMarkdown(tripTitle, itinerary);
-    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = buildExportFilename(tripTitle);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    setExportFeedback({
-      action: "download",
-      kind: "success",
-      label: "Downloaded",
-    });
-  }
-
-  function clearCurrentLocationToast() {
-    if (currentLocationToastTimeoutRef.current !== null) {
-      window.clearTimeout(currentLocationToastTimeoutRef.current);
-      currentLocationToastTimeoutRef.current = null;
-    }
-    setCurrentLocationToast(null);
-  }
-
-  function showCurrentLocationToast(message: string) {
-    clearCurrentLocationToast();
-    setCurrentLocationToast(message);
-    currentLocationToastTimeoutRef.current = window.setTimeout(() => {
-      setCurrentLocationToast(null);
-      currentLocationToastTimeoutRef.current = null;
-    }, 3500);
-  }
-
-  function stopCurrentLocationWatch() {
-    currentLocationStopRef.current?.();
-    currentLocationStopRef.current = null;
-    setIsCurrentLocationEnabled(false);
-    setCurrentLocationPosition(null);
-  }
-
-  function toggleCurrentLocation() {
-    if (isCurrentLocationEnabled) {
-      stopCurrentLocationWatch();
-      clearCurrentLocationToast();
-      return;
-    }
-
-    clearCurrentLocationToast();
-
-    if (!canShowCurrentLocation) {
-      return;
-    }
-
-    if (!navigator.geolocation) {
-      showCurrentLocationToast("Location is not supported by this browser.");
-      return;
-    }
-
-    try {
-      currentLocationStopRef.current = startCurrentLocationWatch(
-        navigator.geolocation,
-        (position) => {
-          setCurrentLocationPosition(position);
-          setIsCurrentLocationEnabled(true);
-          clearCurrentLocationToast();
-        },
-        (reason) => {
-          stopCurrentLocationWatch();
-          showCurrentLocationToast(currentLocationErrorMessage(reason));
-        },
-      );
-      setIsCurrentLocationEnabled(true);
-    } catch (reason) {
-      stopCurrentLocationWatch();
-      showCurrentLocationToast(currentLocationErrorMessage(reason));
-    }
-  }
-
   return (
-    <main
-      className={`app-shell mobile-sheet-${mobileSheetState} ${
-        isPlannerPanelExpanded ? "left-panel-expanded" : ""
-      }`}
-    >
-      <PlannerPanel
-        title={tripTitle}
-        tripPeriodLabel={tripPeriodLabel}
-        itinerary={itinerary}
-        places={plannerSnapshot.places}
-        activePlaceId={activeItemId}
-        activeCanonicalPlaceId={activeCanonicalPlaceId}
-        activeSegmentId={activeSegmentId}
-        activeDate={activeDate}
-        collapsedDates={collapsedDates}
-        routeGeometries={routeGeometries}
-        error={error}
-        exportFeedback={exportFeedback}
-        isExpanded={isPlannerPanelExpanded}
-        mobileSheetState={mobileSheetState}
-        canEdit={canEdit}
-        canAddVisits={canAddVisits}
-        deletingPlaceIds={deletingPlaceIds}
-        deletingItineraryItemIds={deletingItineraryItemIds}
-        onToggleExpanded={() => setIsPlannerPanelExpanded((value) => !value)}
-        onMobileSheetStateChange={setMobileSheetState}
-        onAdd={openAddModal}
-        onEditTrip={canEditTripMetadata ? openEditTripModal : undefined}
-        onCopyExport={() => {
-          copyMarkdownExport().catch(() => {
-            setExportFeedback({
-              action: "copy",
-              kind: "error",
-              label: "Copy failed",
-            });
-          });
-        }}
-        onDownloadExport={downloadMarkdownExport}
-        onLogout={logout}
-        onAddVisit={openAddVisitModal}
-        onEdit={openEditModal}
-        onEditItem={openEditItemModal}
-        onDelete={(id) =>
-          deletePlace(id).catch((reason) => {
-            setError(
-              reason instanceof Error
-                ? reason.message
-                : "Failed to delete place.",
-            );
-          })
-        }
-        onSelectPlace={selectItem}
-        onSelectCanonicalPlace={selectCanonicalPlace}
-        onSelectSegment={toggleSegmentSelection}
-        onToggleDateCollapsed={toggleDateCollapsed}
-        onSelectDate={(date) => {
-          setActiveDate((current) => (current === date ? null : date));
-          setActiveItemId(null);
-          setActiveCanonicalPlaceId(null);
-          setActiveSegmentId(null);
-        }}
-        onSchedulePlace={(id, date, time) =>
-          schedulePlace(id, date, time).catch((reason) => {
-            setError(
-              reason instanceof Error
-                ? reason.message
-                : "Failed to schedule place.",
-            );
-          })
-        }
-        onScheduleItem={(id, date, time) =>
-          scheduleItineraryItem(id, date, time).catch((reason) => {
-            setError(
-              reason instanceof Error
-                ? reason.message
-                : "Failed to schedule itinerary item.",
-            );
-          })
-        }
-        onDeleteItem={(id) =>
-          deleteItineraryItem(id).catch((reason) => {
-            setError(
-              reason instanceof Error
-                ? reason.message
-                : "Failed to delete itinerary item.",
-            );
-          })
-        }
-        onModeChange={(id, mode) =>
-          updateSegmentMode(id, mode).catch((reason) => {
-            setError(
-              reason instanceof Error
-                ? reason.message
-                : "Failed to update route mode.",
-            );
-          })
-        }
-      />
-      <MapPanel
-        itinerary={itinerary}
-        routeSegments={plannerSnapshot.routeSegments}
-        activePlaceId={activeItemId}
-        activeCanonicalPlaceId={activeCanonicalPlaceId}
-        activeSegmentId={activeSegmentId}
-        activeDate={activeDate}
-        mobileSheetState={mobileSheetState}
-        routeGeometries={routeGeometries}
-        routeGeometryError={routeGeometryError}
-        currentLocationPosition={currentLocationPosition}
-        currentLocationToast={currentLocationToast}
-        canShowCurrentLocation={canShowCurrentLocation}
-        isCurrentLocationActive={isCurrentLocationEnabled}
-        hidden={isPlannerPanelExpanded}
-        canEdit={canEdit}
-        onToggleCurrentLocation={toggleCurrentLocation}
-        onAddPlace={openAddModal}
-        onSelectPlace={selectItem}
-        onSelectSegment={toggleSegmentSelection}
-      />
-      {(isAdding || editingPlace) && (
-        <AddEditPlaceModal
-          place={editingPlace}
-          visitDateOptions={visitDateOptions}
-          defaultVisitDate={editingPlace ? null : addPlaceVisitDate}
-          onCancel={closeModal}
-          onSave={(payload) => savePlace(payload, editingPlace?.id)}
-        />
-      )}
-      {editingItem && (
-        <EditItineraryItemModal
-          item={editingItem}
-          visitDateOptions={visitDateOptions}
-          onCancel={closeModal}
-          onSave={(payload) => saveItineraryItem(payload, editingItem.id)}
-        />
-      )}
-      {addingVisitPlace && (
-        <EditItineraryItemModal
-          place={addingVisitPlace}
-          visitDateOptions={visitDateOptions}
-          onCancel={closeModal}
-          onSave={(payload) =>
-            createItineraryItem(addingVisitPlace.id, payload)
-          }
-        />
-      )}
-      {editingTripForm && (
-        <EditTripModal
-          form={editingTripForm}
-          isSaving={isSavingTrip}
-          timeZoneOptions={editTripTimeZoneOptions}
-          onChange={setEditingTripForm}
-          onCancel={() => setEditingTripForm(null)}
-          onSubmit={submitEditTrip}
-        />
-      )}
-    </main>
-  );
-}
-
-function errorMessage(reason: unknown, fallback: string): string {
-  return reason instanceof Error ? reason.message : fallback;
-}
-
-function buildItineraryForTrip(
-  plannerSnapshot: PlannerSnapshot,
-  trip: Trip | null,
-) {
-  return buildItinerary(
-    plannerSnapshot.itineraryItems,
-    plannerSnapshot.routeSegments,
-    plannerSnapshot.places,
-    toTripDateRange(trip),
-  );
-}
-
-function toTripDateRange(trip: Trip | null): ItineraryDateRange | undefined {
-  if (!trip) {
-    return undefined;
-  }
-
-  return {
-    startDate: trip.start_date,
-    endDate: trip.end_date,
-  };
-}
-
-function formPayload(form: TripFormState): TripMetadataPayload {
-  return {
-    name: form.name,
-    destination: form.destination,
-    start_date: form.startDate || null,
-    end_date: form.endDate || null,
-    timezone: form.timezone,
-  };
-}
-
-function formFromTrip(trip: Trip): TripFormState {
-  return {
-    name: trip.name,
-    destination: trip.destination,
-    startDate: trip.start_date ?? "",
-    endDate: trip.end_date ?? "",
-    timezone: trip.timezone,
-  };
-}
-
-function currentLocationErrorMessage(reason: unknown): string {
-  if (isGeolocationPermissionDenied(reason)) {
-    return "Location permission denied.";
-  }
-
-  return "Unable to access current location.";
-}
-
-function isGeolocationPermissionDenied(reason: unknown): boolean {
-  return (
-    typeof reason === "object" &&
-    reason !== null &&
-    "code" in reason &&
-    reason.code === 1
+    <TripPlannerView
+      mobileSheetState={mobileSheetState}
+      isPlannerPanelExpanded={isPlannerPanelExpanded}
+      tripTitle={tripTitle}
+      tripPeriodLabel={tripPeriodLabel}
+      itinerary={itinerary}
+      plannerSnapshot={plannerSnapshot}
+      activeItemId={activeItemId}
+      activeCanonicalPlaceId={activeCanonicalPlaceId}
+      activeSegmentId={activeSegmentId}
+      activeDate={activeDate}
+      collapsedDates={collapsedDates}
+      routeGeometries={routeGeometries}
+      routeGeometryError={routeGeometryError}
+      error={error}
+      exportFeedback={exportFeedback}
+      canEdit={canEdit}
+      canEditTripMetadata={canEditTripMetadata}
+      canAddVisits={canAddVisits}
+      deletingPlaceIds={deletingPlaceIds}
+      deletingItineraryItemIds={deletingItineraryItemIds}
+      currentLocationPosition={currentLocationPosition}
+      currentLocationToast={currentLocationToast}
+      canShowCurrentLocation={canShowCurrentLocation}
+      isCurrentLocationEnabled={isCurrentLocationEnabled}
+      isAdding={isAdding}
+      editingPlace={editingPlace}
+      editingItem={editingItem}
+      addingVisitPlace={addingVisitPlace}
+      addPlaceVisitDate={addPlaceVisitDate}
+      editingTripForm={editingTripForm}
+      isSavingTrip={isSavingTrip}
+      editTripTimeZoneOptions={editTripTimeZoneOptions}
+      visitDateOptions={visitDateOptions}
+      onTogglePlannerExpanded={() =>
+        setIsPlannerPanelExpanded((value) => !value)
+      }
+      onMobileSheetStateChange={setMobileSheetState}
+      onOpenAddModal={openAddModal}
+      onOpenEditTripModal={openEditTripModal}
+      onCopyMarkdownExport={copyMarkdownExport}
+      onDownloadMarkdownExport={downloadMarkdownExport}
+      onLogout={logout}
+      onOpenAddVisitModal={openAddVisitModal}
+      onOpenEditModal={openEditModal}
+      onOpenEditItemModal={openEditItemModal}
+      onDeletePlace={deletePlace}
+      onSelectItem={selectItem}
+      onSelectCanonicalPlace={selectCanonicalPlace}
+      onToggleSegmentSelection={toggleSegmentSelection}
+      onToggleDateCollapsed={toggleDateCollapsed}
+      onSelectDate={selectDate}
+      onSchedulePlace={schedulePlace}
+      onScheduleItineraryItem={scheduleItineraryItem}
+      onDeleteItineraryItem={deleteItineraryItem}
+      onUpdateSegmentMode={updateSegmentMode}
+      onToggleCurrentLocation={toggleCurrentLocation}
+      onCloseModal={closeModal}
+      onSavePlace={savePlace}
+      onSaveItineraryItem={saveItineraryItem}
+      onCreateItineraryItem={createItineraryItem}
+      onSetEditingTripForm={setEditingTripForm}
+      onSubmitEditTrip={submitEditTrip}
+      onSetError={setError}
+    />
   );
 }

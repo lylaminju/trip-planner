@@ -503,6 +503,16 @@
   grid-template-rows: minmax(0, 1fr) auto auto;
   isolation: isolate;
   position: relative;
+  --trip-action-bg: var(--trip-featured-icon-bg);
+  --trip-action-border: var(--trip-featured-icon-border);
+  --trip-action-color: var(--trip-featured-text);
+  --trip-action-hover-bg: var(--trip-featured-chip-bg);
+  --trip-action-hover-border: var(--trip-featured-chip-border);
+  --trip-action-hover-color: var(--trip-featured-text);
+  --trip-action-danger-color: var(--danger);
+  --trip-action-danger-hover-bg: var(--trip-featured-chip-bg);
+  --trip-action-danger-hover-border: var(--trip-featured-chip-border);
+  --trip-action-danger-hover-color: var(--danger-strong);
 }
 
 .featured-trip::after {
@@ -736,28 +746,26 @@
   }
 }
 
-.featured-trip .trip-row-actions .icon-button {
-  background: var(--trip-featured-icon-bg);
-  border-color: var(--trip-featured-icon-border);
-  color: var(--trip-featured-text);
+.trip-row-actions .icon-button {
+  background: var(--trip-action-bg, var(--surface-panel));
+  border-color: var(--trip-action-border, var(--line));
+  color: var(--trip-action-color, var(--text));
 }
 
-.featured-trip .trip-row-actions .icon-button:hover {
-  background: var(--trip-featured-chip-bg);
-  border-color: var(--trip-featured-chip-border);
-  color: var(--trip-featured-text);
+.trip-row-actions .icon-button:hover:not(:disabled) {
+  background: var(--trip-action-hover-bg, var(--surface-muted));
+  border-color: var(--trip-action-hover-border, var(--border-strong));
+  color: var(--trip-action-hover-color, var(--text));
 }
 
-.featured-trip .trip-row-actions .icon-button.danger-button {
-  background: var(--trip-featured-icon-bg);
-  border-color: var(--trip-featured-icon-border);
-  color: var(--danger);
+.trip-row-actions .danger-button {
+  color: var(--trip-action-danger-color, var(--danger));
 }
 
-.featured-trip .trip-row-actions .icon-button.danger-button:hover:not(:disabled) {
-  background: var(--trip-featured-chip-bg);
-  border-color: var(--trip-featured-chip-border);
-  color: var(--danger-strong);
+.trip-row-actions .danger-button:hover:not(:disabled) {
+  background: var(--trip-action-danger-hover-bg, var(--danger-bg));
+  border-color: var(--trip-action-danger-hover-border, var(--danger-border));
+  color: var(--trip-action-danger-hover-color, var(--danger-strong));
 }
 
 .trip-row-editing {
