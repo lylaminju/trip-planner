@@ -50,6 +50,8 @@ This file applies to the whole repository. Follow it when changing code here.
 - When static previews or landing pages reuse app component classes, verify `src/app/globals.css` import order before relying on overrides.
 - Do not rely on equal-specificity overrides across component CSS files; scope through the preview container or use the exact combined class.
 - Avoid broad descendant element selectors such as `.component span` or `.component > span:not(...)` for component rows that may contain nested icons, badges, metadata, or featured/variant styling. Give each semantic child its own class and target that class directly.
+- Prefer component-level CSS custom properties or explicit variant classes over deep descendant selector chains when styling variants and interactive states.
+- If a selector crosses more than one component ownership boundary, first consider moving the variant values to the owning component and keeping state selectors close to the reusable control.
 - Prefer preview-owned classes when a static preview should not inherit live app spacing, interaction, or layout behavior.
 
 ## CSS Design Tokens
