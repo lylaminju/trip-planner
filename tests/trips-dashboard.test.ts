@@ -112,6 +112,32 @@ describe("TripsDashboard", () => {
     );
   });
 
+  it("keeps desktop trip grid rows at a consistent height", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard.css",
+      "utf8",
+    );
+
+    expect(css).toMatch(
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list\s*{[^}]*--trip-card-desktop-height:\s*306\.5px;[^}]*grid-auto-rows:\s*var\(--trip-card-desktop-height\);/s,
+    );
+    expect(css).toMatch(
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list > \.trip-row\s*{[^}]*align-self:\s*stretch;[^}]*height:\s*100%;[^}]*min-height:\s*0;/s,
+    );
+    expect(css).toMatch(
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-editing:not\(\.featured-trip\)\s*{[^}]*padding-bottom:\s*10px;/s,
+    );
+    expect(css).toMatch(
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-editing\.featured-trip\s*{[^}]*padding-bottom:\s*0;/s,
+    );
+    expect(css).toMatch(
+      /\.trip-row:not\(\.featured-trip\):not\(\.trip-row-editing\)\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s,
+    );
+    expect(css).toMatch(
+      /\.trip-row:not\(\.featured-trip\):not\(\.trip-row-editing\) \.trip-row-meta\s*{[^}]*bottom:\s*10px;[^}]*position:\s*absolute;[^}]*right:\s*8px;/s,
+    );
+  });
+
   it("increases desktop trip card text without resizing chips or icon buttons", () => {
     const css = readFileSync(
       "src/styles/components/trips-dashboard.css",

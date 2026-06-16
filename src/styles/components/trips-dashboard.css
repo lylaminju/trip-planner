@@ -482,6 +482,7 @@
   background: var(--surface-panel);
   border: 0;
   border-radius: 8px;
+  position: relative;
   display: grid;
   gap: 10px;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -490,6 +491,10 @@
   min-height: 276px;
   overflow: hidden;
   padding: 0;
+}
+
+.trip-row:not(.featured-trip):not(.trip-row-editing) {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .featured-trip {
@@ -689,6 +694,14 @@
   margin: 0 12px 0 0;
 }
 
+.trip-row:not(.featured-trip):not(.trip-row-editing) .trip-row-meta {
+  bottom: 10px;
+  margin: 0;
+  position: absolute;
+  right: 8px;
+  z-index: 2;
+}
+
 .featured-trip .trip-row-meta {
   align-self: end;
   grid-column: 2;
@@ -701,23 +714,19 @@
 .trip-row-actions {
   display: flex;
   gap: 8px;
-  transition:
-    opacity 160ms ease,
-    transform 160ms ease;
+  transition: opacity 160ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .trip-row .trip-row-actions {
+  .trip-row:not(.trip-row-editing) .trip-row-actions {
     opacity: 0;
     pointer-events: none;
-    transform: translateY(4px);
   }
 
-  .trip-row:hover .trip-row-actions,
-  .trip-row:focus-within .trip-row-actions {
+  .trip-row:not(.trip-row-editing):hover .trip-row-actions,
+  .trip-row:not(.trip-row-editing):focus-within .trip-row-actions {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0);
   }
 }
 
@@ -857,6 +866,25 @@
 }
 
 @media (min-width: 921px) {
+  .trip-list {
+    --trip-card-desktop-height: 306.5px;
+    grid-auto-rows: var(--trip-card-desktop-height);
+  }
+
+  .trip-list > .trip-row {
+    align-self: stretch;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .trip-row-editing:not(.featured-trip) {
+    padding-bottom: 10px;
+  }
+
+  .trip-row-editing.featured-trip {
+    padding-bottom: 0;
+  }
+
   .trip-row-main strong {
     font-size: 17px;
   }
