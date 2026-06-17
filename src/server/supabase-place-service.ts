@@ -1,4 +1,3 @@
-import { reconcileRouteSegments } from "@/lib/route-reconciliation";
 import type {
   ItineraryItem,
   Place,
@@ -23,13 +22,6 @@ import { getSupabaseClient } from "@/server/supabase";
 
 type SupabaseItineraryItemRow = Omit<ItineraryItem, "place"> & {
   place: Place | Place[] | null;
-};
-
-type RouteSegmentInsert = {
-  trip_id: number;
-  from_item_id: number;
-  to_item_id: number;
-  mode: TravelMode;
 };
 
 const PLACE_COLUMNS =
@@ -434,35 +426,13 @@ async function updateRouteSegmentMode(
   return data as RouteSegment;
 }
 
-async function replaceSegments(
-  deleteIds: number[],
-  inserts: RouteSegmentInsert[],
-): Promise<void> {
-  const client = getSupabaseClient();
-
-  if (deleteIds.length > 0) {
-    const { error } = await client
-      .from("route_segments")
-      .delete()
-      .in("id", deleteIds);
-    if (error) throwSupabaseError(error);
-  }
-
-  if (inserts.length > 0) {
-    const { error } = await client.from("route_segments").insert(inserts);
-    if (error) throwSupabaseError(error);
-  }
-}
-
 async function reconcileRoutesForTrip(tripId: number): Promise<void> {
-  const items = await listItineraryItems(tripId);
-  const routeSegments = await listRouteSegments(tripId);
-  const plan = reconcileRouteSegments(items, routeSegments);
-
-  await replaceSegments(
-    plan.toDeleteIds,
-    plan.toInsert.map((segment) => ({ ...segment, trip_id: tripId })),
+  const { error } = await getSupabaseClient().rpc(
+    "reconcile_route_segments_for_trip",
+    { p_trip_id: tripId },
   );
+
+  if (error) throwSupabaseError(error);
 }
 
 function normalizeItineraryItemInput(
