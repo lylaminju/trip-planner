@@ -1,0 +1,246 @@
+/* Trip dashboard shell, account rail, and create modal. */
+.trips-page {
+  background: var(--surface-base);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: auto;
+  padding: 24px;
+}
+
+.trips-dashboard-shell {
+  background: var(--surface-base);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1320px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.trips-brand-rail {
+  background: var(--surface-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+}
+
+.trips-service-mark {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.trips-account-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.trips-account-actions > button {
+  justify-content: center;
+  width: 100%;
+}
+
+.trips-main-pane {
+  background: var(--surface-dashboard);
+  display: grid;
+  gap: 18px;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  padding: 24px;
+}
+
+.trips-header {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.trips-header h1 {
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1.15;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.trips-header-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.trip-create-trigger {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: 800;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.trip-create-trigger:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+
+.trips-profile-card {
+  align-items: center;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 10px;
+}
+
+.trips-avatar {
+  align-items: center;
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  color: var(--accent);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 800;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.trips-profile-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.trips-profile-copy strong,
+.trips-profile-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trips-profile-copy strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.trips-profile-copy span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.trip-create-modal {
+  max-width: 640px;
+}
+
+.trip-create-modal label > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-create-error {
+  margin: 0;
+}
+
+.trip-form-cover {
+  aspect-ratio: 16 / 11;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.trip-create-modal .trip-form-cover {
+  aspect-ratio: 16 / 8;
+}
+
+.trip-form-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.trip-form-submit {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  flex: 0 0 auto;
+}
+
+.trip-form-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+
+.trip-form-cancel {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .trips-dashboard-shell {
+    grid-template-columns: 188px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 920px) {
+  .trips-page {
+    padding: 14px;
+  }
+
+  .trips-dashboard-shell {
+    border-radius: 10px;
+    grid-template-columns: 1fr;
+  }
+
+  .trips-brand-rail {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .trips-account-actions {
+    align-items: center;
+    display: flex;
+    flex: 1 1 340px;
+    justify-content: flex-end;
+    margin-top: 0;
+    min-width: 0;
+  }
+
+  .trips-account-actions > button {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  .trips-profile-card {
+    max-width: min(280px, 100%);
+  }
+
+  .trips-main-pane {
+    padding: 18px;
+  }
+
+  .trips-header {
+    align-items: flex-start;
+  }
+
+}

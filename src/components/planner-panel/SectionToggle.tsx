@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRightIcon } from "../Icons";
+import { CollapseToggleButton } from "../CollapseToggleButton";
 
 export function SectionToggle(props: {
   title: string;
@@ -10,22 +10,16 @@ export function SectionToggle(props: {
   compact?: boolean;
 }) {
   const HeadingTag = props.headingLevel ?? "h2";
-  const toggleLabel = `${props.open ? "Collapse" : "Expand"} ${props.title}`;
 
   return (
     <div className={`section-toggle ${props.compact ? "compact" : ""}`}>
-      <button
-        type="button"
+      <CollapseToggleButton
         className="section-toggle-button"
-        aria-expanded={props.open}
-        aria-label={toggleLabel}
-        title={toggleLabel}
-        onClick={props.onToggle}
-      >
-        <span className="section-toggle-icon" aria-hidden="true">
-          <ChevronRightIcon />
-        </span>
-      </button>
+        iconClassName="section-toggle-icon"
+        label={props.title}
+        open={props.open}
+        onToggle={props.onToggle}
+      />
       <HeadingTag>{props.title}</HeadingTag>
     </div>
   );

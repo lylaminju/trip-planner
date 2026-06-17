@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { updateTripFormField } from "@/components/trip-form-state";
+import {
+  tripMetadataPayloadFromForm,
+  updateTripFormField,
+} from "@/components/trip-form-state";
 import type { TripFormState } from "@/components/trip-form-types";
 
 describe("updateTripFormField", () => {
@@ -21,6 +24,24 @@ describe("updateTripFormField", () => {
     expect(updateTripFormField(form, "startDate", value)).toEqual({
       ...form,
       startDate: "2026-06-03",
+    });
+  });
+
+  it("uses the default timezone when a trip form has no selected timezone", () => {
+    expect(
+      tripMetadataPayloadFromForm({
+        name: "Draft trip",
+        destination: "Toronto",
+        startDate: "2026-06-01",
+        endDate: "",
+        timezone: "",
+      }),
+    ).toEqual({
+      name: "Draft trip",
+      destination: "Toronto",
+      start_date: "2026-06-01",
+      end_date: null,
+      timezone: "America/Toronto",
     });
   });
 });

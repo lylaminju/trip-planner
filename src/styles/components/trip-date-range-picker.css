@@ -1,0 +1,209 @@
+/* Date range picker popover used by trip creation. */
+.trip-date-range-picker {
+  display: grid;
+  gap: 5px;
+}
+
+.trip-date-range-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trip-date-range-trigger {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  display: flex;
+  justify-content: flex-start;
+  min-height: 42px;
+  padding: 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.trip-date-range-trigger:hover:not(:disabled) {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.trip-date-calendar {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  gap: 12px;
+  left: 50%;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 12px;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(610px, calc(100vw - 32px));
+  z-index: 22;
+}
+
+.trip-date-calendar-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.trip-date-calendar-header {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+}
+
+.trip-date-nav-button {
+  align-items: center;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  padding: 0;
+  width: 34px;
+}
+
+.trip-date-nav-button svg {
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 16px;
+}
+
+.trip-date-calendar-selects {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: max-content max-content;
+  justify-self: center;
+  min-width: 0;
+}
+
+.trip-date-calendar-selects label {
+  display: block;
+}
+
+.trip-date-month-select,
+.trip-date-year-select {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+  height: 34px;
+  padding: 0 8px;
+  width: fit-content;
+}
+
+.trip-date-month-select:hover,
+.trip-date-year-select:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.trip-date-month-select:focus-visible,
+.trip-date-year-select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.trip-date-calendar-months {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.trip-date-calendar-month {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.trip-date-calendar-month h3 {
+  color: var(--text);
+  font-size: 14px;
+  margin: 0;
+  text-align: center;
+}
+
+.trip-date-calendar-grid {
+  align-items: stretch;
+  display: grid;
+  gap: 2px;
+  grid-auto-rows: 34px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.trip-date-calendar-weekday {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 0;
+  padding: 4px 0;
+  text-align: center;
+}
+
+.trip-date-calendar-empty {
+  min-height: 34px;
+}
+
+.trip-date-day {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  display: inline-flex;
+  font-weight: 700;
+  height: 34px;
+  justify-content: center;
+  min-width: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.trip-date-day:hover:not(:disabled),
+.trip-date-day:focus-visible {
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.trip-date-day-in-range,
+.trip-date-day-preview {
+  background: var(--accent-selected-bg);
+  color: var(--accent);
+}
+
+.trip-date-day-selected-start,
+.trip-date-day-selected-end,
+.trip-date-day-selected-start:hover:not(:disabled),
+.trip-date-day-selected-end:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.trip-date-this-month-button {
+  margin-right: auto;
+}
+
+@media (max-width: 920px) {
+  .trip-date-calendar-months {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-date-calendar-month:nth-child(2) {
+    display: none;
+  }
+}

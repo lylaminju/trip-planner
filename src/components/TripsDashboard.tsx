@@ -7,28 +7,14 @@ import { getTripCoverImage } from "@/lib/city-covers";
 import { logoutRequest } from "@/lib/planner-api";
 import {
   DEFAULT_TRIP_TIMEZONE,
-  detectBrowserTimeZone,
   groupTripsByTiming,
 } from "@/lib/trip-classification";
 import { errorMessage } from "@/lib/error-message";
-import {
-  getStableTimeZoneOptions,
-  getTimeZoneOptions,
-  STABLE_TIMEZONE_REFERENCE_DATE,
-  timeZoneDateFromIsoDate,
-} from "@/lib/timezones";
-import {
-  createTrip,
-  deleteTrip,
-  loadTrips,
-  updateTrip,
-  type TripMetadataPayload,
-} from "@/lib/trips-api";
+import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
-import { DestinationCombobox } from "./DestinationCombobox";
-import { TimeZoneSelect } from "./TimeZoneSelect";
+import { CreateTripModal } from "./CreateTripModal";
 import { TripSection } from "./TripSection";
-import { updateTripFormField } from "./trip-form-state";
+import { tripMetadataPayloadFromForm } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
 
 export { TripSection };
@@ -51,7 +37,11 @@ export function TripsDashboard(props: {
   const [deletingTripIds, setDeletingTripIds] = useState<Set<number>>(
     () => new Set(),
   );
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [openTripSections, setOpenTripSections] = useState({
+    active: true,
+    past: true,
+  });
   const [error, setError] = useState<string | null>(null);
   const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
   const featuredTrip = groups.ongoing[0] ?? groups.upcoming[0] ?? null;
@@ -69,26 +59,8 @@ export function TripsDashboard(props: {
   const createCoverImage = getTripCoverImage({
     destination: form.destination,
   });
-  const buildTimeZoneOptions = hasHydrated
-    ? getTimeZoneOptions
-    : getStableTimeZoneOptions;
-  const createTimeZoneOptions = useMemo(
-    () =>
-      buildTimeZoneOptions({
-        include: [form.timezone],
-        now: timeZoneReferenceDate(form.startDate, hasHydrated),
-      }),
-    [buildTimeZoneOptions, form.startDate, form.timezone, hasHydrated],
-  );
 
   useEffect(() => {
-    setHasHydrated(true);
-    setForm((current) =>
-      current.timezone === DEFAULT_TRIP_TIMEZONE
-        ? { ...current, timezone: detectBrowserTimeZone() }
-        : current,
-    );
-
     loadTrips()
       .then((loadedTrips) => {
         setTrips(loadedTrips);
@@ -106,9 +78,10 @@ export function TripsDashboard(props: {
     setError(null);
 
     try {
-      const trip = await createTrip(formPayload(form));
+      const trip = await createTrip(tripMetadataPayloadFromForm(form));
       setTrips((current) => [...current, trip]);
       resetCreateForm();
+      setIsCreateModalOpen(false);
       router.push(`/trips/${trip.id}`);
     } catch (reason) {
       setError(errorMessage(reason, "Failed to create trip."));
@@ -125,7 +98,10 @@ export function TripsDashboard(props: {
     setError(null);
 
     try {
-      const trip = await updateTrip(editing.tripId, formPayload(editing.form));
+      const trip = await updateTrip(
+        editing.tripId,
+        tripMetadataPayloadFromForm(editing.form),
+      );
       setTrips((current) =>
         current.map((entry) => (entry.id === trip.id ? trip : entry)),
       );
@@ -170,65 +146,31 @@ export function TripsDashboard(props: {
     }
   }
 
+  function openCreateModal() {
+    setError(null);
+    setIsCreateModalOpen(true);
+  }
+
+  function closeCreateModal() {
+    resetCreateForm();
+    setError(null);
+    setIsCreateModalOpen(false);
+  }
+
+  function toggleTripSection(section: keyof typeof openTripSections) {
+    setOpenTripSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
+  }
+
   return (
     <main className="trips-page">
       <section className="trips-dashboard-shell">
         <aside className="trips-brand-rail">
           <div className="trips-service-mark">TripGlance</div>
-          <button type="button" onClick={logout}>
-            Log out
-          </button>
-        </aside>
 
-        <section className="trips-main-pane">
-          <header className="trips-header">
-            <h1>Hi, {displayName}!</h1>
-          </header>
-
-          {error && <p className="error-text">{error}</p>}
-          {isLoading ? (
-            <p className="trip-empty-text">Loading trips...</p>
-          ) : (
-            <div className="trip-sections">
-              <TripSection
-                title="Ongoing & Upcoming"
-                trips={activeTrips}
-                featuredTripId={featuredTrip?.id}
-                editing={editing}
-                isSaving={isSaving}
-                deletingTripIds={deletingTripIds}
-                onEditStart={setEditingFromTrip}
-                onEditCancel={() => setEditing(null)}
-                onEditChange={(form) =>
-                  setEditing((current) =>
-                    current ? { ...current, form } : current,
-                  )
-                }
-                onEditSubmit={submitEdit}
-                onDelete={removeTrip}
-              />
-              <TripSection
-                title="Past Trips"
-                trips={groups.past}
-                editing={editing}
-                isSaving={isSaving}
-                deletingTripIds={deletingTripIds}
-                onEditStart={setEditingFromTrip}
-                onEditCancel={() => setEditing(null)}
-                onEditChange={(form) =>
-                  setEditing((current) =>
-                    current ? { ...current, form } : current,
-                  )
-                }
-                onEditSubmit={submitEdit}
-                onDelete={removeTrip}
-              />
-            </div>
-          )}
-        </section>
-
-        <aside className="trips-side-rail">
-          <section className="trips-profile-card">
+          <section className="trips-profile-card" aria-label="Signed in as">
             <div className="trips-avatar" aria-hidden="true">
               {displayName.slice(0, 1).toUpperCase()}
             </div>
@@ -238,102 +180,90 @@ export function TripsDashboard(props: {
             </div>
           </section>
 
-          <section className="trip-create-card">
-            <div className="trip-create-heading">
-              <h2>New trip</h2>
-            </div>
-            <form className="trip-form" onSubmit={submitCreate}>
-              <label className="trip-form-name">
-                <span>Name</span>
-                <input
-                  value={form.name}
-                  onChange={(event) => {
-                    const { value } = event.currentTarget;
-                    setForm((current) =>
-                      updateTripFormField(current, "name", value),
-                    );
-                  }}
-                  required
-                />
-              </label>
-              <label className="trip-form-destination">
-                <span>Destination</span>
-                <DestinationCombobox
-                  value={form.destination}
-                  onChange={(value) => {
-                    setForm((current) =>
-                      updateTripFormField(current, "destination", value),
-                    );
-                  }}
-                />
-              </label>
-              <div
-                className="trip-form-cover"
-                aria-hidden="true"
-                style={{ backgroundImage: `url("${createCoverImage}")` }}
-              />
-              <div className="trip-form-date-row">
-                <label className="trip-form-date-start">
-                  <span>Start</span>
-                  <input
-                    type="date"
-                    value={form.startDate}
-                    onChange={(event) => {
-                      const { value } = event.currentTarget;
-                      setForm((current) =>
-                        updateTripFormField(current, "startDate", value),
-                      );
-                    }}
-                  />
-                </label>
-                <label className="trip-form-date-end">
-                  <span>End</span>
-                  <input
-                    type="date"
-                    value={form.endDate}
-                    onChange={(event) => {
-                      const { value } = event.currentTarget;
-                      setForm((current) =>
-                        updateTripFormField(current, "endDate", value),
-                      );
-                    }}
-                  />
-                </label>
-              </div>
-              <label className="trip-form-timezone">
-                <span>Timezone</span>
-                <TimeZoneSelect
-                  value={form.timezone}
-                  options={createTimeZoneOptions}
-                  onChange={(timezone) =>
-                    setForm((current) => ({
-                      ...current,
-                      timezone,
-                    }))
-                  }
-                />
-              </label>
-              <div className="trip-form-actions">
-                <button
-                  type="submit"
-                  className="trip-form-submit"
-                  disabled={isSaving}
-                >
-                  Create trip
-                </button>
-                <button
-                  type="button"
-                  className="trip-form-clear"
-                  disabled={isSaving}
-                  onClick={resetCreateForm}
-                >
-                  Clear
-                </button>
-              </div>
-            </form>
-          </section>
+          <div className="trips-account-actions">
+            <button type="button" onClick={logout}>
+              Log out
+            </button>
+          </div>
         </aside>
+
+        <section className="trips-main-pane">
+          <header className="trips-header">
+            <h1>Hi, {displayName}!</h1>
+            <div className="trips-header-actions">
+              <button
+                type="button"
+                className="trip-create-trigger"
+                aria-controls="create-trip-modal"
+                aria-expanded={isCreateModalOpen}
+                aria-haspopup="dialog"
+                onClick={openCreateModal}
+              >
+                + New Trip
+              </button>
+            </div>
+          </header>
+
+          {error && !isCreateModalOpen && <p className="error-text">{error}</p>}
+          {isLoading ? (
+            <p className="trip-empty-text">Loading trips...</p>
+          ) : (
+            <div className="trip-sections">
+              <TripSection
+                sectionId="active-trips"
+                title="Ongoing & Upcoming"
+                trips={activeTrips}
+                featuredTripId={featuredTrip?.id}
+                isOpen={openTripSections.active}
+                editing={editing}
+                isSaving={isSaving}
+                deletingTripIds={deletingTripIds}
+                onEditStart={setEditingFromTrip}
+                onEditCancel={() => setEditing(null)}
+                onEditChange={(form) =>
+                  setEditing((current) =>
+                    current ? { ...current, form } : current,
+                  )
+                }
+                onEditSubmit={submitEdit}
+                onDelete={removeTrip}
+                onToggleOpen={() => toggleTripSection("active")}
+              />
+              <TripSection
+                sectionId="past-trips"
+                title="Past Trips"
+                trips={groups.past}
+                isOpen={openTripSections.past}
+                editing={editing}
+                isSaving={isSaving}
+                deletingTripIds={deletingTripIds}
+                onEditStart={setEditingFromTrip}
+                onEditCancel={() => setEditing(null)}
+                onEditChange={(form) =>
+                  setEditing((current) =>
+                    current ? { ...current, form } : current,
+                  )
+                }
+                onEditSubmit={submitEdit}
+                onDelete={removeTrip}
+                onToggleOpen={() => toggleTripSection("past")}
+              />
+            </div>
+          )}
+        </section>
       </section>
+
+      {isCreateModalOpen && (
+        <CreateTripModal
+          coverImage={createCoverImage}
+          error={error}
+          form={form}
+          isSaving={isSaving}
+          onCancel={closeCreateModal}
+          onChange={setForm}
+          onSubmit={submitCreate}
+        />
+      )}
     </main>
   );
 
@@ -345,18 +275,8 @@ export function TripsDashboard(props: {
   }
 
   function resetCreateForm() {
-    setForm(emptyTripForm(detectBrowserTimeZone()));
+    setForm(emptyTripForm(DEFAULT_TRIP_TIMEZONE));
   }
-}
-
-function formPayload(form: TripFormState): TripMetadataPayload {
-  return {
-    name: form.name,
-    destination: form.destination,
-    start_date: form.startDate || null,
-    end_date: form.endDate || null,
-    timezone: form.timezone,
-  };
 }
 
 function formFromTrip(trip: TripSummary): TripFormState {
@@ -377,13 +297,4 @@ function emptyTripForm(timezone: string): TripFormState {
     endDate: "",
     timezone,
   };
-}
-
-function timeZoneReferenceDate(
-  isoDate: string | undefined,
-  hasHydrated: boolean,
-): Date {
-  return hasHydrated
-    ? timeZoneDateFromIsoDate(isoDate)
-    : timeZoneDateFromIsoDate(isoDate, STABLE_TIMEZONE_REFERENCE_DATE);
 }

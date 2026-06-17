@@ -8,6 +8,8 @@
 @import "../styles/components/sign-in.css";
 @import "../styles/components/buttons.css";
 @import "../styles/components/modals.css";
+@import "../styles/components/trips-dashboard-shell.css";
+@import "../styles/components/trip-date-range-picker.css";
 @import "../styles/components/trips-dashboard.css";
 @import "../styles/components/left-panel.css";
 @import "../styles/components/planner-day-blocks.css";
