@@ -54,7 +54,6 @@ type Props = {
   onEditTrip?: () => void;
   onCopyExport: () => void;
   onDownloadExport: () => void;
-  onLogout: () => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
   onEditItem: (item: ItineraryItem) => void;
@@ -281,15 +280,6 @@ export function PlannerPanel(props: Props) {
           />,
           document.body,
         )}
-      <footer className="app-logout-footer">
-        <button
-          type="button"
-          className="app-logout-button"
-          onClick={props.onLogout}
-        >
-          Log out
-        </button>
-      </footer>
     </section>
   );
 }

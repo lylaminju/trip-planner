@@ -36,15 +36,16 @@ describe("TripPlannerApp", () => {
     expect(markup).toContain('class="app-header-name-row"');
     expect(markup).toContain('class="app-header-dashboard-link"');
     expect(markup).toContain('class="icon-button app-header-edit-trip-button"');
-    expect(markup).toContain('class="app-logout-footer"');
     expect(markup).toContain('class="app-header-period"');
     expect(markup).toContain('class="section-primary-action"');
     expect(markup).not.toContain('class="app-header-action-row"');
+    expect(markup).not.toContain('class="app-logout-footer"');
+    expect(markup).not.toContain('class="app-logout-button"');
     expect(markup).toContain("Trips dashboard");
     expect(markup).toContain("Apr 1 - 7, 2026");
     expect(markup).toContain("Add Place");
     expect(markup).toContain("Edit trip details");
-    expect(markup).toContain("Log out");
+    expect(markup).not.toContain("Log out");
   });
 
   it("hides trip metadata editing from non-owners", () => {

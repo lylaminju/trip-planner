@@ -145,17 +145,6 @@
   box-shadow: var(--focus-ring-strong);
 }
 
-.app-logout-footer {
-  border-top: 1px solid var(--line);
-  margin-top: 18px;
-  padding-top: 14px;
-}
-
-.app-logout-button {
-  color: var(--muted);
-  width: 100%;
-}
-
 .panel-expand-toggle {
   flex: 0 0 34px;
   height: 34px;

@@ -69,7 +69,6 @@ type Props = {
   onOpenEditTripModal: () => void;
   onCopyMarkdownExport: () => void;
   onDownloadMarkdownExport: () => void;
-  onLogout: () => void;
   onOpenAddVisitModal: (place: Place) => void;
   onOpenEditModal: (place: Place) => void;
   onOpenEditItemModal: (item: ItineraryItem) => void;
@@ -144,7 +143,6 @@ export function TripPlannerView(props: Props) {
         }
         onCopyExport={props.onCopyMarkdownExport}
         onDownloadExport={props.onDownloadMarkdownExport}
-        onLogout={props.onLogout}
         onAddVisit={props.onOpenAddVisitModal}
         onEdit={props.onOpenEditModal}
         onEditItem={props.onOpenEditItemModal}

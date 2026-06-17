@@ -21,7 +21,6 @@ import {
   deleteItineraryItemRequest,
   deletePlaceRequest,
   loadTripPlannerInitialData,
-  logoutRequest,
   saveItineraryItemRequest,
   savePlaceRequest,
   scheduleItineraryItemRequest,
@@ -353,14 +352,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setActiveSegmentId(null);
   }
 
-  async function logout() {
-    try {
-      await logoutRequest();
-    } finally {
-      window.location.assign("/");
-    }
-  }
-
   return (
     <TripPlannerView
       mobileSheetState={mobileSheetState}
@@ -404,7 +395,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onOpenEditTripModal={openEditTripModal}
       onCopyMarkdownExport={copyMarkdownExport}
       onDownloadMarkdownExport={downloadMarkdownExport}
-      onLogout={logout}
       onOpenAddVisitModal={openAddVisitModal}
       onOpenEditModal={openEditModal}
       onOpenEditItemModal={openEditItemModal}
