@@ -71,7 +71,6 @@ async function withFreshTestEnv(
       name: "New York City",
       start_date: "2026-05-27",
       end_date: "2026-05-29",
-      timezone: "America/Toronto",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     }),
@@ -137,7 +136,6 @@ describe("API routes transport behavior", () => {
           destination: "Tokyo",
           start_date: "2026-09-01",
           end_date: "2026-09-08",
-          timezone: "Asia/Tokyo",
         }),
       );
 
@@ -148,7 +146,6 @@ describe("API routes transport behavior", () => {
           name: "Tokyo",
           destination: "Tokyo",
           role: "owner",
-          timezone: "Asia/Tokyo",
         }),
       });
     });
@@ -161,7 +158,6 @@ describe("API routes transport behavior", () => {
       const missingName = await POST(
         jsonRequest("POST", {
           name: "   ",
-          timezone: "America/Toronto",
         }),
       );
       expect(missingName.status).toBe(400);
@@ -173,7 +169,6 @@ describe("API routes transport behavior", () => {
         jsonRequest("POST", {
           name: "Missing destination",
           destination: "   ",
-          timezone: "America/Toronto",
         }),
       );
       expect(missingDestination.status).toBe(400);
@@ -187,7 +182,6 @@ describe("API routes transport behavior", () => {
           destination: "Toronto",
           start_date: "2026-09-08",
           end_date: "2026-09-01",
-          timezone: "America/Toronto",
         }),
       );
       expect(badDateRange.status).toBe(400);
@@ -737,7 +731,6 @@ async function withFreshTripApiEnv(
       destination: "New York City",
       start_date: "2026-05-27",
       end_date: "2026-05-29",
-      timezone: "America/Toronto",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
       role,

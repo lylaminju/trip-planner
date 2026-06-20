@@ -34,7 +34,6 @@ describe("trips api client", () => {
         destination: "Toronto",
         start_date: null,
         end_date: null,
-        timezone: "America/Toronto",
       }),
     ).rejects.toThrow("Failed to save trip.");
   });

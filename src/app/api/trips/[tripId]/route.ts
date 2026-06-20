@@ -119,14 +119,6 @@ function parseTripUpdateInput(value: unknown): TripUpdateInput | NextResponse {
     );
   }
 
-  if ("timezone" in body) {
-    const timezone = stringOrNull(body.timezone);
-    if (!timezone) {
-      return jsonError("Trip timezone is required.", 400);
-    }
-    input.timezone = timezone;
-  }
-
   return input;
 }
 

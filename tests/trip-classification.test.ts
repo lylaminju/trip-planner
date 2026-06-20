@@ -12,7 +12,6 @@ const baseTrip: Omit<TripSummary, "id" | "name" | "role"> = {
   destination: "Toronto",
   start_date: null,
   end_date: null,
-  timezone: "America/Toronto",
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 };
@@ -39,7 +38,7 @@ describe("trip dashboard classification", () => {
     expect(groups.past.map((entry) => entry.name)).toEqual(["Past"]);
   });
 
-  it("uses each trip timezone when deciding the local current date", () => {
+  it("uses the viewer timezone when deciding the local current date", () => {
     const groups = groupTripsByTiming(
       [
         trip(1, "Toronto today", "2026-05-28", "2026-05-28", {
@@ -50,12 +49,14 @@ describe("trip dashboard classification", () => {
         }),
       ],
       new Date("2026-05-28T16:00:00.000Z"),
+      "Asia/Tokyo",
     );
 
-    expect(groups.ongoing.map((entry) => entry.name)).toEqual([
+    expect(groups.ongoing.map((entry) => entry.name)).toEqual([]);
+    expect(groups.past.map((entry) => entry.name)).toEqual([
       "Toronto today",
+      "Tokyo tomorrow",
     ]);
-    expect(groups.past.map((entry) => entry.name)).toEqual(["Tokyo tomorrow"]);
   });
 
   it("sorts past trips by most recent end date first", () => {
@@ -125,7 +126,7 @@ describe("isTripOngoing", () => {
     ).toBe(false);
   });
 
-  it("uses the trip timezone when detecting ongoing trips", () => {
+  it("uses the viewer timezone when detecting ongoing trips", () => {
     const now = new Date("2026-05-28T16:00:00.000Z");
 
     expect(
@@ -134,16 +135,18 @@ describe("isTripOngoing", () => {
           timezone: "America/Toronto",
         }),
         now,
+        "Asia/Tokyo",
       ),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       isTripOngoing(
         trip(2, "Tokyo tomorrow", "2026-05-28", "2026-05-28", {
           timezone: "Asia/Tokyo",
         }),
         now,
+        "America/Toronto",
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("returns false when there is no trip", () => {
@@ -158,7 +161,7 @@ function trip(
   name: string,
   startDate: string | null,
   endDate: string | null,
-  overrides: Partial<TripSummary> = {},
+  overrides: Partial<TripSummary> & { timezone?: string } = {},
 ): TripSummary {
   return {
     ...baseTrip,

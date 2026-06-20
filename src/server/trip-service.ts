@@ -9,17 +9,17 @@ export type TripCreateInput = {
   destination: string;
   start_date: string | null;
   end_date: string | null;
-  timezone: string;
 };
 
 export type TripUpdateInput = Partial<TripCreateInput>;
 
+const TRIP_SELECT_FIELDS =
+  "id, created_by, name, destination, start_date, end_date, created_at, updated_at";
+
 export async function getTripById(tripId: number): Promise<Trip> {
   const { data, error } = await getSupabaseClient()
     .from("trips")
-    .select(
-      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
-    )
+    .select(TRIP_SELECT_FIELDS)
     .eq("id", tripId)
     .single();
 
@@ -48,9 +48,7 @@ export async function listTripsForRequest(
   );
   const { data: tripRows, error: tripError } = await getSupabaseClient()
     .from("trips")
-    .select(
-      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
-    )
+    .select(TRIP_SELECT_FIELDS)
     .in(
       "id",
       memberships.map((membership) => membership.trip_id),
@@ -78,11 +76,8 @@ export async function createTripForRequest(
       destination: input.destination,
       start_date: input.start_date,
       end_date: input.end_date,
-      timezone: input.timezone,
     })
-    .select(
-      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
-    )
+    .select(TRIP_SELECT_FIELDS)
     .single();
 
   if (tripError) throwSupabaseError(tripError);
@@ -124,9 +119,7 @@ export async function updateTripForRequest(
     .from("trips")
     .update({ ...input, updated_at: new Date().toISOString() })
     .eq("id", tripId)
-    .select(
-      "id, created_by, name, destination, start_date, end_date, timezone, created_at, updated_at",
-    )
+    .select(TRIP_SELECT_FIELDS)
     .single();
 
   if (error) throwSupabaseError(error);

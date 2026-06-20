@@ -13,7 +13,6 @@ import type {
   TravelMode,
   VisitDateOption,
 } from "@/lib/types";
-import type { TimeZoneOption } from "@/lib/timezones";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
@@ -61,7 +60,6 @@ type Props = {
   addPlaceVisitDate: string | null;
   editingTripForm: TripFormState | null;
   isSavingTrip: boolean;
-  editTripTimeZoneOptions: TimeZoneOption[];
   visitDateOptions: VisitDateOption[];
   onTogglePlannerExpanded: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
@@ -239,7 +237,6 @@ export function TripPlannerView(props: Props) {
         <EditTripModal
           form={props.editingTripForm}
           isSaving={props.isSavingTrip}
-          timeZoneOptions={props.editTripTimeZoneOptions}
           onChange={props.onSetEditingTripForm}
           onCancel={() => props.onSetEditingTripForm(null)}
           onSubmit={props.onSubmitEditTrip}

@@ -97,17 +97,11 @@ function parseTripCreateInput(
     );
   }
 
-  const timezone = stringOrNull(body.timezone);
-  if (!timezone) {
-    return jsonError("Trip timezone is required.", 400);
-  }
-
   return {
     name,
     destination,
     start_date: startDate,
     end_date: endDate,
-    timezone,
   };
 }
 

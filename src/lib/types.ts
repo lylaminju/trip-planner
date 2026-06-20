@@ -8,7 +8,6 @@ export type Trip = {
   destination: string;
   start_date: string | null;
   end_date: string | null;
-  timezone: string;
   created_at: string;
   updated_at: string;
 };

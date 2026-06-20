@@ -5,18 +5,22 @@ create table if not exists public.trips (
   destination text not null,
   start_date date,
   end_date date,
-  timezone text not null default 'America/Toronto',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint trips_date_range_valid check (
     start_date is null or end_date is null or start_date <= end_date
   ),
-  constraint trips_destination_not_blank check (btrim(destination) <> ''),
-  constraint trips_timezone_not_blank check (btrim(timezone) <> '')
+  constraint trips_destination_not_blank check (btrim(destination) <> '')
 );
 
 alter table public.trips
   add column if not exists destination text;
+
+alter table public.trips
+  drop constraint if exists trips_timezone_not_blank;
+
+alter table public.trips
+  drop column if exists timezone;
 
 alter table public.trips
   alter column destination set not null;

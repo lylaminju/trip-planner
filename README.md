@@ -4,8 +4,8 @@ A trip planning app for building dated itineraries from saved places, arranging 
 
 ## Features
 
-- **Trip workspaces:** Create, edit, delete, and open trips with date ranges, timezones, and role-based access through trip memberships.
-- **Trip dashboard grouping:** Trips are grouped into Ongoing, Needs Dates, Upcoming, and Past sections using each trip's configured timezone.
+- **Trip workspaces:** Create, edit, delete, and open trips with date ranges and role-based access through trip memberships.
+- **Trip dashboard grouping:** Trips are grouped into Ongoing, Needs Dates, Upcoming, and Past sections using the viewer's current timezone.
 - **Place library:** Save canonical places with name, address, Google Maps URL, coordinates, place notes, and reference links.
 - **Repeated visits:** Add the same place to the itinerary multiple times as separate visits, each with its own date, time, and visit note.
 - **Date buckets:** Itinerary items are grouped by date, sorted with timed visits first, and displayed with compact weekday labels.
@@ -78,7 +78,7 @@ Use a server-only Supabase secret key if available, or the legacy service-role k
 
 The main tables are:
 
-- `trips`: trip records with name, dates, and timezone.
+- `trips`: trip records with name, destination, and dates.
 - `trip_memberships`: per-user trip access with `owner`, `editor`, or `viewer` roles.
 - `places`: canonical place records.
 - `itinerary_items`: scheduled visits that reference places.

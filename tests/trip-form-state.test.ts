@@ -13,7 +13,6 @@ describe("updateTripFormField", () => {
       destination: "",
       startDate: "2026-06-01",
       endDate: "2026-06-02",
-      timezone: "America/Toronto",
     };
     const event = {
       currentTarget: { value: "2026-06-03" },
@@ -27,21 +26,19 @@ describe("updateTripFormField", () => {
     });
   });
 
-  it("uses the default timezone when a trip form has no selected timezone", () => {
+  it("builds trip metadata without timezone state", () => {
     expect(
       tripMetadataPayloadFromForm({
         name: "Draft trip",
         destination: "Toronto",
         startDate: "2026-06-01",
         endDate: "",
-        timezone: "",
       }),
     ).toEqual({
       name: "Draft trip",
       destination: "Toronto",
       start_date: "2026-06-01",
       end_date: null,
-      timezone: "America/Toronto",
     });
   });
 });

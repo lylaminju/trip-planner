@@ -82,7 +82,6 @@ function tripSummary(): TripSummary {
     destination: "Toronto",
     start_date: "2026-06-01",
     end_date: "2026-06-02",
-    timezone: "America/Toronto",
     role: "owner",
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",

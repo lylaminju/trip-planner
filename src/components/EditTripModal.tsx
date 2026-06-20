@@ -2,18 +2,14 @@
 
 import type { SubmitEvent } from "react";
 
-import type { TimeZoneOption } from "@/lib/timezones";
-
 import { DestinationCombobox } from "./DestinationCombobox";
 import { ModalShell } from "./ModalShell";
-import { TimeZoneSelect } from "./TimeZoneSelect";
 import { updateTripFormField } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
 
 type Props = {
   form: TripFormState;
   isSaving: boolean;
-  timeZoneOptions: TimeZoneOption[];
   onChange: (form: TripFormState) => void;
   onCancel: () => void;
   onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
@@ -98,19 +94,6 @@ export function EditTripModal(props: Props) {
             />
           </label>
         </div>
-
-        <label>
-          Timezone
-          <TimeZoneSelect
-            value={props.form.timezone}
-            options={props.timeZoneOptions}
-            onChange={(timezone) =>
-              props.onChange(
-                updateTripFormField(props.form, "timezone", timezone),
-              )
-            }
-          />
-        </label>
 
         <footer className="modal-actions">
           <button type="button" onClick={props.onCancel}>

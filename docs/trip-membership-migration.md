@@ -7,8 +7,8 @@ For existing deployments, create one default shared trip for the current New Yor
 Use the Supabase auth user UUIDs from the deployed project:
 
 ```sql
-insert into public.trips (name, timezone, start_date, end_date, created_by)
-values ('New York City', 'America/Toronto', null, null, '<FIRST_USER_UUID>')
+insert into public.trips (name, destination, start_date, end_date, created_by)
+values ('New York City', 'New York City', null, null, '<FIRST_USER_UUID>')
 returning id;
 
 insert into public.trip_memberships (trip_id, user_id, role)

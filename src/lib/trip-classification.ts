@@ -1,6 +1,6 @@
 import type { TripSummary } from "./types";
 
-export const DEFAULT_TRIP_TIMEZONE = "America/Toronto";
+export const DEFAULT_VIEWER_TIMEZONE = "America/Toronto";
 
 export type TripTimingGroups = {
   ongoing: TripSummary[];
@@ -12,6 +12,7 @@ export type TripTimingGroups = {
 export function groupTripsByTiming(
   trips: TripSummary[],
   now = new Date(),
+  viewerTimeZone = detectBrowserTimeZone(),
 ): TripTimingGroups {
   const groups: TripTimingGroups = {
     ongoing: [],
@@ -19,6 +20,7 @@ export function groupTripsByTiming(
     upcoming: [],
     past: [],
   };
+  const today = localIsoDate(now, viewerTimeZone);
 
   for (const trip of trips) {
     if (!trip.start_date || !trip.end_date) {
@@ -26,7 +28,6 @@ export function groupTripsByTiming(
       continue;
     }
 
-    const today = localIsoDate(now, trip.timezone || DEFAULT_TRIP_TIMEZONE);
     if (trip.end_date < today) {
       groups.past.push(trip);
     } else if (trip.start_date > today) {
@@ -45,16 +46,17 @@ export function groupTripsByTiming(
 
 export function isTripOngoing(
   trip:
-    | Pick<TripSummary, "start_date" | "end_date" | "timezone">
+    | Pick<TripSummary, "start_date" | "end_date">
     | null
     | undefined,
   now = new Date(),
+  viewerTimeZone = detectBrowserTimeZone(),
 ): boolean {
   if (!trip?.start_date || !trip.end_date) {
     return false;
   }
 
-  const today = localIsoDate(now, trip.timezone || DEFAULT_TRIP_TIMEZONE);
+  const today = localIsoDate(now, viewerTimeZone);
   return trip.start_date <= today && trip.end_date >= today;
 }
 
@@ -63,9 +65,9 @@ export function detectBrowserTimeZone(): string {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return typeof timeZone === "string" && timeZone.trim()
       ? timeZone
-      : DEFAULT_TRIP_TIMEZONE;
+      : DEFAULT_VIEWER_TIMEZONE;
   } catch {
-    return DEFAULT_TRIP_TIMEZONE;
+    return DEFAULT_VIEWER_TIMEZONE;
   }
 }
 

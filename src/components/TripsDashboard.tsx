@@ -5,10 +5,7 @@ import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 
 import { getTripCoverImage } from "@/lib/city-covers";
 import { logoutRequest } from "@/lib/planner-api";
-import {
-  DEFAULT_TRIP_TIMEZONE,
-  groupTripsByTiming,
-} from "@/lib/trip-classification";
+import { groupTripsByTiming } from "@/lib/trip-classification";
 import { errorMessage } from "@/lib/error-message";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
@@ -26,9 +23,7 @@ export function TripsDashboard(props: {
 }) {
   const router = useRouter();
   const [trips, setTrips] = useState<TripSummary[]>([]);
-  const [form, setForm] = useState<TripFormState>(() =>
-    emptyTripForm(DEFAULT_TRIP_TIMEZONE),
-  );
+  const [form, setForm] = useState<TripFormState>(() => emptyTripForm());
   const [editing, setEditing] = useState<{
     tripId: number;
     form: TripFormState;
@@ -262,7 +257,7 @@ export function TripsDashboard(props: {
   }
 
   function resetCreateForm() {
-    setForm(emptyTripForm(DEFAULT_TRIP_TIMEZONE));
+    setForm(emptyTripForm());
   }
 }
 
@@ -272,16 +267,14 @@ function formFromTrip(trip: TripSummary): TripFormState {
     destination: trip.destination,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
-    timezone: trip.timezone,
   };
 }
 
-function emptyTripForm(timezone: string): TripFormState {
+function emptyTripForm(): TripFormState {
   return {
     name: "",
     destination: "",
     startDate: "",
     endDate: "",
-    timezone,
   };
 }

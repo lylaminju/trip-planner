@@ -39,7 +39,6 @@ export function formPayload(form: TripFormState): TripMetadataPayload {
     destination: form.destination,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
-    timezone: form.timezone,
   };
 }
 
@@ -49,6 +48,5 @@ export function formFromTrip(trip: Trip): TripFormState {
     destination: trip.destination,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
-    timezone: trip.timezone,
   };
 }

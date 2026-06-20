@@ -31,7 +31,6 @@ import { toggleSelectedId } from "@/lib/selection";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
-import { getTimeZoneOptions, timeZoneDateFromIsoDate } from "@/lib/timezones";
 import { updateTrip } from "@/lib/trips-api";
 import type {
   PlannerSnapshot,
@@ -140,15 +139,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     trip,
     clearError: () => setError(null),
   });
-  const editTripTimeZoneOptions = useMemo(
-    () =>
-      getTimeZoneOptions({
-        include: editingTripForm?.timezone ? [editingTripForm.timezone] : [],
-        now: timeZoneDateFromIsoDate(editingTripForm?.startDate),
-      }),
-    [editingTripForm?.startDate, editingTripForm?.timezone],
-  );
-
   const reload = useCallback(async () => {
     const next = await loadTripPlannerInitialData(tripId);
     setTrip(next.trip);
@@ -385,7 +375,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       addPlaceVisitDate={addPlaceVisitDate}
       editingTripForm={editingTripForm}
       isSavingTrip={isSavingTrip}
-      editTripTimeZoneOptions={editTripTimeZoneOptions}
       visitDateOptions={visitDateOptions}
       onTogglePlannerExpanded={() =>
         setIsPlannerPanelExpanded((value) => !value)

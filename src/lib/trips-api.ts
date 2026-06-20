@@ -5,7 +5,6 @@ export type TripMetadataPayload = {
   destination: string;
   start_date: string | null;
   end_date: string | null;
-  timezone: string;
 };
 
 export async function loadTrips(): Promise<TripSummary[]> {
