@@ -13,6 +13,7 @@ import { errorMessage } from "@/lib/error-message";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
 import { CreateTripModal } from "./CreateTripModal";
+import { TripsDashboardRail } from "./TripsDashboardRail";
 import { TripSection } from "./TripSection";
 import { tripMetadataPayloadFromForm } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
@@ -167,25 +168,11 @@ export function TripsDashboard(props: {
   return (
     <main className="trips-page">
       <section className="trips-dashboard-shell">
-        <aside className="trips-brand-rail">
-          <div className="trips-service-mark">TripGlance</div>
-
-          <section className="trips-profile-card" aria-label="Signed in as">
-            <div className="trips-avatar" aria-hidden="true">
-              {displayName.slice(0, 1).toUpperCase()}
-            </div>
-            <div className="trips-profile-copy">
-              <strong>{displayName}</strong>
-              {userEmail && <span>{userEmail}</span>}
-            </div>
-          </section>
-
-          <div className="trips-account-actions">
-            <button type="button" onClick={logout}>
-              Log out
-            </button>
-          </div>
-        </aside>
+        <TripsDashboardRail
+          displayName={displayName}
+          userEmail={userEmail}
+          onLogout={logout}
+        />
 
         <section className="trips-main-pane">
           <header className="trips-header">

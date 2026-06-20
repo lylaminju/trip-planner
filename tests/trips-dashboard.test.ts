@@ -17,6 +17,15 @@ describe("TripsDashboard", () => {
 
     expect(markup).toContain('class="trips-dashboard-shell"');
     expect(markup).toContain("Hi, Traveler!");
+    expect(markup).toContain('class="trips-mobile-topbar"');
+    expect(markup).toContain('class="trips-mobile-service-mark"');
+    expect(markup).toContain('aria-controls="trips-mobile-nav-drawer"');
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain('aria-label="Open navigation menu"');
+    expect(markup).toContain('class="trips-mobile-nav-backdrop"');
+    expect(markup).toContain('hidden=""');
+    expect(markup).toContain('id="trips-mobile-nav-drawer"');
+    expect(markup).toContain('class="icon-button trips-mobile-nav-close"');
     expect(markup).toContain('class="trips-brand-rail"');
     expect(markup).toContain('class="trips-profile-card"');
     expect(markup).toContain('class="trips-account-actions"');
@@ -205,6 +214,73 @@ describe("TripsDashboard", () => {
 
     expect(profileRule).not.toContain("margin-top: auto;");
     expect(accountActionsRule).toContain("margin-top: auto;");
+  });
+
+  it("keeps the desktop dashboard shell centered while the sticky rail fills the viewport", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard-shell.css",
+      "utf8",
+    );
+    const pageRule = cssRule(css, ".trips-page");
+    const shellRule = cssRule(css, ".trips-dashboard-shell");
+    const railRule = cssRule(css, ".trips-brand-rail");
+    const mainPaneRule = cssRule(css, ".trips-main-pane");
+
+    expect(pageRule).toContain("--trips-page-padding-x: 24px;");
+    expect(pageRule).toContain("background: var(--surface-base);");
+    expect(pageRule).toContain("overflow: visible;");
+    expect(pageRule).toContain("padding: 0 var(--trips-page-padding-x);");
+    expect(shellRule).toContain("align-items: start;");
+    expect(shellRule).toContain("border: 0;");
+    expect(shellRule).toContain("border-radius: 0;");
+    expect(shellRule).toContain("margin: 0 auto;");
+    expect(shellRule).toContain("max-width: 1320px;");
+    expect(shellRule).toContain("min-height: 100dvh;");
+    expect(shellRule).toContain("overflow: visible;");
+    expect(railRule).toContain("border-radius: 0;");
+    expect(railRule).toContain("height: 100dvh;");
+    expect(railRule).toContain("max-height: 100dvh;");
+    expect(railRule).toContain("overflow: auto;");
+    expect(railRule).toContain("position: sticky;");
+    expect(railRule).toContain("top: 0;");
+    expect(mainPaneRule).toContain("border-radius: 0;");
+    expect(mainPaneRule).not.toContain("justify-items:");
+
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-dashboard-shell\s*{[^}]*border:\s*1px solid var\(--line\);[^}]*border-radius:\s*10px;[^}]*overflow:\s*hidden;/s,
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-page\s*{[^}]*padding:\s*14px;/s,
+    );
+  });
+
+  it("turns the mobile rail into an off-canvas drawer", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard-shell.css",
+      "utf8",
+    );
+
+    expect(cssRule(css, ".trips-mobile-topbar")).toContain("display: none;");
+    expect(cssRule(css, ".trips-mobile-nav-backdrop")).toContain(
+      "display: none;",
+    );
+    expect(cssRule(css, ".trips-mobile-nav-close")).toContain("display: none;");
+
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-mobile-topbar\s*{[^}]*display:\s*flex;/s,
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-mobile-nav-backdrop\s*{[^}]*background:\s*var\(--overlay-backdrop\);[^}]*inset:\s*0;[^}]*position:\s*fixed;[^}]*z-index:\s*24;/s,
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-brand-rail\s*{[^}]*height:\s*100dvh;[^}]*max-height:\s*100dvh;[^}]*position:\s*fixed;[^}]*right:\s*0;[^}]*top:\s*0;[^}]*transform:\s*translateX\(100%\);[^}]*visibility:\s*hidden;[^}]*z-index:\s*25;/s,
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-brand-rail-open\s*{[^}]*transform:\s*translateX\(0\);[^}]*visibility:\s*visible;/s,
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-mobile-nav-close\s*{[^}]*display:\s*inline-flex;/s,
+    );
   });
 
   it("renders the trip date calendar as a viewport-fixed popover", () => {

@@ -116,6 +116,16 @@ export function CloseIcon() {
   );
 }
 
+export function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 6h16" />
+      <path d="M4 12h16" />
+      <path d="M4 18h16" />
+    </svg>
+  );
+}
+
 export function ExternalLinkIcon() {
   return (
     <svg
