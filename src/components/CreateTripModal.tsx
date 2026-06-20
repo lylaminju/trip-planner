@@ -1,8 +1,9 @@
 "use client";
 
-import type { MouseEvent, SubmitEvent } from "react";
+import type { SubmitEvent } from "react";
 
 import { DestinationCombobox } from "./DestinationCombobox";
+import { ModalShell } from "./ModalShell";
 import { TripDateRangePicker } from "./TripDateRangePicker";
 import { updateTripFormField } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
@@ -18,17 +19,10 @@ type Props = {
 };
 
 export function CreateTripModal(props: Props) {
-  function closeFromBackdrop(event: MouseEvent<HTMLDivElement>) {
-    if (event.currentTarget === event.target) {
-      props.onCancel();
-    }
-  }
-
   return (
-    <div
-      className="modal-backdrop trip-create-modal-backdrop"
-      role="presentation"
-      onClick={closeFromBackdrop}
+    <ModalShell
+      className="trip-create-modal-backdrop"
+      onClose={props.onCancel}
     >
       <form
         aria-labelledby="create-trip-title"
@@ -122,6 +116,6 @@ export function CreateTripModal(props: Props) {
           </button>
         </footer>
       </form>
-    </div>
+    </ModalShell>
   );
 }

@@ -5,6 +5,7 @@ import type { SubmitEvent } from "react";
 import type { TimeZoneOption } from "@/lib/timezones";
 
 import { DestinationCombobox } from "./DestinationCombobox";
+import { ModalShell } from "./ModalShell";
 import { TimeZoneSelect } from "./TimeZoneSelect";
 import { updateTripFormField } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
@@ -20,7 +21,7 @@ type Props = {
 
 export function EditTripModal(props: Props) {
   return (
-    <div className="modal-backdrop" role="presentation">
+    <ModalShell onClose={props.onCancel}>
       <form className="modal" onSubmit={props.onSubmit}>
         <header className="modal-header">
           <h2>Edit trip</h2>
@@ -120,6 +121,6 @@ export function EditTripModal(props: Props) {
           </button>
         </footer>
       </form>
-    </div>
+    </ModalShell>
   );
 }

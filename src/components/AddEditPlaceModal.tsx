@@ -12,6 +12,7 @@ import {
 } from "@/lib/visit-time";
 
 import { TrashIcon } from "./Icons";
+import { ModalShell } from "./ModalShell";
 import { VisitDateField } from "./VisitDateField";
 
 type Props = {
@@ -67,7 +68,7 @@ export function AddEditPlaceModal({
   }
 
   return (
-    <div className="modal-backdrop" role="presentation">
+    <ModalShell onClose={onCancel}>
       <form className="modal" onSubmit={submit}>
         <header className="modal-header">
           <h2>{isEditing ? "Edit Place" : "Add Place"}</h2>
@@ -201,6 +202,6 @@ export function AddEditPlaceModal({
           </button>
         </footer>
       </form>
-    </div>
+    </ModalShell>
   );
 }

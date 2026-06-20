@@ -11,6 +11,7 @@ import {
   splitVisitTime,
 } from "@/lib/visit-time";
 
+import { ModalShell } from "./ModalShell";
 import { VisitDateField } from "./VisitDateField";
 
 type Props = {
@@ -70,7 +71,7 @@ export function EditItineraryItemModal({
   }
 
   return (
-    <div className="modal-backdrop" role="presentation">
+    <ModalShell onClose={onCancel}>
       <form className="modal" onSubmit={submit}>
         <header className="modal-header">
           <h2>{isCreating ? "Add Visit" : "Edit Visit"}</h2>
@@ -157,6 +158,6 @@ export function EditItineraryItemModal({
           </button>
         </footer>
       </form>
-    </div>
+    </ModalShell>
   );
 }
