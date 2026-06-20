@@ -19,6 +19,8 @@ describe("TripsDashboard", () => {
     expect(markup).toContain("Hi, Traveler!");
     expect(markup).toContain('class="trips-mobile-topbar"');
     expect(markup).toContain('class="trips-mobile-service-mark"');
+    expect(markup.match(/class="trips-service-logo"/g)?.length ?? 0).toBe(2);
+    expect(markup).toContain('aria-hidden="true" focusable="false"');
     expect(markup).toContain('aria-controls="trips-mobile-nav-drawer"');
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain('aria-label="Open navigation menu"');

@@ -49,9 +49,31 @@
 }
 
 .trips-service-mark {
+  align-items: center;
   color: var(--text);
+  display: inline-flex;
   font-size: 17px;
   font-weight: 800;
+  gap: 8px;
+}
+
+.trips-service-logo {
+  display: block;
+  flex: 0 0 24px;
+  height: 24px;
+  width: 24px;
+}
+
+.trips-service-logo-bg {
+  fill: var(--accent);
+}
+
+.trips-service-logo-map {
+  fill: none;
+  stroke: var(--text-on-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
 }
 
 .trips-account-actions {
@@ -244,9 +266,13 @@
   }
 
   .trips-mobile-service-mark {
+    align-items: center;
     color: var(--text);
+    display: inline-flex;
     font-size: 17px;
     font-weight: 800;
+    gap: 8px;
+    min-width: 0;
   }
 
   .trips-mobile-nav-toggle,

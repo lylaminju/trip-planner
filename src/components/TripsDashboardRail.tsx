@@ -6,6 +6,29 @@ import { CloseIcon, MenuIcon } from "./Icons";
 
 const MOBILE_NAV_DRAWER_ID = "trips-mobile-nav-drawer";
 
+function TripGlanceServiceLogo() {
+  return (
+    <svg
+      className="trips-service-logo"
+      viewBox="0 0 64 64"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect
+        className="trips-service-logo-bg"
+        width="64"
+        height="64"
+        rx="14"
+      />
+      <path
+        className="trips-service-logo-map"
+        d="M14 24L26 18L38 24L50 18V48L38 54L26 48L14 54V24Z"
+      />
+      <path className="trips-service-logo-map" d="M26 18V48M38 24V54" />
+    </svg>
+  );
+}
+
 export function TripsDashboardRail(props: {
   displayName: string;
   userEmail?: string;
@@ -47,7 +70,10 @@ export function TripsDashboardRail(props: {
   return (
     <>
       <div className="trips-mobile-topbar">
-        <div className="trips-mobile-service-mark">TripGlance</div>
+        <div className="trips-mobile-service-mark">
+          <TripGlanceServiceLogo />
+          <span>TripGlance</span>
+        </div>
         <button
           type="button"
           className="icon-button trips-mobile-nav-toggle"
@@ -72,7 +98,10 @@ export function TripsDashboardRail(props: {
 
       <aside id={MOBILE_NAV_DRAWER_ID} className={railClasses}>
         <div className="trips-brand-rail-header">
-          <div className="trips-service-mark">TripGlance</div>
+          <div className="trips-service-mark">
+            <TripGlanceServiceLogo />
+            <span>TripGlance</span>
+          </div>
           <button
             type="button"
             ref={closeButtonRef}
