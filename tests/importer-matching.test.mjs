@@ -1,27 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-function findExistingPlace(imported, existingRows) {
-  if (imported.placeId) {
-    const match = existingRows.find((row) => row.place_id === imported.placeId);
-    if (match) return match;
-  }
-
-  if (imported.googlePlaceToken) {
-    const match = existingRows.find(
-      (row) => row.google_place_token === imported.googlePlaceToken,
-    );
-    if (match) return match;
-  }
-
-  if (imported.googleInternalIds) {
-    const match = existingRows.find(
-      (row) => row.google_internal_ids === imported.googleInternalIds,
-    );
-    if (match) return match;
-  }
-
-  return null;
-}
+import { findExistingPlace } from "../scripts/import-google-list.mjs";
 
 describe("importer matching contract", () => {
   it("matches by place_id before weaker identities", () => {

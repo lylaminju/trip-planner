@@ -72,12 +72,16 @@ This file applies to the whole repository. Follow it when changing code here.
 
 ## Testing Guidelines
 
+- Tests must exercise the production implementation, not a copied helper or reimplemented version of the same logic. If script logic needs tests, extract the logic into an importable helper and keep the executable wrapper thin.
 - Prefer assertions that protect stable behavior, structure, routing, and integration contracts over assertions that freeze incidental UI copy.
 - Avoid implementation-specific tests that assert raw CSS selectors, source text, or internal markup details unless that exact structure is a durable contract. Prefer behavior, accessibility, computed output, or user-visible affordances.
 - Do not add tests that only restate behavior already covered at the same layer; new tests should protect a new branch, regression risk, or integration contract.
 - Prefer the narrowest test that proves the behavior under change. Avoid duplicate coverage across utility, component, and integration layers unless each layer catches a distinct failure mode.
 - Avoid `not.toContain()` checks for removed marketing text, placeholder text, or helper copy unless the absence is a real product requirement or safety constraint.
 - When copy is expected to change during design iteration, assert the durable affordance instead, for example the CTA link target, form field name, route id, component class, or accessible landmark.
+- Keep CSS/source-text assertions coarse and intentional: assert a small invariant that would break a user-facing contract, not a full implementation recipe or every declaration in a rule.
+- When the same domain fixture or markup/CSS helper appears in several test files, move it to a typed test helper instead of growing copy-pasted builders.
+- Do not leave `passWithNoTests` enabled unless a package genuinely supports a no-test mode; test discovery should fail closed in this app.
 
 ## Verification
 

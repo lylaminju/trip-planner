@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const sourceUrl = "https://maps.app.goo.gl/qaVycWwrraarnLtQ6";
 const endpoint =
@@ -8,89 +9,91 @@ const endpoint =
 
 const dbPath = path.join(process.cwd(), "data", "trip-planner.sqlite");
 
-const response = await fetch(endpoint);
-if (!response.ok) {
-  throw new Error(
-    `Google saved-list request failed: ${response.status} ${response.statusText}`,
-  );
-}
-
-const text = await response.text();
-const payload = JSON.parse(text.replace(/^\)\]\}'\n/, ""));
-const root = payload?.[0];
-const rows = root?.[8];
-
-if (!Array.isArray(rows)) {
-  throw new Error("Could not find place rows at payload[0][8].");
-}
-
-const places = rows
-  .map(parsePlace)
-  .filter(
-    (place) =>
-      place.name && place.latitude !== null && place.longitude !== null,
-  );
-
-mkdirSync(path.dirname(dbPath), { recursive: true });
-const db = new Database(dbPath);
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
-migrate(db);
-
-const importRows = db.transaction(() => {
-  const existingRows = db.prepare("SELECT * FROM places").all();
-  const update = db.prepare(`
-    UPDATE places SET
-      google_maps_url = @googleMapsUrl,
-      place_id = @placeId,
-      google_place_token = @googlePlaceToken,
-      google_internal_ids = @googleInternalIds,
-      source_list_url = @sourceListUrl,
-      latitude = @latitude,
-      longitude = @longitude,
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = @id
-  `);
-
-  const insert = db.prepare(`
-    INSERT INTO places (
-      name,
-      address,
-      google_maps_url,
-      place_id,
-      google_place_token,
-      google_internal_ids,
-      source_list_url,
-      latitude,
-      longitude,
-      notes
-    ) VALUES (
-      @name,
-      @address,
-      @googleMapsUrl,
-      @placeId,
-      @googlePlaceToken,
-      @googleInternalIds,
-      @sourceListUrl,
-      @latitude,
-      @longitude,
-      @notes
-    )
-  `);
-  for (const place of places) {
-    const existing = findExistingPlace(place, existingRows);
-    if (existing) {
-      update.run({ ...place, id: existing.id });
-    } else {
-      insert.run(place);
-    }
+export async function importGoogleList() {
+  const response = await fetch(endpoint);
+  if (!response.ok) {
+    throw new Error(
+      `Google saved-list request failed: ${response.status} ${response.statusText}`,
+    );
   }
-});
 
-importRows();
+  const text = await response.text();
+  const payload = JSON.parse(text.replace(/^\)\]\}'\n/, ""));
+  const root = payload?.[0];
+  const rows = root?.[8];
 
-console.log(`Imported ${places.length} places from ${sourceUrl}`);
-console.log(`List title: ${root?.[4] ?? "Unknown"}`);
+  if (!Array.isArray(rows)) {
+    throw new Error("Could not find place rows at payload[0][8].");
+  }
+
+  const places = rows
+    .map(parsePlace)
+    .filter(
+      (place) =>
+        place.name && place.latitude !== null && place.longitude !== null,
+    );
+
+  mkdirSync(path.dirname(dbPath), { recursive: true });
+  const db = new Database(dbPath);
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+  migrate(db);
+
+  const importRows = db.transaction(() => {
+    const existingRows = db.prepare("SELECT * FROM places").all();
+    const update = db.prepare(`
+      UPDATE places SET
+        google_maps_url = @googleMapsUrl,
+        place_id = @placeId,
+        google_place_token = @googlePlaceToken,
+        google_internal_ids = @googleInternalIds,
+        source_list_url = @sourceListUrl,
+        latitude = @latitude,
+        longitude = @longitude,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = @id
+    `);
+
+    const insert = db.prepare(`
+      INSERT INTO places (
+        name,
+        address,
+        google_maps_url,
+        place_id,
+        google_place_token,
+        google_internal_ids,
+        source_list_url,
+        latitude,
+        longitude,
+        notes
+      ) VALUES (
+        @name,
+        @address,
+        @googleMapsUrl,
+        @placeId,
+        @googlePlaceToken,
+        @googleInternalIds,
+        @sourceListUrl,
+        @latitude,
+        @longitude,
+        @notes
+      )
+    `);
+    for (const place of places) {
+      const existing = findExistingPlace(place, existingRows);
+      if (existing) {
+        update.run({ ...place, id: existing.id });
+      } else {
+        insert.run(place);
+      }
+    }
+  });
+
+  importRows();
+
+  console.log(`Imported ${places.length} places from ${sourceUrl}`);
+  console.log(`List title: ${root?.[4] ?? "Unknown"}`);
+}
 
 function parsePlace(row) {
   const meta = row?.[1] ?? [];
@@ -184,7 +187,7 @@ function migrate(database) {
   `);
 }
 
-function findExistingPlace(imported, existingRows) {
+export function findExistingPlace(imported, existingRows) {
   if (imported.placeId) {
     const match = existingRows.find((row) => row.place_id === imported.placeId);
     if (match) return match;
@@ -205,4 +208,8 @@ function findExistingPlace(imported, existingRows) {
   }
 
   return null;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await importGoogleList();
 }

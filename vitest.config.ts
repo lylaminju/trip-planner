@@ -5,7 +5,6 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.{test,spec}.{ts,mjs}"],
-    passWithNoTests: true,
   },
   resolve: {
     alias: {

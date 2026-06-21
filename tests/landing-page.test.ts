@@ -48,9 +48,6 @@ describe("LandingPage", () => {
     expect(markup).toContain("landing-abstract-map-block");
     expect(markup).toContain("landing-map-marker-label");
     expect(markup).toContain("landing-map-route-halo");
-    expect(markup).not.toContain("landing-map-road");
-    expect(markup).not.toContain("OpenStreetMap");
-    expect(markup).not.toContain("landing-map-osm");
     expect(markup).toContain('aria-label="Travel mode: Walking"');
     expect(markup).toContain('aria-label="Travel mode: Transit"');
     expect(markup).toContain("18 min");
@@ -76,15 +73,6 @@ describe("LandingPage", () => {
     expect(markup).toContain("Add Place");
     expect(markup).toContain("Place details ready");
     expect(markup).toContain('aria-label="Add Brunch cafe to itinerary"');
-    expect(markup).not.toContain("Add stop");
-    expect(markup).not.toContain("landing-workflow-marker-label");
-    expect(markup).not.toContain("landing-workflow-saved-place");
-    expect(markup).not.toContain("landing-workflow-visual");
-    expect(markup).not.toContain("landing-workflow-map-road");
-    expect(markup).not.toContain("OpenStreetMap");
-    expect(markup).not.toContain("Maps link ready");
-    expect(markup).not.toContain("Selected workflow step");
-    expect(markup).not.toContain("Google Maps places");
   });
 
   it("renders landing route segments with the product route row structure", () => {
@@ -102,8 +90,6 @@ describe("LandingPage", () => {
     expect(markup).toContain("route-duration");
     expect(markup).toContain("small-button landing-route-map-link");
     expect(markup).toContain('aria-label="Travel mode: Walking"');
-    expect(markup).not.toContain("landing-route-segment active");
-    expect(markup).not.toContain("landing-workflow-route");
   });
 
   it("renders route details toggle states with the product switch structure", () => {
@@ -119,7 +105,6 @@ describe("LandingPage", () => {
     expect(offMarkup).toContain('aria-checked="false"');
     expect(offMarkup).toContain("Route details");
     expect(offMarkup).toContain("route-segment-switch-track");
-    expect(offMarkup).not.toContain("route-segment-toggle active");
 
     expect(onMarkup).toContain('class="route-segment-toggle active"');
     expect(onMarkup).toContain('role="switch"');
@@ -136,6 +121,5 @@ describe("LandingPage", () => {
     expect(markup).toContain('name="email"');
     expect(markup).toContain('type="email"');
     expect(markup).toContain('name="password"');
-    expect(markup).not.toContain("Use the email attached to your invite.");
   });
 });

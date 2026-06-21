@@ -46,9 +46,6 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('class="trips-header-actions"');
     expect(markup).toContain('class="trip-create-trigger"');
     expect(markup).toContain("+ New Trip");
-    expect(markup).not.toContain('class="trips-side-rail"');
-    expect(markup).not.toContain('class="trip-create-card"');
-    expect(markup).not.toContain("Total trips");
   });
 
   it("renders the create trip form as a modal dialog", () => {
@@ -80,9 +77,6 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('class="trip-date-range-picker"');
     expect(markup).toContain("Add dates");
     expect(markup).not.toContain('type="date"');
-    expect(markup).not.toContain('class="trip-form-date-row"');
-    expect(markup).not.toContain("Timezone");
-    expect(markup).not.toContain('class="timezone-select"');
     expect(markup).toContain("Cancel");
     expect(markup.indexOf("Cancel")).toBeLessThan(
       markup.lastIndexOf("Create trip"),
@@ -120,9 +114,6 @@ describe("TripsDashboard", () => {
     expect(markup).toContain("0 trips");
     expect(markup).toContain('aria-label="No trips in this section."');
     expect(markup).toContain('viewBox="0 0 64 64"');
-    expect(markup).not.toContain(
-      '<p class="trip-empty-text">No trips in this section.</p>',
-    );
   });
 
   it("hides a collapsed trip section body while preserving the heading count", () => {
@@ -225,9 +216,6 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('value="2026-06-01"');
     expect(markup).toContain("Save changes");
     expect(markup).toContain("Cancel");
-    expect(markup).not.toContain('class="trip-row trip-edit-form"');
-    expect(markup).not.toContain(">Edit trip<");
-    expect(markup).not.toContain('aria-label="Timezone"');
   });
 
   it("sizes the destination dropdown to the input field", () => {
@@ -241,29 +229,6 @@ describe("TripsDashboard", () => {
     );
   });
 
-  it("keeps the create trip hover state styled as a primary action", () => {
-    const css = readFileSync(
-      "src/styles/components/trips-dashboard-shell.css",
-      "utf8",
-    );
-
-    expect(css).toMatch(
-      /(?:^|\n)\.trip-form-submit:hover:not\(:disabled\)\s*{[^}]*background:\s*var\(--accent-hover\);[^}]*border-color:\s*var\(--accent-hover\);[^}]*color:\s*var\(--text-on-accent\);/s,
-    );
-  });
-
-  it("keeps the profile card directly below the service title", () => {
-    const css = readFileSync(
-      "src/styles/components/trips-dashboard-shell.css",
-      "utf8",
-    );
-    const profileRule = cssRule(css, ".trips-profile-card");
-    const accountActionsRule = cssRule(css, ".trips-account-actions");
-
-    expect(profileRule).not.toContain("margin-top: auto;");
-    expect(accountActionsRule).toContain("margin-top: auto;");
-  });
-
   it("keeps the desktop dashboard shell centered while the sticky rail fills the viewport", () => {
     const css = readFileSync(
       "src/styles/components/trips-dashboard-shell.css",
@@ -275,34 +240,14 @@ describe("TripsDashboard", () => {
     const mainPaneRule = cssRule(css, ".trips-main-pane");
 
     expect(pageRule).toContain("--trips-page-padding-x: 24px;");
-    expect(pageRule).toContain("background: var(--surface-base);");
-    expect(pageRule).toContain("overflow: visible;");
     expect(pageRule).toContain("padding: 0 var(--trips-page-padding-x);");
-    expect(shellRule).toContain("align-items: start;");
-    expect(shellRule).toContain("border: 0;");
-    expect(shellRule).toContain("border-radius: 0;");
     expect(shellRule).toContain("margin: 0 auto;");
     expect(shellRule).toContain("max-width: 1320px;");
     expect(shellRule).toContain("min-height: 100dvh;");
-    expect(shellRule).toContain("overflow: visible;");
-    expect(railRule).toContain("border-radius: 0;");
-    expect(railRule).toContain("height: 100dvh;");
     expect(railRule).toContain("max-height: 100dvh;");
-    expect(railRule).toContain("overflow: auto;");
     expect(railRule).toContain("position: sticky;");
-    expect(railRule).toContain("top: 0;");
-    expect(mainPaneRule).toContain("border-radius: 0;");
     expect(mainPaneRule).toContain("align-content: start;");
     expect(mainPaneRule).toContain("min-height: 100dvh;");
-    expect(mainPaneRule).not.toContain("grid-template-rows: auto 1fr;");
-    expect(mainPaneRule).not.toContain("justify-items:");
-
-    expect(css).toMatch(
-      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-dashboard-shell\s*{[^}]*border:\s*1px solid var\(--line\);[^}]*border-radius:\s*10px;[^}]*overflow:\s*hidden;/s,
-    );
-    expect(css).toMatch(
-      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-page\s*{[^}]*padding:\s*14px;/s,
-    );
     expect(css).toMatch(
       /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-main-pane\s*{[^}]*min-height:\s*0;/s,
     );
@@ -318,13 +263,9 @@ describe("TripsDashboard", () => {
     expect(cssRule(css, ".trips-mobile-nav-backdrop")).toContain(
       "display: none;",
     );
-    expect(cssRule(css, ".trips-mobile-nav-close")).toContain("display: none;");
 
     expect(css).toMatch(
       /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-mobile-topbar\s*{[^}]*display:\s*flex;/s,
-    );
-    expect(css).toMatch(
-      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-mobile-nav-backdrop\s*{[^}]*background:\s*var\(--overlay-backdrop\);[^}]*inset:\s*0;[^}]*position:\s*fixed;[^}]*z-index:\s*24;/s,
     );
     expect(css).toMatch(
       /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-brand-rail\s*{[^}]*height:\s*100dvh;[^}]*max-height:\s*100dvh;[^}]*position:\s*fixed;[^}]*right:\s*0;[^}]*top:\s*0;[^}]*transform:\s*translateX\(100%\);[^}]*visibility:\s*hidden;[^}]*z-index:\s*25;/s,
@@ -332,91 +273,6 @@ describe("TripsDashboard", () => {
     expect(css).toMatch(
       /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-brand-rail-open\s*{[^}]*transform:\s*translateX\(0\);[^}]*visibility:\s*visible;/s,
     );
-    expect(css).toMatch(
-      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-mobile-nav-close\s*{[^}]*display:\s*inline-flex;/s,
-    );
-  });
-
-  it("renders the trip date calendar as a viewport-fixed popover", () => {
-    const css = readFileSync(
-      "src/styles/components/trip-date-range-picker.css",
-      "utf8",
-    );
-    const calendarRule = cssRule(css, ".trip-date-calendar");
-
-    expect(calendarRule).toContain("left: 50%;");
-    expect(calendarRule).toContain("max-height: calc(100dvh - 32px);");
-    expect(calendarRule).toContain("overflow: auto;");
-    expect(calendarRule).toContain("position: fixed;");
-    expect(calendarRule).toContain("top: 50%;");
-    expect(calendarRule).toContain("transform: translate(-50%, -50%);");
-    expect(calendarRule).toContain("z-index: 22;");
-  });
-
-  it("keeps calendar day rows aligned across months", () => {
-    const css = readFileSync(
-      "src/styles/components/trip-date-range-picker.css",
-      "utf8",
-    );
-    const gridRule = cssRule(css, ".trip-date-calendar-grid");
-
-    expect(gridRule).toContain("grid-auto-rows: 34px;");
-    expect(gridRule).toContain("align-items: stretch;");
-  });
-
-  it("uses fixed month and year selects in the date calendar header", () => {
-    const source = readFileSync(
-      "src/components/TripDateRangePicker.tsx",
-      "utf8",
-    );
-    const css = readFileSync(
-      "src/styles/components/trip-date-range-picker.css",
-      "utf8",
-    );
-
-    expect(source).toContain('className="trip-date-nav-button"');
-    expect(source).toContain('className="trip-date-calendar-selects"');
-    expect(source).toContain('className="trip-date-month-select"');
-    expect(source).toContain('className="trip-date-year-select"');
-    expect(source).toContain('aria-label="Visible month"');
-    expect(source).toContain('aria-label="Visible year"');
-    expect(source).toContain("This month");
-    expect(source).not.toContain("isMonthPickerOpen");
-    expect(source).not.toContain("trip-date-month-jump-panel");
-    expect(source).not.toContain("trip-date-month-option");
-    expect(source).not.toContain(">Prev<");
-    expect(source).not.toContain(">Next<");
-
-    expect(cssRule(css, ".trip-date-calendar-header")).toContain(
-      "grid-template-columns: 34px minmax(0, 1fr) 34px;",
-    );
-    const selectGroupRule = cssRule(css, ".trip-date-calendar-selects");
-    expect(selectGroupRule).toContain(
-      "grid-template-columns: max-content max-content;",
-    );
-    expect(selectGroupRule).toContain("justify-self: center;");
-
-    expect(css).toMatch(
-      /\.trip-date-month-select,\s*\.trip-date-year-select\s*{[^}]*height:\s*34px;[^}]*width:\s*fit-content;/s,
-    );
-    expect(css).not.toMatch(
-      /\.trip-date-month-select,\s*\.trip-date-year-select\s*{[^}]*width:\s*100%;/s,
-    );
-  });
-
-  it("uses the planner collapse button shape for trip section headings", () => {
-    const css = readFileSync(
-      "src/styles/components/trips-dashboard.css",
-      "utf8",
-    );
-    const rule = cssRule(css, ".trip-section-collapse-button");
-
-    expect(rule).toContain("background: transparent;");
-    expect(rule).toContain("border: 0;");
-    expect(rule).toContain("border-radius: 6px;");
-    expect(rule).toContain("flex: 0 0 28px;");
-    expect(rule).toContain("height: 28px;");
-    expect(rule).toContain("width: 28px;");
   });
 
   it("keeps trip sections top-packed when the main pane has extra height", () => {
@@ -427,7 +283,6 @@ describe("TripsDashboard", () => {
     const rule = cssRule(css, ".trip-sections");
 
     expect(rule).toContain("align-content: start;");
-    expect(rule).toContain("gap: 30px;");
   });
 
   it("keeps desktop trip grid rows at a consistent height", () => {
@@ -442,18 +297,6 @@ describe("TripsDashboard", () => {
     expect(css).toMatch(
       /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list > \.trip-row\s*{[^}]*align-self:\s*stretch;[^}]*height:\s*100%;[^}]*min-height:\s*0;/s,
     );
-    expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-editing:not\(\.featured-trip\)\s*{[^}]*padding-bottom:\s*10px;/s,
-    );
-    expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-editing\.featured-trip\s*{[^}]*padding-bottom:\s*0;/s,
-    );
-    expect(css).toMatch(
-      /\.trip-row:not\(\.featured-trip\):not\(\.trip-row-editing\)\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s,
-    );
-    expect(css).toMatch(
-      /\.trip-row:not\(\.featured-trip\):not\(\.trip-row-editing\) \.trip-row-meta\s*{[^}]*bottom:\s*10px;[^}]*position:\s*absolute;[^}]*right:\s*8px;/s,
-    );
   });
 
   it("reserves root scrollbar gutter space to keep the centered dashboard stable", () => {
@@ -462,22 +305,6 @@ describe("TripsDashboard", () => {
     expect(cssRule(css, "html")).toContain("scrollbar-gutter: stable;");
   });
 
-  it("increases desktop trip card text without resizing chips or icon buttons", () => {
-    const css = readFileSync(
-      "src/styles/components/trips-dashboard.css",
-      "utf8",
-    );
-
-    expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-main strong\s*{[^}]*font-size:\s*17px;/,
-    );
-    expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-row-main \.trip-destination,\s*\.trip-row-main \.trip-period\s*{[^}]*font-size:\s*14px;/,
-    );
-    expect(css).not.toMatch(
-      /@media \(min-width: 921px\)\s*{[^}]*\.(?:trip-duration|trip-role|icon-button)\s*{[^}]*font-size:/s,
-    );
-  });
 });
 
 function tripSummary(overrides: Partial<TripSummary> = {}): TripSummary {
