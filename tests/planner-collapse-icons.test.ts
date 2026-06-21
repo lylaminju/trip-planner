@@ -90,7 +90,7 @@ describe("planner collapse controls", () => {
 
   it("uses borderless rounded-square cells for planner collapse icons", () => {
     const sectionToggleRule = cssRule(
-      readFileSync("src/styles/components/left-panel.css", "utf8"),
+      readFileSync("src/styles/components/planner-panel.css", "utf8"),
       ".section-toggle-button",
     );
     const dayCollapseRule = cssRule(

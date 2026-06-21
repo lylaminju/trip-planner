@@ -129,7 +129,7 @@ export function PlannerPanel(props: Props) {
 
   return (
     <section
-      className={`panel panel-left mobile-sheet-${props.mobileSheetState} ${
+      className={`panel planner-panel mobile-sheet-${props.mobileSheetState} ${
         mobileSheetDrag.dragHeight !== null ? "mobile-sheet-dragging" : ""
       } ${props.isExpanded ? "expanded" : ""}`}
       style={

@@ -29,7 +29,7 @@ export function useMobileSheetDrag(input: UseMobileSheetDragInput) {
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
     dragStartYRef.current = event.clientY;
     dragStartHeightRef.current =
-      event.currentTarget.closest(".panel-left")?.getBoundingClientRect()
+      event.currentTarget.closest(".planner-panel")?.getBoundingClientRect()
         .height ?? null;
     dragMovedRef.current = false;
     event.currentTarget.setPointerCapture(event.pointerId);

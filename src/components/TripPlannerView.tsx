@@ -111,7 +111,7 @@ export function TripPlannerView(props: Props) {
   return (
     <main
       className={`app-shell mobile-sheet-${props.mobileSheetState} ${
-        props.isPlannerPanelExpanded ? "left-panel-expanded" : ""
+        props.isPlannerPanelExpanded ? "planner-panel-expanded" : ""
       }`}
     >
       <PlannerPanel

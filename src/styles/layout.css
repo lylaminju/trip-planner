@@ -8,7 +8,7 @@
   transition: grid-template-columns 260ms ease;
 }
 
-.app-shell.left-panel-expanded {
+.app-shell.planner-panel-expanded {
   grid-template-columns: minmax(0, 1fr) 0px;
 }
 
@@ -17,7 +17,7 @@
   min-width: 0;
 }
 
-.panel-left {
+.planner-panel {
   background: var(--panel);
   border-right: 1px solid var(--line);
   overflow: auto;
@@ -26,7 +26,7 @@
   transition: opacity 260ms ease;
 }
 
-.panel-left.expanded {
+.planner-panel.expanded {
   border-right: 0;
 }
 

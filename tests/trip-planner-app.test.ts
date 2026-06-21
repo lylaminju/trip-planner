@@ -48,6 +48,19 @@ describe("TripPlannerApp", () => {
     expect(markup).not.toContain("Log out");
   });
 
+  it("uses semantic planner panel classes instead of location-based names", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildInitialData(),
+      }),
+    );
+
+    expect(markup).toContain("planner-panel");
+    expect(markup).not.toContain("panel-left");
+    expect(markup).not.toContain("left-panel-expanded");
+  });
+
   it("hides trip metadata editing from non-owners", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
