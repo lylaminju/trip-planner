@@ -24,13 +24,13 @@
     border-radius: 18px 18px 0 0;
     bottom: 0;
     box-shadow: var(--shadow-mobile-sheet);
+    display: flex;
+    flex-direction: column;
     height: 64dvh;
     left: 0;
     max-height: none;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    padding: 0 14px calc(18px + env(safe-area-inset-bottom));
+    overflow: hidden;
+    padding: 0;
     position: fixed;
     right: 0;
     touch-action: pan-y;
@@ -39,7 +39,7 @@
   }
 
   .planner-panel.mobile-sheet-collapsed {
-    height: calc(42px + env(safe-area-inset-bottom));
+    height: calc(40px + env(safe-area-inset-bottom));
     overflow: hidden;
   }
 
@@ -53,6 +53,15 @@
     transition: none;
   }
 
+  .mobile-sheet-handle-rail {
+    align-items: center;
+    background: var(--panel);
+    display: flex;
+    flex: 0 0 40px;
+    height: 40px;
+    justify-content: center;
+  }
+
   .mobile-sheet-handle {
     align-items: center;
     background: transparent;
@@ -60,15 +69,13 @@
     box-shadow: none;
     cursor: grab;
     display: flex;
-    height: 34px;
+    height: 40px;
     justify-content: center;
-    margin: 0 auto 4px;
+    margin: 0;
     padding: 0;
-    position: sticky;
-    top: 0;
+    position: static;
     touch-action: none;
     width: 100%;
-    z-index: 2;
   }
 
   .mobile-sheet-handle:hover,
@@ -88,6 +95,19 @@
     display: block;
     height: 4px;
     width: 42px;
+  }
+
+  .mobile-sheet-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 14px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .planner-panel.mobile-sheet-collapsed .mobile-sheet-content {
+    display: none;
   }
 
   .planner-panel.expanded {
@@ -133,15 +153,15 @@
   }
 
   .app-shell.mobile-sheet-collapsed .map-route-warning {
-    bottom: calc(42px + env(safe-area-inset-bottom) + 12px);
+    bottom: calc(40px + env(safe-area-inset-bottom) + 12px);
   }
 
   .app-shell.mobile-sheet-collapsed .map-current-location-button {
-    bottom: calc(42px + env(safe-area-inset-bottom) + 18px);
+    bottom: calc(40px + env(safe-area-inset-bottom) + 18px);
   }
 
   .app-shell.mobile-sheet-collapsed .map-current-location-toast {
-    bottom: calc(42px + env(safe-area-inset-bottom) + 72px);
+    bottom: calc(40px + env(safe-area-inset-bottom) + 72px);
   }
 
   .app-shell.mobile-sheet-full .map-route-warning {

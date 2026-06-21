@@ -25,7 +25,7 @@ export function raiseMobileSheetState(
 export function clampMobileSheetHeight(height: number): number {
   if (typeof window === "undefined") return height;
 
-  const minHeight = 42;
+  const minHeight = 40;
   const maxHeight = window.innerHeight;
   return Math.min(Math.max(height, minHeight), maxHeight);
 }

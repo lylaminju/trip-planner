@@ -140,152 +140,158 @@ export function PlannerPanel(props: Props) {
             } as CSSProperties)
       }
     >
-      <button
-        type="button"
-        className="mobile-sheet-handle"
-        aria-label={`Resize itinerary panel, currently ${props.mobileSheetState}`}
-        title="Resize itinerary panel"
-        onPointerDown={mobileSheetDrag.handlePointerDown}
-        onPointerMove={mobileSheetDrag.handlePointerMove}
-        onPointerUp={mobileSheetDrag.handlePointerUp}
-        onPointerCancel={mobileSheetDrag.handlePointerCancel}
-        onClick={mobileSheetDrag.handleClick}
-      >
-        <span aria-hidden="true" />
-      </button>
-      <header className="app-header">
-        <div className="app-header-title-row">
-          <div className="app-header-title-stack">
-            <Link className="app-header-dashboard-link" href="/trips">
-              <ChevronLeftIcon />
-              <span>Trips dashboard</span>
-            </Link>
-            <div className="app-header-name-row">
-              <h1>{props.title}</h1>
-              {props.onEditTrip && (
-                <button
-                  type="button"
-                  className="icon-button app-header-edit-trip-button"
-                  aria-label="Edit trip details"
-                  title="Edit trip details"
-                  onClick={props.onEditTrip}
-                >
-                  <PencilIcon />
-                </button>
+      <div className="mobile-sheet-handle-rail">
+        <button
+          type="button"
+          className="mobile-sheet-handle"
+          aria-label={`Resize itinerary panel, currently ${props.mobileSheetState}`}
+          title="Resize itinerary panel"
+          onPointerDown={mobileSheetDrag.handlePointerDown}
+          onPointerMove={mobileSheetDrag.handlePointerMove}
+          onPointerUp={mobileSheetDrag.handlePointerUp}
+          onPointerCancel={mobileSheetDrag.handlePointerCancel}
+          onClick={mobileSheetDrag.handleClick}
+        >
+          <span aria-hidden="true" />
+        </button>
+      </div>
+      <div className="mobile-sheet-content">
+        <header className="app-header">
+          <div className="app-header-title-row">
+            <div className="app-header-title-stack">
+              <Link className="app-header-dashboard-link" href="/trips">
+                <ChevronLeftIcon />
+                <span>Trips dashboard</span>
+              </Link>
+              <div className="app-header-name-row">
+                <h1>{props.title}</h1>
+                {props.onEditTrip && (
+                  <button
+                    type="button"
+                    className="icon-button app-header-edit-trip-button"
+                    aria-label="Edit trip details"
+                    title="Edit trip details"
+                    onClick={props.onEditTrip}
+                  >
+                    <PencilIcon />
+                  </button>
+                )}
+              </div>
+              {props.tripPeriodLabel && (
+                <p className="app-header-period">{props.tripPeriodLabel}</p>
               )}
             </div>
-            {props.tripPeriodLabel && (
-              <p className="app-header-period">{props.tripPeriodLabel}</p>
-            )}
+            <button
+              type="button"
+              className="panel-expand-toggle"
+              aria-label={viewToggleDescription}
+              title={viewToggleDescription}
+              onClick={props.onToggleExpanded}
+            >
+              {props.isExpanded && (
+                <span className="panel-expand-toggle-icon" aria-hidden="true">
+                  <ChevronLeftIcon />
+                  <ChevronLeftIcon />
+                </span>
+              )}
+              <span>{viewToggleLabel}</span>
+              {!props.isExpanded && (
+                <span className="panel-expand-toggle-icon" aria-hidden="true">
+                  <ChevronRightIcon />
+                  <ChevronRightIcon />
+                </span>
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            className="panel-expand-toggle"
-            aria-label={viewToggleDescription}
-            title={viewToggleDescription}
-            onClick={props.onToggleExpanded}
-          >
-            {props.isExpanded && (
-              <span className="panel-expand-toggle-icon" aria-hidden="true">
-                <ChevronLeftIcon />
-                <ChevronLeftIcon />
-              </span>
-            )}
-            <span>{viewToggleLabel}</span>
-            {!props.isExpanded && (
-              <span className="panel-expand-toggle-icon" aria-hidden="true">
-                <ChevronRightIcon />
-                <ChevronRightIcon />
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
+        </header>
 
-      {props.error && <p className="error-text">{props.error}</p>}
+        {props.error && <p className="error-text">{props.error}</p>}
 
-      <ItinerarySection
-        itinerary={props.itinerary}
-        activePlaceId={props.activePlaceId}
-        activeCanonicalPlaceId={props.activeCanonicalPlaceId}
-        activeSegmentId={props.activeSegmentId}
-        activeDate={props.activeDate}
-        collapsedDates={props.collapsedDates}
-        routeGeometries={props.routeGeometries}
-        markerLabels={markerLabels}
-        canEdit={props.canEdit}
-        canAddVisits={props.canAddVisits}
-        deletingPlaceIds={props.deletingPlaceIds}
-        deletingItineraryItemIds={props.deletingItineraryItemIds}
-        isExpanded={props.isExpanded}
-        isOpen={isItinerariesOpen}
-        isUnscheduledOpen={isUnscheduledOpen}
-        showRouteSegments={showRouteSegments}
-        dropTargetKey={dropTargetKey}
-        exportFeedback={props.exportFeedback}
-        onDropTargetChange={setDropTargetKey}
-        onToggleOpen={() => setIsItinerariesOpen((value) => !value)}
-        onToggleUnscheduledOpen={() => setIsUnscheduledOpen((value) => !value)}
-        onToggleRouteSegments={() => setShowRouteSegments((value) => !value)}
-        onCopyExport={props.onCopyExport}
-        onDownloadExport={props.onDownloadExport}
-        onToggleDatePlacePicker={toggleDatePlacePicker}
-        onSelectPlace={props.onSelectPlace}
-        onSelectCanonicalPlace={props.onSelectCanonicalPlace}
-        onSelectSegment={props.onSelectSegment}
-        onToggleDateCollapsed={props.onToggleDateCollapsed}
-        onSelectDate={props.onSelectDate}
-        onAddVisit={props.onAddVisit}
-        onEdit={props.onEdit}
-        onEditItem={props.onEditItem}
-        onDelete={props.onDelete}
-        onDeleteItem={props.onDeleteItem}
-        onScheduleItem={props.onScheduleItem}
-        onModeChange={props.onModeChange}
-        onConfirmDeletion={confirmDeletion}
-      />
+        <ItinerarySection
+          itinerary={props.itinerary}
+          activePlaceId={props.activePlaceId}
+          activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+          activeSegmentId={props.activeSegmentId}
+          activeDate={props.activeDate}
+          collapsedDates={props.collapsedDates}
+          routeGeometries={props.routeGeometries}
+          markerLabels={markerLabels}
+          canEdit={props.canEdit}
+          canAddVisits={props.canAddVisits}
+          deletingPlaceIds={props.deletingPlaceIds}
+          deletingItineraryItemIds={props.deletingItineraryItemIds}
+          isExpanded={props.isExpanded}
+          isOpen={isItinerariesOpen}
+          isUnscheduledOpen={isUnscheduledOpen}
+          showRouteSegments={showRouteSegments}
+          dropTargetKey={dropTargetKey}
+          exportFeedback={props.exportFeedback}
+          onDropTargetChange={setDropTargetKey}
+          onToggleOpen={() => setIsItinerariesOpen((value) => !value)}
+          onToggleUnscheduledOpen={() =>
+            setIsUnscheduledOpen((value) => !value)
+          }
+          onToggleRouteSegments={() => setShowRouteSegments((value) => !value)}
+          onCopyExport={props.onCopyExport}
+          onDownloadExport={props.onDownloadExport}
+          onToggleDatePlacePicker={toggleDatePlacePicker}
+          onSelectPlace={props.onSelectPlace}
+          onSelectCanonicalPlace={props.onSelectCanonicalPlace}
+          onSelectSegment={props.onSelectSegment}
+          onToggleDateCollapsed={props.onToggleDateCollapsed}
+          onSelectDate={props.onSelectDate}
+          onAddVisit={props.onAddVisit}
+          onEdit={props.onEdit}
+          onEditItem={props.onEditItem}
+          onDelete={props.onDelete}
+          onDeleteItem={props.onDeleteItem}
+          onScheduleItem={props.onScheduleItem}
+          onModeChange={props.onModeChange}
+          onConfirmDeletion={confirmDeletion}
+        />
 
-      <PlacesSection
-        places={props.places}
-        itinerary={props.itinerary}
-        activePlaceId={props.activePlaceId}
-        activeCanonicalPlaceId={props.activeCanonicalPlaceId}
-        canEdit={props.canEdit}
-        canAddVisits={props.canAddVisits}
-        deletingPlaceIds={props.deletingPlaceIds}
-        isExpanded={props.isExpanded}
-        isOpen={isPlacesOpen}
-        onToggleOpen={() => setIsPlacesOpen((value) => !value)}
-        onAddPlace={() => props.onAdd()}
-        onSelectPlace={props.onSelectPlace}
-        onSelectCanonicalPlace={props.onSelectCanonicalPlace}
-        onSelectSegment={props.onSelectSegment}
-        onAddVisit={props.onAddVisit}
-        onEdit={props.onEdit}
-        onDelete={props.onDelete}
-        onConfirmDeletion={confirmDeletion}
-      />
+        <PlacesSection
+          places={props.places}
+          itinerary={props.itinerary}
+          activePlaceId={props.activePlaceId}
+          activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+          canEdit={props.canEdit}
+          canAddVisits={props.canAddVisits}
+          deletingPlaceIds={props.deletingPlaceIds}
+          isExpanded={props.isExpanded}
+          isOpen={isPlacesOpen}
+          onToggleOpen={() => setIsPlacesOpen((value) => !value)}
+          onAddPlace={() => props.onAdd()}
+          onSelectPlace={props.onSelectPlace}
+          onSelectCanonicalPlace={props.onSelectCanonicalPlace}
+          onSelectSegment={props.onSelectSegment}
+          onAddVisit={props.onAddVisit}
+          onEdit={props.onEdit}
+          onDelete={props.onDelete}
+          onConfirmDeletion={confirmDeletion}
+        />
 
-      {picker &&
-        props.canEdit &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <DatePlacePicker
-            date={picker.date}
-            places={props.places}
-            style={{ left: picker.left, top: picker.top }}
-            onClose={() => setPicker(null)}
-            onCreatePlace={() => {
-              props.onAdd(picker.date);
-              setPicker(null);
-            }}
-            onSelect={(place) => {
-              props.onSchedulePlace(place.id, picker.date, null);
-              setPicker(null);
-            }}
-          />,
-          document.body,
-        )}
+        {picker &&
+          props.canEdit &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <DatePlacePicker
+              date={picker.date}
+              places={props.places}
+              style={{ left: picker.left, top: picker.top }}
+              onClose={() => setPicker(null)}
+              onCreatePlace={() => {
+                props.onAdd(picker.date);
+                setPicker(null);
+              }}
+              onSelect={(place) => {
+                props.onSchedulePlace(place.id, picker.date, null);
+                setPicker(null);
+              }}
+            />,
+            document.body,
+          )}
+      </div>
     </section>
   );
 }

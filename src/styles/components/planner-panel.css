@@ -3,6 +3,10 @@
   display: none;
 }
 
+.mobile-sheet-handle-rail {
+  display: none;
+}
+
 .section-heading-row {
   align-items: center;
   display: flex;
