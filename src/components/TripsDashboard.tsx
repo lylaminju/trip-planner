@@ -17,6 +17,27 @@ import type { TripFormState } from "./trip-form-types";
 
 export { TripSection };
 
+type TripSectionOpenState = {
+  active: boolean;
+  past: boolean;
+};
+
+export function defaultTripSectionOpenState(
+  trips: TripSummary[],
+  now = new Date(),
+): TripSectionOpenState {
+  const groups = groupTripsByTiming(trips, now);
+  const hasOngoingUpcomingTrips =
+    groups.ongoing.length > 0 ||
+    groups.upcoming.length > 0 ||
+    groups.needsDates.length > 0;
+
+  return {
+    active: true,
+    past: !hasOngoingUpcomingTrips,
+  };
+}
+
 export function TripsDashboard(props: {
   userName?: string | null;
   userEmail?: string | null;
@@ -34,10 +55,11 @@ export function TripsDashboard(props: {
     () => new Set(),
   );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [openTripSections, setOpenTripSections] = useState({
-    active: true,
-    past: true,
-  });
+  const [openTripSections, setOpenTripSections] =
+    useState<TripSectionOpenState>({
+      active: true,
+      past: true,
+    });
   const [error, setError] = useState<string | null>(null);
   const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
   const featuredTrip = groups.ongoing[0] ?? groups.upcoming[0] ?? null;
@@ -60,6 +82,7 @@ export function TripsDashboard(props: {
     loadTrips()
       .then((loadedTrips) => {
         setTrips(loadedTrips);
+        setOpenTripSections(defaultTripSectionOpenState(loadedTrips));
         setError(null);
       })
       .catch((reason) => {
@@ -193,7 +216,7 @@ export function TripsDashboard(props: {
             <div className="trip-sections">
               <TripSection
                 sectionId="active-trips"
-                title="Ongoing & Upcoming"
+                title="Ongoing & Upcoming trips"
                 trips={activeTrips}
                 featuredTripId={featuredTrip?.id}
                 isOpen={openTripSections.active}

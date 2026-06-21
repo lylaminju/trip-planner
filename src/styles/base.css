@@ -1,4 +1,14 @@
 /* Base document and default element styling. */
+html {
+  scrollbar-gutter: stable;
+}
+
+@supports (scrollbar-gutter: stable both-edges) {
+  html {
+    scrollbar-gutter: stable both-edges;
+  }
+}
+
 html,
 body {
   height: 100%;

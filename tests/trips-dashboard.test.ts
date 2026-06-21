@@ -9,7 +9,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { CreateTripModal } from "@/components/CreateTripModal";
-import { TripSection, TripsDashboard } from "@/components/TripsDashboard";
+import {
+  defaultTripSectionOpenState,
+  TripSection,
+  TripsDashboard,
+} from "@/components/TripsDashboard";
+import type { TripSummary } from "@/lib/types";
 
 describe("TripsDashboard", () => {
   it("renders the shell with profile fallback, left-rail account controls, and header create action", () => {
@@ -145,6 +150,49 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('id="past-trips-panel" hidden=""');
   });
 
+  it("collapses past trips by default when the ongoing and upcoming section has trips", () => {
+    const now = new Date("2026-06-21T12:00:00Z");
+
+    expect(
+      defaultTripSectionOpenState(
+        [
+          tripSummary({
+            id: 12,
+            start_date: "2026-07-01",
+            end_date: "2026-07-02",
+          }),
+          tripSummary({
+            id: 13,
+            name: "Old Montreal",
+            start_date: "2025-06-01",
+            end_date: "2025-06-02",
+          }),
+        ],
+        now,
+      ),
+    ).toEqual({
+      active: true,
+      past: false,
+    });
+
+    expect(
+      defaultTripSectionOpenState(
+        [
+          tripSummary({
+            id: 14,
+            name: "Past only",
+            start_date: "2025-07-01",
+            end_date: "2025-07-02",
+          }),
+        ],
+        now,
+      ),
+    ).toEqual({
+      active: true,
+      past: true,
+    });
+  });
+
   it("converts the selected trip into an edit card without the legacy edit row", () => {
     const trip = tripSummary();
     const markup = renderToStaticMarkup(
@@ -244,6 +292,9 @@ describe("TripsDashboard", () => {
     expect(railRule).toContain("position: sticky;");
     expect(railRule).toContain("top: 0;");
     expect(mainPaneRule).toContain("border-radius: 0;");
+    expect(mainPaneRule).toContain("align-content: start;");
+    expect(mainPaneRule).toContain("min-height: 100dvh;");
+    expect(mainPaneRule).not.toContain("grid-template-rows: auto 1fr;");
     expect(mainPaneRule).not.toContain("justify-items:");
 
     expect(css).toMatch(
@@ -251,6 +302,9 @@ describe("TripsDashboard", () => {
     );
     expect(css).toMatch(
       /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-page\s*{[^}]*padding:\s*14px;/s,
+    );
+    expect(css).toMatch(
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-main-pane\s*{[^}]*min-height:\s*0;/s,
     );
   });
 
@@ -337,7 +391,9 @@ describe("TripsDashboard", () => {
       "grid-template-columns: 34px minmax(0, 1fr) 34px;",
     );
     const selectGroupRule = cssRule(css, ".trip-date-calendar-selects");
-    expect(selectGroupRule).toContain("grid-template-columns: max-content max-content;");
+    expect(selectGroupRule).toContain(
+      "grid-template-columns: max-content max-content;",
+    );
     expect(selectGroupRule).toContain("justify-self: center;");
 
     expect(css).toMatch(
@@ -361,6 +417,17 @@ describe("TripsDashboard", () => {
     expect(rule).toContain("flex: 0 0 28px;");
     expect(rule).toContain("height: 28px;");
     expect(rule).toContain("width: 28px;");
+  });
+
+  it("keeps trip sections top-packed when the main pane has extra height", () => {
+    const css = readFileSync(
+      "src/styles/components/trips-dashboard.css",
+      "utf8",
+    );
+    const rule = cssRule(css, ".trip-sections");
+
+    expect(rule).toContain("align-content: start;");
+    expect(rule).toContain("gap: 30px;");
   });
 
   it("keeps desktop trip grid rows at a consistent height", () => {
@@ -389,6 +456,12 @@ describe("TripsDashboard", () => {
     );
   });
 
+  it("reserves root scrollbar gutter space to keep the centered dashboard stable", () => {
+    const css = readFileSync("src/styles/base.css", "utf8");
+
+    expect(cssRule(css, "html")).toContain("scrollbar-gutter: stable;");
+  });
+
   it("increases desktop trip card text without resizing chips or icon buttons", () => {
     const css = readFileSync(
       "src/styles/components/trips-dashboard.css",
@@ -407,7 +480,7 @@ describe("TripsDashboard", () => {
   });
 });
 
-function tripSummary() {
+function tripSummary(overrides: Partial<TripSummary> = {}): TripSummary {
   return {
     id: 12,
     created_by: "user-1",
@@ -418,6 +491,7 @@ function tripSummary() {
     role: "owner" as const,
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",
+    ...overrides,
   };
 }
 

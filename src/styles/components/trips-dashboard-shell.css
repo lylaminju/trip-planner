@@ -88,11 +88,12 @@
 }
 
 .trips-main-pane {
+  align-content: start;
   background: var(--surface-dashboard);
   border-radius: 0;
   display: grid;
   gap: 18px;
-  grid-template-rows: auto 1fr;
+  min-height: 100dvh;
   min-width: 0;
   padding: 24px;
 }
@@ -359,7 +360,6 @@
   .trips-header {
     align-items: flex-start;
   }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
