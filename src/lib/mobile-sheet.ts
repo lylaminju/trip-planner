@@ -22,6 +22,24 @@ export function raiseMobileSheetState(
   return "full";
 }
 
+type MobileSheetReleaseInput = {
+  state: MobileSheetState;
+  deltaY: number;
+  dragMoved: boolean;
+};
+
+export function resolveMobileSheetReleaseState(
+  input: MobileSheetReleaseInput,
+): MobileSheetState {
+  if (!input.dragMoved || Math.abs(input.deltaY) < 24) {
+    return nextMobileSheetState(input.state);
+  }
+
+  return input.deltaY > 0
+    ? lowerMobileSheetState(input.state)
+    : raiseMobileSheetState(input.state);
+}
+
 export function clampMobileSheetHeight(height: number): number {
   if (typeof window === "undefined") return height;
 

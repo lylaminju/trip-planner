@@ -2,9 +2,8 @@ import { useRef, useState, type PointerEvent } from "react";
 
 import {
   clampMobileSheetHeight,
-  lowerMobileSheetState,
   nextMobileSheetState,
-  raiseMobileSheetState,
+  resolveMobileSheetReleaseState,
   type MobileSheetState,
 } from "@/lib/mobile-sheet";
 
@@ -59,15 +58,13 @@ export function useMobileSheetDrag(input: UseMobileSheetDragInput) {
     if (startY === null) return;
 
     const deltaY = event.clientY - startY;
-    if (!dragMovedRef.current || Math.abs(deltaY) < 24) {
-      return;
-    }
-
     suppressClickRef.current = true;
     input.onStateChange(
-      deltaY > 0
-        ? lowerMobileSheetState(input.state)
-        : raiseMobileSheetState(input.state),
+      resolveMobileSheetReleaseState({
+        deltaY,
+        dragMoved: dragMovedRef.current,
+        state: input.state,
+      }),
     );
   }
 
