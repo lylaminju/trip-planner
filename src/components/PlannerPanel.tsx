@@ -16,12 +16,7 @@ import type {
 } from "@/lib/types";
 
 import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
-import {
-  ChevronLeftIcon,
-  PanelCollapseIcon,
-  PanelExpandIcon,
-  PencilIcon,
-} from "./Icons";
+import { ChevronLeftIcon, ChevronRightIcon, PencilIcon } from "./Icons";
 import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
 
@@ -98,6 +93,10 @@ export function PlannerPanel(props: Props) {
     () => buildTimedMarkerLabels(props.itinerary),
     [props.itinerary],
   );
+  const viewToggleLabel = props.isExpanded ? "Collapse" : "Expand";
+  const viewToggleDescription = props.isExpanded
+    ? "Collapse planner and show map"
+    : "Expand planner and hide map";
 
   function toggleDatePlacePicker(
     event: MouseEvent<HTMLButtonElement>,
@@ -181,17 +180,24 @@ export function PlannerPanel(props: Props) {
           </div>
           <button
             type="button"
-            className="icon-button panel-expand-toggle"
-            aria-pressed={props.isExpanded}
-            aria-label={
-              props.isExpanded ? "Restore split view" : "Expand planner panel"
-            }
-            title={
-              props.isExpanded ? "Restore split view" : "Expand planner panel"
-            }
+            className="panel-expand-toggle"
+            aria-label={viewToggleDescription}
+            title={viewToggleDescription}
             onClick={props.onToggleExpanded}
           >
-            {props.isExpanded ? <PanelCollapseIcon /> : <PanelExpandIcon />}
+            {props.isExpanded && (
+              <span className="panel-expand-toggle-icon" aria-hidden="true">
+                <ChevronLeftIcon />
+                <ChevronLeftIcon />
+              </span>
+            )}
+            <span>{viewToggleLabel}</span>
+            {!props.isExpanded && (
+              <span className="panel-expand-toggle-icon" aria-hidden="true">
+                <ChevronRightIcon />
+                <ChevronRightIcon />
+              </span>
+            )}
           </button>
         </div>
       </header>
