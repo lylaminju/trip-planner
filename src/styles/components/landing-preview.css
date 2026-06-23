@@ -222,17 +222,17 @@
 }
 
 .landing-abstract-map-block {
-  fill: var(--surface-panel);
+  fill: var(--map-block-bg);
   stroke: var(--map-block-stroke);
-  stroke-width: 1;
+  stroke-width: 0.8;
 }
 
 .landing-abstract-map-block.is-muted {
-  fill: var(--surface-map-muted);
+  fill: var(--map-block-muted-bg);
 }
 
 .landing-abstract-map-block.is-soft {
-  fill: var(--surface-muted);
+  fill: var(--map-block-soft-bg);
 }
 
 .landing-abstract-map-block.is-park {
@@ -244,11 +244,42 @@
   fill: var(--map-water-bg);
 }
 
-.landing-abstract-map-arterial {
+.landing-abstract-map-road,
+.landing-abstract-map-road-casing {
   fill: none;
-  stroke: var(--map-road-stroke);
   stroke-linecap: round;
-  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.landing-abstract-map-road-casing {
+  stroke: var(--map-road-casing);
+}
+
+.landing-abstract-map-road-casing.is-primary {
+  stroke-width: 10;
+}
+
+.landing-abstract-map-road-casing.is-secondary {
+  stroke-width: 7;
+}
+
+.landing-abstract-map-road-casing.is-minor {
+  stroke-width: 5;
+}
+
+.landing-abstract-map-road.is-primary {
+  stroke: var(--map-road-primary);
+  stroke-width: 7;
+}
+
+.landing-abstract-map-road.is-secondary {
+  stroke: var(--map-road-secondary);
+  stroke-width: 4.5;
+}
+
+.landing-abstract-map-road.is-minor {
+  stroke: var(--map-road-minor);
+  stroke-width: 3;
 }
 
 .landing-map-route,

@@ -2,13 +2,10 @@ const MAP_BLOCKS = [
   { x: -104, y: -96, width: 74, height: 38, tone: "is-soft" },
   { x: -8, y: -96, width: 52, height: 38, tone: "is-muted" },
   { x: 68, y: -96, width: 98, height: 38 },
-  { x: 188, y: -96, width: 82, height: 38, tone: "is-soft" },
   { x: 68, y: -42, width: 98, height: 74, tone: "is-muted" },
   { x: 188, y: -42, width: 82, height: 74, tone: "is-soft" },
-  { x: 292, y: -42, width: 104, height: 74 },
   { x: -46, y: 56, width: 92, height: 78, tone: "is-soft" },
   { x: 68, y: 56, width: 98, height: 78 },
-  { x: 292, y: 56, width: 104, height: 78, tone: "is-soft" },
   { x: -46, y: 158, width: 92, height: 72 },
   { x: 68, y: 158, width: 98, height: 72, tone: "is-park" },
   { x: 188, y: 158, width: 82, height: 72, tone: "is-soft" },
@@ -38,11 +35,29 @@ const MAP_CORNER_BLOCKS = [
     tone: "is-muted",
   },
   {
+    d: "M295 55 H342 V90 H408 V135 H295 Z",
+    tone: "is-soft",
+  },
+  {
     d: "M292 254 H396 V300 H352 V278 H292 Z",
   },
 ] satisfies Array<{
   d: string;
   tone?: string;
+}>;
+
+const MAP_ROADS = [
+  { d: "M-120 44 H318", type: "secondary" },
+  { d: "M-120 146 H500", type: "primary" },
+  { d: "M-120 242 H500", type: "secondary" },
+  { d: "M56 -96 V376", type: "primary" },
+  { d: "M178 -96 V376", type: "primary" },
+  { d: "M282 44 V376", type: "secondary" },
+  { d: "M-120 -50 H252", type: "minor" },
+  { d: "M-120 310 H500", type: "minor" },
+] satisfies Array<{
+  d: string;
+  type: "primary" | "secondary" | "minor";
 }>;
 
 export function LandingAbstractMap() {
@@ -90,10 +105,22 @@ export function LandingAbstractMap() {
           />
         ))}
       </g>
-      <path
-        className="landing-abstract-map-arterial"
-        d="M-120 -50 H500 M-120 44 H500 M-120 146 H500 M-120 242 H500 M-120 310 H500 M56 -96 V376 M178 -96 V376 M282 -96 V376"
-      />
+      <g className="landing-abstract-map-roads">
+        {MAP_ROADS.map((road) => (
+          <path
+            className={`landing-abstract-map-road-casing is-${road.type}`}
+            d={road.d}
+            key={`${road.d}-casing`}
+          />
+        ))}
+        {MAP_ROADS.map((road) => (
+          <path
+            className={`landing-abstract-map-road is-${road.type}`}
+            d={road.d}
+            key={road.d}
+          />
+        ))}
+      </g>
     </>
   );
 }
