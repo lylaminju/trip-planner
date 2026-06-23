@@ -1,244 +1,202 @@
-"use client";
+import type { ReactNode } from "react";
 
-import { useState } from "react";
+import { requestAccessHref } from "./access";
 
-import { ChevronRightIcon, PlusIcon } from "@/components/Icons";
-import { LandingAbstractMap } from "@/components/landing/LandingAbstractMap";
-import {
-  LandingItineraryStop,
-  LandingMobileSheetHandle,
-  LandingPlaceListRow,
-  LandingRouteDetailsToggle,
-  LandingRouteSegment,
-} from "@/components/landing/LandingPlannerRows";
-
-type WorkflowStepId = "add-place" | "place-day" | "check-route";
-
-const WORKFLOW_STEPS = [
+const FEATURE_CARDS = [
   {
-    id: "add-place",
-    title: "Add a Maps place",
-    body: "Paste a Google Maps link and keep the place ready for planning.",
+    title: "Date buckets",
+    body: "Visits group by date, timed stops first, with compact weekday labels you can scan in a glance.",
+    icon: <CalendarGridIcon />,
+    tone: "accent",
   },
   {
-    id: "place-day",
-    title: "Place it on the day",
-    body: "Set the visit time, notes, and order without losing map context.",
+    title: "Google Maps routes",
+    body: "Visualize each day with numbered map stops, route lines, and travel durations from Google Maps data.",
+    icon: <GoogleMapsRoutesIcon />,
+    tone: "maps outline",
   },
   {
-    id: "check-route",
-    title: "Check the route",
-    body: "Compare route segments and markers before the day gets crowded.",
+    title: "Route segments",
+    body: "Consecutive stops show travel time. Switch between walking, transit, cycling, or driving on the fly.",
+    icon: <RouteSegmentIcon />,
+    tone: "route outline",
+  },
+  {
+    title: "Trip dashboard",
+    body: "Trips are grouped into active and past plans, with undated trips kept visible until you add dates.",
+    icon: <DashboardIcon />,
+    tone: "accent",
+  },
+  {
+    title: "Unscheduled places",
+    body: "Saved but not slotted in yet? They wait in a separate list, ready to drag onto any day.",
+    icon: <PinIcon />,
+    tone: "unscheduled outline",
+  },
+  {
+    title: "Markdown export",
+    body: "Copy or download your entire itinerary as clean Markdown in a single click.",
+    icon: <ExportIcon />,
+    tone: "export outline",
   },
 ] satisfies Array<{
-  id: WorkflowStepId;
   title: string;
   body: string;
+  icon: ReactNode;
+  tone: string;
 }>;
 
+const STEPS = [
+  {
+    title: "Save your places",
+    body: "Drop in a name, address, or Google Maps link. Build a library of everywhere you want to go.",
+  },
+  {
+    title: "Arrange by day",
+    body: "Drag places onto dates, set times, and let each day sort itself.",
+  },
+  {
+    title: "Follow the map",
+    body: "Every stop becomes a numbered marker with travel time. Export the plan when it is ready.",
+  },
+] satisfies Array<{ title: string; body: string }>;
+
 export function LandingFeatureProof() {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedStep = WORKFLOW_STEPS[selectedIndex];
-
   return (
-    <section
-      className="landing-workflow-proof"
-      aria-labelledby="landing-workflow-title"
-    >
-      <div className="landing-workflow-copy">
-        <p className="landing-section-label">How it works</p>
-        <h2 id="landing-workflow-title">From saved place to mapped day.</h2>
-      </div>
-
-      <div className="landing-workflow-demo">
-        <div
-          className="landing-workflow-tabs"
-          role="tablist"
-          aria-label="TripGlance workflow"
-        >
-          {WORKFLOW_STEPS.map((step, index) => (
-            <button
-              aria-controls={`workflow-panel-${step.id}`}
-              aria-selected={selectedIndex === index}
-              className="landing-workflow-tab"
-              id={`workflow-tab-${step.id}`}
-              key={step.id}
-              onClick={() => setSelectedIndex(index)}
-              role="tab"
-              type="button"
-            >
-              <span className="landing-workflow-step-number">{index + 1}</span>
-              <span className="landing-workflow-step-copy">
-                <strong>{step.title}</strong>
-                <span>{step.body}</span>
-              </span>
-            </button>
+    <>
+      <section
+        className="landing-feature-section"
+        id="features"
+        aria-labelledby="landing-features-title"
+      >
+        <div className="landing-section-heading">
+          <p className="landing-section-label">Everything you need</p>
+          <h2 id="landing-features-title">
+            Plan the details without losing the shape of the trip.
+          </h2>
+        </div>
+        <div className="landing-feature-grid">
+          {FEATURE_CARDS.map((feature) => (
+            <article className="landing-feature-card" key={feature.title}>
+              <div
+                className={`landing-feature-icon ${feature.tone
+                  .split(" ")
+                  .map((tone) => `landing-feature-icon-${tone}`)
+                  .join(" ")}`}
+                aria-hidden="true"
+              >
+                {feature.icon}
+              </div>
+              <h3>{feature.title}</h3>
+              <p>{feature.body}</p>
+            </article>
           ))}
         </div>
+      </section>
 
-        <div
-          aria-labelledby={`workflow-tab-${selectedStep.id}`}
-          className="landing-workflow-product-frame"
-          id={`workflow-panel-${selectedStep.id}`}
-          aria-live="polite"
-          role="tabpanel"
-        >
-          <WorkflowPlannerState stepId={selectedStep.id} />
-          <WorkflowMapState stepId={selectedStep.id} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WorkflowPlannerState({ stepId }: { stepId: WorkflowStepId }) {
-  if (stepId === "add-place") {
-    return (
-      <div className="landing-workflow-planner-panel">
-        <LandingMobileSheetHandle />
-        <div className="landing-workflow-section-row">
-          <strong>Places</strong>
-        </div>
-
-        <div className="landing-workflow-link-card">
-          <span>Google Maps link</span>
-          <strong>maps.app.goo.gl/brunch-cafe</strong>
-          <div className="landing-workflow-link-action">
-            <PlusIcon />
-            <span>Add Place</span>
+      <section
+        className="landing-steps-section"
+        aria-labelledby="landing-steps-title"
+      >
+        <div className="landing-steps-panel">
+          <div className="landing-section-heading">
+            <p className="landing-section-label">Three steps</p>
+            <h2 id="landing-steps-title">
+              You're a few drags away from a finished itinerary.
+            </h2>
+          </div>
+          <div className="landing-step-grid">
+            {STEPS.map((step, index) => (
+              <article className="landing-step-card" key={step.title}>
+                <div className="landing-step-index-row">
+                  <span>{index + 1}</span>
+                  <div />
+                </div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            ))}
           </div>
         </div>
+      </section>
 
-        <LandingPlaceListRow name="Brunch cafe" detail="Place details ready" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="landing-workflow-planner-panel">
-      <LandingMobileSheetHandle />
-      <div className="section-heading-row landing-preview-section-row landing-workflow-section-row">
-        <div className="section-toggle compact">
-          <h2>Itineraries</h2>
-        </div>
-        <LandingRouteDetailsToggle active={stepId === "check-route"} />
-      </div>
-
-      <div className="day-block landing-day-card">
-        <h3 className="day-heading">
-          <span className="day-heading-title-group">
-            <span className="day-collapse-button">
-              <ChevronRightIcon />
-            </span>
-            <span className="day-heading-button">
-              <span
-                className="day-heading-prefix"
-                style={{ color: "var(--accent)" }}
-              >
-                Day 1
-              </span>
-            </span>
-          </span>
-        </h3>
-
-        <LandingItineraryStop
-          time="10:00"
-          name="Brunch cafe"
-          note="Late breakfast and coffee"
-          markerLabel="1"
-          markerColor="var(--accent)"
-          active
-        />
-        {stepId === "check-route" && (
-          <LandingRouteSegment mode="walking" duration="18 min" />
-        )}
-        <LandingItineraryStop
-          time="11:50"
-          name="Museum"
-          note="Exhibits and a short gallery loop"
-          markerLabel="2"
-          markerColor="var(--accent)"
-        />
-        {stepId === "check-route" && (
-          <LandingRouteSegment mode="transit" duration="22 min" />
-        )}
-        {stepId === "check-route" && (
-          <LandingItineraryStop
-            time="16:30"
-            name="Bookstore"
-            note="New releases and a few slow laps"
-            markerLabel="3"
-            markerColor="var(--accent)"
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function WorkflowMapState({ stepId }: { stepId: WorkflowStepId }) {
-  const showsSecondMarker = stepId !== "add-place";
-  const showsFullRoute = stepId === "check-route";
-
-  return (
-    <div className="landing-workflow-map-panel" aria-hidden="true">
-      <svg
-        className="landing-workflow-map-lines"
-        preserveAspectRatio="xMidYMid slice"
-        viewBox="-100 -80 560 420"
+      <section
+        className="landing-final-cta-wrap"
+        aria-labelledby="landing-cta-title"
       >
-        <g className="landing-map-plane" transform="rotate(-2 180 130)">
-          <LandingAbstractMap />
-          <path
-            className={`landing-workflow-map-route-halo ${
-              showsFullRoute ? "active" : ""
-            }`}
-            d="M56 44 V146 H177"
-          />
-          {showsFullRoute && (
-            <path
-              className="landing-workflow-map-route-halo active"
-              d="M177 146 H281 V242"
-            />
-          )}
-          {showsSecondMarker && (
-            <path className="landing-workflow-map-route" d="M56 44 V146 H177" />
-          )}
-          {showsFullRoute && (
-            <path
-              className="landing-workflow-map-route"
-              d="M177 146 H281 V242"
-            />
-          )}
-          <WorkflowMapMarker x={56} y={44} label="1" active />
-          {showsSecondMarker && <WorkflowMapMarker x={177} y={146} label="2" />}
-          {showsFullRoute && <WorkflowMapMarker x={281} y={242} label="3" />}
-        </g>
-      </svg>
-    </div>
+        <div className="landing-final-cta">
+          <h2 id="landing-cta-title">Ready to plan your next trip?</h2>
+          <p>Request an invite, or sign in if you already have access.</p>
+          <div className="landing-hero-actions">
+            <a className="landing-primary-action" href={requestAccessHref}>
+              Request invite
+            </a>
+            <a className="landing-secondary-action" href="/sign-in">
+              Sign in
+            </a>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
 
-function WorkflowMapMarker({
-  x,
-  y,
-  label,
-  active = false,
-}: {
-  x: number;
-  y: number;
-  label: string;
-  active?: boolean;
-}) {
+function CalendarGridIcon() {
   return (
-    <g
-      className={`landing-workflow-map-marker ${active ? "active" : ""}`}
-      transform={`translate(${x} ${y})`}
-    >
-      <circle className="landing-workflow-map-marker-circle" r="10" />
-      <text className="landing-workflow-map-marker-label" y="0.5">
-        {label}
-      </text>
-    </g>
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <rect x="2" y="3" width="6" height="6" rx="1.4" />
+      <rect x="11" y="3" width="6" height="6" rx="1.4" />
+      <rect x="2" y="11" width="6" height="6" rx="1.4" />
+      <rect x="11" y="11" width="6" height="6" rx="1.4" />
+    </svg>
+  );
+}
+
+function GoogleMapsRoutesIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path d="M5 4.5 C12.5 4.5 13.5 8.2 9 9.7 C4.7 11.1 5.8 15.5 15 15.5" />
+      <circle cx="5" cy="4.5" r="2.1" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="15.5" r="2.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function RouteSegmentIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <circle cx="5" cy="5" r="2.2" />
+      <circle cx="15" cy="15" r="2.2" />
+      <path d="M5 7.5 V11 a4 4 0 0 0 4 4 h3.5" strokeDasharray="2 2.2" />
+    </svg>
+  );
+}
+
+function DashboardIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="14" height="4" rx="1.4" />
+      <rect x="3" y="9.5" width="9" height="3" rx="1.2" opacity="0.6" />
+      <rect x="3" y="14.5" width="6" height="3" rx="1.2" opacity="0.4" />
+    </svg>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path d="M10 2.5 C6.7 2.5 4.5 5 4.5 8 C4.5 12 10 17.5 10 17.5 C10 17.5 15.5 12 15.5 8 C15.5 5 13.3 2.5 10 2.5 Z" />
+      <circle cx="10" cy="8" r="2" />
+    </svg>
+  );
+}
+
+function ExportIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path d="M10 2.5 V12" />
+      <path d="M6 8 L10 12 L14 8" />
+      <path d="M4 16 H16" />
+    </svg>
   );
 }

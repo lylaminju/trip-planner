@@ -2,7 +2,6 @@ import {
   BicyclingIcon,
   CalendarPlusIcon,
   DrivingIcon,
-  ExternalLinkIcon,
   PencilIcon,
   TransitIcon,
   TrashIcon,
@@ -13,7 +12,7 @@ import type { TravelMode } from "@/lib/types";
 type LandingItineraryStopProps = {
   time: string;
   name: string;
-  note: string;
+  note?: string;
   markerLabel: string;
   markerColor: string;
   active?: boolean;
@@ -50,7 +49,7 @@ export function LandingItineraryStop({
             <span className="place-name">{name}</span>
           </span>
         </strong>
-        <span className="place-note">{note}</span>
+        {note ? <span className="place-note">{note}</span> : null}
       </div>
       <span className="icon-button" aria-label={`Edit ${name}`}>
         <PencilIcon />
@@ -69,7 +68,7 @@ type LandingRouteSegmentProps = {
 
 type LandingPlaceListRowProps = {
   name: string;
-  detail: string;
+  detail?: string;
 };
 
 export function LandingPlaceListRow({
@@ -84,7 +83,7 @@ export function LandingPlaceListRow({
             <span className="place-name">{name}</span>
           </span>
         </strong>
-        <span>{detail}</span>
+        {detail ? <span>{detail}</span> : null}
       </div>
       <span className="icon-button" aria-label={`Add ${name} to itinerary`}>
         <CalendarPlusIcon />
@@ -129,12 +128,6 @@ export function LandingRouteSegment({
         </span>
       </div>
       <span className="route-duration">{duration}</span>
-      <span
-        className="small-button landing-route-map-link"
-        aria-label="Open in Google Maps"
-      >
-        <ExternalLinkIcon />
-      </span>
     </div>
   );
 }

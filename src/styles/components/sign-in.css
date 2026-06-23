@@ -1,153 +1,222 @@
-.sign-in-card {
-  align-items: stretch;
-  background: var(--surface-panel);
-  border: 1px solid var(--border-translucent);
-  border-radius: 16px;
-  display: grid;
-  grid-template-columns: minmax(380px, 1.35fr) minmax(300px, 0.8fr);
-  max-width: 960px;
-  overflow: hidden;
+.sign-in-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   padding: 0;
+}
+
+.sign-in-page-shell .marketing-header {
+  backdrop-filter: none;
+  background: transparent;
+  border-bottom: 0;
+  position: static;
+}
+
+.sign-in-page-shell .marketing-header-inner {
+  padding: 18px 24px;
+}
+
+.sign-in-page-shell .tripglance-logo-lockup span {
+  letter-spacing: 0;
+}
+
+.sign-in-page-shell .tripglance-logo-mark {
+  box-shadow: var(--landing-auth-logo-shadow);
+}
+
+.sign-in-page-shell .marketing-nav {
+  gap: 10px;
+}
+
+.sign-in-page-shell .marketing-nav-link {
+  border-radius: 9px;
+  color: var(--landing-text-muted);
+  font-weight: 500;
+  padding: 9px 12px;
+}
+
+.sign-in-page-shell .marketing-nav-link:hover {
+  background: var(--landing-secondary-hover);
+  color: var(--landing-text);
+}
+
+.sign-in-page-shell .marketing-nav-cta {
+  box-shadow: var(--landing-auth-invite-shadow);
+}
+
+.auth-shell {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 520px;
+  padding: 76px 24px 52px;
   width: 100%;
 }
 
-.landing-sign-in.sign-in-card {
-  grid-template-columns: minmax(380px, 1fr) minmax(340px, 388px);
-  max-width: 1120px;
-}
-
-.sign-in-copy {
-  aspect-ratio: 2554 / 1536;
-  background: url("/sign-in-bg.jpg") center / cover no-repeat;
-  border-right: 1px solid var(--border-translucent);
-  min-height: 440px;
-}
-
-.sign-in-form h2 {
-  color: var(--text);
-  font-size: 28px;
-  line-height: 1.08;
-  margin: 0 0 14px;
-  text-wrap: balance;
-}
-
-.sign-in-form {
-  align-content: center;
-  align-items: stretch;
-  background: var(--surface-muted);
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 36px;
-  row-gap: 12px;
-  justify-self: stretch;
-  max-width: 100%;
-  min-width: 0;
-  padding: 24px 0;
-  width: auto;
-}
-
-.sign-in-form > * {
-  box-sizing: border-box;
-  grid-column: 2;
-  max-width: 100%;
-  min-width: 0;
-  width: 100%;
-}
-
-.sign-in-form label {
-  display: grid;
-  gap: 6px;
-}
-
-.sign-in-form span {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.sign-in-form input {
+.auth-card {
   background: var(--surface-panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  box-sizing: border-box;
-  color: var(--text);
-  min-height: 42px;
-  min-width: 0;
-  padding: 9px 10px;
+  border: 1px solid var(--landing-border);
+  border-radius: 16px;
+  box-shadow: var(--landing-auth-card-shadow);
+  padding: 36px;
   width: 100%;
 }
 
-.sign-in-form input:focus {
-  border-color: var(--accent);
-  box-shadow: var(--focus-ring-soft);
+.auth-card h1 {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.auth-card .intro {
+  color: var(--landing-text-muted);
+  font-size: 16px;
+  line-height: 1.58;
+  margin: 14px 0 0;
+}
+
+.auth-card .signin-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.auth-card .field {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-card .field span {
+  color: var(--landing-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-card .field input {
+  background: var(--surface-panel);
+  border: 1px solid var(--landing-secondary-border);
+  border-radius: 10px;
+  color: var(--landing-text);
+  font: inherit;
+  font-size: 15px;
+  height: 48px;
   outline: none;
-}
-
-.landing-sign-in button {
-  background: var(--accent);
-  border-color: var(--accent);
-  box-sizing: border-box;
-  color: var(--text-on-accent);
-  font-weight: 800;
-  max-width: 100%;
-  min-height: 42px;
-  min-width: 0;
+  padding: 0 14px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
   width: 100%;
 }
 
-.landing-sign-in button:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+.auth-card .field input::placeholder {
+  color: var(--landing-text-soft);
 }
 
-.landing-sign-in button:disabled,
-.landing-sign-in button:disabled:hover {
-  background: var(--accent);
+.auth-card .field input:focus {
   border-color: var(--accent);
-  color: var(--text-on-accent);
+  box-shadow: 0 0 0 4px var(--landing-accent-soft-bg);
 }
 
-.landing-sign-in .error-text {
+.auth-card .primary-button {
+  background: var(--accent);
+  border: 0;
+  border-radius: 11px;
+  box-shadow: var(--landing-auth-button-shadow);
+  color: var(--text-on-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  height: 48px;
+  width: 100%;
+}
+
+.auth-card .primary-button:hover {
+  filter: brightness(0.96);
+}
+
+.auth-card .primary-button:focus-visible {
+  outline: 4px solid var(--landing-accent-soft-bg);
+  outline-offset: 2px;
+}
+
+.auth-card .primary-button:disabled,
+.auth-card .primary-button:disabled:hover {
+  cursor: default;
+  filter: none;
+}
+
+.auth-card .access-row {
+  border-top: 1px solid var(--landing-border);
+  color: var(--landing-text-control);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 22px 0 0;
+  padding-top: 20px;
+}
+
+.auth-card .access-row a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-card .access-row a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-card .error-text {
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 13px;
   margin: 0;
-  padding: 8px 10px;
+  padding: 9px 10px;
 }
 
-@media (max-width: 900px) {
-  .sign-in-card,
-  .landing-sign-in.sign-in-card {
-    grid-template-columns: 1fr;
+.sign-in-page-shell .landing-footer {
+  margin-top: 0;
+}
+
+@media (max-width: 880px) {
+  .auth-shell {
+    padding-top: 34px;
+  }
+}
+
+@media (max-width: 640px) {
+  .sign-in-page-shell .marketing-header-inner {
+    align-items: flex-start;
+    padding: 16px;
   }
 
-  .sign-in-card,
-  .landing-sign-in.sign-in-card,
-  .sign-in-copy,
-  .sign-in-form {
-    max-width: 100%;
-    min-width: 0;
-    width: 100%;
+  .sign-in-page-shell .marketing-nav {
+    gap: 8px;
   }
 
-  .sign-in-copy {
-    aspect-ratio: auto;
-    border-bottom: 1px solid var(--border-translucent);
-    border-right: 0;
-    min-height: clamp(220px, 58vw, 240px);
+  .sign-in-page-shell .marketing-nav-link {
+    display: none;
   }
 
-  .sign-in-form h2 {
-    font-size: clamp(24px, 6.3vw, 26px);
-    margin-bottom: 6px;
+  .auth-shell {
+    padding: 18px 16px 32px;
   }
 
-  .sign-in-form {
-    grid-template-columns: 18px minmax(0, 1fr) 18px;
-    padding: 16px 0 18px;
+  .auth-card {
+    padding: 24px;
   }
 
-  .sign-in-form > * {
-    max-width: 100%;
+  .auth-card h1 {
+    font-size: 34px;
+  }
+
+  .sign-in-page-shell .landing-footer {
+    padding: 24px 16px 34px;
   }
 }

@@ -78,6 +78,7 @@ This file applies to the whole repository. Follow it when changing code here.
 - Do not add tests that only restate behavior already covered at the same layer; new tests should protect a new branch, regression risk, or integration contract.
 - Prefer the narrowest test that proves the behavior under change. Avoid duplicate coverage across utility, component, and integration layers unless each layer catches a distinct failure mode.
 - Avoid `not.toContain()` checks for removed marketing text, placeholder text, or helper copy unless the absence is a real product requirement or safety constraint.
+- Before adding `not.toContain()` or `not.toMatch()` in tests, state the product contract or safety constraint it protects. If the absence is not user-facing or safety-critical, use a positive assertion for the durable affordance instead.
 - When copy is expected to change during design iteration, assert the durable affordance instead, for example the CTA link target, form field name, route id, component class, or accessible landmark.
 - Keep CSS/source-text assertions coarse and intentional: assert a small invariant that would break a user-facing contract, not a full implementation recipe or every declaration in a rule.
 - When the same domain fixture or markup/CSS helper appears in several test files, move it to a typed test helper instead of growing copy-pasted builders.
