@@ -311,7 +311,7 @@ describe("LandingPage", () => {
     expect(signInCss).toContain("padding: 18px 16px 32px;");
   });
 
-  it("renders landing route segments without a Google Maps external-link action", () => {
+  it("renders landing route segments with a non-clickable Google Maps route action", () => {
     const markup = renderToStaticMarkup(
       createElement(LandingRouteSegment, {
         mode: "walking",
@@ -325,8 +325,9 @@ describe("LandingPage", () => {
     expect(markup).toContain("route-mode-chevron");
     expect(markup).toContain("route-duration");
     expect(markup).toContain('aria-label="Travel mode: Walking"');
-    expect(markup).not.toContain("landing-route-map-link");
-    expect(markup).not.toContain("Open in Google Maps");
+    expect(markup).toContain(
+      'class="small-button landing-route-map-link" aria-label="Open route in Google Maps"',
+    );
   });
 
   it("renders route details toggle states with the product switch structure", () => {

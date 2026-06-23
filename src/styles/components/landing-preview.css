@@ -106,6 +106,14 @@
   cursor: default;
 }
 
+.landing-route-map-link {
+  flex: 0 0 30px;
+  height: 28px;
+  min-width: 30px;
+  padding: 0;
+  width: 30px;
+}
+
 .landing-product-frame .route-segment-toggle,
 .landing-product-frame .day-heading-button,
 .landing-product-frame .day-collapse-button,
@@ -304,6 +312,12 @@
   filter: var(--filter-map-marker);
 }
 
+.landing-map-marker-halo {
+  fill: var(--accent-soft-bg);
+  stroke: var(--accent-selected-outline);
+  stroke-width: 1.5;
+}
+
 .landing-map-marker-circle {
   fill: var(--accent);
   stroke: var(--surface-panel);
@@ -317,6 +331,10 @@
   font-weight: 700;
   pointer-events: none;
   text-anchor: middle;
+}
+
+.landing-map-marker.is-focused .landing-map-marker-label {
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {

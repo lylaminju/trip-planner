@@ -95,7 +95,7 @@ export function SampleTripPreview() {
                 />
                 <path className="landing-map-route" d="M56 44 V146 H177" />
                 <path className="landing-map-route" d="M177 146 H281 V242" />
-                <MapPreviewMarker x={56} y={44} label="1" />
+                <MapPreviewMarker x={56} y={44} label="1" focused />
                 <MapPreviewMarker x={177} y={146} label="2" />
                 <MapPreviewMarker x={281} y={242} label="3" />
               </g>
@@ -108,17 +108,23 @@ export function SampleTripPreview() {
 }
 
 function MapPreviewMarker({
+  focused = false,
   x,
   y,
   label,
 }: {
+  focused?: boolean;
   x: number;
   y: number;
   label: string;
 }) {
   return (
-    <g className="landing-map-marker" transform={`translate(${x} ${y})`}>
-      <circle className="landing-map-marker-circle" r="10" />
+    <g
+      className={focused ? "landing-map-marker is-focused" : "landing-map-marker"}
+      transform={`translate(${x} ${y})`}
+    >
+      {focused ? <circle className="landing-map-marker-halo" r="16" /> : null}
+      <circle className="landing-map-marker-circle" r={focused ? 12 : 10} />
       <text className="landing-map-marker-label" y="0.5">
         {label}
       </text>

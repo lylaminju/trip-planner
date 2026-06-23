@@ -2,6 +2,7 @@ import {
   BicyclingIcon,
   CalendarPlusIcon,
   DrivingIcon,
+  ExternalLinkIcon,
   PencilIcon,
   TransitIcon,
   TrashIcon,
@@ -128,6 +129,13 @@ export function LandingRouteSegment({
         </span>
       </div>
       <span className="route-duration">{duration}</span>
+      <span
+        className="small-button landing-route-map-link"
+        aria-label="Open route in Google Maps"
+        title="Open route in Google Maps"
+      >
+        <ExternalLinkIcon />
+      </span>
     </div>
   );
 }
