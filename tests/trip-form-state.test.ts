@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  tripDestinationFormChange,
   tripMetadataPayloadFromForm,
   updateTripFormField,
 } from "@/components/trip-form-state";
@@ -11,6 +12,7 @@ describe("updateTripFormField", () => {
     const form: TripFormState = {
       name: "Old name",
       destination: "",
+      destinationSlug: null,
       startDate: "2026-06-01",
       endDate: "2026-06-02",
     };
@@ -31,14 +33,56 @@ describe("updateTripFormField", () => {
       tripMetadataPayloadFromForm({
         name: "Draft trip",
         destination: "Toronto",
+        destinationSlug: "toronto",
         startDate: "2026-06-01",
         endDate: "",
       }),
     ).toEqual({
       name: "Draft trip",
       destination: "Toronto",
+      destination_slug: "toronto",
       start_date: "2026-06-01",
       end_date: null,
+    });
+  });
+
+  it("preserves custom destinations with a null destination slug", () => {
+    expect(
+      tripMetadataPayloadFromForm({
+        name: "Rockies loop",
+        destination: "Calgary + Banff",
+        destinationSlug: null,
+        startDate: "",
+        endDate: "",
+      }),
+    ).toEqual({
+      name: "Rockies loop",
+      destination: "Calgary + Banff",
+      destination_slug: null,
+      start_date: null,
+      end_date: null,
+    });
+  });
+
+  it("sets destination slugs for curated destination text and clears custom text", () => {
+    const form: TripFormState = {
+      name: "Draft trip",
+      destination: "",
+      destinationSlug: null,
+      startDate: "",
+      endDate: "",
+    };
+
+    expect(tripDestinationFormChange(form, "Toronto")).toEqual({
+      ...form,
+      destination: "Toronto",
+      destinationSlug: "toronto",
+    });
+
+    expect(tripDestinationFormChange(form, "Calgary + Banff")).toEqual({
+      ...form,
+      destination: "Calgary + Banff",
+      destinationSlug: null,
     });
   });
 });

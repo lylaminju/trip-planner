@@ -7,6 +7,7 @@ import { requireTripRole } from "./trip-access";
 export type TripCreateInput = {
   name: string;
   destination: string;
+  destination_slug: string | null;
   start_date: string | null;
   end_date: string | null;
 };
@@ -14,7 +15,7 @@ export type TripCreateInput = {
 export type TripUpdateInput = Partial<TripCreateInput>;
 
 const TRIP_SELECT_FIELDS =
-  "id, created_by, name, destination, start_date, end_date, created_at, updated_at";
+  "id, created_by, name, destination, destination_slug, start_date, end_date, created_at, updated_at";
 
 export async function getTripById(tripId: number): Promise<Trip> {
   const { data, error } = await getSupabaseClient()
@@ -74,6 +75,7 @@ export async function createTripForRequest(
       created_by: userId,
       name: input.name,
       destination: input.destination,
+      destination_slug: input.destination_slug,
       start_date: input.start_date,
       end_date: input.end_date,
     })

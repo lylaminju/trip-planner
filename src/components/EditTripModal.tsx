@@ -4,7 +4,10 @@ import type { SubmitEvent } from "react";
 
 import { DestinationCombobox } from "./DestinationCombobox";
 import { ModalShell } from "./ModalShell";
-import { updateTripFormField } from "./trip-form-state";
+import {
+  tripDestinationFormChange,
+  updateTripFormField,
+} from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
 
 type Props = {
@@ -53,9 +56,7 @@ export function EditTripModal(props: Props) {
           <DestinationCombobox
             value={props.form.destination}
             onChange={(destination) =>
-              props.onChange(
-                updateTripFormField(props.form, "destination", destination),
-              )
+              props.onChange(tripDestinationFormChange(props.form, destination))
             }
           />
         </label>

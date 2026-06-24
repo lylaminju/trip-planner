@@ -1,4 +1,5 @@
 import type { TripMetadataPayload } from "@/lib/trips-api";
+import { findDestinationOption } from "@/lib/destination-options";
 
 import type { TripFormState } from "./trip-form-types";
 
@@ -19,7 +20,19 @@ export function tripMetadataPayloadFromForm(
   return {
     name: form.name,
     destination: form.destination,
+    destination_slug: form.destinationSlug,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
+  };
+}
+
+export function tripDestinationFormChange(
+  form: TripFormState,
+  destination: string,
+): TripFormState {
+  return {
+    ...form,
+    destination,
+    destinationSlug: findDestinationOption(destination)?.slug ?? null,
   };
 }

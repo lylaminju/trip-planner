@@ -25,6 +25,7 @@ export function TripRow(props: {
     props.trip.destination?.trim() || "Destination needed";
   const coverImage = getTripCoverImage({
     destination: props.trip.destination,
+    destinationSlug: props.trip.destination_slug,
   });
   const durationLabel = formatTripDurationLabel(props.trip);
   const isOngoing = isTripOngoing(props.trip);

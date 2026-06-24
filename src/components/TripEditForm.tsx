@@ -3,7 +3,10 @@ import { useId, type SubmitEvent } from "react";
 import { getTripCoverImage } from "@/lib/city-covers";
 import type { TripSummary } from "@/lib/types";
 import { DestinationCombobox } from "./DestinationCombobox";
-import { updateTripFormField } from "./trip-form-state";
+import {
+  tripDestinationFormChange,
+  updateTripFormField,
+} from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
 
 export function TripEditForm(props: {
@@ -21,6 +24,7 @@ export function TripEditForm(props: {
   const endDateId = useId();
   const coverImage = getTripCoverImage({
     destination: props.form.destination || props.trip.destination,
+    destinationSlug: props.form.destinationSlug,
   });
   const className = [
     "trip-row",
@@ -64,9 +68,7 @@ export function TripEditForm(props: {
           inputId={destinationId}
           value={props.form.destination}
           onChange={(destination) =>
-            props.onChange(
-              updateTripFormField(props.form, "destination", destination),
-            )
+            props.onChange(tripDestinationFormChange(props.form, destination))
           }
         />
 

@@ -54,6 +54,7 @@ describe("TripsDashboard", () => {
         form: {
           name: "",
           destination: "",
+          destinationSlug: null,
           startDate: "",
           endDate: "",
         },
@@ -196,6 +197,7 @@ describe("TripsDashboard", () => {
           form: {
             name: trip.name,
             destination: trip.destination ?? "",
+            destinationSlug: trip.destination_slug,
             startDate: trip.start_date ?? "",
             endDate: trip.end_date ?? "",
           },
@@ -313,6 +315,7 @@ function tripSummary(overrides: Partial<TripSummary> = {}): TripSummary {
     created_by: "user-1",
     name: "Toronto June",
     destination: "Toronto",
+    destination_slug: "toronto",
     start_date: "2026-06-01",
     end_date: "2026-06-02",
     role: "owner" as const,

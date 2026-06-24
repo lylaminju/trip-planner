@@ -69,6 +69,8 @@ async function withFreshTestEnv(
       id: 1,
       created_by: "user-1",
       name: "New York City",
+      destination: "New York City",
+      destination_slug: "new-york-city",
       start_date: "2026-05-27",
       end_date: "2026-05-29",
       created_at: "2026-01-01T00:00:00.000Z",
@@ -130,10 +132,12 @@ describe("API routes transport behavior", () => {
   it("creates a trip for the authenticated user", async () => {
     await withFreshTripApiEnv(async () => {
       const { POST } = await import("@/app/api/trips/route");
+      const tripService = await import("@/server/trip-service");
       const response = await POST(
         jsonRequest("POST", {
           name: "Tokyo",
           destination: "Tokyo",
+          destination_slug: "tokyo",
           start_date: "2026-09-01",
           end_date: "2026-09-08",
         }),
@@ -145,9 +149,17 @@ describe("API routes transport behavior", () => {
           id: 2,
           name: "Tokyo",
           destination: "Tokyo",
+          destination_slug: "tokyo",
           role: "owner",
         }),
       });
+      expect(tripService.createTripForRequest).toHaveBeenCalledWith(
+        "user-1",
+        expect.objectContaining({
+          destination: "Tokyo",
+          destination_slug: "tokyo",
+        }),
+      );
     });
   });
 
@@ -188,6 +200,18 @@ describe("API routes transport behavior", () => {
       await expect(badDateRange.json()).resolves.toEqual({
         error: "Trip start date must be before or equal to end date.",
       });
+
+      const badDestinationSlug = await POST(
+        jsonRequest("POST", {
+          name: "Unknown slug",
+          destination: "Toronto",
+          destination_slug: "not-a-destination",
+        }),
+      );
+      expect(badDestinationSlug.status).toBe(400);
+      await expect(badDestinationSlug.json()).resolves.toEqual({
+        error: "Trip destination slug is invalid.",
+      });
     });
   });
 
@@ -203,6 +227,47 @@ describe("API routes transport behavior", () => {
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toEqual({
         error: "Trip destination is required.",
+      });
+    });
+  });
+
+  it("passes nullable destination slugs on metadata edit", async () => {
+    await withFreshTripApiEnv(async () => {
+      const tripRoute = await import("@/app/api/trips/[tripId]/route");
+      const tripService = await import("@/server/trip-service");
+
+      const response = await tripRoute.PATCH(
+        jsonRequest("PATCH", {
+          destination: "Calgary + Banff",
+          destination_slug: null,
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      expect(tripService.updateTripForRequest).toHaveBeenCalledWith(
+        1,
+        "user-1",
+        expect.objectContaining({
+          destination: "Calgary + Banff",
+          destination_slug: null,
+        }),
+      );
+    });
+  });
+
+  it("rejects unknown destination slugs on metadata edit", async () => {
+    await withFreshTripApiEnv(async () => {
+      const tripRoute = await import("@/app/api/trips/[tripId]/route");
+
+      const response = await tripRoute.PATCH(
+        jsonRequest("PATCH", { destination_slug: "not-a-destination" }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: "Trip destination slug is invalid.",
       });
     });
   });
@@ -729,6 +794,7 @@ async function withFreshTripApiEnv(
       created_by: "user-1",
       name: "New York City",
       destination: "New York City",
+      destination_slug: "new-york-city",
       start_date: "2026-05-27",
       end_date: "2026-05-29",
       created_at: "2026-01-01T00:00:00.000Z",

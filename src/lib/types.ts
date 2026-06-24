@@ -6,6 +6,7 @@ export type Trip = {
   created_by: string | null;
   name: string;
   destination: string;
+  destination_slug: string | null;
   start_date: string | null;
   end_date: string | null;
   created_at: string;

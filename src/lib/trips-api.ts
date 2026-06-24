@@ -3,6 +3,7 @@ import type { TripSummary } from "./types";
 export type TripMetadataPayload = {
   name: string;
   destination: string;
+  destination_slug: string | null;
   start_date: string | null;
   end_date: string | null;
 };

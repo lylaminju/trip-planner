@@ -37,6 +37,7 @@ export function formPayload(form: TripFormState): TripMetadataPayload {
   return {
     name: form.name,
     destination: form.destination,
+    destination_slug: form.destinationSlug,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
   };
@@ -46,6 +47,7 @@ export function formFromTrip(trip: Trip): TripFormState {
   return {
     name: trip.name,
     destination: trip.destination,
+    destinationSlug: trip.destination_slug,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
   };

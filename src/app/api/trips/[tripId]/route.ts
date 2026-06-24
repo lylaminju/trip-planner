@@ -14,6 +14,7 @@ import {
   updateTripForRequest,
   type TripUpdateInput,
 } from "@/server/trip-service";
+import { findDestinationOption } from "@/lib/destination-options";
 
 import { readTripIdParam, type TripParams } from "./_utils";
 
@@ -94,6 +95,15 @@ function parseTripUpdateInput(value: unknown): TripUpdateInput | NextResponse {
       return jsonError("Trip destination is required.", 400);
     }
     input.destination = destination;
+    input.destination_slug = null;
+  }
+
+  if ("destination_slug" in body) {
+    const destinationSlug = nullableDestinationSlug(body.destination_slug);
+    if (destinationSlug instanceof Response) {
+      return destinationSlug;
+    }
+    input.destination_slug = destinationSlug;
   }
 
   if ("start_date" in body) {
@@ -142,4 +152,21 @@ function nullableDate(
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function nullableDestinationSlug(
+  value: unknown,
+): string | NextResponse | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return jsonError("Trip destination slug is invalid.", 400);
+  }
+
+  const slug = value.trim();
+  return findDestinationOption(slug)?.slug === slug
+    ? slug
+    : jsonError("Trip destination slug is invalid.", 400);
 }

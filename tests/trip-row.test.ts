@@ -29,6 +29,32 @@ describe("TripRow", () => {
     expect(markup).not.toContain(">Delete<");
   });
 
+  it("uses the destination slug instead of inferring covers from destination text", () => {
+    const curatedMarkup = renderToStaticMarkup(
+      createElement(TripRow, {
+        trip: tripSummary({
+          destination: "Custom Toronto label",
+          destination_slug: "toronto",
+        }),
+        onEdit: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+    expect(curatedMarkup).toContain("/city-covers/toronto.webp");
+
+    const customMarkup = renderToStaticMarkup(
+      createElement(TripRow, {
+        trip: tripSummary({
+          destination: "Toronto",
+          destination_slug: null,
+        }),
+        onEdit: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+    expect(customMarkup).toContain("/sign-in-bg.jpg");
+  });
+
   it("disables the delete button and shows the delete spinner while deleting", () => {
     const markup = renderToStaticMarkup(
       createElement(TripRow, {
@@ -74,16 +100,18 @@ describe("TripRow", () => {
   });
 });
 
-function tripSummary(): TripSummary {
+function tripSummary(overrides: Partial<TripSummary> = {}): TripSummary {
   return {
     id: 12,
     created_by: "user-1",
     name: "Toronto June",
     destination: "Toronto",
+    destination_slug: "toronto",
     start_date: "2026-06-01",
     end_date: "2026-06-02",
     role: "owner",
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",
+    ...overrides,
   };
 }

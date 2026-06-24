@@ -32,6 +32,7 @@ describe("trips api client", () => {
       createTrip({
         name: "Toronto",
         destination: "Toronto",
+        destination_slug: "toronto",
         start_date: null,
         end_date: null,
       }),

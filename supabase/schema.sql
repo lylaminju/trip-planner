@@ -3,6 +3,7 @@ create table if not exists public.trips (
   created_by uuid references auth.users(id) on delete set null,
   name text not null,
   destination text not null,
+  destination_slug text,
   start_date date,
   end_date date,
   created_at timestamptz not null default now(),
@@ -10,11 +11,17 @@ create table if not exists public.trips (
   constraint trips_date_range_valid check (
     start_date is null or end_date is null or start_date <= end_date
   ),
-  constraint trips_destination_not_blank check (btrim(destination) <> '')
+  constraint trips_destination_not_blank check (btrim(destination) <> ''),
+  constraint trips_destination_slug_not_blank check (
+    destination_slug is null or btrim(destination_slug) <> ''
+  )
 );
 
 alter table public.trips
   add column if not exists destination text;
+
+alter table public.trips
+  add column if not exists destination_slug text;
 
 alter table public.trips
   drop constraint if exists trips_timezone_not_blank;
@@ -39,6 +46,91 @@ begin
   end if;
 end;
 $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'trips_destination_slug_not_blank'
+      and conrelid = 'public.trips'::regclass
+  ) then
+    alter table public.trips
+      add constraint trips_destination_slug_not_blank
+      check (destination_slug is null or btrim(destination_slug) <> '');
+  end if;
+end;
+$$;
+
+with curated_destinations(slug, name) as (
+  values
+    ('amsterdam', 'Amsterdam'),
+    ('athens', 'Athens'),
+    ('banff-national-park', 'Banff National Park'),
+    ('bangkok', 'Bangkok'),
+    ('barcelona', 'Barcelona'),
+    ('beijing', 'Beijing'),
+    ('berlin', 'Berlin'),
+    ('buenos-aires', 'Buenos Aires'),
+    ('cairo', 'Cairo'),
+    ('calgary', 'Calgary'),
+    ('cancun', 'Cancun'),
+    ('cape-town', 'Cape Town'),
+    ('chicago', 'Chicago'),
+    ('copenhagen', 'Copenhagen'),
+    ('doha', 'Doha'),
+    ('dubai', 'Dubai'),
+    ('dublin', 'Dublin'),
+    ('edinburgh', 'Edinburgh'),
+    ('florence', 'Florence'),
+    ('hanoi', 'Hanoi'),
+    ('ho-chi-minh-city', 'Ho Chi Minh City'),
+    ('hong-kong', 'Hong Kong'),
+    ('honolulu', 'Honolulu'),
+    ('istanbul', 'Istanbul'),
+    ('kuala-lumpur', 'Kuala Lumpur'),
+    ('kyoto', 'Kyoto'),
+    ('las-vegas', 'Las Vegas'),
+    ('lisbon', 'Lisbon'),
+    ('london', 'London'),
+    ('los-angeles', 'Los Angeles'),
+    ('madrid', 'Madrid'),
+    ('marrakech', 'Marrakech'),
+    ('mexico-city', 'Mexico City'),
+    ('miami', 'Miami'),
+    ('milan', 'Milan'),
+    ('montreal', 'Montreal'),
+    ('munich', 'Munich'),
+    ('new-york-city', 'New York City'),
+    ('osaka', 'Osaka'),
+    ('paris', 'Paris'),
+    ('prague', 'Prague'),
+    ('quebec-city', 'Quebec City'),
+    ('reykjavik', 'Reykjavik'),
+    ('rio-de-janeiro', 'Rio de Janeiro'),
+    ('rome', 'Rome'),
+    ('san-francisco', 'San Francisco'),
+    ('seoul', 'Seoul'),
+    ('singapore', 'Singapore'),
+    ('sydney', 'Sydney'),
+    ('taipei', 'Taipei'),
+    ('tokyo', 'Tokyo'),
+    ('toronto', 'Toronto'),
+    ('vancouver', 'Vancouver'),
+    ('venice', 'Venice'),
+    ('victoria', 'Victoria, BC'),
+    ('vienna', 'Vienna'),
+    ('washington-dc', 'Washington, DC'),
+    ('zurich', 'Zurich')
+)
+update public.trips
+set destination_slug = curated_destinations.slug
+from curated_destinations
+where public.trips.destination_slug is null
+  and (
+    lower(btrim(public.trips.destination)) = lower(curated_destinations.name)
+    or lower(btrim(public.trips.destination)) = lower(curated_destinations.slug)
+  );
 
 create table if not exists public.trip_memberships (
   trip_id bigint not null references public.trips(id) on delete cascade,

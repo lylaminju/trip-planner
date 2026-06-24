@@ -76,6 +76,7 @@ export function TripsDashboard(props: {
   const userEmail = props.userEmail?.trim();
   const createCoverImage = getTripCoverImage({
     destination: form.destination,
+    destinationSlug: form.destinationSlug,
   });
 
   useEffect(() => {
@@ -288,6 +289,7 @@ function formFromTrip(trip: TripSummary): TripFormState {
   return {
     name: trip.name,
     destination: trip.destination,
+    destinationSlug: trip.destination_slug,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
   };
@@ -297,6 +299,7 @@ function emptyTripForm(): TripFormState {
   return {
     name: "",
     destination: "",
+    destinationSlug: null,
     startDate: "",
     endDate: "",
   };

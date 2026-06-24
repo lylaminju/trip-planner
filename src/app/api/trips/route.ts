@@ -14,6 +14,7 @@ import {
   listTripsForRequest,
   type TripCreateInput,
 } from "@/server/trip-service";
+import { findDestinationOption } from "@/lib/destination-options";
 
 export async function GET(request: Request) {
   const auth = await requireAuthenticatedRequest(request);
@@ -90,6 +91,11 @@ function parseTripCreateInput(
     return endDate;
   }
 
+  const destinationSlug = nullableDestinationSlug(body.destination_slug);
+  if (destinationSlug instanceof Response) {
+    return destinationSlug;
+  }
+
   if (startDate && endDate && startDate > endDate) {
     return jsonError(
       "Trip start date must be before or equal to end date.",
@@ -100,6 +106,7 @@ function parseTripCreateInput(
   return {
     name,
     destination,
+    destination_slug: destinationSlug,
     start_date: startDate,
     end_date: endDate,
   };
@@ -107,6 +114,23 @@ function parseTripCreateInput(
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function nullableDestinationSlug(
+  value: unknown,
+): string | NextResponse | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return jsonError("Trip destination slug is invalid.", 400);
+  }
+
+  const slug = value.trim();
+  return findDestinationOption(slug)?.slug === slug
+    ? slug
+    : jsonError("Trip destination slug is invalid.", 400);
 }
 
 function nullableDate(

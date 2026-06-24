@@ -125,18 +125,21 @@ describe("destination options", () => {
     expect(
       getTripCoverImage({
         destination: "Toronto",
+        destinationSlug: "toronto",
       }),
     ).toBe("/city-covers/toronto.webp");
 
     expect(
       getTripCoverImage({
         destination: "Calgary + Banff",
+        destinationSlug: null,
       }),
     ).toBe(DEFAULT_TRIP_COVER_IMAGE);
 
     expect(
       getTripCoverImage({
         destination: "Seoul",
+        destinationSlug: "seoul",
       }),
     ).toBe("/city-covers/seoul.webp");
 
@@ -144,7 +147,24 @@ describe("destination options", () => {
     expect(
       getTripCoverImage({
         destination: "London",
+        destinationSlug: "london",
       }),
     ).toBe("/city-covers/london.webp");
+  });
+
+  it("uses destination slugs instead of inferring covers from display text", () => {
+    expect(
+      getTripCoverImage({
+        destination: "Custom Toronto label",
+        destinationSlug: "toronto",
+      }),
+    ).toBe("/city-covers/toronto.webp");
+
+    expect(
+      getTripCoverImage({
+        destination: "Toronto",
+        destinationSlug: null,
+      }),
+    ).toBe(DEFAULT_TRIP_COVER_IMAGE);
   });
 });

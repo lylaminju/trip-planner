@@ -58,6 +58,7 @@ function buildInitialData(
       created_by: "user-1",
       name: "Tokyo Spring",
       destination: "Tokyo",
+      destination_slug: "tokyo",
       start_date: "2026-04-01",
       end_date: "2026-04-07",
       created_at: "2026-01-01T00:00:00.000Z",

@@ -1,6 +1,38 @@
 import { describe, expect, it, vi } from "vitest";
 
 describe("trip-service", () => {
+  it("persists destination slugs when creating trips", async () => {
+    const insertedTrips: Record<string, unknown>[] = [];
+    const selectedFields: string[] = [];
+    vi.resetModules();
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => tripCreateClient(insertedTrips, selectedFields),
+    }));
+
+    try {
+      const { createTripForRequest } = await import("@/server/trip-service");
+
+      const trip = await createTripForRequest("user-1", {
+        name: "Toronto June",
+        destination: "Toronto",
+        destination_slug: "toronto",
+        start_date: "2026-06-01",
+        end_date: "2026-06-02",
+      });
+
+      expect(insertedTrips[0]).toMatchObject({
+        destination: "Toronto",
+        destination_slug: "toronto",
+      });
+      expect(selectedFields[0]).toContain("destination_slug");
+      expect(trip.destination_slug).toBe("toronto");
+    } finally {
+      vi.doUnmock("@/server/supabase");
+      vi.restoreAllMocks();
+      vi.resetModules();
+    }
+  });
+
   it("rejects partial date updates that would invert the stored trip range", async () => {
     vi.resetModules();
     vi.doMock("@/server/trip-access", () => ({
@@ -30,12 +62,57 @@ describe("trip-service", () => {
   });
 });
 
+function tripCreateClient(
+  insertedTrips: Record<string, unknown>[],
+  selectedFields: string[],
+) {
+  return {
+    from(table: string) {
+      if (table === "trip_memberships") {
+        return {
+          async insert(_input: Record<string, unknown>) {
+            return { error: null };
+          },
+        };
+      }
+
+      if (table !== "trips") {
+        throw new Error(`Unexpected table ${table}`);
+      }
+
+      return {
+        insert(input: Record<string, unknown>) {
+          insertedTrips.push(input);
+          const tripRow = {
+            id: 2,
+            ...input,
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          };
+
+          return {
+            select(fields: string) {
+              selectedFields.push(fields);
+              return {
+                async single() {
+                  return { data: tripRow, error: null };
+                },
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
 function tripClient() {
   const storedTrip = {
     id: 1,
     created_by: "user-1",
     name: "New York City",
     destination: "New York City",
+    destination_slug: "new-york-city",
     start_date: "2026-05-27",
     end_date: "2026-05-29",
     created_at: "2026-01-01T00:00:00.000Z",

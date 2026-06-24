@@ -4,6 +4,15 @@ import { describe, expect, it } from "vitest";
 const schema = readFileSync("supabase/schema.sql", "utf8");
 
 describe("supabase route segment reconciliation schema", () => {
+  it("stores nullable destination slugs and backfills exact curated matches", () => {
+    expect(schema).toMatch(/destination_slug text/);
+    expect(schema).toMatch(/add column if not exists destination_slug text/);
+    expect(schema).toMatch(/destination_slug = curated_destinations\.slug/);
+    expect(schema).toMatch(/where public\.trips\.destination_slug is null/);
+    expect(schema).toContain("('toronto', 'Toronto')");
+    expect(schema).toContain("('new-york-city', 'New York City')");
+  });
+
   it("defines a transaction-scoped RPC for route reconciliation", () => {
     expect(schema).toMatch(
       /create or replace function public\.reconcile_route_segments_for_trip\(p_trip_id bigint\)/,
