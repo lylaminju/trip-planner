@@ -535,6 +535,12 @@ body:has(.sign-in-page-shell) {
     padding-inline: 16px;
   }
 
+  .landing-final-cta .landing-primary-action,
+  .landing-final-cta .landing-secondary-action {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
   .landing-primary-action {
     flex: 1 1 auto;
   }

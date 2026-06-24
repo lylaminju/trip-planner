@@ -225,6 +225,22 @@ describe("LandingPage", () => {
     expect(markup).toContain("Ready to plan your next trip?");
   });
 
+  it("keeps final CTA mobile actions balanced as equal-width touch targets", () => {
+    const landingCss = fs.readFileSync(
+      "src/styles/components/landing.css",
+      "utf8",
+    );
+    const mobileCss = cssMediaBlock(landingCss, "@media (max-width: 560px)");
+
+    expect(mobileCss).toContain(
+      ".landing-final-cta .landing-primary-action,\n  .landing-final-cta .landing-secondary-action",
+    );
+    expect(mobileCss).toContain("flex: 1 1 0;");
+    expect(mobileCss).toContain("min-width: 0;");
+    expect(mobileCss).toContain(".landing-hero .landing-primary-action");
+    expect(mobileCss).toContain("flex: 0 0 auto;");
+  });
+
   it("keeps the approved mockup visual details around the browser shell", () => {
     const globalsCss = fs.readFileSync("src/app/globals.css", "utf8");
     const landingCss = fs.readFileSync(
@@ -394,4 +410,12 @@ function markupBetween(markup: string, className: string, tag: string) {
 
 function linkCount(markup: string) {
   return markup.match(/<a\b/g)?.length ?? 0;
+}
+
+function cssMediaBlock(css: string, mediaQuery: string) {
+  const start = css.indexOf(mediaQuery);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const nextMedia = css.indexOf("\n@media", start + mediaQuery.length);
+
+  return css.slice(start, nextMedia === -1 ? undefined : nextMedia);
 }
