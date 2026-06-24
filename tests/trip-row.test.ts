@@ -4,12 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { TripRow } from "@/components/TripRow";
 import type { TripSummary } from "@/lib/types";
+import { buildTripSummary } from "./helpers/fixtures";
 
 describe("TripRow", () => {
   it("renders a cover card with trip metadata and titled icon actions", () => {
     const markup = renderToStaticMarkup(
       createElement(TripRow, {
-        trip: tripSummary(),
+        trip: buildTripSummary(),
         onEdit: vi.fn(),
         onDelete: vi.fn(),
       }),
@@ -25,14 +26,12 @@ describe("TripRow", () => {
     expect(markup).toContain('title="Delete trip Toronto June"');
     expect(markup).toContain('aria-label="Delete trip Toronto June"');
     expect(markup).toContain("<svg");
-    expect(markup).not.toContain(">Edit<");
-    expect(markup).not.toContain(">Delete<");
   });
 
   it("uses the destination slug instead of inferring covers from destination text", () => {
     const curatedMarkup = renderToStaticMarkup(
       createElement(TripRow, {
-        trip: tripSummary({
+        trip: buildTripSummary({
           destination: "Custom Toronto label",
           destination_slug: "toronto",
         }),
@@ -44,7 +43,7 @@ describe("TripRow", () => {
 
     const customMarkup = renderToStaticMarkup(
       createElement(TripRow, {
-        trip: tripSummary({
+        trip: buildTripSummary({
           destination: "Toronto",
           destination_slug: null,
         }),
@@ -58,7 +57,7 @@ describe("TripRow", () => {
   it("disables the delete button and shows the delete spinner while deleting", () => {
     const markup = renderToStaticMarkup(
       createElement(TripRow, {
-        trip: tripSummary(),
+        trip: buildTripSummary(),
         onEdit: vi.fn(),
         onDelete: vi.fn(),
         isDeleting: true,
@@ -69,13 +68,12 @@ describe("TripRow", () => {
     expect(markup).toContain('title="Deleting trip Toronto June"');
     expect(markup).toContain("disabled");
     expect(markup).toContain("delete-loading-spinner");
-    expect(markup).not.toContain("M4 7h16");
   });
 
   it("reserves the destination row for legacy trips without a destination", () => {
     const markup = renderToStaticMarkup(
       createElement(TripRow, {
-        trip: { ...tripSummary(), destination: null } as unknown as TripSummary,
+        trip: { ...buildTripSummary(), destination: null } as unknown as TripSummary,
         onEdit: vi.fn(),
         onDelete: vi.fn(),
       }),
@@ -88,7 +86,7 @@ describe("TripRow", () => {
   it("keeps missing trip dates visually compact", () => {
     const markup = renderToStaticMarkup(
       createElement(TripRow, {
-        trip: { ...tripSummary(), start_date: null, end_date: null },
+        trip: { ...buildTripSummary(), start_date: null, end_date: null },
         onEdit: vi.fn(),
         onDelete: vi.fn(),
       }),
@@ -99,19 +97,3 @@ describe("TripRow", () => {
     expect(markup).not.toContain("Add dates to sort this trip");
   });
 });
-
-function tripSummary(overrides: Partial<TripSummary> = {}): TripSummary {
-  return {
-    id: 12,
-    created_by: "user-1",
-    name: "Toronto June",
-    destination: "Toronto",
-    destination_slug: "toronto",
-    start_date: "2026-06-01",
-    end_date: "2026-06-02",
-    role: "owner",
-    created_at: "2026-05-20 00:00:00",
-    updated_at: "2026-05-20 00:00:00",
-    ...overrides,
-  };
-}

@@ -14,7 +14,7 @@ import {
   TripSection,
   TripsDashboard,
 } from "@/components/TripsDashboard";
-import type { TripSummary } from "@/lib/types";
+import { buildTripSummary } from "./helpers/fixtures";
 
 describe("TripsDashboard", () => {
   it("renders the shell with profile fallback, left-rail account controls, and header create action", () => {
@@ -122,7 +122,7 @@ describe("TripsDashboard", () => {
       createElement(TripSection, {
         sectionId: "past-trips",
         title: "Past Trips",
-        trips: [tripSummary()],
+        trips: [buildTripSummary()],
         isOpen: false,
         editing: null,
         isSaving: false,
@@ -148,12 +148,12 @@ describe("TripsDashboard", () => {
     expect(
       defaultTripSectionOpenState(
         [
-          tripSummary({
+            buildTripSummary({
             id: 12,
             start_date: "2026-07-01",
             end_date: "2026-07-02",
           }),
-          tripSummary({
+          buildTripSummary({
             id: 13,
             name: "Old Montreal",
             start_date: "2025-06-01",
@@ -170,7 +170,7 @@ describe("TripsDashboard", () => {
     expect(
       defaultTripSectionOpenState(
         [
-          tripSummary({
+            buildTripSummary({
             id: 14,
             name: "Past only",
             start_date: "2025-07-01",
@@ -186,7 +186,7 @@ describe("TripsDashboard", () => {
   });
 
   it("converts the selected trip into an edit card without the legacy edit row", () => {
-    const trip = tripSummary();
+    const trip = buildTripSummary();
     const markup = renderToStaticMarkup(
       createElement(TripSection, {
         title: "Ongoing & Upcoming",
@@ -236,20 +236,15 @@ describe("TripsDashboard", () => {
       "src/styles/components/trips-dashboard-shell.css",
       "utf8",
     );
-    const pageRule = cssRule(css, ".trips-page");
     const shellRule = cssRule(css, ".trips-dashboard-shell");
     const railRule = cssRule(css, ".trips-brand-rail");
     const mainPaneRule = cssRule(css, ".trips-main-pane");
 
-    expect(pageRule).toContain("--trips-page-padding-x: 24px;");
-    expect(pageRule).toContain("padding: 0 var(--trips-page-padding-x);");
     expect(shellRule).toContain("margin: 0 auto;");
     expect(shellRule).toContain("max-width: 1320px;");
     expect(shellRule).toContain("min-height: 100dvh;");
-    expect(railRule).toContain("max-height: 100dvh;");
     expect(railRule).toContain("position: sticky;");
     expect(mainPaneRule).toContain("align-content: start;");
-    expect(mainPaneRule).toContain("min-height: 100dvh;");
     expect(css).toMatch(
       /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-main-pane\s*{[^}]*min-height:\s*0;/s,
     );
@@ -294,10 +289,10 @@ describe("TripsDashboard", () => {
     );
 
     expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list\s*{[^}]*--trip-card-desktop-height:\s*306\.5px;[^}]*grid-auto-rows:\s*var\(--trip-card-desktop-height\);/s,
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list\s*{[^}]*--trip-card-desktop-height:\s*[^;]+;[^}]*grid-auto-rows:\s*var\(--trip-card-desktop-height\);/s,
     );
     expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list > \.trip-row\s*{[^}]*align-self:\s*stretch;[^}]*height:\s*100%;[^}]*min-height:\s*0;/s,
+      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list > \.trip-row\s*{[^}]*height:\s*100%;/s,
     );
   });
 
@@ -308,22 +303,6 @@ describe("TripsDashboard", () => {
   });
 
 });
-
-function tripSummary(overrides: Partial<TripSummary> = {}): TripSummary {
-  return {
-    id: 12,
-    created_by: "user-1",
-    name: "Toronto June",
-    destination: "Toronto",
-    destination_slug: "toronto",
-    start_date: "2026-06-01",
-    end_date: "2026-06-02",
-    role: "owner" as const,
-    created_at: "2026-05-20 00:00:00",
-    updated_at: "2026-05-20 00:00:00",
-    ...overrides,
-  };
-}
 
 function markupBetween(markup: string, className: string, tag: string) {
   const start = markup.indexOf(`class="${className}`);

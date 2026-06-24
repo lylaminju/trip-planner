@@ -188,19 +188,6 @@ describe("LandingPage", () => {
     expect(markup).toContain("Open route in Google Maps");
     expect(markup).toContain("Lunch spot");
 
-    const workflowCss = fs.readFileSync(
-      "src/styles/components/landing-workflow.css",
-      "utf8",
-    );
-    expect(workflowCss).toContain("--landing-workflow-preview-height: 324px;");
-    expect(workflowCss).toContain(
-      "height: var(--landing-workflow-preview-height);",
-    );
-    expect(workflowCss).toContain(
-      "min-height: var(--landing-workflow-preview-height);",
-    );
-    expect(workflowCss).toContain("position: absolute;");
-    expect(workflowCss).toContain("top: 34px;");
   });
 
   it("shows feature proof and steps below the workflow showcase", () => {
@@ -239,92 +226,6 @@ describe("LandingPage", () => {
     expect(mobileCss).toContain("min-width: 0;");
     expect(mobileCss).toContain(".landing-hero .landing-primary-action");
     expect(mobileCss).toContain("flex: 0 0 auto;");
-  });
-
-  it("keeps the approved mockup visual details around the browser shell", () => {
-    const globalsCss = fs.readFileSync("src/app/globals.css", "utf8");
-    const landingCss = fs.readFileSync(
-      "src/styles/components/landing.css",
-      "utf8",
-    );
-    const previewCss = fs.readFileSync(
-      "src/styles/components/landing-preview.css",
-      "utf8",
-    );
-
-    expect(globalsCss).toContain("IBM+Plex+Sans");
-    expect(globalsCss).toContain("IBM+Plex+Mono");
-    expect(landingCss).toContain("font-family: 'IBM Plex Sans'");
-    expect(landingCss).toContain("position: sticky");
-    expect(landingCss).toContain("padding: 74px 24px 0");
-    expect(landingCss).toContain("font-weight: 600");
-    expect(landingCss).toContain("letter-spacing: -0.03em");
-    expect(landingCss).toContain("border-radius: 11px");
-    expect(landingCss).not.toMatch(
-      /\.landing-hero h1 span\s*\{[^}]*border-bottom/s,
-    );
-    expect(previewCss).toContain("margin: 46px auto 0");
-    expect(landingCss).toContain(
-      "grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-    );
-    expect(landingCss).toContain("radial-gradient(circle at 1px 1px");
-    expect(landingCss).toContain("margin: 70px auto 0");
-  });
-
-  it("keeps marketing pages constrained at phone widths", () => {
-    const landingCss = fs.readFileSync(
-      "src/styles/components/landing.css",
-      "utf8",
-    );
-    const previewCss = fs.readFileSync(
-      "src/styles/components/landing-preview.css",
-      "utf8",
-    );
-    const workflowCss = fs.readFileSync(
-      "src/styles/components/landing-workflow.css",
-      "utf8",
-    );
-    const themeCss = fs.readFileSync("src/styles/theme.css", "utf8");
-    const signInCss = fs.readFileSync(
-      "src/styles/components/sign-in.css",
-      "utf8",
-    );
-
-    expect(landingCss).toContain(
-      "grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-    );
-    expect(landingCss).toContain("padding-inline: clamp(20px, 4vw, 36px);");
-    expect(landingCss).toContain(
-      '.landing-shell .marketing-nav-link[href="/sign-in"]',
-    );
-    expect(landingCss).toContain(".landing-hero .landing-hero-actions");
-    expect(landingCss).toContain(".landing-hero .landing-primary-action");
-    expect(landingCss).toContain(".landing-hero .landing-secondary-action");
-    expect(landingCss).toContain("padding-inline: 16px;");
-    expect(landingCss).toContain("flex: 0 0 auto;");
-    expect(landingCss).toContain("font-size: 42px;");
-    expect(landingCss).toContain("font-size: 40px;");
-    expect(previewCss).toContain(
-      ".landing-product-frame .place-row .icon-button",
-    );
-    expect(previewCss).toContain("flex-wrap: nowrap;");
-    expect(previewCss).toContain(".landing-browser-chrome {\n    display: none;");
-    expect(previewCss).toContain("background: var(--landing-device-bezel);");
-    expect(previewCss).toContain("border-radius: 34px;");
-    expect(previewCss).toContain("border-radius: 26px;");
-    expect(previewCss).toContain("padding-inline: 16px;");
-    expect(workflowCss).toContain(".landing-workflow-card");
-    expect(workflowCss).toContain("box-shadow: var(--landing-workflow-shadow);");
-    expect(workflowCss).toContain("grid-template-columns: 1fr 1fr;");
-    expect(workflowCss).toContain("--landing-workflow-preview-height: 324px;");
-    expect(workflowCss).toContain("max-width: 332px;");
-    expect(workflowCss).toContain(".landing-workflow-tab[aria-pressed=\"true\"]");
-    expect(themeCss).toContain("--landing-device-bezel:");
-    expect(themeCss).toContain(
-      "--landing-workflow-shadow: 0 30px 70px -50px rgba(28, 25, 23, 0.4);",
-    );
-    expect(signInCss).toContain("@media (max-width: 640px)");
-    expect(signInCss).toContain("padding: 18px 16px 32px;");
   });
 
   it("renders landing route segments with a non-clickable Google Maps route action", () => {

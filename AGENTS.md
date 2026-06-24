@@ -82,6 +82,8 @@ This file applies to the whole repository. Follow it when changing code here.
 - When copy is expected to change during design iteration, assert the durable affordance instead, for example the CTA link target, form field name, route id, component class, or accessible landmark.
 - Keep CSS/source-text assertions coarse and intentional: assert a small invariant that would break a user-facing contract, not a full implementation recipe or every declaration in a rule.
 - When the same domain fixture or markup/CSS helper appears in several test files, move it to a typed test helper instead of growing copy-pasted builders.
+- Do not let test fakes grow into alternate production implementations. Use fakes to isolate a boundary, but keep production behavior covered through the production module or a narrow mocked integration contract.
+- Table-drive repeated parser, formatter, and validator cases when the behavior is the same and only inputs vary.
 - Do not leave `passWithNoTests` enabled unless a package genuinely supports a no-test mode; test discovery should fail closed in this app.
 
 ## Verification

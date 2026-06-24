@@ -4,14 +4,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { TripPlannerApp } from "@/components/TripPlannerApp";
-import type { TripPlannerInitialData } from "@/lib/types";
+import { buildTripPlannerInitialData } from "./helpers/fixtures";
 
 describe("mobile sheet handle", () => {
   it("renders the resize handle in a dedicated rail before scrollable content", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
-        initialData: buildInitialData(),
+        initialData: buildTripPlannerInitialData(),
       }),
     );
 
@@ -47,29 +47,4 @@ function cssRule(css: string, selector: string) {
   expect(end).toBeGreaterThanOrEqual(0);
 
   return css.slice(start, end + 4);
-}
-
-function buildInitialData(
-  overrides: Partial<TripPlannerInitialData> = {},
-): TripPlannerInitialData {
-  return {
-    trip: {
-      id: 1,
-      created_by: "user-1",
-      name: "Tokyo Spring",
-      destination: "Tokyo",
-      destination_slug: "tokyo",
-      start_date: "2026-04-01",
-      end_date: "2026-04-07",
-      created_at: "2026-01-01T00:00:00.000Z",
-      updated_at: "2026-01-01T00:00:00.000Z",
-    },
-    role: "owner",
-    plannerSnapshot: {
-      places: [],
-      itineraryItems: [],
-      routeSegments: [],
-    },
-    ...overrides,
-  };
 }

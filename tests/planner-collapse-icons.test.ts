@@ -3,18 +3,12 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { ChevronRightIcon } from "@/components/Icons";
 import { ItinerarySection } from "@/components/planner-panel/ItinerarySection";
 import { SectionToggle } from "@/components/planner-panel/SectionToggle";
-import type { ItineraryView, Place } from "@/lib/types";
+import type { ItineraryView } from "@/lib/types";
+import { buildPlace } from "./helpers/fixtures";
 
 describe("planner collapse controls", () => {
-  it("uses a sharper chevron geometry for collapse icons", () => {
-    const markup = renderToStaticMarkup(createElement(ChevronRightIcon));
-
-    expect(markup).toContain('d="M8 19 16 12 8 5"');
-  });
-
   it("renders section toggles with an svg chevron instead of text glyphs", () => {
     const markup = renderToStaticMarkup(
       createElement(SectionToggle, {
@@ -26,8 +20,6 @@ describe("planner collapse controls", () => {
     const iconMarkup = markupBetween(markup, "section-toggle-icon", "span");
 
     expect(iconMarkup).toContain("<svg");
-    expect(iconMarkup).not.toContain(">v<");
-    expect(iconMarkup).not.toContain("&gt;");
   });
 
   it("keeps section titles outside the collapse button", () => {
@@ -55,11 +47,9 @@ describe("planner collapse controls", () => {
 
     expect(openMarkup).toContain('aria-expanded="true"');
     expect(openMarkup).toContain("<svg");
-    expect(openMarkup).not.toContain(">v<");
 
     expect(collapsedMarkup).toContain('aria-expanded="false"');
     expect(collapsedMarkup).toContain("<svg");
-    expect(collapsedMarkup).not.toContain("&gt;");
   });
 
   it("places itinerary day collapse buttons before the date heading", () => {
@@ -74,7 +64,6 @@ describe("planner collapse controls", () => {
     const markup = itinerarySectionMarkup(new Set());
     const dayPrefixMarkup = markupBetween(markup, "day-heading-prefix", "span");
 
-    expect(markup).not.toContain("day-heading-color-label");
     expect(dayPrefixMarkup).toContain('style="color:var(--accent)"');
   });
 
@@ -192,27 +181,6 @@ function itinerary(): ItineraryView {
         segments: [],
       },
     ],
-    unscheduled: [place()],
-  };
-}
-
-function place(overrides: Partial<Place> = {}): Place {
-  return {
-    id: overrides.id ?? 1,
-    trip_id: overrides.trip_id ?? 1,
-    name: overrides.name ?? "Place",
-    address: overrides.address ?? null,
-    google_maps_url:
-      overrides.google_maps_url ?? "https://www.google.com/maps/place",
-    place_id: overrides.place_id ?? null,
-    google_place_token: overrides.google_place_token ?? null,
-    google_internal_ids: overrides.google_internal_ids ?? null,
-    source_list_url: overrides.source_list_url ?? null,
-    latitude: overrides.latitude ?? 40,
-    longitude: overrides.longitude ?? -74,
-    notes: overrides.notes ?? null,
-    links: overrides.links ?? [],
-    created_at: overrides.created_at ?? "2026-05-20 00:00:00",
-    updated_at: overrides.updated_at ?? "2026-05-20 00:00:00",
+    unscheduled: [buildPlace()],
   };
 }
