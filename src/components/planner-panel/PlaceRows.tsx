@@ -20,6 +20,14 @@ export function ItineraryItemRow(props: {
 }) {
   const display = formatPlaceRow(props.item, { context: "itinerary" });
   const note = props.item.notes ?? props.item.place.notes;
+  const rowClassName = [
+    "place-row",
+    "visit-row",
+    props.active ? "active" : "",
+    props.isDeleting ? "visit-row-deleting" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const dragLabel = `Drag ${props.item.place.name} to reorder or move date`;
   const editLabel = `Edit visit to ${props.item.place.name}`;
   const deleteLabel = `Delete visit to ${props.item.place.name}`;
@@ -28,7 +36,7 @@ export function ItineraryItemRow(props: {
     : deleteLabel;
 
   return (
-    <div className={`place-row ${props.active ? "active" : ""}`}>
+    <div className={rowClassName}>
       {props.canEdit ? (
         <button
           type="button"
@@ -77,7 +85,7 @@ export function ItineraryItemRow(props: {
         {note && <span className="place-note">{note}</span>}
       </button>
       {props.canEdit && (
-        <>
+        <span className="visit-row-actions">
           <button
             type="button"
             className="icon-button"
@@ -97,7 +105,7 @@ export function ItineraryItemRow(props: {
           >
             {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
           </button>
-        </>
+        </span>
       )}
     </div>
   );

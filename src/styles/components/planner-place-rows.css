@@ -160,6 +160,35 @@
   width: 30px;
 }
 
+.visit-row-actions {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: inherit;
+}
+
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  .visit-row-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+  }
+
+  .visit-row:hover .visit-row-actions,
+  .visit-row:focus-within .visit-row-actions,
+  .visit-row.active .visit-row-actions,
+  .visit-row.visit-row-deleting .visit-row-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visit-row-actions {
+    transition: none;
+  }
+}
+
 .place-drag-preview {
   background: var(--surface-panel);
   border: 1px solid var(--accent);
