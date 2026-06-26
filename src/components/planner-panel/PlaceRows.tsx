@@ -5,6 +5,7 @@ import type { ItineraryItem, Place } from "@/lib/types";
 
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
 import { CalendarPlusIcon, PencilIcon, TrashIcon } from "../Icons";
+import { VisitTimeSlot } from "./VisitTimeSlot";
 
 export function ItineraryItemRow(props: {
   item: ItineraryItem;
@@ -15,6 +16,7 @@ export function ItineraryItemRow(props: {
   onDragEnd?: () => void;
   onSelect: () => void;
   onEdit: () => void;
+  onTimeChange: (visitTime: string | null) => void | Promise<void>;
   onDelete: () => void;
   isDeleting: boolean;
 }) {
@@ -63,8 +65,8 @@ export function ItineraryItemRow(props: {
       ) : (
         <span className="drag-handle-placeholder" aria-hidden="true" />
       )}
-      <button type="button" className="place-main" onClick={props.onSelect}>
-        <strong className="place-title">
+      <span className="visit-row-content">
+        <span className="visit-row-title-line">
           {props.markerLabel && (
             <span
               className="place-marker-label"
@@ -74,16 +76,27 @@ export function ItineraryItemRow(props: {
               {props.markerLabel}
             </span>
           )}
-          <span className="place-title-text">
-            {display.timePrefix && (
-              <span className="place-time">{display.timePrefix}</span>
-            )}
-            <span className="place-name">{display.title}</span>
-          </span>
-        </strong>
-        {display.detail && <span>{display.detail}</span>}
-        {note && <span className="place-note">{note}</span>}
-      </button>
+          <VisitTimeSlot
+            placeName={props.item.place.name}
+            visitTime={props.item.visit_time}
+            displayTimePrefix={display.timePrefix ?? null}
+            canEdit={props.canEdit}
+            onTimeChange={props.onTimeChange}
+          />
+          <button
+            type="button"
+            className="place-main visit-place-main"
+            onClick={props.onSelect}
+          >
+            <strong className="place-title">
+              <span className="place-title-text">
+                <span className="place-name">{display.title}</span>
+              </span>
+            </strong>
+            {note && <span className="place-note">{note}</span>}
+          </button>
+        </span>
+      </span>
       {props.canEdit && (
         <span className="visit-row-actions">
           <button

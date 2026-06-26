@@ -312,6 +312,9 @@ export function ItinerarySection(props: Props) {
                             props.onSelectSegment(null);
                             props.onEditItem(item);
                           }}
+                          onTimeChange={(visitTime) => {
+                            props.onScheduleItem(item.id, day.date, visitTime);
+                          }}
                           onDelete={() => {
                             if (
                               !props.onConfirmDeletion(

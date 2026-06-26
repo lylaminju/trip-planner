@@ -40,6 +40,25 @@
   box-shadow: var(--selected-ring);
 }
 
+.visit-row {
+  align-items: center;
+  position: relative;
+}
+
+.visit-row-content {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  position: relative;
+}
+
+.visit-row-title-line {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+
 .place-main {
   background: transparent;
   border: 0;
@@ -68,7 +87,7 @@
   min-width: 0;
 }
 
-.place-main .place-marker-label {
+.visit-row-content .place-marker-label {
   align-items: center;
   border: 2px solid var(--surface-panel);
   border-radius: 999px;
@@ -82,8 +101,111 @@
   justify-content: center;
   line-height: 1;
   margin-right: 6px;
+  margin-top: 0;
   min-width: 18px;
   width: 18px;
+}
+
+.visit-time-slot {
+  --visit-time-slot-width: 70px;
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 var(--visit-time-slot-width);
+  min-width: 0;
+  width: var(--visit-time-slot-width);
+}
+
+.visit-time-chip,
+.visit-time-text,
+.visit-time-segment,
+.visit-time-separator {
+  align-items: center;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  min-height: 24px;
+  padding: 2px 0;
+}
+
+.visit-time-chip,
+.visit-time-text,
+.visit-time-segments,
+.visit-time-editor-display {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+.visit-time-chip {
+  background: transparent;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 0;
+  color: var(--active-line);
+  text-align: left;
+}
+
+.visit-time-segments,
+.visit-time-editor-display {
+  align-items: center;
+  display: inline-flex;
+}
+
+.visit-time-segment {
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
+  border-style: solid;
+  border-width: 0;
+  box-sizing: border-box;
+  color: var(--active-line);
+  flex: 0 0 30px;
+  justify-content: center;
+  min-width: 0;
+  padding-inline: 0;
+}
+
+.visit-time-separator {
+  color: var(--active-line);
+  flex: 0 0 6px;
+  justify-content: center;
+}
+
+.visit-time-chip:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.visit-time-segment:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.visit-time-chip:focus-visible {
+  box-shadow: inset 0 -2px 0 var(--accent);
+  outline: none;
+}
+
+.visit-time-segment:focus-visible,
+.visit-time-segment.active {
+  box-shadow: inset 0 -2px 0 var(--accent);
+  outline: none;
+}
+
+.visit-time-inline-editor.has-error .visit-time-segment.active {
+  box-shadow: inset 0 -2px 0 var(--danger);
+}
+
+.visit-time-chip.empty {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.visit-time-text {
+  color: var(--active-line);
 }
 
 .place-main .place-time {
@@ -98,6 +220,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.place-main.visit-place-main {
+  padding: 0 4px 0 0;
+}
+
+.place-main.visit-place-main .place-title {
+  min-height: 24px;
 }
 
 .place-main > span {
@@ -165,6 +295,82 @@
   display: inline-flex;
   flex: 0 0 auto;
   gap: inherit;
+}
+
+.visit-time-inline-editor {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 100%;
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
+.visit-time-menu {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  gap: 2px;
+  left: 0;
+  max-height: 176px;
+  overflow-y: auto;
+  padding: 4px;
+  position: absolute;
+  top: calc(100% + 6px);
+  width: 44px;
+  z-index: 5;
+}
+
+.visit-time-menu.minute-menu {
+  left: 36px;
+}
+
+.visit-time-menu.hour-menu {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.visit-time-menu.hour-menu::-webkit-scrollbar {
+  display: none;
+}
+
+.visit-time-menu-option {
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 26px;
+  padding: 2px 0;
+  text-align: center;
+}
+
+.visit-time-menu-option:hover,
+.visit-time-menu-option:focus-visible,
+.visit-time-menu-option.selected {
+  background: var(--accent-selected-bg);
+  box-shadow: var(--focus-ring-soft);
+  color: var(--active-line);
+  outline: none;
+}
+
+.visit-time-inline-error {
+  background: var(--surface-panel);
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+  left: 0;
+  position: absolute;
+  top: calc(100% + 190px);
+  white-space: nowrap;
+}
+
+.visit-row:focus-within {
+  z-index: 4;
 }
 
 @media (min-width: 901px) and (hover: hover) and (pointer: fine) {
