@@ -147,16 +147,20 @@ export function SegmentRow({
           ? "9 hr 59 min"
           : formatRouteDuration(durationSeconds)}
       </span>
-      <a
-        className="small-button"
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(event) => event.stopPropagation()}
-        title="Open in Google Maps"
-      >
-        <ExternalLinkIcon />
-      </a>
+      <span className="route-segment-actions">
+        <a
+          className="small-button route-segment-map-link"
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          aria-label="Open in Google Maps"
+          title="Open in Google Maps"
+        >
+          <ExternalLinkIcon />
+          <span className="route-segment-map-label">Open in Google Maps</span>
+        </a>
+      </span>
     </div>
   );
 }

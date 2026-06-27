@@ -101,6 +101,20 @@
   font-size: 12px;
 }
 
+.route-segment-actions {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.route-segment-map-link {
+  white-space: nowrap;
+}
+
+.route-segment-map-label {
+  display: none;
+}
+
 .route-mode-picker {
   display: inline-flex;
   position: relative;
@@ -201,4 +215,33 @@
   background: var(--accent-soft-bg);
   border-color: var(--accent-soft-border);
   color: var(--accent);
+}
+
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  .route-segment-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+  }
+
+  .route-segment-map-label {
+    display: inline;
+  }
+
+  .route-segment-map-link svg {
+    display: none;
+  }
+
+  .segment-row:hover .route-segment-actions,
+  .segment-row:focus-within .route-segment-actions,
+  .segment-row.active .route-segment-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-segment-actions {
+    transition: none;
+  }
 }
