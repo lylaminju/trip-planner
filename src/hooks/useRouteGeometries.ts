@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchRouteGeometry } from "@/lib/planner-api";
+import { loadRouteGeometries } from "@/lib/route-geometry-loader";
 import type {
   ItineraryItem,
   PlannerSnapshot,
@@ -20,6 +21,7 @@ export function useRouteGeometries(
   const [routeGeometryError, setRouteGeometryError] = useState<string | null>(
     null,
   );
+  const routeGeometriesRef = useRef<Map<number, RouteGeometry>>(new Map());
   const routeGeometrySignaturesRef = useRef<Map<number, string>>(new Map());
   const routeGeometrySignature = useMemo(
     () =>
@@ -32,6 +34,7 @@ export function useRouteGeometries(
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     const itemsById = new Map(
       snapshot.itineraryItems.map((item) => [item.id, item]),
     );
@@ -52,21 +55,20 @@ export function useRouteGeometries(
         .map((segment) => segment.id),
     );
 
-    setRouteGeometries((current) => {
-      const next = new Map(current);
-      let changed = false;
-      for (const segmentId of current.keys()) {
-        if (!nextSegmentIds.has(segmentId) || staleSegmentIds.has(segmentId)) {
-          next.delete(segmentId);
-          changed = true;
-        }
-      }
-      return changed ? next : current;
-    });
+    const prunedRouteGeometries = pruneRouteGeometries(
+      routeGeometriesRef.current,
+      nextSegmentIds,
+      staleSegmentIds,
+    );
+    if (prunedRouteGeometries !== routeGeometriesRef.current) {
+      routeGeometriesRef.current = prunedRouteGeometries;
+      setRouteGeometries(prunedRouteGeometries);
+    }
 
     if (snapshot.routeSegments.length === 0) {
       routeGeometrySignaturesRef.current.clear();
       setRouteGeometryError(null);
+      controller.abort();
       return;
     }
 
@@ -74,7 +76,8 @@ export function useRouteGeometries(
       .map((segment) => segment.id)
       .filter(
         (segmentId) =>
-          staleSegmentIds.has(segmentId) || !routeGeometries.has(segmentId),
+          staleSegmentIds.has(segmentId) ||
+          !prunedRouteGeometries.has(segmentId),
       );
 
     if (missingSegmentIds.length === 0) {
@@ -83,37 +86,67 @@ export function useRouteGeometries(
     }
 
     routeGeometrySignaturesRef.current = nextSignatures;
+    setRouteGeometryError(null);
+    let firstError: string | null = null;
 
-    void Promise.all(
-      missingSegmentIds.map((segmentId) =>
-        fetchRouteGeometry(tripId, segmentId),
-      ),
-    ).then((results) => {
-      if (cancelled) return;
+    void loadRouteGeometries({
+      segmentIds: missingSegmentIds,
+      signal: controller.signal,
+      fetchGeometry: (segmentId, signal) =>
+        fetchRouteGeometry(tripId, segmentId, signal),
+      onResult: ({ geometry, error }) => {
+        if (cancelled) return;
 
-      setRouteGeometryError(
-        results.find((result) => result.error)?.error ?? null,
-      );
-      setRouteGeometries((current) => {
-        const next = new Map(current);
-        let changed = false;
-
-        for (const { geometry } of results) {
-          if (!geometry) continue;
-          next.set(geometry.segment_id, geometry);
-          changed = true;
+        if (error && !firstError) {
+          firstError = error;
+          setRouteGeometryError(error);
         }
 
-        return changed ? next : current;
-      });
+        if (!geometry) return;
+        setRouteGeometries((current) => {
+          if (
+            cancelled ||
+            routeGeometrySignaturesRef.current.get(geometry.segment_id) !==
+              nextSignatures.get(geometry.segment_id)
+          ) {
+            return current;
+          }
+
+          const currentGeometry = current.get(geometry.segment_id);
+          if (currentGeometry === geometry) return current;
+
+          const next = new Map(current);
+          next.set(geometry.segment_id, geometry);
+          routeGeometriesRef.current = next;
+          return next;
+        });
+      },
     });
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [routeGeometrySignature, routeGeometries, snapshot.routeSegments, tripId]);
+  }, [routeGeometrySignature, snapshot.routeSegments, tripId]);
 
   return { routeGeometries, routeGeometryError };
+}
+
+function pruneRouteGeometries(
+  current: Map<number, RouteGeometry>,
+  nextSegmentIds: Set<number>,
+  staleSegmentIds: Set<number>,
+): Map<number, RouteGeometry> {
+  let next: Map<number, RouteGeometry> | null = null;
+
+  for (const segmentId of current.keys()) {
+    if (!nextSegmentIds.has(segmentId) || staleSegmentIds.has(segmentId)) {
+      next ??= new Map(current);
+      next.delete(segmentId);
+    }
+  }
+
+  return next ?? current;
 }
 
 function buildRouteGeometrySignature(

@@ -133,10 +133,12 @@ export function updateSegmentModeRequest(
 export async function fetchRouteGeometry(
   tripId: number,
   segmentId: number,
+  signal?: AbortSignal,
 ): Promise<{ geometry: RouteGeometry | null; error: string | null }> {
   try {
     const response = await fetch(
       `${tripApiBase(tripId)}/route-segments/${segmentId}/geometry`,
+      { signal },
     );
     if (!response.ok) {
       return {
@@ -153,7 +155,14 @@ export async function fetchRouteGeometry(
       geometry: geometry.segment_id === segmentId ? geometry : null,
       error: null,
     };
-  } catch {
+  } catch (error) {
+    if (isAbortError(error, signal)) {
+      return {
+        geometry: null,
+        error: null,
+      };
+    }
+
     return {
       geometry: null,
       error:
@@ -168,6 +177,14 @@ export function logoutRequest(): Promise<Response> {
 
 function tripApiBase(tripId: number): string {
   return `/api/trips/${tripId}`;
+}
+
+function isAbortError(error: unknown, signal?: AbortSignal): boolean {
+  return (
+    signal?.aborted === true ||
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  );
 }
 
 async function plannerSnapshotRequest(
