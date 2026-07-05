@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchRouteGeometry } from "@/lib/planner-api";
+import {
+  getRouteGeometryBrowserCacheStorage,
+  pruneRouteGeometryBrowserCache,
+  readRouteGeometryBrowserCache,
+  routeGeometryBrowserCacheSignature,
+  writeRouteGeometryBrowserCache,
+} from "@/lib/route-geometry-browser-cache";
 import { loadRouteGeometries } from "@/lib/route-geometry-loader";
-import type {
-  ItineraryItem,
-  PlannerSnapshot,
-  RouteGeometry,
-} from "@/lib/types";
+import type { PlannerSnapshot, RouteGeometry } from "@/lib/types";
 
 export function useRouteGeometries(
   tripId: number,
@@ -55,14 +58,29 @@ export function useRouteGeometries(
         .map((segment) => segment.id),
     );
 
+    const storage = getRouteGeometryBrowserCacheStorage();
+    pruneRouteGeometryBrowserCache({
+      storage,
+      tripId,
+      signatures: nextSignatures,
+    });
     const prunedRouteGeometries = pruneRouteGeometries(
       routeGeometriesRef.current,
       nextSegmentIds,
       staleSegmentIds,
     );
-    if (prunedRouteGeometries !== routeGeometriesRef.current) {
-      routeGeometriesRef.current = prunedRouteGeometries;
-      setRouteGeometries(prunedRouteGeometries);
+    const cachedRouteGeometries = readRouteGeometryBrowserCache({
+      storage,
+      tripId,
+      signatures: nextSignatures,
+    });
+    const hydratedRouteGeometries = mergeRouteGeometries(
+      prunedRouteGeometries,
+      cachedRouteGeometries,
+    );
+    if (hydratedRouteGeometries !== routeGeometriesRef.current) {
+      routeGeometriesRef.current = hydratedRouteGeometries;
+      setRouteGeometries(hydratedRouteGeometries);
     }
 
     if (snapshot.routeSegments.length === 0) {
@@ -74,11 +92,7 @@ export function useRouteGeometries(
 
     const missingSegmentIds = snapshot.routeSegments
       .map((segment) => segment.id)
-      .filter(
-        (segmentId) =>
-          staleSegmentIds.has(segmentId) ||
-          !prunedRouteGeometries.has(segmentId),
-      );
+      .filter((segmentId) => !hydratedRouteGeometries.has(segmentId));
 
     if (missingSegmentIds.length === 0) {
       routeGeometrySignaturesRef.current = nextSignatures;
@@ -115,6 +129,13 @@ export function useRouteGeometries(
           const currentGeometry = current.get(geometry.segment_id);
           if (currentGeometry === geometry) return current;
 
+          writeRouteGeometryBrowserCache({
+            storage,
+            tripId,
+            signature: nextSignatures.get(geometry.segment_id),
+            geometry,
+          });
+
           const next = new Map(current);
           next.set(geometry.segment_id, geometry);
           routeGeometriesRef.current = next;
@@ -149,6 +170,22 @@ function pruneRouteGeometries(
   return next ?? current;
 }
 
+function mergeRouteGeometries(
+  current: Map<number, RouteGeometry>,
+  cached: Map<number, RouteGeometry>,
+): Map<number, RouteGeometry> {
+  let next: Map<number, RouteGeometry> | null = null;
+
+  for (const [segmentId, geometry] of cached) {
+    if (!current.has(segmentId)) {
+      next ??= new Map(current);
+      next.set(segmentId, geometry);
+    }
+  }
+
+  return next ?? current;
+}
+
 function buildRouteGeometrySignature(
   routeSegments: PlannerSnapshot["routeSegments"],
   items: PlannerSnapshot["itineraryItems"],
@@ -162,16 +199,7 @@ function buildRouteGeometrySignature(
 
 function routeGeometryRequestSignature(
   segment: PlannerSnapshot["routeSegments"][number],
-  itemsById: Map<number, ItineraryItem>,
+  itemsById: Map<number, PlannerSnapshot["itineraryItems"][number]>,
 ): string {
-  const from = itemsById.get(segment.from_item_id);
-  const to = itemsById.get(segment.to_item_id);
-  return [
-    segment.id,
-    segment.mode,
-    from?.place.latitude ?? "",
-    from?.place.longitude ?? "",
-    to?.place.latitude ?? "",
-    to?.place.longitude ?? "",
-  ].join(":");
+  return routeGeometryBrowserCacheSignature(segment, itemsById);
 }
