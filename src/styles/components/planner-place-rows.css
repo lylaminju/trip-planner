@@ -107,10 +107,11 @@
 }
 
 .visit-time-slot {
-  --visit-time-slot-width: 70px;
+  --visit-time-slot-width: 74px;
   align-items: center;
   display: inline-flex;
   flex: 0 0 var(--visit-time-slot-width);
+  margin-right: 4px;
   min-width: 0;
   width: var(--visit-time-slot-width);
 }
@@ -122,9 +123,10 @@
   align-items: center;
   display: inline-flex;
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1.1;
-  min-height: 24px;
+  min-height: 26px;
   padding: 2px 0;
 }
 
@@ -136,30 +138,44 @@
   width: 100%;
 }
 
-.visit-time-chip {
-  background: transparent;
-  border-color: transparent;
-  border-style: solid;
-  border-width: 0;
+.visit-time-chip,
+.visit-time-segments,
+.visit-time-editor-display {
+  background: var(--surface-panel);
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+  box-sizing: border-box;
   color: var(--active-line);
-  text-align: left;
+  min-height: 28px;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.visit-time-chip {
+  justify-content: center;
+  padding-inline: 4px;
+  text-align: center;
 }
 
 .visit-time-segments,
 .visit-time-editor-display {
   align-items: center;
   display: inline-flex;
+  overflow: hidden;
 }
 
 .visit-time-segment {
   background: transparent;
   border-color: transparent;
-  border-radius: 0;
+  border-radius: 4px;
   border-style: solid;
   border-width: 0;
   box-sizing: border-box;
   color: var(--active-line);
-  flex: 0 0 30px;
+  flex: 1 1 0;
   justify-content: center;
   min-width: 0;
   padding-inline: 0;
@@ -172,24 +188,37 @@
 }
 
 .visit-time-chip:hover {
-  background: transparent;
-  border-color: transparent;
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
   box-shadow: none;
 }
 
 .visit-time-segment:hover {
-  background: transparent;
+  background: var(--surface-subtle);
   border-color: transparent;
   box-shadow: none;
 }
 
 .visit-time-chip:focus-visible {
-  box-shadow: inset 0 -2px 0 var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring-soft);
   outline: none;
+}
+
+.visit-time-segments:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.visit-time-segments:focus-within,
+.visit-time-editor-display:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring-soft);
 }
 
 .visit-time-segment:focus-visible,
 .visit-time-segment.active {
+  background: var(--accent-selected-bg);
   box-shadow: inset 0 -2px 0 var(--accent);
   outline: none;
 }
@@ -199,9 +228,32 @@
 }
 
 .visit-time-chip.empty {
-  background: transparent;
-  border-color: transparent;
+  background: var(--surface-muted);
+  border-color: var(--border-default);
   color: var(--muted);
+}
+
+.visit-time-add-control {
+  gap: 3px;
+}
+
+.visit-time-add-control:hover {
+  color: var(--active-line);
+}
+
+.visit-time-add-plus {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.visit-time-add-control svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 15px;
 }
 
 .visit-time-text {

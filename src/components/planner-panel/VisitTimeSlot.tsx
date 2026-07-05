@@ -8,6 +8,7 @@ import {
 } from "@/lib/quick-visit-time";
 import { splitVisitTime } from "@/lib/visit-time";
 
+import { ClockIcon } from "../Icons";
 import {
   VisitTimeInlineEditor,
   type VisitTimeSegment,
@@ -134,12 +135,15 @@ export function VisitTimeSlot(props: Props) {
       ) : props.canEdit ? (
         <button
           type="button"
-          className={`visit-time-chip${props.visitTime ? "" : " empty"}`}
+          className="visit-time-chip visit-time-add-control empty"
           aria-label={timeButtonLabel}
           title={timeButtonLabel}
           onClick={() => openTimeEditor("hour")}
         >
-          {props.visitTime ?? "Add time"}
+          <span className="visit-time-add-plus" aria-hidden="true">
+            +
+          </span>
+          <ClockIcon />
         </button>
       ) : (
         props.displayTimePrefix && (

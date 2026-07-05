@@ -152,9 +152,13 @@ describe("PlaceRows", () => {
       }),
     );
 
-    expect(markup).toContain('class="visit-time-chip empty"');
+    expect(markup).toContain(
+      'class="visit-time-chip visit-time-add-control empty"',
+    );
     expect(markup).toContain('aria-label="Add visit time for Bryant Park"');
-    expect(markup).toContain("Add time");
+    expect(markup).toContain('class="visit-time-add-plus"');
+    expect(markup).toContain("<svg");
+    expect(markup).not.toContain("Add time");
   });
 
   it("renders the inline time editor with an immediate hour menu", () => {
@@ -264,7 +268,7 @@ describe("PlaceRows", () => {
     expect(css).not.toContain(".visit-time-quick-editor");
   });
 
-  it("keeps the time chip and inline editor in a stable plain text slot", () => {
+  it("keeps the time control in a stable clickable slot", () => {
     const css = readFileSync(
       "src/styles/components/planner-place-rows.css",
       "utf8",
@@ -282,10 +286,24 @@ describe("PlaceRows", () => {
       css,
       ".visit-time-chip,\n.visit-time-text,\n.visit-time-segment,\n.visit-time-separator",
     );
+    const timeControlRule = cssRule(
+      css,
+      ".visit-time-chip,\n.visit-time-segments,\n.visit-time-editor-display",
+    );
     const chipRule = cssRule(css, ".visit-time-chip");
     const chipHoverRule = cssRule(css, ".visit-time-chip:hover");
+    const chipFocusRule = cssRule(css, ".visit-time-chip:focus-visible");
+    const segmentsHoverRule = cssRule(css, ".visit-time-segments:hover");
+    const segmentsFocusRule = cssRule(
+      css,
+      ".visit-time-segments:focus-within,\n.visit-time-editor-display:focus-within",
+    );
     const segmentRule = cssRule(css, ".visit-time-segment");
     const segmentHoverRule = cssRule(css, ".visit-time-segment:hover");
+    const emptyChipRule = cssRule(css, ".visit-time-chip.empty");
+    const addControlRule = cssRule(css, ".visit-time-add-control");
+    const addControlHoverRule = cssRule(css, ".visit-time-add-control:hover");
+    const addControlSvgRule = cssRule(css, ".visit-time-add-control svg");
     const menuRule = cssRule(css, ".visit-time-menu");
     const hourMenuRule = cssRule(css, ".visit-time-menu.hour-menu");
     const hourMenuScrollbarRule = cssRule(
@@ -293,8 +311,9 @@ describe("PlaceRows", () => {
       ".visit-time-menu.hour-menu::-webkit-scrollbar",
     );
 
-    expect(slotRule).toContain("--visit-time-slot-width: 70px;");
+    expect(slotRule).toContain("--visit-time-slot-width: 74px;");
     expect(slotRule).toContain("flex: 0 0 var(--visit-time-slot-width);");
+    expect(slotRule).toContain("margin-right: 4px;");
     expect(slotRule).toContain("width: var(--visit-time-slot-width);");
     expect(visitRowRule).toContain("align-items: center;");
     expect(titleLineRule).toContain("align-items: center;");
@@ -303,14 +322,32 @@ describe("PlaceRows", () => {
     expect(visitPlaceMainRule).toContain("padding: 0 4px 0 0;");
     expect(visitPlaceTitleRule).toContain("min-height: 24px;");
     expect(timeTextRule).toContain("font-size: 14px;");
+    expect(timeTextRule).toContain("font-variant-numeric: tabular-nums;");
+    expect(timeControlRule).toContain("background: var(--surface-panel);");
+    expect(timeControlRule).toContain("border: 1px solid var(--border-muted);");
+    expect(timeControlRule).toContain("border-radius: 6px;");
+    expect(timeControlRule).toContain("min-height: 28px;");
     expect(segmentRule).toContain("box-sizing: border-box;");
     expect(segmentRule).toContain("border-width: 0;");
-    expect(segmentRule).toContain("border-radius: 0;");
-    expect(chipRule).toContain("background: transparent;");
-    expect(chipRule).toContain("border-width: 0;");
-    expect(chipHoverRule).toContain("background: transparent;");
-    expect(segmentHoverRule).toContain("background: transparent;");
-    expect(chipRule).not.toContain("border-radius");
+    expect(segmentRule).toContain("border-radius: 4px;");
+    expect(segmentRule).toContain("flex: 1 1 0;");
+    expect(chipRule).toContain("justify-content: center;");
+    expect(chipHoverRule).toContain("background: var(--surface-muted);");
+    expect(chipHoverRule).toContain("border-color: var(--border-strong);");
+    expect(segmentsHoverRule).toContain("background: var(--surface-muted);");
+    expect(segmentsHoverRule).toContain("border-color: var(--border-strong);");
+    expect(chipFocusRule).toContain("border-color: var(--accent);");
+    expect(chipFocusRule).toContain("box-shadow: var(--focus-ring-soft);");
+    expect(segmentsFocusRule).toContain("border-color: var(--accent);");
+    expect(segmentsFocusRule).toContain("box-shadow: var(--focus-ring-soft);");
+    expect(segmentHoverRule).toContain("background: var(--surface-subtle);");
+    expect(emptyChipRule).toContain("background: var(--surface-muted);");
+    expect(emptyChipRule).toContain("border-color: var(--border-default);");
+    expect(addControlRule).toContain("gap: 3px;");
+    expect(addControlHoverRule).toContain("color: var(--active-line);");
+    expect(addControlSvgRule).toContain("height: 15px;");
+    expect(addControlSvgRule).toContain("stroke: currentColor;");
+    expect(addControlSvgRule).toContain("width: 15px;");
     expect(menuRule).toContain("position: absolute;");
     expect(menuRule).toContain("top: calc(100% + 6px);");
     expect(menuRule).toContain("overflow-y: auto;");
