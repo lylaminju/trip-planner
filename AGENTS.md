@@ -46,6 +46,10 @@ This file applies to the whole repository. Follow it when changing code here.
 - Keep exported return types limited to the production contract. Do not expose fields used only by tests. If a preservation or detail field is an intentional API, production code should consume it or tests should clearly document the contract.
 - When touching files over the file-size guardrail, extract a focused hook, helper, or subcomponent as part of the change unless that would make the diff materially riskier.
 
+## Documentation Guidelines
+
+- Use Markdown link syntax (`[label](url)`) for website links unless the user explicitly asks for a different format.
+
 ## UI Layout Stability
 
 - Avoid expected layout shifts during normal user workflows. When labels, durations, counts, badges, loading states, or option text can vary, reserve stable space for repeated controls where practical.

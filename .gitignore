@@ -10,6 +10,9 @@ data/*.sqlite-wal
 
 supabase/.temp/
 
+docs/retro.md
+docs/business
+
 .agents/
 .claude/
 .gemini/
