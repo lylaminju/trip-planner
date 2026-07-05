@@ -82,6 +82,7 @@ async function withFreshTestEnv(
     await run();
   } finally {
     vi.doUnmock("@/server/auth-session");
+    vi.doUnmock("@/server/ai-planning-service");
     vi.doUnmock("@/server/place-service");
     vi.doUnmock("@/server/supabase-place-service");
     vi.doUnmock("@/server/trip-access");
@@ -373,6 +374,66 @@ describe("API routes transport behavior", () => {
         });
       },
       { role: "viewer" },
+    );
+  });
+
+  it("returns AI planning setup for authenticated trip owners", async () => {
+    await withFreshTestEnv(async () => {
+      const setup = {
+        trip: {
+          id: 1,
+          created_by: "user-1",
+          name: "New York City",
+          destination: "New York City",
+          destination_slug: "new-york-city",
+          start_date: "2026-05-27",
+          end_date: "2026-05-29",
+          created_at: "2026-01-01T00:00:00.000Z",
+          updated_at: "2026-01-01T00:00:00.000Z",
+        },
+        isSupportedDestination: true,
+        candidates: [],
+        lodging: null,
+        preferences: null,
+      };
+
+      vi.doMock("@/server/ai-planning-service", () => ({
+        getAiPlanningSetupForRequest: vi.fn().mockResolvedValue(setup),
+      }));
+
+      const { GET } =
+        await import("@/app/api/trips/[tripId]/ai-planning/setup/route");
+      const service = await import("@/server/ai-planning-service");
+      const response = await GET(
+        new Request("http://localhost/api/trips/1/ai-planning/setup"),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual(setup);
+      expect(service.getAiPlanningSetupForRequest).toHaveBeenCalledWith(
+        1,
+        "user-1",
+      );
+    });
+  });
+
+  it("returns 401 for unauthenticated AI planning setup requests", async () => {
+    await withFreshTestEnv(
+      async () => {
+        const { GET } =
+          await import("@/app/api/trips/[tripId]/ai-planning/setup/route");
+        const response = await GET(
+          new Request("http://localhost/api/trips/1/ai-planning/setup"),
+          tripParams(),
+        );
+
+        expect(response.status).toBe(401);
+        await expect(response.json()).resolves.toEqual({
+          error: "Authentication required.",
+        });
+      },
+      { authenticated: false },
     );
   });
 
