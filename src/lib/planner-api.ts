@@ -1,4 +1,5 @@
 import type {
+  AiPlanningSetup,
   PlannerSnapshot,
   RouteGeometry,
   TravelMode,
@@ -11,6 +12,17 @@ export async function loadTripPlannerInitialData(
   const response = await fetch(`${tripApiBase(tripId)}/planner`);
   if (!response.ok) {
     throw new Error("Failed to load places.");
+  }
+
+  return response.json();
+}
+
+export async function loadAiPlanningSetup(
+  tripId: number,
+): Promise<AiPlanningSetup> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/setup`);
+  if (!response.ok) {
+    throw new Error("Failed to load AI planning setup.");
   }
 
   return response.json();

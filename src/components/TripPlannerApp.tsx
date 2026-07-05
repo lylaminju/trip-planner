@@ -13,6 +13,7 @@ import { useCurrentLocationControl } from "@/hooks/useCurrentLocationControl";
 import { useItineraryExport } from "@/hooks/useItineraryExport";
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
 import { useTripPlannerModals } from "@/hooks/useTripPlannerModals";
+import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
 import { buildVisitDateOptions } from "@/lib/itinerary";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
@@ -20,6 +21,7 @@ import {
   createItineraryItemRequest,
   deleteItineraryItemRequest,
   deletePlaceRequest,
+  loadAiPlanningSetup,
   loadTripPlannerInitialData,
   saveItineraryItemRequest,
   savePlaceRequest,
@@ -106,6 +108,10 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   );
   const canEdit = role !== "viewer";
   const canEditTripMetadata = role === "owner";
+  const canPlanWithAi =
+    canEditTripMetadata &&
+    isAiPlanningDestinationSupported(trip?.destination_slug) &&
+    isPlannerSnapshotEmpty(plannerSnapshot);
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
   const { exportFeedback, copyMarkdownExport, downloadMarkdownExport } =
@@ -342,6 +348,17 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setActiveSegmentId(null);
   }
 
+  async function openAiPlanningSetup() {
+    if (!canPlanWithAi) return;
+
+    try {
+      await loadAiPlanningSetup(tripId);
+      setError(null);
+    } catch (reason) {
+      setError(errorMessage(reason, "Failed to load AI planning setup."));
+    }
+  }
+
   return (
     <TripPlannerView
       mobileSheetState={mobileSheetState}
@@ -379,6 +396,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onTogglePlannerExpanded={() =>
         setIsPlannerPanelExpanded((value) => !value)
       }
+      onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
       onMobileSheetStateChange={setMobileSheetState}
       onOpenAddModal={openAddModal}
       onOpenEditTripModal={openEditTripModal}
@@ -406,5 +424,13 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onSubmitEditTrip={submitEditTrip}
       onSetError={setError}
     />
+  );
+}
+
+function isPlannerSnapshotEmpty(snapshot: PlannerSnapshot): boolean {
+  return (
+    snapshot.places.length === 0 &&
+    snapshot.itineraryItems.length === 0 &&
+    snapshot.routeSegments.length === 0
   );
 }

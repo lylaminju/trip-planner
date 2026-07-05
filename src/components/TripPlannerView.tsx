@@ -62,6 +62,7 @@ type Props = {
   isSavingTrip: boolean;
   visitDateOptions: VisitDateOption[];
   onTogglePlannerExpanded: () => void;
+  onPlanWithAi?: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onOpenAddModal: (visitDate?: string | null) => void;
   onOpenEditTripModal: () => void;
@@ -134,6 +135,7 @@ export function TripPlannerView(props: Props) {
         deletingPlaceIds={props.deletingPlaceIds}
         deletingItineraryItemIds={props.deletingItineraryItemIds}
         onToggleExpanded={props.onTogglePlannerExpanded}
+        onPlanWithAi={props.onPlanWithAi}
         onMobileSheetStateChange={props.onMobileSheetStateChange}
         onAdd={props.onOpenAddModal}
         onEditTrip={

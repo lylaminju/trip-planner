@@ -4,7 +4,11 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { TripPlannerApp } from "@/components/TripPlannerApp";
 import { SERVICE_TITLE } from "@/lib/service-brand";
-import { buildTripPlannerInitialData } from "./helpers/fixtures";
+import {
+  buildPlace,
+  buildTrip,
+  buildTripPlannerInitialData,
+} from "./helpers/fixtures";
 
 describe("TripPlannerApp", () => {
   afterEach(() => {
@@ -57,6 +61,63 @@ describe("TripPlannerApp", () => {
     );
 
     expect(markup).not.toContain("Edit trip details");
+  });
+
+  it("shows AI planning only for owner-owned empty supported trips", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData({
+          trip: buildTrip({
+            destination: "New York City",
+            destination_slug: "new-york-city",
+          }),
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Plan with AI");
+  });
+
+  it("hides AI planning for non-empty or unsupported trips", () => {
+    const withPlaces = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData({
+          trip: buildTrip({
+            destination: "New York City",
+            destination_slug: "new-york-city",
+          }),
+          plannerSnapshot: {
+            places: [buildPlace({ name: "Central Park" })],
+            itineraryItems: [],
+            routeSegments: [],
+          },
+        }),
+      }),
+    );
+    const unsupported = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData(),
+      }),
+    );
+    const editor = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData({
+          role: "editor",
+          trip: buildTrip({
+            destination: "New York City",
+            destination_slug: "new-york-city",
+          }),
+        }),
+      }),
+    );
+
+    expect(withPlaces).not.toContain("Plan with AI");
+    expect(unsupported).not.toContain("Plan with AI");
+    expect(editor).not.toContain("Plan with AI");
   });
 
   it("renders current location as a map control instead of a planner header button", () => {

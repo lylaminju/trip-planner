@@ -73,6 +73,13 @@
   flex: 0 1 auto;
 }
 
+.app-header-controls {
+  align-items: flex-start;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
 .app-header-edit-trip-button {
   color: var(--muted);
   flex: 0 0 30px;
@@ -141,6 +148,31 @@
 }
 
 .section-primary-action:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring-strong);
+}
+
+.ai-plan-button {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  flex: 0 0 104px;
+  font-size: 13px;
+  font-weight: 700;
+  height: 34px;
+  min-width: 104px;
+  padding-left: 10px;
+  padding-right: 10px;
+  white-space: nowrap;
+}
+
+.ai-plan-button:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: var(--shadow-control);
+}
+
+.ai-plan-button:focus-visible {
   border-color: var(--accent);
   box-shadow: var(--focus-ring-strong);
 }
