@@ -1,4 +1,5 @@
 import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
+import { isAiInterestTag } from "@/lib/ai-planning-preferences";
 import type {
   AiDestinationCandidate,
   AiPlanningPreferenceInput,
@@ -311,7 +312,7 @@ function promptContext(input: {
       id: candidate.id,
       name: candidate.name,
       category: candidate.category,
-      tags: candidate.tags,
+      tags: candidate.tags.filter(isAiInterestTag),
       area: candidate.area,
       region_distance_tier: candidate.region_distance_tier,
       typical_duration_minutes: candidate.typical_duration_minutes,

@@ -10,8 +10,6 @@ export const AI_INTEREST_TAG_OPTIONS = [
   { value: "nature", label: "Nature" },
   { value: "viewpoints", label: "Viewpoints" },
   { value: "neighborhoods", label: "Neighborhoods" },
-  { value: "kid-friendly", label: "Kid-friendly" },
-  { value: "low-cost-free", label: "Low-cost/free" },
 ] as const;
 
 export const AI_TRAVEL_MODE_OPTIONS: {
@@ -68,6 +66,10 @@ export function buildAiPlanningPreferenceDraft(
 
 export function formatVisitsPerDayLabel(maxVisits: number): string {
   return `Up to ${maxVisits} visits/day`;
+}
+
+export function isAiInterestTag(value: string): boolean {
+  return INTEREST_TAG_VALUES.has(value);
 }
 
 function clampVisitCount(value: number): number {
