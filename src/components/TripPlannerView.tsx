@@ -34,7 +34,7 @@ type ExportFeedback = {
 type AiPlanningWizardState = {
   isOpen: boolean;
   isLoading: boolean;
-  isSaving: boolean;
+  isGenerating: boolean;
   setup: AiPlanningSetup | null;
   error: string | null;
 };
@@ -116,7 +116,7 @@ type Props = {
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onSetError: (message: string | null) => void;
   onCloseAiPlanningWizard: () => void;
-  onSaveAiPlanningPreferences: (
+  onCreateAiItinerary: (
     input: AiPlanningPreferenceInput,
   ) => Promise<void>;
 };
@@ -265,9 +265,9 @@ export function TripPlannerView(props: Props) {
           setup={props.aiPlanningWizard.setup}
           isLoading={props.aiPlanningWizard.isLoading}
           error={props.aiPlanningWizard.error}
-          isSaving={props.aiPlanningWizard.isSaving}
+          isGenerating={props.aiPlanningWizard.isGenerating}
           onCancel={props.onCloseAiPlanningWizard}
-          onSavePreferences={props.onSaveAiPlanningPreferences}
+          onCreateItinerary={props.onCreateAiItinerary}
         />
       )}
     </main>

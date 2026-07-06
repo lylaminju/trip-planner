@@ -21,9 +21,9 @@ import {
   createItineraryItemRequest,
   deleteItineraryItemRequest,
   deletePlaceRequest,
+  generateAiItinerary,
   loadAiPlanningSetup,
   loadTripPlannerInitialData,
-  saveAiPlanningPreferences,
   saveItineraryItemRequest,
   savePlaceRequest,
   scheduleItineraryItemRequest,
@@ -62,7 +62,7 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
 type AiPlanningWizardState = {
   isOpen: boolean;
   isLoading: boolean;
-  isSaving: boolean;
+  isGenerating: boolean;
   setup: AiPlanningSetup | null;
   error: string | null;
 };
@@ -101,7 +101,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     useState<AiPlanningWizardState>({
       isOpen: false,
       isLoading: false,
-      isSaving: false,
+      isGenerating: false,
       setup: null,
       error: null,
     });
@@ -373,7 +373,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     setAiPlanningWizard({
       isOpen: true,
       isLoading: true,
-      isSaving: false,
+      isGenerating: false,
       setup: null,
       error: null,
     });
@@ -383,7 +383,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       setAiPlanningWizard({
         isOpen: true,
         isLoading: false,
-        isSaving: false,
+        isGenerating: false,
         setup,
         error: null,
       });
@@ -391,7 +391,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       setAiPlanningWizard({
         isOpen: true,
         isLoading: false,
-        isSaving: false,
+        isGenerating: false,
         setup: null,
         error: errorMessage(reason, "Failed to load AI planning setup."),
       });
@@ -403,36 +403,37 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       ...current,
       isOpen: false,
       isLoading: false,
-      isSaving: false,
+      isGenerating: false,
       error: null,
     }));
   }
 
-  async function saveAiPlanningPreferencesFromWizard(
+  async function createAiItineraryFromWizard(
     input: AiPlanningPreferenceInput,
   ) {
     setAiPlanningWizard((current) => ({
       ...current,
-      isSaving: true,
+      isGenerating: true,
       error: null,
     }));
 
     try {
-      const preferences = await saveAiPlanningPreferences(tripId, input);
+      const result = await generateAiItinerary(tripId, input);
+      setPlannerSnapshot(result.plannerSnapshot);
       setAiPlanningWizard((current) => ({
         ...current,
         isOpen: false,
-        isSaving: false,
-        setup: current.setup ? { ...current.setup, preferences } : null,
+        isGenerating: false,
         error: null,
       }));
+      setError(null);
     } catch (reason) {
       setAiPlanningWizard((current) => ({
         ...current,
-        isSaving: false,
+        isGenerating: false,
         error: errorMessage(
           reason,
-          "Failed to save AI planning preferences.",
+          "Failed to generate AI itinerary.",
         ),
       }));
     }
@@ -504,7 +505,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onSubmitEditTrip={submitEditTrip}
       onSetError={setError}
       onCloseAiPlanningWizard={closeAiPlanningWizard}
-      onSaveAiPlanningPreferences={saveAiPlanningPreferencesFromWizard}
+      onCreateAiItinerary={createAiItineraryFromWizard}
     />
   );
 }

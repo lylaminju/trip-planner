@@ -8,6 +8,11 @@ import type {
   TripPlannerInitialData,
 } from "./types";
 
+export type AiItineraryGenerationResult = {
+  generationId: number;
+  plannerSnapshot: PlannerSnapshot;
+};
+
 export async function loadTripPlannerInitialData(
   tripId: number,
 ): Promise<TripPlannerInitialData> {
@@ -46,6 +51,28 @@ export async function saveAiPlanningPreferences(
       typeof data?.error === "string"
         ? data.error
         : "Failed to save AI planning preferences.",
+    );
+  }
+
+  return data;
+}
+
+export async function generateAiItinerary(
+  tripId: number,
+  payload: AiPlanningPreferenceInput,
+): Promise<AiItineraryGenerationResult> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "Failed to generate AI itinerary.",
     );
   }
 

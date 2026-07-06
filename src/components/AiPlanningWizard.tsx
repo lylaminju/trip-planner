@@ -25,9 +25,9 @@ type Props = {
   setup: AiPlanningSetup | null;
   isLoading: boolean;
   error: string | null;
-  isSaving: boolean;
+  isGenerating: boolean;
   onCancel: () => void;
-  onSavePreferences: (draft: AiPlanningPreferenceInput) => void | Promise<void>;
+  onCreateItinerary: (draft: AiPlanningPreferenceInput) => void | Promise<void>;
 };
 
 const STEPS = ["Pace", "Interests", "Travel", "Must-see"] as const;
@@ -52,7 +52,7 @@ export function AiPlanningWizard(props: Props) {
       return;
     }
 
-    props.onSavePreferences(draft);
+    props.onCreateItinerary(draft);
   }
 
   return (
@@ -140,7 +140,7 @@ export function AiPlanningWizard(props: Props) {
         <footer className="modal-actions ai-planning-actions">
           <button
             type="button"
-            disabled={props.isSaving}
+            disabled={props.isGenerating}
             onClick={props.onCancel}
           >
             Cancel
@@ -150,7 +150,7 @@ export function AiPlanningWizard(props: Props) {
               {stepIndex > 0 && (
                 <button
                   type="button"
-                  disabled={props.isSaving}
+                  disabled={props.isGenerating}
                   onClick={() => setStepIndex((current) => current - 1)}
                 >
                   Back
@@ -160,13 +160,14 @@ export function AiPlanningWizard(props: Props) {
                 type="submit"
                 className="ai-planning-primary-action"
                 disabled={
-                  props.isSaving || draft.preferred_travel_modes.length === 0
+                  props.isGenerating ||
+                  draft.preferred_travel_modes.length === 0
                 }
               >
                 {stepIndex === STEPS.length - 1
-                  ? props.isSaving
-                    ? "Saving..."
-                    : "Save preferences"
+                  ? props.isGenerating
+                    ? "Creating..."
+                    : "Create itinerary"
                   : "Next"}
               </button>
             </div>

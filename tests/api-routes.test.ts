@@ -484,6 +484,49 @@ describe("API routes transport behavior", () => {
     });
   });
 
+  it("generates an AI itinerary for authenticated trip owners", async () => {
+    await withFreshTestEnv(async () => {
+      const result = {
+        generationId: 55,
+        plannerSnapshot: {
+          places: [],
+          itineraryItems: [],
+          routeSegments: [],
+        },
+      };
+      const input = {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: ["nature"],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [10],
+      };
+
+      vi.doMock("@/server/ai-planning-service", () => ({
+        generateAiItineraryForRequest: vi.fn().mockResolvedValue(result),
+      }));
+
+      const { POST } =
+        await import("@/app/api/trips/[tripId]/ai-planning/generate/route");
+      const service = await import("@/server/ai-planning-service");
+      const response = await POST(
+        new Request("http://localhost/api/trips/1/ai-planning/generate", {
+          method: "POST",
+          body: JSON.stringify(input),
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual(result);
+      expect(service.generateAiItineraryForRequest).toHaveBeenCalledWith(
+        1,
+        "user-1",
+        input,
+      );
+    });
+  });
+
   it("returns 400 for malformed JSON in all mutating routes", async () => {
     await withFreshTestEnv(async () => {
       const placesRoute = await import("@/app/api/trips/[tripId]/places/route");
@@ -495,6 +538,8 @@ describe("API routes transport behavior", () => {
         await import("@/app/api/trips/[tripId]/route-segments/[id]/route");
       const aiPreferencesRoute =
         await import("@/app/api/trips/[tripId]/ai-planning/preferences/route");
+      const aiGenerateRoute =
+        await import("@/app/api/trips/[tripId]/ai-planning/generate/route");
 
       const cases = [
         placesRoute.POST(malformedJsonRequest("POST"), tripParams()),
@@ -502,6 +547,7 @@ describe("API routes transport behavior", () => {
         scheduleRoute.PATCH(malformedJsonRequest("PATCH"), params("1")),
         segmentRoute.PATCH(malformedJsonRequest("PATCH"), params("1")),
         aiPreferencesRoute.PUT(malformedJsonRequest("PUT"), tripParams()),
+        aiGenerateRoute.POST(malformedJsonRequest("POST"), tripParams()),
       ];
 
       const responses = await Promise.all(cases);

@@ -12,9 +12,9 @@ describe("AiPlanningWizard", () => {
         setup: null,
         isLoading: true,
         error: null,
-        isSaving: false,
+        isGenerating: false,
         onCancel: vi.fn(),
-        onSavePreferences: vi.fn(),
+        onCreateItinerary: vi.fn(),
       }),
     );
 
@@ -29,9 +29,9 @@ describe("AiPlanningWizard", () => {
         setup: setup(),
         isLoading: false,
         error: null,
-        isSaving: false,
+        isGenerating: false,
         onCancel: vi.fn(),
-        onSavePreferences: vi.fn(),
+        onCreateItinerary: vi.fn(),
       }),
     );
 

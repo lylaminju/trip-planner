@@ -7,6 +7,7 @@ import {
   ItineraryItemNotFoundError,
   GoogleMapsUrlUpstreamError,
   GoogleMapsUrlValidationError,
+  AiPlannerConfigError,
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
   TripAccessDeniedError,
@@ -93,6 +94,10 @@ export function mapRouteError(error: unknown): NextResponse | null {
   }
 
   if (error instanceof GoogleRoutesConfigError) {
+    return jsonError(error.message, 503);
+  }
+
+  if (error instanceof AiPlannerConfigError) {
     return jsonError(error.message, 503);
   }
 

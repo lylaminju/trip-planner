@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AiPlanningPreferenceInput } from "@/lib/types";
 import {
+  generateAiItinerary,
   loadAiPlanningSetup,
   saveAiPlanningPreferences,
 } from "@/lib/planner-api";
@@ -78,6 +79,37 @@ describe("planner api client", () => {
       "/api/trips/1/ai-planning/preferences",
       {
         method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
+      },
+    );
+  });
+
+  it("generates an AI itinerary from the trip scoped endpoint", async () => {
+    const input: AiPlanningPreferenceInput = {
+      visits_per_day_min: 1,
+      visits_per_day_max: 3,
+      interest_tags: ["nature"],
+      preferred_travel_modes: ["walking", "transit"],
+      must_see_candidate_ids: [10],
+    };
+    const result = {
+      generationId: 55,
+      plannerSnapshot: {
+        places: [],
+        itineraryItems: [],
+        routeSegments: [],
+      },
+    };
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json(result));
+
+    await expect(generateAiItinerary(1, input)).resolves.toEqual(result);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/trips/1/ai-planning/generate",
+      {
+        method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(input),
       },
