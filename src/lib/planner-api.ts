@@ -1,4 +1,6 @@
 import type {
+  AiPlanningPreferenceInput,
+  AiPlanningPreferences,
   AiPlanningSetup,
   PlannerSnapshot,
   RouteGeometry,
@@ -26,6 +28,28 @@ export async function loadAiPlanningSetup(
   }
 
   return response.json();
+}
+
+export async function saveAiPlanningPreferences(
+  tripId: number,
+  payload: AiPlanningPreferenceInput,
+): Promise<AiPlanningPreferences> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/preferences`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "Failed to save AI planning preferences.",
+    );
+  }
+
+  return data;
 }
 
 export function savePlaceRequest(

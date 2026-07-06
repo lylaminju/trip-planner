@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { loadAiPlanningSetup } from "@/lib/planner-api";
+import type { AiPlanningPreferenceInput } from "@/lib/types";
+import {
+  loadAiPlanningSetup,
+  saveAiPlanningPreferences,
+} from "@/lib/planner-api";
 
 describe("planner api client", () => {
   afterEach(() => {
@@ -42,6 +46,41 @@ describe("planner api client", () => {
 
     await expect(loadAiPlanningSetup(1)).rejects.toThrow(
       "Failed to load AI planning setup.",
+    );
+  });
+
+  it("saves AI planning preferences to the trip scoped endpoint", async () => {
+    const preferences = {
+      trip_id: 1,
+      visits_per_day_min: 1,
+      visits_per_day_max: 3,
+      interest_tags: ["nature"],
+      preferred_travel_modes: ["walking", "transit"],
+      must_see_candidate_ids: [10],
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const input: AiPlanningPreferenceInput = {
+      visits_per_day_min: 1,
+      visits_per_day_max: 3,
+      interest_tags: ["nature"],
+      preferred_travel_modes: ["walking", "transit"],
+      must_see_candidate_ids: [10],
+    };
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(Response.json(preferences));
+
+    await expect(saveAiPlanningPreferences(1, input)).resolves.toEqual(
+      preferences,
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/trips/1/ai-planning/preferences",
+      {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
+      },
     );
   });
 });

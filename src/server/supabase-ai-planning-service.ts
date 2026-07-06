@@ -1,5 +1,6 @@
 import type {
   AiDestinationCandidate,
+  AiPlanningPreferenceInput,
   AiPlanningPreferences,
   TripLodging,
 } from "@/lib/types";
@@ -51,6 +52,20 @@ export async function getPlanningPreferences(
 
   if (error) throwSupabaseError(error);
   return (data ?? null) as AiPlanningPreferences | null;
+}
+
+export async function upsertPlanningPreferences(
+  tripId: number,
+  input: AiPlanningPreferenceInput,
+): Promise<AiPlanningPreferences> {
+  const { data, error } = await getSupabaseClient()
+    .from("ai_planning_preferences")
+    .upsert({ trip_id: tripId, ...input }, { onConflict: "trip_id" })
+    .select(AI_PLANNING_PREFERENCES_COLUMNS)
+    .maybeSingle();
+
+  if (error) throwSupabaseError(error);
+  return data as AiPlanningPreferences;
 }
 
 function throwSupabaseError(error: { message: string }): never {

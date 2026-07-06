@@ -142,13 +142,16 @@ export type TripLodging = {
   updated_at: string;
 };
 
-export type AiPlanningPreferences = {
-  trip_id: number;
+export type AiPlanningPreferenceInput = {
   visits_per_day_min: number;
   visits_per_day_max: number;
   interest_tags: string[];
   preferred_travel_modes: TravelMode[];
   must_see_candidate_ids: number[];
+};
+
+export type AiPlanningPreferences = AiPlanningPreferenceInput & {
+  trip_id: number;
   created_at: string;
   updated_at: string;
 };

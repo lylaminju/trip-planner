@@ -86,6 +86,54 @@ describe("supabase ai planning service", () => {
       args: [],
     });
   });
+
+  it("upserts AI planning preferences for a trip", async () => {
+    const preferences = {
+      trip_id: 1,
+      visits_per_day_min: 1,
+      visits_per_day_max: 3,
+      interest_tags: ["nature"],
+      preferred_travel_modes: ["walking", "transit"],
+      must_see_candidate_ids: [10],
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const { client, calls } = createMockSupabaseClient({
+      ai_planning_preferences: preferences,
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+
+    const service = await import("@/server/supabase-ai-planning-service");
+
+    await expect(
+      service.upsertPlanningPreferences(1, {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: ["nature"],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [10],
+      }),
+    ).resolves.toEqual(preferences);
+
+    expect(calls).toContainEqual({
+      table: "ai_planning_preferences",
+      method: "upsert",
+      args: [
+        {
+          trip_id: 1,
+          visits_per_day_min: 1,
+          visits_per_day_max: 3,
+          interest_tags: ["nature"],
+          preferred_travel_modes: ["walking", "transit"],
+          must_see_candidate_ids: [10],
+        },
+        { onConflict: "trip_id" },
+      ],
+    });
+  });
 });
 
 type TableResult = Record<string, unknown> | Record<string, unknown>[] | null;
@@ -114,6 +162,15 @@ function createMockSupabaseClient(resultsByTable: Record<string, TableResult>) {
 
     order(column: string, options: Record<string, unknown>) {
       calls.push({ table: this.table, method: "order", args: [column, options] });
+      return this;
+    }
+
+    upsert(payload: Record<string, unknown>, options: Record<string, unknown>) {
+      calls.push({
+        table: this.table,
+        method: "upsert",
+        args: [payload, options],
+      });
       return this;
     }
 

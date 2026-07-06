@@ -23,6 +23,7 @@ import {
   deletePlaceRequest,
   loadAiPlanningSetup,
   loadTripPlannerInitialData,
+  saveAiPlanningPreferences,
   saveItineraryItemRequest,
   savePlaceRequest,
   scheduleItineraryItemRequest,
@@ -35,6 +36,8 @@ import { isTripOngoing } from "@/lib/trip-classification";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import { updateTrip } from "@/lib/trips-api";
 import type {
+  AiPlanningPreferenceInput,
+  AiPlanningSetup,
   PlannerSnapshot,
   Trip,
   TripPlannerInitialData,
@@ -54,6 +57,14 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
   itineraryItems: [],
   routeSegments: [],
+};
+
+type AiPlanningWizardState = {
+  isOpen: boolean;
+  isLoading: boolean;
+  isSaving: boolean;
+  setup: AiPlanningSetup | null;
+  error: string | null;
 };
 
 type TripPlannerAppProps = {
@@ -86,6 +97,14 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     useState<MobileSheetState>("half");
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiPlanningWizard, setAiPlanningWizard] =
+    useState<AiPlanningWizardState>({
+      isOpen: false,
+      isLoading: false,
+      isSaving: false,
+      setup: null,
+      error: null,
+    });
   const [deletingPlaceIds, setDeletingPlaceIds] = useState<Set<number>>(
     () => new Set(),
   );
@@ -351,11 +370,71 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   async function openAiPlanningSetup() {
     if (!canPlanWithAi) return;
 
+    setAiPlanningWizard({
+      isOpen: true,
+      isLoading: true,
+      isSaving: false,
+      setup: null,
+      error: null,
+    });
+
     try {
-      await loadAiPlanningSetup(tripId);
-      setError(null);
+      const setup = await loadAiPlanningSetup(tripId);
+      setAiPlanningWizard({
+        isOpen: true,
+        isLoading: false,
+        isSaving: false,
+        setup,
+        error: null,
+      });
     } catch (reason) {
-      setError(errorMessage(reason, "Failed to load AI planning setup."));
+      setAiPlanningWizard({
+        isOpen: true,
+        isLoading: false,
+        isSaving: false,
+        setup: null,
+        error: errorMessage(reason, "Failed to load AI planning setup."),
+      });
+    }
+  }
+
+  function closeAiPlanningWizard() {
+    setAiPlanningWizard((current) => ({
+      ...current,
+      isOpen: false,
+      isLoading: false,
+      isSaving: false,
+      error: null,
+    }));
+  }
+
+  async function saveAiPlanningPreferencesFromWizard(
+    input: AiPlanningPreferenceInput,
+  ) {
+    setAiPlanningWizard((current) => ({
+      ...current,
+      isSaving: true,
+      error: null,
+    }));
+
+    try {
+      const preferences = await saveAiPlanningPreferences(tripId, input);
+      setAiPlanningWizard((current) => ({
+        ...current,
+        isOpen: false,
+        isSaving: false,
+        setup: current.setup ? { ...current.setup, preferences } : null,
+        error: null,
+      }));
+    } catch (reason) {
+      setAiPlanningWizard((current) => ({
+        ...current,
+        isSaving: false,
+        error: errorMessage(
+          reason,
+          "Failed to save AI planning preferences.",
+        ),
+      }));
     }
   }
 
@@ -392,6 +471,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       addPlaceVisitDate={addPlaceVisitDate}
       editingTripForm={editingTripForm}
       isSavingTrip={isSavingTrip}
+      aiPlanningWizard={aiPlanningWizard}
       visitDateOptions={visitDateOptions}
       onTogglePlannerExpanded={() =>
         setIsPlannerPanelExpanded((value) => !value)
@@ -423,6 +503,8 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onSetEditingTripForm={setEditingTripForm}
       onSubmitEditTrip={submitEditTrip}
       onSetError={setError}
+      onCloseAiPlanningWizard={closeAiPlanningWizard}
+      onSaveAiPlanningPreferences={saveAiPlanningPreferencesFromWizard}
     />
   );
 }

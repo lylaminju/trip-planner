@@ -5,6 +5,8 @@ import type { SubmitEvent } from "react";
 import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
+  AiPlanningPreferenceInput,
+  AiPlanningSetup,
   ItineraryItem,
   ItineraryView,
   Place,
@@ -15,6 +17,7 @@ import type {
 } from "@/lib/types";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
+import { AiPlanningWizard } from "./AiPlanningWizard";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { EditTripModal } from "./EditTripModal";
 import { MapPanel } from "./MapPanel";
@@ -27,6 +30,14 @@ type ExportFeedback = {
   kind: "error" | "success";
   label: string;
 } | null;
+
+type AiPlanningWizardState = {
+  isOpen: boolean;
+  isLoading: boolean;
+  isSaving: boolean;
+  setup: AiPlanningSetup | null;
+  error: string | null;
+};
 
 type Props = {
   mobileSheetState: MobileSheetState;
@@ -60,6 +71,7 @@ type Props = {
   addPlaceVisitDate: string | null;
   editingTripForm: TripFormState | null;
   isSavingTrip: boolean;
+  aiPlanningWizard: AiPlanningWizardState;
   visitDateOptions: VisitDateOption[];
   onTogglePlannerExpanded: () => void;
   onPlanWithAi?: () => void;
@@ -103,6 +115,10 @@ type Props = {
   onSetEditingTripForm: (form: TripFormState | null) => void;
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onSetError: (message: string | null) => void;
+  onCloseAiPlanningWizard: () => void;
+  onSaveAiPlanningPreferences: (
+    input: AiPlanningPreferenceInput,
+  ) => Promise<void>;
 };
 
 export function TripPlannerView(props: Props) {
@@ -242,6 +258,16 @@ export function TripPlannerView(props: Props) {
           onChange={props.onSetEditingTripForm}
           onCancel={() => props.onSetEditingTripForm(null)}
           onSubmit={props.onSubmitEditTrip}
+        />
+      )}
+      {props.aiPlanningWizard.isOpen && (
+        <AiPlanningWizard
+          setup={props.aiPlanningWizard.setup}
+          isLoading={props.aiPlanningWizard.isLoading}
+          error={props.aiPlanningWizard.error}
+          isSaving={props.aiPlanningWizard.isSaving}
+          onCancel={props.onCloseAiPlanningWizard}
+          onSavePreferences={props.onSaveAiPlanningPreferences}
         />
       )}
     </main>
