@@ -1,0 +1,62 @@
+import { isValid24HourTime, isValidIsoDate } from "@/app/api/_utils";
+
+import type { AiItineraryPlan } from "./openai-ai-planner";
+
+export type AiPlanValidationResult =
+  | { status: "valid"; errors: [] }
+  | { status: "invalid"; errors: string[] };
+
+type ValidationContext = {
+  candidateIds: ReadonlySet<number>;
+  tripDates: readonly string[];
+  visitsPerDayMax: number;
+};
+
+export function validateAiItineraryPlan(
+  plan: AiItineraryPlan,
+  context: ValidationContext,
+): AiPlanValidationResult {
+  const errors: string[] = [];
+  const tripDates = new Set(context.tripDates);
+  const seenCandidateIds = new Set<number>();
+
+  for (const day of plan.days) {
+    if (!tripDates.has(day.date)) {
+      errors.push(`Day ${day.date} is outside the trip.`);
+    }
+    if (!isValidIsoDate(day.date)) {
+      errors.push(`Day ${day.date} must be YYYY-MM-DD.`);
+    }
+    if (day.visits.length > context.visitsPerDayMax) {
+      errors.push(`Day ${day.date} has more visits than requested.`);
+    }
+
+    for (const visit of day.visits) {
+      if (!context.candidateIds.has(visit.candidate_id)) {
+        errors.push(
+          `Candidate ${visit.candidate_id} is not in the curated list.`,
+        );
+      }
+      if (seenCandidateIds.has(visit.candidate_id)) {
+        errors.push(`Candidate ${visit.candidate_id} is scheduled more than once.`);
+      }
+      seenCandidateIds.add(visit.candidate_id);
+
+      if (!isValid24HourTime(visit.start_time)) {
+        errors.push(`Visit time ${visit.start_time} must be HH:MM.`);
+      }
+      if (
+        !Number.isInteger(visit.duration_minutes) ||
+        visit.duration_minutes <= 0
+      ) {
+        errors.push(
+          `Candidate ${visit.candidate_id} duration must be a positive integer.`,
+        );
+      }
+    }
+  }
+
+  return errors.length === 0
+    ? { status: "valid", errors: [] }
+    : { status: "invalid", errors };
+}

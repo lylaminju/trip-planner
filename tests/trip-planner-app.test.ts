@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { TripPlannerApp } from "@/components/TripPlannerApp";
 import { SERVICE_TITLE } from "@/lib/service-brand";
+import { DEFAULT_VIEWER_TIMEZONE } from "@/lib/trip-classification";
 import {
   buildPlace,
   buildTrip,
@@ -122,7 +123,7 @@ describe("TripPlannerApp", () => {
 
   it("renders current location as a map control instead of a planner header button", () => {
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "test-key";
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localIsoDate(DEFAULT_VIEWER_TIMEZONE);
 
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
@@ -142,3 +143,22 @@ describe("TripPlannerApp", () => {
     expect(markup).not.toContain('class="current-location-button');
   });
 });
+
+function localIsoDate(timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  return `${year}-${month}-${day}`;
+}
