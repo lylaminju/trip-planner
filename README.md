@@ -49,9 +49,11 @@ Create `.env.local`:
 ```bash
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_google_maps_key
 GOOGLE_MAPS_ROUTES_API_KEY=your_server_google_routes_key
+OPENAI_API_KEY=your_server_openai_key
+OPENAI_AI_PLANNER_MODEL=your_chosen_planner_model
 ```
 
-`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is used by the browser map. `GOOGLE_MAPS_ROUTES_API_KEY` is optional, but required for real route polylines. Without it, the map still renders markers and uses straight-line route fallbacks.
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is used by the browser map. `GOOGLE_MAPS_ROUTES_API_KEY` is optional, but required for real route polylines. Without it, the map still renders markers and uses straight-line route fallbacks. `OPENAI_API_KEY` and `OPENAI_AI_PLANNER_MODEL` are required for AI itinerary generation.
 
 Run the dev server:
 
@@ -100,6 +102,8 @@ SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SECRET_KEY=your_server_only_secret_key
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_google_maps_key
 GOOGLE_MAPS_ROUTES_API_KEY=your_server_google_routes_key
+OPENAI_API_KEY=your_server_openai_key
+OPENAI_AI_PLANNER_MODEL=your_chosen_planner_model
 ```
 
 ## Importing A Google Maps Saved List

@@ -326,10 +326,16 @@ function openAiPlannerConfig(): { apiKey: string; model: string } {
   if (!apiKey) {
     throw new AiPlannerConfigError("OpenAI API key is not configured.");
   }
+  const model = process.env.OPENAI_AI_PLANNER_MODEL?.trim();
+  if (!model) {
+    throw new AiPlannerConfigError(
+      "OpenAI AI planner model is not configured.",
+    );
+  }
 
   return {
     apiKey,
-    model: process.env.OPENAI_AI_PLANNER_MODEL?.trim() || "gpt-5.5",
+    model,
   };
 }
 
