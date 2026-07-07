@@ -5,7 +5,7 @@ import type { SubmitEvent } from "react";
 import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
-  AiPlanningPreferenceInput,
+  AiPlanningGenerationInput,
   AiPlanningSetup,
   ItineraryItem,
   ItineraryView,
@@ -116,9 +116,7 @@ type Props = {
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onSetError: (message: string | null) => void;
   onCloseAiPlanningWizard: () => void;
-  onCreateAiItinerary: (
-    input: AiPlanningPreferenceInput,
-  ) => Promise<void>;
+  onCreateAiItinerary: (input: AiPlanningGenerationInput) => Promise<void>;
 };
 
 export function TripPlannerView(props: Props) {

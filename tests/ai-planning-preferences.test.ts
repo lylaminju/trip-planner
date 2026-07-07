@@ -4,6 +4,7 @@ import {
   AI_DEFAULT_PLANNING_PREFERENCES,
   buildAiPlanningPreferenceDraft,
 } from "@/lib/ai-planning-preferences";
+import { parseAiPlanningGenerationInput } from "@/server/ai-planning-preferences";
 import type { AiPlanningSetup } from "@/lib/types";
 
 describe("ai planning preference defaults", () => {
@@ -35,6 +36,31 @@ describe("ai planning preference defaults", () => {
       interest_tags: ["nature", "museums"],
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
+    });
+  });
+
+  it("parses an optional lodging Google Maps URL for generation without saving it as a preference", () => {
+    expect(
+      parseAiPlanningGenerationInput(
+        {
+          visits_per_day_min: 1,
+          visits_per_day_max: 3,
+          interest_tags: ["nature"],
+          preferred_travel_modes: ["walking", "transit"],
+          must_see_candidate_ids: [10],
+          lodging_google_maps_url: " https://maps.app.goo.gl/example ",
+        },
+        new Set([10]),
+      ),
+    ).toEqual({
+      preferences: {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: ["nature"],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [10],
+      },
+      lodging_google_maps_url: "https://maps.app.goo.gl/example",
     });
   });
 });

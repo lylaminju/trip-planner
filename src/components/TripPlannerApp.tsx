@@ -36,7 +36,7 @@ import { isTripOngoing } from "@/lib/trip-classification";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import { updateTrip } from "@/lib/trips-api";
 import type {
-  AiPlanningPreferenceInput,
+  AiPlanningGenerationInput,
   AiPlanningSetup,
   PlannerSnapshot,
   Trip,
@@ -409,7 +409,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   }
 
   async function createAiItineraryFromWizard(
-    input: AiPlanningPreferenceInput,
+    input: AiPlanningGenerationInput,
   ) {
     setAiPlanningWizard((current) => ({
       ...current,

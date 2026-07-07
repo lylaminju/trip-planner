@@ -34,6 +34,7 @@ export async function withMockedAiPlanningService(
     getPrimaryLodging: vi.fn().mockResolvedValue(null),
     getPlanningPreferences: vi.fn().mockResolvedValue(null),
     upsertPlanningPreferences: vi.fn(),
+    upsertPrimaryLodgingFromGoogleMapsUrl: vi.fn(),
     ...mocks.supabaseAiPlanningService,
   }));
   vi.doMock("@/server/openai-ai-planner", () => ({

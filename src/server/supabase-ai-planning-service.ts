@@ -5,6 +5,8 @@ import type {
   TripLodging,
 } from "@/lib/types";
 
+import { TripValidationError } from "./errors";
+import { resolveGoogleMapsUrl } from "./google-url-resolver";
 import { getSupabaseClient } from "./supabase";
 
 const AI_DESTINATION_CANDIDATE_COLUMNS =
@@ -41,6 +43,26 @@ export async function getPrimaryLodging(
   return (data ?? null) as TripLodging | null;
 }
 
+export async function upsertPrimaryLodgingFromGoogleMapsUrl(
+  tripId: number,
+  rawUrl: string,
+): Promise<TripLodging> {
+  const resolved = await resolveGoogleMapsUrl(rawUrl);
+  if (resolved.latitude === null || resolved.longitude === null) {
+    throw new TripValidationError(
+      "Lodging Google Maps URL must include coordinates.",
+    );
+  }
+
+  return upsertPrimaryLodging(tripId, {
+    name: resolved.name?.trim() || "Lodging",
+    address: null,
+    latitude: resolved.latitude,
+    longitude: resolved.longitude,
+    google_place_id: null,
+  });
+}
+
 export async function getPlanningPreferences(
   tripId: number,
 ): Promise<AiPlanningPreferences | null> {
@@ -66,6 +88,49 @@ export async function upsertPlanningPreferences(
 
   if (error) throwSupabaseError(error);
   return data as AiPlanningPreferences;
+}
+
+async function upsertPrimaryLodging(
+  tripId: number,
+  input: {
+    name: string;
+    address: string | null;
+    latitude: number;
+    longitude: number;
+    google_place_id: string | null;
+  },
+): Promise<TripLodging> {
+  const existing = await getPrimaryLodging(tripId);
+  const values = {
+    trip_id: tripId,
+    ...input,
+    is_primary: true,
+  };
+
+  if (!existing) {
+    const { data, error } = await getSupabaseClient()
+      .from("trip_lodgings")
+      .insert(values)
+      .select(TRIP_LODGING_COLUMNS)
+      .maybeSingle();
+
+    if (error) throwSupabaseError(error);
+    return data as TripLodging;
+  }
+
+  const { data, error } = await getSupabaseClient()
+    .from("trip_lodgings")
+    .update({
+      ...values,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("trip_id", tripId)
+    .eq("id", existing.id)
+    .select(TRIP_LODGING_COLUMNS)
+    .maybeSingle();
+
+  if (error) throwSupabaseError(error);
+  return data as TripLodging;
 }
 
 function throwSupabaseError(error: { message: string }): never {

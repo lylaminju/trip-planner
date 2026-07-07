@@ -150,6 +150,10 @@ export type AiPlanningPreferenceInput = {
   must_see_candidate_ids: number[];
 };
 
+export type AiPlanningGenerationInput = AiPlanningPreferenceInput & {
+  lodging_google_maps_url?: string | null;
+};
+
 export type AiPlanningPreferences = AiPlanningPreferenceInput & {
   trip_id: number;
   created_at: string;

@@ -51,6 +51,23 @@ export function parseAiPlanningPreferenceInput(
   };
 }
 
+export function parseAiPlanningGenerationInput(
+  payload: unknown,
+  allowedCandidateIds: ReadonlySet<number>,
+): {
+  preferences: AiPlanningPreferenceInput;
+  lodging_google_maps_url: string | null;
+} {
+  const body = asRecord(payload);
+
+  return {
+    preferences: parseAiPlanningPreferenceInput(payload, allowedCandidateIds),
+    lodging_google_maps_url: optionalLodgingGoogleMapsUrl(
+      body.lodging_google_maps_url,
+    ),
+  };
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
@@ -105,6 +122,16 @@ function travelModes(value: unknown): TravelMode[] {
       return mode;
     }),
   );
+}
+
+function optionalLodgingGoogleMapsUrl(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") {
+    throw new TripValidationError("Lodging Google Maps URL must be a string.");
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
 }
 
 function mustSeeCandidateIds(

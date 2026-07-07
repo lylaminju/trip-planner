@@ -10,13 +10,17 @@ import {
 import {
   buildAiPlanningPreferenceDraft,
 } from "@/lib/ai-planning-preferences";
-import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
+import type {
+  AiPlanningGenerationInput,
+  AiPlanningPreferenceInput,
+  AiPlanningSetup,
+} from "@/lib/types";
 
 import {
   InterestStep,
+  LogisticsStep,
   MustSeeStep,
   PaceStep,
-  TravelModeStep,
 } from "./ai-planning-wizard/AiPlanningWizardSteps";
 import { CloseIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
@@ -27,10 +31,10 @@ type Props = {
   error: string | null;
   isGenerating: boolean;
   onCancel: () => void;
-  onCreateItinerary: (draft: AiPlanningPreferenceInput) => void | Promise<void>;
+  onCreateItinerary: (draft: AiPlanningGenerationInput) => void | Promise<void>;
 };
 
-const STEPS = ["Pace", "Interests", "Travel", "Must-see"] as const;
+const STEPS = ["Pace", "Interests", "Logistics", "Must-see"] as const;
 
 export function AiPlanningWizard(props: Props) {
   const initialDraft = useMemo(
@@ -38,10 +42,12 @@ export function AiPlanningWizard(props: Props) {
     [props.setup],
   );
   const [draft, setDraft] = useState<AiPlanningPreferenceInput>(initialDraft);
+  const [lodgingGoogleMapsUrl, setLodgingGoogleMapsUrl] = useState("");
   const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     setDraft(initialDraft);
+    setLodgingGoogleMapsUrl("");
     setStepIndex(0);
   }, [initialDraft]);
 
@@ -52,7 +58,13 @@ export function AiPlanningWizard(props: Props) {
       return;
     }
 
-    props.onCreateItinerary(draft);
+    props.onCreateItinerary({
+      ...draft,
+      lodging_google_maps_url:
+        lodgingGoogleMapsUrl.trim() === ""
+          ? null
+          : lodgingGoogleMapsUrl.trim(),
+    });
   }
 
   return (
@@ -124,7 +136,13 @@ export function AiPlanningWizard(props: Props) {
                 <InterestStep draft={draft} onChange={setDraft} />
               )}
               {stepIndex === 2 && (
-                <TravelModeStep draft={draft} onChange={setDraft} />
+                <LogisticsStep
+                  currentLodging={props.setup.lodging}
+                  draft={draft}
+                  lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
+                  onChange={setDraft}
+                  onLodgingGoogleMapsUrlChange={setLodgingGoogleMapsUrl}
+                />
               )}
               {stepIndex === 3 && (
                 <MustSeeStep

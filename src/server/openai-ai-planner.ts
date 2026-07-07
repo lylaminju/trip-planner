@@ -57,6 +57,7 @@ const SYSTEM_PROMPT = [
   "Do not add restaurants, meals, or places outside the candidate list.",
   "Use only candidate IDs in the response.",
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
+  "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
   "If validation errors are provided, repair only those issues.",
 ].join(" ");
 

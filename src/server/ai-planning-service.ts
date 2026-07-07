@@ -12,7 +12,10 @@ import type {
 import { isValidIsoDate } from "@/app/api/_utils";
 
 import { validateAiItineraryPlan } from "./ai-plan-validation";
-import { parseAiPlanningPreferenceInput } from "./ai-planning-preferences";
+import {
+  parseAiPlanningGenerationInput,
+  parseAiPlanningPreferenceInput,
+} from "./ai-planning-preferences";
 import { AiPlannerConfigError, TripValidationError } from "./errors";
 import {
   createAiPlanGeneration,
@@ -23,6 +26,7 @@ import {
   getPlanningPreferences,
   getPrimaryLodging,
   listDestinationCandidates,
+  upsertPrimaryLodgingFromGoogleMapsUrl,
   upsertPlanningPreferences,
 } from "./supabase-ai-planning-service";
 import {
@@ -106,15 +110,24 @@ export async function generateAiItineraryForRequest(
   const trip = await getTripById(tripId);
   ensureSupportedDestination(trip);
   const tripDates = tripDateRange(trip);
-  const [candidates, lodging] = await Promise.all([
+  const [candidates, existingLodging] = await Promise.all([
     listDestinationCandidates(trip.destination_slug),
     getPrimaryLodging(tripId),
   ]);
-  const preferences = parseAiPlanningPreferenceInput(
+  const generationInput = parseAiPlanningGenerationInput(
     payload,
     candidateIdSet(candidates),
   );
-  const savedPreferences = await upsertPlanningPreferences(tripId, preferences);
+  const lodging = generationInput.lodging_google_maps_url
+    ? await upsertPrimaryLodgingFromGoogleMapsUrl(
+        tripId,
+        generationInput.lodging_google_maps_url,
+      )
+    : existingLodging;
+  const savedPreferences = await upsertPlanningPreferences(
+    tripId,
+    generationInput.preferences,
+  );
   const generation = await createAiPlanGeneration(tripId, {
     prompt_version: AI_PLANNER_PROMPT_VERSION,
     preferences_snapshot: savedPreferences,

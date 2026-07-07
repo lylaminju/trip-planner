@@ -1,4 +1,5 @@
 import type {
+  AiPlanningGenerationInput,
   AiPlanningPreferenceInput,
   AiPlanningPreferences,
   AiPlanningSetup,
@@ -59,7 +60,7 @@ export async function saveAiPlanningPreferences(
 
 export async function generateAiItinerary(
   tripId: number,
-  payload: AiPlanningPreferenceInput,
+  payload: AiPlanningGenerationInput,
 ): Promise<AiItineraryGenerationResult> {
   const response = await fetch(`${tripApiBase(tripId)}/ai-planning/generate`, {
     method: "POST",

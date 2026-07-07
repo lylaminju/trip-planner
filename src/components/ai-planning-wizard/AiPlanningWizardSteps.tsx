@@ -6,6 +6,7 @@ import {
 import type {
   AiDestinationCandidate,
   AiPlanningPreferenceInput,
+  TripLodging,
 } from "@/lib/types";
 
 type StepProps = {
@@ -81,34 +82,66 @@ export function InterestStep({ draft, onChange }: StepProps) {
   );
 }
 
-export function TravelModeStep({ draft, onChange }: StepProps) {
+export function LogisticsStep({
+  currentLodging,
+  draft,
+  lodgingGoogleMapsUrl,
+  onChange,
+  onLodgingGoogleMapsUrlChange,
+}: StepProps & {
+  currentLodging: TripLodging | null;
+  lodgingGoogleMapsUrl: string;
+  onLodgingGoogleMapsUrlChange: (value: string) => void;
+}) {
   return (
     <fieldset className="ai-wizard-fieldset">
-      <legend>Preferred travel modes</legend>
-      <div className="ai-choice-grid">
-        {AI_TRAVEL_MODE_OPTIONS.map((option) => {
-          const isSelected = draft.preferred_travel_modes.includes(option.value);
-          return (
-            <button
-              key={option.value}
-              type="button"
-              className={isSelected ? "ai-choice selected" : "ai-choice"}
-              aria-pressed={isSelected}
-              onClick={() =>
-                onChange({
-                  ...draft,
-                  preferred_travel_modes: toggleValue(
-                    draft.preferred_travel_modes,
-                    option.value,
-                  ),
-                })
-              }
-            >
-              {option.label}
-            </button>
-          );
-        })}
+      <legend>Logistics</legend>
+      <div className="ai-logistics-section">
+        <span className="ai-logistics-label">Preferred travel modes</span>
+        <div className="ai-choice-grid">
+          {AI_TRAVEL_MODE_OPTIONS.map((option) => {
+            const isSelected = draft.preferred_travel_modes.includes(
+              option.value,
+            );
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={isSelected ? "ai-choice selected" : "ai-choice"}
+                aria-pressed={isSelected}
+                onClick={() =>
+                  onChange({
+                    ...draft,
+                    preferred_travel_modes: toggleValue(
+                      draft.preferred_travel_modes,
+                      option.value,
+                    ),
+                  })
+                }
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
+      <label className="ai-lodging-url-field">
+        <span>Lodging Google Maps URL</span>
+        <input
+          type="url"
+          value={lodgingGoogleMapsUrl}
+          placeholder="https://maps.app.goo.gl/..."
+          onChange={(event) =>
+            onLodgingGoogleMapsUrlChange(event.currentTarget.value)
+          }
+        />
+      </label>
+      {currentLodging && (
+        <p className="ai-current-lodging">
+          Current start point: <strong>{currentLodging.name}</strong>
+          {currentLodging.address ? ` - ${currentLodging.address}` : ""}
+        </p>
+      )}
     </fieldset>
   );
 }

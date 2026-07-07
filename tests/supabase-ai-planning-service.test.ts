@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 describe("supabase ai planning service", () => {
   afterEach(() => {
     vi.doUnmock("@/server/supabase");
+    vi.doUnmock("@/server/google-url-resolver");
     vi.restoreAllMocks();
     vi.resetModules();
   });
@@ -87,6 +88,67 @@ describe("supabase ai planning service", () => {
     });
   });
 
+  it("resolves a lodging Google Maps URL and inserts a primary lodging row", async () => {
+    const lodging = {
+      id: 2,
+      trip_id: 1,
+      name: "Pod Times Square",
+      address: null,
+      latitude: 40.758,
+      longitude: -73.993,
+      google_place_id: null,
+      check_in_date: null,
+      check_out_date: null,
+      is_primary: true,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const { client, calls } = createMockSupabaseClient({
+      trip_lodgings: { sequence: [null, lodging] },
+    });
+    const resolveGoogleMapsUrl = vi.fn().mockResolvedValue({
+      google_maps_url: "https://www.google.com/maps/place/Pod",
+      name: "Pod Times Square",
+      latitude: 40.758,
+      longitude: -73.993,
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/google-url-resolver", () => ({
+      resolveGoogleMapsUrl,
+    }));
+
+    const service = await import("@/server/supabase-ai-planning-service");
+
+    await expect(
+      service.upsertPrimaryLodgingFromGoogleMapsUrl(
+        1,
+        "https://maps.app.goo.gl/example",
+      ),
+    ).resolves.toEqual(lodging);
+
+    expect(resolveGoogleMapsUrl).toHaveBeenCalledWith(
+      "https://maps.app.goo.gl/example",
+    );
+    expect(calls).toContainEqual({
+      table: "trip_lodgings",
+      method: "insert",
+      args: [
+        {
+          trip_id: 1,
+          name: "Pod Times Square",
+          address: null,
+          latitude: 40.758,
+          longitude: -73.993,
+          google_place_id: null,
+          is_primary: true,
+        },
+      ],
+    });
+  });
+
   it("upserts AI planning preferences for a trip", async () => {
     const preferences = {
       trip_id: 1,
@@ -137,6 +199,7 @@ describe("supabase ai planning service", () => {
 });
 
 type TableResult = Record<string, unknown> | Record<string, unknown>[] | null;
+type TableResultSource = TableResult | { sequence: TableResult[] };
 
 type QueryCall = {
   table: string;
@@ -144,7 +207,9 @@ type QueryCall = {
   args: unknown[];
 };
 
-function createMockSupabaseClient(resultsByTable: Record<string, TableResult>) {
+function createMockSupabaseClient(
+  resultsByTable: Record<string, TableResultSource>,
+) {
   const calls: QueryCall[] = [];
 
   class QueryBuilder {
@@ -174,10 +239,20 @@ function createMockSupabaseClient(resultsByTable: Record<string, TableResult>) {
       return this;
     }
 
+    insert(payload: Record<string, unknown>) {
+      calls.push({ table: this.table, method: "insert", args: [payload] });
+      return this;
+    }
+
+    update(payload: Record<string, unknown>) {
+      calls.push({ table: this.table, method: "update", args: [payload] });
+      return this;
+    }
+
     maybeSingle() {
       calls.push({ table: this.table, method: "maybeSingle", args: [] });
       return Promise.resolve({
-        data: singleResult(resultsByTable[this.table]),
+        data: singleResult(nextResult(resultsByTable, this.table)),
         error: null,
       });
     }
@@ -191,7 +266,7 @@ function createMockSupabaseClient(resultsByTable: Record<string, TableResult>) {
         | null,
     ) {
       return Promise.resolve({
-        data: arrayResult(resultsByTable[this.table]),
+        data: arrayResult(nextResult(resultsByTable, this.table)),
         error: null,
       }).then(onfulfilled, onrejected);
     }
@@ -203,6 +278,30 @@ function createMockSupabaseClient(resultsByTable: Record<string, TableResult>) {
       from: vi.fn((table: string) => new QueryBuilder(table)),
     },
   };
+}
+
+function nextResult(
+  resultsByTable: Record<string, TableResultSource>,
+  table: string,
+): TableResult {
+  const source = resultsByTable[table];
+  if (isResultSequence(source)) {
+    return source.sequence.shift() ?? null;
+  }
+
+  return source ?? null;
+}
+
+function isResultSequence(
+  value: TableResultSource | undefined,
+): value is { sequence: TableResult[] } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    "sequence" in value &&
+    Array.isArray(value.sequence)
+  );
 }
 
 function arrayResult(result: TableResult): Record<string, unknown>[] {

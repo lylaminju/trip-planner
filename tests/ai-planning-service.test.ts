@@ -251,6 +251,101 @@ describe("ai-planning-service request boundary", () => {
     );
   });
 
+  it("uses a submitted lodging Google Maps URL as the AI planning start anchor", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    const getTripById = vi.fn().mockResolvedValue(
+      tripRecord({
+        start_date: "2026-05-27",
+        end_date: "2026-05-27",
+      }),
+    );
+    const listDestinationCandidates = vi.fn().mockResolvedValue([
+      candidateRecord(10),
+    ]);
+    const savedPreferences = savedPreferenceRecord({
+      visits_per_day_min: 1,
+      visits_per_day_max: 3,
+      preferred_travel_modes: ["walking"],
+      must_see_candidate_ids: [10],
+    });
+    const lodging = {
+      id: 7,
+      trip_id: 1,
+      name: "Pod Times Square",
+      address: null,
+      latitude: 40.758,
+      longitude: -73.993,
+      google_place_id: null,
+      check_in_date: null,
+      check_out_date: null,
+      is_primary: true,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const upsertPlanningPreferences = vi
+      .fn()
+      .mockResolvedValue(savedPreferences);
+    const upsertPrimaryLodgingFromGoogleMapsUrl = vi
+      .fn()
+      .mockResolvedValue(lodging);
+    const requestAiItineraryPlan = vi
+      .fn()
+      .mockResolvedValue(aiPlannerResult(10, 10, 20));
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 55 });
+    const updateAiPlanGeneration = vi.fn();
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+    const replaceAiGeneratedBatch = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById,
+        requireTripRole,
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          getPrimaryLodging: vi.fn().mockResolvedValue(null),
+          upsertPlanningPreferences,
+          upsertPrimaryLodgingFromGoogleMapsUrl,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration,
+          updateAiPlanGeneration,
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+            interest_tags: ["landmarks"],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [10],
+            lodging_google_maps_url: " https://maps.app.goo.gl/example ",
+          }),
+        ).resolves.toEqual({ generationId: 55, plannerSnapshot });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(upsertPrimaryLodgingFromGoogleMapsUrl).toHaveBeenCalledWith(
+      1,
+      "https://maps.app.goo.gl/example",
+    );
+    expect(requestAiItineraryPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          lodging: {
+            name: "Pod Times Square",
+            address: null,
+            latitude: 40.758,
+            longitude: -73.993,
+          },
+        }),
+      }),
+    );
+  });
+
   it("requires an explicit OpenAI planner model before requesting an itinerary", async () => {
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const getTripById = vi.fn().mockResolvedValue(tripRecord());

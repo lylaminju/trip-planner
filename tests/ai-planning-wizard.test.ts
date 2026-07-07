@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { AiPlanningWizard } from "@/components/AiPlanningWizard";
-import type { AiPlanningSetup } from "@/lib/types";
+import { LogisticsStep } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
+import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
 
 describe("AiPlanningWizard", () => {
   it("shows one loading state while setup data is loading", () => {
@@ -45,7 +46,47 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain('type="range"');
     expect(markup).toContain("Next");
   });
+
+  it("renders an optional lodging Google Maps URL on the logistics step", () => {
+    const markup = renderToStaticMarkup(
+      createElement(LogisticsStep, {
+        draft: preferenceDraft(),
+        lodgingGoogleMapsUrl: "",
+        currentLodging: {
+          id: 2,
+          trip_id: 1,
+          name: "Pod Times Square",
+          address: "400 W 42nd St",
+          latitude: 40.758,
+          longitude: -73.993,
+          google_place_id: null,
+          check_in_date: null,
+          check_out_date: null,
+          is_primary: true,
+          created_at: "2026-01-01T00:00:00.000Z",
+          updated_at: "2026-01-01T00:00:00.000Z",
+        },
+        onChange: vi.fn(),
+        onLodgingGoogleMapsUrlChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("Preferred travel modes");
+    expect(markup).toContain("Lodging Google Maps URL");
+    expect(markup).toContain('type="url"');
+    expect(markup).toContain("Pod Times Square");
+  });
 });
+
+function preferenceDraft(): AiPlanningPreferenceInput {
+  return {
+    visits_per_day_min: 2,
+    visits_per_day_max: 3,
+    interest_tags: [],
+    preferred_travel_modes: ["walking", "transit"],
+    must_see_candidate_ids: [],
+  };
+}
 
 function setup(): AiPlanningSetup {
   return {

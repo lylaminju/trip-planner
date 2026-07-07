@@ -119,6 +119,33 @@
   color: var(--accent);
 }
 
+.ai-logistics-section,
+.ai-lodging-url-field {
+  display: grid;
+  gap: 8px;
+}
+
+.ai-logistics-label,
+.ai-lodging-url-field span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-current-lodging {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  padding: 9px 10px;
+}
+
+.ai-current-lodging strong {
+  color: var(--text);
+}
+
 .ai-candidate-list {
   display: grid;
   gap: 8px;
