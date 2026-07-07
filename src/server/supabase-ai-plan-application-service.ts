@@ -2,11 +2,14 @@ import type {
   AiDestinationCandidate,
   AiPlanningPreferenceInput,
   PlannerSnapshot,
+  TravelMode,
 } from "@/lib/types";
 
+import { chooseAiRouteMode } from "./ai-route-mode-selection";
 import { getSupabaseClient } from "./supabase";
 import { getPlannerSnapshot } from "./supabase-place-service";
 import type { AiItineraryPlan } from "./openai-ai-planner";
+import { getRouteGeometry } from "./route-geometry-service";
 
 type GenerationRecord = {
   id: number;
@@ -35,6 +38,27 @@ type GenerationUpdate = {
   token_output_count?: number | null;
   failure_reason?: string | null;
 };
+
+type GeneratedVisitContext = {
+  itemId: number;
+  date: string;
+  startTime: string;
+  candidate: AiDestinationCandidate;
+  order: number;
+};
+
+type GeneratedRoutePair = {
+  from: GeneratedVisitContext;
+  to: GeneratedVisitContext;
+};
+
+type RouteSegmentRow = {
+  id: number;
+  from_item_id: number;
+  to_item_id: number;
+};
+
+const AI_ROUTE_MODE_WALKING_PROBE_LIMIT = 10;
 
 export async function createAiPlanGeneration(
   tripId: number,
@@ -140,12 +164,30 @@ export async function replaceAiGeneratedBatch(
 
   if (itemError) throwSupabaseError(itemError);
 
+  const insertedItems = (items ?? []) as Array<{ id: number }>;
   await reconcileRoutesForTrip(tripId);
   await tagGeneratedRouteSegments(
     tripId,
     generationId,
-    ((items ?? []) as Array<{ id: number }>).map((item) => item.id),
-    preferences.preferred_travel_modes[0] ?? "walking",
+    visits.map(({ date, visit }, index) => {
+      const candidate = candidateById.get(visit.candidate_id);
+      if (!candidate) {
+        throw new Error(`Candidate ${visit.candidate_id} is not available.`);
+      }
+      const item = insertedItems[index];
+      if (!item) {
+        throw new Error("Inserted itinerary item was not returned.");
+      }
+
+      return {
+        itemId: item.id,
+        date,
+        startTime: visit.start_time,
+        candidate,
+        order: index,
+      };
+    }),
+    preferences.preferred_travel_modes,
   );
 
   return getPlannerSnapshot(tripId);
@@ -175,11 +217,58 @@ async function reconcileRoutesForTrip(tripId: number): Promise<void> {
 async function tagGeneratedRouteSegments(
   tripId: number,
   generationId: number,
-  itemIds: number[],
-  mode: string,
+  visits: GeneratedVisitContext[],
+  preferredModes: TravelMode[],
 ): Promise<void> {
-  if (itemIds.length < 2) return;
+  const routePairs = buildGeneratedRoutePairs(visits);
+  if (routePairs.length === 0) return;
 
+  const itemIds = visits.map((visit) => visit.itemId);
+  const { data, error } = await getSupabaseClient()
+    .from("route_segments")
+    .select("id, from_item_id, to_item_id")
+    .eq("trip_id", tripId)
+    .in("from_item_id", itemIds)
+    .in("to_item_id", itemIds);
+
+  if (error) throwSupabaseError(error);
+
+  const segmentByPair = new Map(
+    ((data ?? []) as RouteSegmentRow[]).map((segment) => [
+      routePairKey(segment.from_item_id, segment.to_item_id),
+      segment,
+    ]),
+  );
+  let walkingProbeCount = 0;
+
+  for (const routePair of routePairs) {
+    const segment = segmentByPair.get(
+      routePairKey(routePair.from.itemId, routePair.to.itemId),
+    );
+    if (!segment) continue;
+
+    const mode = await chooseAiRouteMode({
+      preferredModes,
+      from: routePair.from.candidate,
+      to: routePair.to.candidate,
+      canProbeWalking: walkingProbeCount < AI_ROUTE_MODE_WALKING_PROBE_LIMIT,
+      getWalkingDurationSeconds: async () => {
+        walkingProbeCount += 1;
+        const geometry = await getRouteGeometry(tripId, segment.id);
+        return geometry.status === "ok" ? geometry.duration_seconds ?? null : null;
+      },
+    });
+
+    await updateGeneratedRouteSegment(tripId, generationId, segment.id, mode);
+  }
+}
+
+async function updateGeneratedRouteSegment(
+  tripId: number,
+  generationId: number,
+  segmentId: number,
+  mode: TravelMode,
+): Promise<void> {
   const { error } = await getSupabaseClient()
     .from("route_segments")
     .update({
@@ -189,10 +278,50 @@ async function tagGeneratedRouteSegments(
       updated_at: new Date().toISOString(),
     })
     .eq("trip_id", tripId)
-    .in("from_item_id", itemIds)
-    .in("to_item_id", itemIds);
+    .eq("id", segmentId);
 
   if (error) throwSupabaseError(error);
+}
+
+function buildGeneratedRoutePairs(
+  visits: GeneratedVisitContext[],
+): GeneratedRoutePair[] {
+  const visitsByDate = new Map<string, GeneratedVisitContext[]>();
+
+  for (const visit of visits) {
+    if (!Number.isInteger(visit.itemId)) continue;
+    const dayVisits = visitsByDate.get(visit.date) ?? [];
+    dayVisits.push(visit);
+    visitsByDate.set(visit.date, dayVisits);
+  }
+
+  const routePairs: GeneratedRoutePair[] = [];
+  for (const dayVisits of visitsByDate.values()) {
+    const sortedVisits = [...dayVisits].sort(compareGeneratedVisits);
+    for (let index = 0; index < sortedVisits.length - 1; index += 1) {
+      routePairs.push({
+        from: sortedVisits[index],
+        to: sortedVisits[index + 1],
+      });
+    }
+  }
+
+  return routePairs;
+}
+
+function compareGeneratedVisits(
+  left: GeneratedVisitContext,
+  right: GeneratedVisitContext,
+): number {
+  return (
+    left.startTime.localeCompare(right.startTime) ||
+    left.order - right.order ||
+    left.itemId - right.itemId
+  );
+}
+
+function routePairKey(fromItemId: number, toItemId: number): string {
+  return `${fromItemId}->${toItemId}`;
 }
 
 function googleMapsSearchUrl(candidate: AiDestinationCandidate): string {
