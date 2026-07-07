@@ -130,7 +130,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const canPlanWithAi =
     canEditTripMetadata &&
     isAiPlanningDestinationSupported(trip?.destination_slug) &&
-    isPlannerSnapshotEmpty(plannerSnapshot);
+    hasAiPlanningDateRange(trip);
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
   const { exportFeedback, copyMarkdownExport, downloadMarkdownExport } =
@@ -510,10 +510,32 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   );
 }
 
-function isPlannerSnapshotEmpty(snapshot: PlannerSnapshot): boolean {
+function hasAiPlanningDateRange(trip: Trip | null): boolean {
+  if (!trip?.start_date || !trip.end_date) {
+    return false;
+  }
+
   return (
-    snapshot.places.length === 0 &&
-    snapshot.itineraryItems.length === 0 &&
-    snapshot.routeSegments.length === 0
+    isValidIsoDate(trip.start_date) &&
+    isValidIsoDate(trip.end_date) &&
+    trip.start_date <= trip.end_date
+  );
+}
+
+function isValidIsoDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
   );
 }

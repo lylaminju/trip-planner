@@ -64,7 +64,7 @@ describe("TripPlannerApp", () => {
     expect(markup).not.toContain("Edit trip details");
   });
 
-  it("shows AI planning only for owner-owned empty supported trips", () => {
+  it("shows AI planning for owner-owned supported trips with valid dates", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
@@ -80,7 +80,7 @@ describe("TripPlannerApp", () => {
     expect(markup).toContain("Plan with AI");
   });
 
-  it("hides AI planning for non-empty or unsupported trips", () => {
+  it("keeps AI planning available for non-empty supported trips", () => {
     const withPlaces = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
@@ -97,6 +97,11 @@ describe("TripPlannerApp", () => {
         }),
       }),
     );
+
+    expect(withPlaces).toContain("Plan with AI");
+  });
+
+  it("hides AI planning for unsupported destinations, non-owners, or invalid dates", () => {
     const unsupported = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
@@ -115,10 +120,39 @@ describe("TripPlannerApp", () => {
         }),
       }),
     );
+    const missingDates = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData({
+          trip: {
+            ...buildTrip({
+              destination: "New York City",
+              destination_slug: "new-york-city",
+              end_date: "2026-05-29",
+            }),
+            start_date: null,
+          },
+        }),
+      }),
+    );
+    const reversedDates = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData({
+          trip: buildTrip({
+            destination: "New York City",
+            destination_slug: "new-york-city",
+            start_date: "2026-05-30",
+            end_date: "2026-05-29",
+          }),
+        }),
+      }),
+    );
 
-    expect(withPlaces).not.toContain("Plan with AI");
     expect(unsupported).not.toContain("Plan with AI");
     expect(editor).not.toContain("Plan with AI");
+    expect(missingDates).not.toContain("Plan with AI");
+    expect(reversedDates).not.toContain("Plan with AI");
   });
 
   it("renders current location as a map control instead of a planner header button", () => {
