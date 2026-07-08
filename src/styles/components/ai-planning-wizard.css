@@ -204,3 +204,57 @@
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
+
+.ai-generation-loading {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 260px;
+}
+
+.ai-generation-icons {
+  align-items: center;
+  color: var(--accent);
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.ai-generation-icon {
+  animation: ai-generation-icon-pulse 1.2s ease-in-out infinite;
+  fill: none;
+  height: 34px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 34px;
+}
+
+.ai-generation-icon:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.ai-generation-icon:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes ai-generation-icon-pulse {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: translateY(0);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-generation-icon {
+    animation: none;
+    opacity: 1;
+  }
+}

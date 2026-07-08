@@ -47,6 +47,27 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Next");
   });
 
+  it("replaces wizard body with centered loading icons while generating", () => {
+    const markup = renderToStaticMarkup(
+      createElement(AiPlanningWizard, {
+        setup: setup(),
+        isLoading: false,
+        error: null,
+        isGenerating: true,
+        onCancel: vi.fn(),
+        onCreateItinerary: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('class="ai-generation-loading"');
+    expect(markup).toContain('role="status"');
+    expect(markup).toContain("Creating itinerary");
+    expect(markup).toContain('class="ai-generation-icons"');
+    expect(markup).not.toContain("Step 1 of 4");
+    expect(markup).not.toContain("Visits per day");
+    expect(markup).not.toContain("Creating...");
+  });
+
   it("renders an optional lodging Google Maps URL on the logistics step", () => {
     const markup = renderToStaticMarkup(
       createElement(LogisticsStep, {
