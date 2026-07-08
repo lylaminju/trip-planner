@@ -6,7 +6,11 @@ import { describe, expect, it, vi } from "vitest";
 import { ItinerarySection } from "@/components/planner-panel/ItinerarySection";
 import { SectionToggle } from "@/components/planner-panel/SectionToggle";
 import type { ItineraryView } from "@/lib/types";
-import { buildPlace } from "./helpers/fixtures";
+import {
+  buildItineraryItem,
+  buildPlace,
+  buildRouteSegment,
+} from "./helpers/fixtures";
 
 describe("planner collapse controls", () => {
   it("renders section toggles with an svg chevron instead of text glyphs", () => {
@@ -67,6 +71,19 @@ describe("planner collapse controls", () => {
     expect(dayPrefixMarkup).toContain('style="color:var(--accent)"');
   });
 
+  it("renders route segment rows for matching itinerary items", () => {
+    const markup = itinerarySectionMarkup(new Set(), {
+      itinerary: itineraryWithSegment(),
+      routeGeometries: new Map([
+        [99, { segment_id: 99, status: "ok", duration_seconds: 10 * 60 }],
+      ]),
+    });
+
+    expect(markup).toContain('class="segment-row');
+    expect(markup).toContain("10 min");
+    expect(markup).toContain("travelmode=walking");
+  });
+
   it("keeps the date heading close to the collapse chevron", () => {
     const css = readFileSync(
       "src/styles/components/planner-day-blocks.css",
@@ -106,7 +123,10 @@ function dayCollapseButtonMarkup(collapsedDates: ReadonlySet<string>) {
   );
 }
 
-function itinerarySectionMarkup(collapsedDates: ReadonlySet<string>) {
+function itinerarySectionMarkup(
+  collapsedDates: ReadonlySet<string>,
+  overrides: Partial<Parameters<typeof ItinerarySection>[0]> = {},
+) {
   return renderToStaticMarkup(
     createElement(ItinerarySection, {
       itinerary: itinerary(),
@@ -147,6 +167,7 @@ function itinerarySectionMarkup(collapsedDates: ReadonlySet<string>) {
       onScheduleItem: vi.fn(),
       onModeChange: vi.fn(),
       onConfirmDeletion: vi.fn(),
+      ...overrides,
     }),
   );
 }
@@ -182,5 +203,46 @@ function itinerary(): ItineraryView {
       },
     ],
     unscheduled: [buildPlace()],
+  };
+}
+
+function itineraryWithSegment(): ItineraryView {
+  const cafe = buildPlace({ id: 1, name: "Cafe" });
+  const museum = buildPlace({ id: 2, name: "Museum" });
+  const firstItem = buildItineraryItem({
+    id: 10,
+    place_id: cafe.id,
+    place: cafe,
+    visit_time: "09:00",
+  });
+  const secondItem = buildItineraryItem({
+    id: 11,
+    place_id: museum.id,
+    place: museum,
+    visit_time: "10:00",
+  });
+  const segment = buildRouteSegment({
+    id: 99,
+    from_item_id: firstItem.id,
+    to_item_id: secondItem.id,
+    mode: "walking",
+  });
+
+  return {
+    days: [
+      {
+        date: "2026-06-01",
+        color: "var(--accent)",
+        items: [firstItem, secondItem],
+        segments: [
+          {
+            fromItemId: firstItem.id,
+            toItemId: secondItem.id,
+            segment,
+          },
+        ],
+      },
+    ],
+    unscheduled: [],
   };
 }
