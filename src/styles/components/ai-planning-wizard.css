@@ -373,3 +373,121 @@
     opacity: 1;
   }
 }
+
+@media (min-width: 901px) {
+  .ai-planning-modal {
+    gap: 16px;
+    max-width: 620px;
+    padding: 20px;
+  }
+
+  .ai-planning-modal .modal-header h2 {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  .ai-planning-loading,
+  .ai-planning-modal button:not(.icon-button) {
+    font-size: 14px;
+  }
+
+  .ai-planning-modal button:not(.icon-button) {
+    min-height: 38px;
+    padding: 8px 11px;
+  }
+
+  .ai-wizard-steps {
+    gap: 8px;
+  }
+
+  .ai-wizard-step {
+    font-size: 13px;
+    padding: 6px 11px;
+  }
+
+  .ai-wizard-step-panel {
+    gap: 12px;
+  }
+
+  .ai-wizard-step-count {
+    font-size: 14px;
+  }
+
+  .ai-wizard-fieldset {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .ai-wizard-fieldset legend {
+    font-size: 15px;
+  }
+
+  .ai-visit-range-summary span,
+  .ai-range-slider-labels,
+  .ai-logistics-label,
+  .ai-start-time-field span,
+  .ai-lodging-url-field span {
+    font-size: 14px;
+  }
+
+  .ai-visit-range-summary strong {
+    font-size: 15px;
+  }
+
+  .ai-range-ticks {
+    font-size: 13px;
+    height: 18px;
+  }
+
+  .ai-choice {
+    min-height: 38px;
+  }
+
+  .ai-logistics-section,
+  .ai-start-time-field,
+  .ai-lodging-url-field {
+    gap: 10px;
+  }
+
+  .ai-planning-modal input[type="time"],
+  .ai-planning-modal input[type="url"] {
+    font-size: 14px;
+    min-height: 44px;
+    padding: 9px 10px;
+  }
+
+  .ai-current-lodging {
+    font-size: 14px;
+    padding: 11px 12px;
+  }
+
+  .ai-candidate-list {
+    gap: 10px;
+  }
+
+  .ai-candidate-option {
+    gap: 10px;
+    padding: 11px 12px;
+  }
+
+  .ai-candidate-option span {
+    font-size: 14px;
+  }
+
+  .ai-candidate-option small {
+    font-size: 13px;
+  }
+
+  .ai-planning-step-actions {
+    gap: 10px;
+  }
+
+  .ai-generation-loading {
+    min-height: 280px;
+  }
+
+  .ai-generation-icon {
+    height: 38px;
+    width: 38px;
+  }
+}
