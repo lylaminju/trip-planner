@@ -1,0 +1,260 @@
+/* AI planning wizard controls and compact modal layout. */
+.ai-planning-modal {
+  gap: 14px;
+  max-width: 560px;
+}
+
+.ai-planning-loading {
+  align-items: center;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: flex;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 160px;
+  padding: 18px;
+}
+
+.ai-wizard-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ai-wizard-step {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 9px;
+}
+
+.ai-wizard-step.current {
+  background: var(--accent-soft-bg);
+  border-color: var(--accent-soft-border);
+  color: var(--accent);
+}
+
+.ai-wizard-step-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.ai-wizard-step-count {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ai-wizard-fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+}
+
+.ai-wizard-fieldset legend {
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.ai-visit-range-summary {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.ai-visit-range-summary span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-range-control {
+  display: grid;
+  gap: 6px;
+}
+
+.ai-range-control span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modal .ai-range-control input[type="range"] {
+  min-height: 28px;
+  padding: 0;
+}
+
+.ai-range-ticks {
+  color: var(--muted);
+  display: grid;
+  font-size: 12px;
+  font-weight: 700;
+  grid-template-columns: repeat(4, 1fr);
+  text-align: center;
+}
+
+.ai-choice-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-choice {
+  min-height: 34px;
+}
+
+.ai-choice.selected {
+  background: var(--accent-soft-bg);
+  border-color: var(--accent-selected-border);
+  color: var(--accent);
+}
+
+.ai-logistics-section,
+.ai-start-time-field,
+.ai-lodging-url-field {
+  display: grid;
+  gap: 8px;
+}
+
+.ai-logistics-label,
+.ai-start-time-field span,
+.ai-lodging-url-field span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-current-lodging {
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  padding: 9px 10px;
+}
+
+.ai-current-lodging strong {
+  color: var(--text);
+}
+
+.ai-candidate-list {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.ai-candidate-option {
+  align-items: start;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 9px 10px;
+}
+
+.ai-candidate-option input {
+  margin-top: 3px;
+}
+
+.modal .ai-candidate-option input[type="checkbox"] {
+  min-height: 16px;
+  width: 16px;
+}
+
+.ai-candidate-option span {
+  display: grid;
+  gap: 2px;
+}
+
+.ai-candidate-option small {
+  color: var(--muted);
+}
+
+.ai-planning-actions {
+  align-items: center;
+}
+
+.ai-planning-step-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ai-planning-primary-action {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: 700;
+}
+
+.ai-planning-primary-action:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.ai-generation-loading {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 260px;
+}
+
+.ai-generation-icons {
+  align-items: center;
+  color: var(--accent);
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.ai-generation-icon {
+  animation: ai-generation-icon-pulse 1.2s ease-in-out infinite;
+  fill: none;
+  height: 34px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 34px;
+}
+
+.ai-generation-icon:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.ai-generation-icon:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes ai-generation-icon-pulse {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: translateY(0);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-generation-icon {
+    animation: none;
+    opacity: 1;
+  }
+}

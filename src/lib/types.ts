@@ -105,3 +105,66 @@ export type TripPlannerInitialData = {
   role: TripRole;
   plannerSnapshot: PlannerSnapshot;
 };
+
+export type AiRegionDistanceTier = "central" | "nearby" | "day_trip";
+export type AiIndoorOutdoor = "indoor" | "outdoor" | "mixed";
+
+export type AiDestinationCandidate = {
+  id: number;
+  destination_slug: string;
+  name: string;
+  category: string;
+  tags: string[];
+  area: string | null;
+  region_distance_tier: AiRegionDistanceTier;
+  sort_order: number;
+  latitude: number;
+  longitude: number;
+  google_place_id: string | null;
+  typical_duration_minutes: number;
+  indoor_outdoor: AiIndoorOutdoor | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TripLodging = {
+  id: number;
+  trip_id: number;
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  google_place_id: string | null;
+  check_in_date: string | null;
+  check_out_date: string | null;
+  is_primary: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiPlanningPreferenceInput = {
+  visits_per_day_min: number;
+  visits_per_day_max: number;
+  interest_tags: string[];
+  preferred_travel_modes: TravelMode[];
+  must_see_candidate_ids: number[];
+};
+
+export type AiPlanningGenerationInput = AiPlanningPreferenceInput & {
+  lodging_google_maps_url?: string | null;
+  daily_start_time?: string | null;
+};
+
+export type AiPlanningPreferences = AiPlanningPreferenceInput & {
+  trip_id: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiPlanningSetup = {
+  trip: Trip;
+  isSupportedDestination: boolean;
+  candidates: AiDestinationCandidate[];
+  lodging: TripLodging | null;
+  preferences: AiPlanningPreferences | null;
+};

@@ -3,8 +3,11 @@
 import type { SubmitEvent } from "react";
 
 import type { CurrentLocationPosition } from "@/lib/current-location";
+import { errorMessage } from "@/lib/error-message";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
+  AiPlanningGenerationInput,
+  AiPlanningSetup,
   ItineraryItem,
   ItineraryView,
   Place,
@@ -15,18 +18,26 @@ import type {
 } from "@/lib/types";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
+import { AiPlanningWizard } from "./AiPlanningWizard";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { EditTripModal } from "./EditTripModal";
 import { MapPanel } from "./MapPanel";
 import { PlannerPanel } from "./PlannerPanel";
 import type { TripFormState } from "./trip-form-types";
-import { errorMessage } from "./trip-planner-app-utils";
 
 type ExportFeedback = {
   action: "copy" | "download";
   kind: "error" | "success";
   label: string;
 } | null;
+
+type AiPlanningWizardState = {
+  isOpen: boolean;
+  isLoading: boolean;
+  isGenerating: boolean;
+  setup: AiPlanningSetup | null;
+  error: string | null;
+};
 
 type Props = {
   mobileSheetState: MobileSheetState;
@@ -43,6 +54,7 @@ type Props = {
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
   error: string | null;
+  aiGenerationToast: string | null;
   exportFeedback: ExportFeedback;
   canEdit: boolean;
   canEditTripMetadata: boolean;
@@ -60,8 +72,10 @@ type Props = {
   addPlaceVisitDate: string | null;
   editingTripForm: TripFormState | null;
   isSavingTrip: boolean;
+  aiPlanningWizard: AiPlanningWizardState;
   visitDateOptions: VisitDateOption[];
   onTogglePlannerExpanded: () => void;
+  onPlanWithAi?: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onOpenAddModal: (visitDate?: string | null) => void;
   onOpenEditTripModal: () => void;
@@ -102,6 +116,8 @@ type Props = {
   onSetEditingTripForm: (form: TripFormState | null) => void;
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onSetError: (message: string | null) => void;
+  onCloseAiPlanningWizard: () => void;
+  onCreateAiItinerary: (input: AiPlanningGenerationInput) => Promise<void>;
 };
 
 export function TripPlannerView(props: Props) {
@@ -134,6 +150,7 @@ export function TripPlannerView(props: Props) {
         deletingPlaceIds={props.deletingPlaceIds}
         deletingItineraryItemIds={props.deletingItineraryItemIds}
         onToggleExpanded={props.onTogglePlannerExpanded}
+        onPlanWithAi={props.onPlanWithAi}
         onMobileSheetStateChange={props.onMobileSheetStateChange}
         onAdd={props.onOpenAddModal}
         onEditTrip={
@@ -199,9 +216,15 @@ export function TripPlannerView(props: Props) {
         canEdit={props.canEdit}
         onToggleCurrentLocation={props.onToggleCurrentLocation}
         onAddPlace={props.onOpenAddModal}
+        onPlanWithAi={props.onPlanWithAi}
         onSelectPlace={props.onSelectItem}
         onSelectSegment={props.onToggleSegmentSelection}
       />
+      {props.aiGenerationToast && (
+        <div className="ai-generation-toast" role="status">
+          {props.aiGenerationToast}
+        </div>
+      )}
       {(props.isAdding || props.editingPlace) && (
         <AddEditPlaceModal
           place={props.editingPlace}
@@ -240,6 +263,16 @@ export function TripPlannerView(props: Props) {
           onChange={props.onSetEditingTripForm}
           onCancel={() => props.onSetEditingTripForm(null)}
           onSubmit={props.onSubmitEditTrip}
+        />
+      )}
+      {props.aiPlanningWizard.isOpen && (
+        <AiPlanningWizard
+          setup={props.aiPlanningWizard.setup}
+          isLoading={props.aiPlanningWizard.isLoading}
+          error={props.aiPlanningWizard.error}
+          isGenerating={props.aiPlanningWizard.isGenerating}
+          onCancel={props.onCloseAiPlanningWizard}
+          onCreateItinerary={props.onCreateAiItinerary}
         />
       )}
     </main>

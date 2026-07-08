@@ -44,6 +44,7 @@ type Props = {
   deletingPlaceIds: ReadonlySet<number>;
   deletingItineraryItemIds: ReadonlySet<number>;
   onToggleExpanded: () => void;
+  onPlanWithAi?: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onAdd: (visitDate?: string | null) => void;
   onEditTrip?: () => void;
@@ -181,27 +182,38 @@ export function PlannerPanel(props: Props) {
                 <p className="app-header-period">{props.tripPeriodLabel}</p>
               )}
             </div>
-            <button
-              type="button"
-              className="panel-expand-toggle"
-              aria-label={viewToggleDescription}
-              title={viewToggleDescription}
-              onClick={props.onToggleExpanded}
-            >
-              {props.isExpanded && (
-                <span className="panel-expand-toggle-icon" aria-hidden="true">
-                  <ChevronLeftIcon />
-                  <ChevronLeftIcon />
-                </span>
+            <div className="app-header-controls">
+              {props.onPlanWithAi && (
+                <button
+                  type="button"
+                  className="ai-plan-button"
+                  onClick={props.onPlanWithAi}
+                >
+                  Plan with AI
+                </button>
               )}
-              <span>{viewToggleLabel}</span>
-              {!props.isExpanded && (
-                <span className="panel-expand-toggle-icon" aria-hidden="true">
-                  <ChevronRightIcon />
-                  <ChevronRightIcon />
-                </span>
-              )}
-            </button>
+              <button
+                type="button"
+                className="panel-expand-toggle"
+                aria-label={viewToggleDescription}
+                title={viewToggleDescription}
+                onClick={props.onToggleExpanded}
+              >
+                {props.isExpanded && (
+                  <span className="panel-expand-toggle-icon" aria-hidden="true">
+                    <ChevronLeftIcon />
+                    <ChevronLeftIcon />
+                  </span>
+                )}
+                <span>{viewToggleLabel}</span>
+                {!props.isExpanded && (
+                  <span className="panel-expand-toggle-icon" aria-hidden="true">
+                    <ChevronRightIcon />
+                    <ChevronRightIcon />
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 

@@ -173,14 +173,10 @@
   margin: 0;
 }
 
-.map-empty-state-title {
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.map-empty-state button {
-  justify-self: center;
+.map-empty-state-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 
 .map-fallback {

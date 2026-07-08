@@ -12,37 +12,37 @@ import {
 import { useCurrentLocationControl } from "@/hooks/useCurrentLocationControl";
 import { useItineraryExport } from "@/hooks/useItineraryExport";
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
+import { useTripPlannerMutations } from "@/hooks/useTripPlannerMutations";
 import { useTripPlannerModals } from "@/hooks/useTripPlannerModals";
+import { useTripPlannerSelection } from "@/hooks/useTripPlannerSelection";
+import {
+  AI_OPENING_HOURS_WARNING,
+  isAiPlanningDestinationSupported,
+} from "@/lib/ai-planning";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
+import { errorMessage } from "@/lib/error-message";
 import { buildVisitDateOptions } from "@/lib/itinerary";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
-  createItineraryItemRequest,
-  deleteItineraryItemRequest,
-  deletePlaceRequest,
+  generateAiItinerary,
+  loadAiPlanningSetup,
   loadTripPlannerInitialData,
-  saveItineraryItemRequest,
-  savePlaceRequest,
-  scheduleItineraryItemRequest,
-  schedulePlaceRequest,
-  updateSegmentModeRequest,
 } from "@/lib/planner-api";
-import { toggleSelectedId } from "@/lib/selection";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import { updateTrip } from "@/lib/trips-api";
 import type {
+  AiPlanningGenerationInput,
+  AiPlanningSetup,
   PlannerSnapshot,
   Trip,
   TripPlannerInitialData,
   TripRole,
-  TravelMode,
 } from "@/lib/types";
 
 import {
   buildItineraryForTrip,
-  errorMessage,
   formPayload,
   toTripDateRange,
 } from "./trip-planner-app-utils";
@@ -52,6 +52,14 @@ const EMPTY_SNAPSHOT: PlannerSnapshot = {
   places: [],
   itineraryItems: [],
   routeSegments: [],
+};
+
+type AiPlanningWizardState = {
+  isOpen: boolean;
+  isLoading: boolean;
+  isGenerating: boolean;
+  setup: AiPlanningSetup | null;
+  error: string | null;
 };
 
 type TripPlannerAppProps = {
@@ -70,12 +78,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     () => initialData?.plannerSnapshot ?? EMPTY_SNAPSHOT,
   );
   const didUseInitialDataRef = useRef(Boolean(initialData));
-  const [activeItemId, setActiveItemId] = useState<number | null>(null);
-  const [activeCanonicalPlaceId, setActiveCanonicalPlaceId] = useState<
-    number | null
-  >(null);
-  const [activeSegmentId, setActiveSegmentId] = useState<number | null>(null);
-  const [activeDate, setActiveDate] = useState<string | null>(null);
+  const selection = useTripPlannerSelection();
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(
     () => new Set(),
   );
@@ -84,12 +87,17 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     useState<MobileSheetState>("half");
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deletingPlaceIds, setDeletingPlaceIds] = useState<Set<number>>(
-    () => new Set(),
+  const [aiPlanningWizard, setAiPlanningWizard] =
+    useState<AiPlanningWizardState>({
+      isOpen: false,
+      isLoading: false,
+      isGenerating: false,
+      setup: null,
+      error: null,
+    });
+  const [aiGenerationToast, setAiGenerationToast] = useState<string | null>(
+    null,
   );
-  const [deletingItineraryItemIds, setDeletingItineraryItemIds] = useState<
-    Set<number>
-  >(() => new Set());
 
   const itinerary = useMemo(
     () => buildItineraryForTrip(plannerSnapshot, trip),
@@ -106,6 +114,10 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   );
   const canEdit = role !== "viewer";
   const canEditTripMetadata = role === "owner";
+  const canPlanWithAi =
+    canEditTripMetadata &&
+    isAiPlanningDestinationSupported(trip?.destination_slug) &&
+    hasAiPlanningDateRange(trip);
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
   const { exportFeedback, copyMarkdownExport, downloadMarkdownExport } =
@@ -139,6 +151,20 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     trip,
     clearError: () => setError(null),
   });
+  const plannerMutations = useTripPlannerMutations({
+    tripId,
+    canEdit,
+    plannerSnapshot,
+    setPlannerSnapshot,
+    setError,
+    closeModal,
+    setAddingVisitPlace,
+    setEditingItem,
+    clearActiveCanonicalPlace: selection.clearActiveCanonicalPlace,
+    clearDeletedPlaceSelection: selection.clearDeletedPlaceSelection,
+    clearDeletedItineraryItemSelection:
+      selection.clearDeletedItineraryItemSelection,
+  });
   const reload = useCallback(async () => {
     const next = await loadTripPlannerInitialData(tripId);
     setTrip(next.trip);
@@ -159,130 +185,6 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       );
     });
   }, [reload]);
-
-  async function savePlace(payload: Record<string, unknown>, id?: number) {
-    if (!canEdit) return;
-    try {
-      setPlannerSnapshot(await savePlaceRequest(tripId, payload, id));
-      setActiveCanonicalPlaceId(null);
-      closeModal();
-      setError(null);
-    } catch (reason) {
-      const message = errorMessage(reason, "Failed to save place.");
-      setError(message);
-      throw new Error(message);
-    }
-  }
-
-  async function saveItineraryItem(
-    payload: Record<string, unknown>,
-    id: number,
-  ) {
-    if (!canEdit) return;
-    try {
-      setPlannerSnapshot(await saveItineraryItemRequest(tripId, payload, id));
-      setEditingItem(null);
-      setError(null);
-    } catch (reason) {
-      const message = errorMessage(reason, "Failed to save visit.");
-      setError(message);
-      throw new Error(message);
-    }
-  }
-
-  async function deletePlace(id: number) {
-    if (!canEdit) return;
-    if (deletingPlaceIds.has(id)) return;
-
-    setDeletingPlaceIds((current) => new Set(current).add(id));
-    try {
-      setPlannerSnapshot(await deletePlaceRequest(tripId, id));
-      setActiveItemId((current) => {
-        const deletedItemIds = plannerSnapshot.itineraryItems
-          .filter((item) => item.place_id === id)
-          .map((item) => item.id);
-
-        return deletedItemIds.includes(current ?? -1) ? null : current;
-      });
-      setActiveCanonicalPlaceId((current) => (current === id ? null : current));
-      setActiveSegmentId(null);
-      setError(null);
-    } finally {
-      setDeletingPlaceIds((current) => {
-        const next = new Set(current);
-        next.delete(id);
-        return next;
-      });
-    }
-  }
-
-  async function schedulePlace(
-    id: number,
-    visitDate: string | null,
-    visitTime: string | null,
-  ) {
-    if (!canEdit) return;
-    setPlannerSnapshot(
-      await schedulePlaceRequest(tripId, id, visitDate, visitTime),
-    );
-    setError(null);
-  }
-
-  async function createItineraryItem(
-    placeId: number,
-    payload: Record<string, unknown>,
-  ) {
-    if (!canEdit) return;
-    try {
-      setPlannerSnapshot(
-        await createItineraryItemRequest(tripId, placeId, payload),
-      );
-      setAddingVisitPlace(null);
-      setError(null);
-    } catch (reason) {
-      const message = errorMessage(reason, "Failed to add visit.");
-      setError(message);
-      throw new Error(message);
-    }
-  }
-
-  async function scheduleItineraryItem(
-    id: number,
-    visitDate: string | null,
-    visitTime: string | null,
-  ) {
-    if (!canEdit) return;
-    setPlannerSnapshot(
-      await scheduleItineraryItemRequest(tripId, id, visitDate, visitTime),
-    );
-    setError(null);
-  }
-
-  async function deleteItineraryItem(id: number) {
-    if (!canEdit) return;
-    if (deletingItineraryItemIds.has(id)) return;
-
-    setDeletingItineraryItemIds((current) => new Set(current).add(id));
-    try {
-      setPlannerSnapshot(await deleteItineraryItemRequest(tripId, id));
-      setActiveItemId((current) => (current === id ? null : current));
-      setActiveSegmentId(null);
-      setActiveDate(null);
-      setError(null);
-    } finally {
-      setDeletingItineraryItemIds((current) => {
-        const next = new Set(current);
-        next.delete(id);
-        return next;
-      });
-    }
-  }
-
-  async function updateSegmentMode(id: number, mode: TravelMode) {
-    if (!canEdit) return;
-    setPlannerSnapshot(await updateSegmentModeRequest(tripId, id, mode));
-    setError(null);
-  }
 
   async function submitEditTrip(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -306,40 +208,82 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     }
   }
 
-  function toggleSegmentSelection(id: number | null) {
-    if (id === null) {
-      setActiveSegmentId(null);
-      return;
-    }
-
-    setActiveDate(null);
-    setActiveItemId(null);
-    setActiveCanonicalPlaceId(null);
-    setActiveSegmentId((current) => toggleSelectedId(current, id));
-  }
-
-  function selectItem(id: number | null) {
-    setActiveDate(null);
-    setActiveCanonicalPlaceId(null);
-    setActiveItemId(id);
-  }
-
-  function selectCanonicalPlace(id: number | null) {
-    setActiveDate(null);
-    setActiveItemId(null);
-    setActiveSegmentId(null);
-    setActiveCanonicalPlaceId(id);
-  }
-
   function toggleDateCollapsed(date: string) {
     setCollapsedDates((current) => toggleCollapsedDate(current, date));
   }
 
-  function selectDate(date: string) {
-    setActiveDate((current) => (current === date ? null : date));
-    setActiveItemId(null);
-    setActiveCanonicalPlaceId(null);
-    setActiveSegmentId(null);
+  async function openAiPlanningSetup() {
+    if (!canPlanWithAi) return;
+
+    setAiPlanningWizard({
+      isOpen: true,
+      isLoading: true,
+      isGenerating: false,
+      setup: null,
+      error: null,
+    });
+
+    try {
+      const setup = await loadAiPlanningSetup(tripId);
+      setAiPlanningWizard({
+        isOpen: true,
+        isLoading: false,
+        isGenerating: false,
+        setup,
+        error: null,
+      });
+    } catch (reason) {
+      setAiPlanningWizard({
+        isOpen: true,
+        isLoading: false,
+        isGenerating: false,
+        setup: null,
+        error: errorMessage(reason, "Failed to load AI planning setup."),
+      });
+    }
+  }
+
+  function closeAiPlanningWizard() {
+    setAiPlanningWizard((current) => ({
+      ...current,
+      isOpen: false,
+      isLoading: false,
+      isGenerating: false,
+      error: null,
+    }));
+  }
+
+  async function createAiItineraryFromWizard(
+    input: AiPlanningGenerationInput,
+  ) {
+    setAiPlanningWizard((current) => ({
+      ...current,
+      isGenerating: true,
+      error: null,
+    }));
+    setAiGenerationToast(null);
+
+    try {
+      const result = await generateAiItinerary(tripId, input);
+      setPlannerSnapshot(result.plannerSnapshot);
+      setAiPlanningWizard((current) => ({
+        ...current,
+        isOpen: false,
+        isGenerating: false,
+        error: null,
+      }));
+      setError(null);
+      setAiGenerationToast(AI_OPENING_HOURS_WARNING);
+    } catch (reason) {
+      setAiPlanningWizard((current) => ({
+        ...current,
+        isGenerating: false,
+        error: errorMessage(
+          reason,
+          "Failed to generate AI itinerary.",
+        ),
+      }));
+    }
   }
 
   return (
@@ -350,20 +294,21 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       tripPeriodLabel={tripPeriodLabel}
       itinerary={itinerary}
       plannerSnapshot={plannerSnapshot}
-      activeItemId={activeItemId}
-      activeCanonicalPlaceId={activeCanonicalPlaceId}
-      activeSegmentId={activeSegmentId}
-      activeDate={activeDate}
+      activeItemId={selection.activeItemId}
+      activeCanonicalPlaceId={selection.activeCanonicalPlaceId}
+      activeSegmentId={selection.activeSegmentId}
+      activeDate={selection.activeDate}
       collapsedDates={collapsedDates}
       routeGeometries={routeGeometries}
       routeGeometryError={routeGeometryError}
       error={error}
+      aiGenerationToast={aiGenerationToast}
       exportFeedback={exportFeedback}
       canEdit={canEdit}
       canEditTripMetadata={canEditTripMetadata}
       canAddVisits={canAddVisits}
-      deletingPlaceIds={deletingPlaceIds}
-      deletingItineraryItemIds={deletingItineraryItemIds}
+      deletingPlaceIds={plannerMutations.deletingPlaceIds}
+      deletingItineraryItemIds={plannerMutations.deletingItineraryItemIds}
       currentLocationPosition={currentLocationPosition}
       currentLocationToast={currentLocationToast}
       canShowCurrentLocation={canShowCurrentLocation}
@@ -375,10 +320,12 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       addPlaceVisitDate={addPlaceVisitDate}
       editingTripForm={editingTripForm}
       isSavingTrip={isSavingTrip}
+      aiPlanningWizard={aiPlanningWizard}
       visitDateOptions={visitDateOptions}
       onTogglePlannerExpanded={() =>
         setIsPlannerPanelExpanded((value) => !value)
       }
+      onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
       onMobileSheetStateChange={setMobileSheetState}
       onOpenAddModal={openAddModal}
       onOpenEditTripModal={openEditTripModal}
@@ -387,24 +334,56 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onOpenAddVisitModal={openAddVisitModal}
       onOpenEditModal={openEditModal}
       onOpenEditItemModal={openEditItemModal}
-      onDeletePlace={deletePlace}
-      onSelectItem={selectItem}
-      onSelectCanonicalPlace={selectCanonicalPlace}
-      onToggleSegmentSelection={toggleSegmentSelection}
+      onDeletePlace={plannerMutations.deletePlace}
+      onSelectItem={selection.selectItem}
+      onSelectCanonicalPlace={selection.selectCanonicalPlace}
+      onToggleSegmentSelection={selection.toggleSegmentSelection}
       onToggleDateCollapsed={toggleDateCollapsed}
-      onSelectDate={selectDate}
-      onSchedulePlace={schedulePlace}
-      onScheduleItineraryItem={scheduleItineraryItem}
-      onDeleteItineraryItem={deleteItineraryItem}
-      onUpdateSegmentMode={updateSegmentMode}
+      onSelectDate={selection.selectDate}
+      onSchedulePlace={plannerMutations.schedulePlace}
+      onScheduleItineraryItem={plannerMutations.scheduleItineraryItem}
+      onDeleteItineraryItem={plannerMutations.deleteItineraryItem}
+      onUpdateSegmentMode={plannerMutations.updateSegmentMode}
       onToggleCurrentLocation={toggleCurrentLocation}
       onCloseModal={closeModal}
-      onSavePlace={savePlace}
-      onSaveItineraryItem={saveItineraryItem}
-      onCreateItineraryItem={createItineraryItem}
+      onSavePlace={plannerMutations.savePlace}
+      onSaveItineraryItem={plannerMutations.saveItineraryItem}
+      onCreateItineraryItem={plannerMutations.createItineraryItem}
       onSetEditingTripForm={setEditingTripForm}
       onSubmitEditTrip={submitEditTrip}
       onSetError={setError}
+      onCloseAiPlanningWizard={closeAiPlanningWizard}
+      onCreateAiItinerary={createAiItineraryFromWizard}
     />
+  );
+}
+
+function hasAiPlanningDateRange(trip: Trip | null): boolean {
+  if (!trip?.start_date || !trip.end_date) {
+    return false;
+  }
+
+  return (
+    isValidIsoDate(trip.start_date) &&
+    isValidIsoDate(trip.end_date) &&
+    trip.start_date <= trip.end_date
+  );
+}
+
+function isValidIsoDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
   );
 }

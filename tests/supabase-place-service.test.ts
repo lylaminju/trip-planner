@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { PlaceCreateInput } from "@/server/place-inputs";
+import type {
+  ItineraryItemUpdate,
+  PlaceCreateInput,
+  PlaceEditInput,
+} from "@/server/place-inputs";
 
 const baseInput: PlaceCreateInput = {
   name: "Museum",
@@ -18,41 +22,113 @@ const baseInput: PlaceCreateInput = {
   links: [],
 };
 
-describe("supabase place service route reconciliation", () => {
+describe("supabase place service planner mutations", () => {
   afterEach(() => {
     vi.doUnmock("@/server/supabase");
     vi.restoreAllMocks();
     vi.resetModules();
   });
 
-  it("runs route reconciliation through the database RPC after planner mutations", async () => {
+  it.each([
+    {
+      name: "createPlace",
+      run: (service: SupabasePlaceService) => service.createPlace(1, baseInput),
+    },
+    {
+      name: "editPlace",
+      run: (service: SupabasePlaceService) =>
+        service.editPlace(1, 1, {
+          name: "Updated museum",
+          visit_date: "2026-06-02",
+        } satisfies PlaceEditInput),
+    },
+    {
+      name: "removePlace",
+      run: (service: SupabasePlaceService) => service.removePlace(1, 1),
+    },
+    {
+      name: "schedulePlace",
+      run: (service: SupabasePlaceService) =>
+        service.schedulePlace(1, 1, "2026-06-02", "10:30"),
+    },
+    {
+      name: "scheduleItineraryItem",
+      run: (service: SupabasePlaceService) =>
+        service.scheduleItineraryItem(1, 1, "2026-06-02", "10:30"),
+    },
+    {
+      name: "editItineraryItem",
+      run: (service: SupabasePlaceService) =>
+        service.editItineraryItem(1, 1, {
+          visit_time: "10:30",
+        } satisfies ItineraryItemUpdate),
+    },
+    {
+      name: "removeItineraryItem",
+      run: (service: SupabasePlaceService) =>
+        service.removeItineraryItem(1, 1),
+    },
+  ])(
+    "runs route reconciliation through the database RPC after $name",
+    async ({ run }) => {
+      const { client, calls } = createMockSupabaseClient();
+      const service = await importService(client);
+
+      await run(service);
+
+      expect(client.rpc).toHaveBeenCalledTimes(1);
+      expect(client.rpc).toHaveBeenCalledWith(
+        "reconcile_route_segments_for_trip",
+        { p_trip_id: 1 },
+      );
+      expect(
+        calls.filter(
+          (call) =>
+            call.table === "route_segments" &&
+            (call.method === "insert" || call.method === "delete"),
+        ),
+      ).toEqual([]);
+      expect(selectTablesAfterReconciliation(calls)).toEqual([
+        "places",
+        "itinerary_items",
+        "route_segments",
+      ]);
+    },
+  );
+
+  it("updates a route segment mode without reconciling route segment order", async () => {
     const { client, calls } = createMockSupabaseClient();
+    const service = await importService(client);
 
-    vi.doMock("@/server/supabase", () => ({
-      getSupabaseClient: () => client,
-    }));
+    await service.setRouteSegmentMode(1, 1, "walking");
 
-    const service = await import("@/server/supabase-place-service");
-    await service.createPlace(1, baseInput);
-
-    expect(client.rpc).toHaveBeenCalledWith(
-      "reconcile_route_segments_for_trip",
-      { p_trip_id: 1 },
+    expect(client.rpc).not.toHaveBeenCalled();
+    expect(calls).toContainEqual({
+      table: "route_segments",
+      method: "update",
+    });
+    expect(selectTables(calls)).toEqual(
+      expect.arrayContaining(["places", "itinerary_items", "route_segments"]),
     );
-    expect(
-      calls.filter(
-        (call) =>
-          call.table === "route_segments" &&
-          (call.method === "insert" || call.method === "delete"),
-      ),
-    ).toEqual([]);
   });
 });
+
+type SupabasePlaceService = typeof import("@/server/supabase-place-service");
 
 type QueryCall = {
   table: string;
   method: string;
 };
+
+async function importService(
+  client: ReturnType<typeof createMockSupabaseClient>["client"],
+) {
+  vi.doMock("@/server/supabase", () => ({
+    getSupabaseClient: () => client,
+  }));
+
+  return import("@/server/supabase-place-service");
+}
 
 function createMockSupabaseClient() {
   const calls: QueryCall[] = [];
@@ -84,7 +160,16 @@ function createMockSupabaseClient() {
     updated_at: "2026-01-01T00:00:00.000Z",
     place,
   };
-  const routeSegments: unknown[] = [];
+  const routeSegment = {
+    id: 1,
+    trip_id: 1,
+    from_item_id: 1,
+    to_item_id: 2,
+    mode: "walking",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+  const routeSegments: unknown[] = [routeSegment];
 
   class QueryBuilder {
     private operation: string | null = null;
@@ -103,6 +188,12 @@ function createMockSupabaseClient() {
       return this;
     }
 
+    update() {
+      this.operation = "update";
+      calls.push({ table: this.table, method: "update" });
+      return this;
+    }
+
     select() {
       calls.push({ table: this.table, method: "select" });
       return this;
@@ -116,9 +207,16 @@ function createMockSupabaseClient() {
       return this;
     }
 
+    maybeSingle() {
+      return Promise.resolve({
+        data: this.singleRow(),
+        error: null,
+      });
+    }
+
     single() {
       return Promise.resolve({
-        data: this.table === "places" ? place : itineraryItem,
+        data: this.singleRow(),
         error: null,
       });
     }
@@ -149,13 +247,43 @@ function createMockSupabaseClient() {
 
       return { data: routeSegments, error: null };
     }
+
+    private singleRow() {
+      if (this.table === "places") {
+        return place;
+      }
+
+      if (this.table === "itinerary_items") {
+        return itineraryItem;
+      }
+
+      return routeSegment;
+    }
   }
 
   return {
     calls,
     client: {
       from: vi.fn((table: string) => new QueryBuilder(table)),
-      rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+      rpc: vi.fn().mockImplementation((method: string) => {
+        calls.push({ table: "rpc", method });
+        return Promise.resolve({ data: null, error: null });
+      }),
     },
   };
+}
+
+function selectTablesAfterReconciliation(calls: QueryCall[]): string[] {
+  const rpcIndex = calls.findIndex(
+    (call) =>
+      call.table === "rpc" &&
+      call.method === "reconcile_route_segments_for_trip",
+  );
+  return selectTables(calls.slice(rpcIndex + 1));
+}
+
+function selectTables(calls: QueryCall[]): string[] {
+  return calls
+    .filter((call) => call.method === "select")
+    .map((call) => call.table);
 }

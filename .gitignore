@@ -8,6 +8,11 @@ data/*.sqlite-shm
 data/*.sqlite-wal
 .DS_Store
 
+supabase/.temp/
+
+docs/retro.md
+docs/business
+
 .agents/
 .claude/
 .gemini/

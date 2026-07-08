@@ -36,9 +36,33 @@ describe("PlannerPanel view toggle", () => {
       buttonMarkup.indexOf('<span class="panel-expand-toggle-icon"'),
     ).toBeLessThan(buttonMarkup.indexOf("<span>Collapse</span>"));
   });
+
+  it("shows the AI planning action when one is available", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        PlannerPanel,
+        plannerPanelProps({ isExpanded: false, onPlanWithAi: vi.fn() }),
+      ),
+    );
+
+    expect(markup).toContain("Plan with AI");
+    expect(markup).toContain('class="ai-plan-button"');
+  });
+
+  it("hides the AI planning action when one is not available", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PlannerPanel, plannerPanelProps({ isExpanded: false })),
+    );
+
+    expect(markup).not.toContain("Plan with AI");
+    expect(markup).not.toContain('class="ai-plan-button"');
+  });
 });
 
-function plannerPanelProps(overrides: { isExpanded: boolean }) {
+function plannerPanelProps(overrides: {
+  isExpanded: boolean;
+  onPlanWithAi?: () => void;
+}) {
   return {
     title: "Tokyo Spring",
     tripPeriodLabel: "Apr 1 - 7, 2026",
@@ -59,6 +83,7 @@ function plannerPanelProps(overrides: { isExpanded: boolean }) {
     deletingPlaceIds: new Set<number>(),
     deletingItineraryItemIds: new Set<number>(),
     onToggleExpanded: vi.fn(),
+    onPlanWithAi: overrides.onPlanWithAi,
     onMobileSheetStateChange: vi.fn(),
     onAdd: vi.fn(),
     onEditTrip: vi.fn(),

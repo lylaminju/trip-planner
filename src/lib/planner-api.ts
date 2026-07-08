@@ -1,9 +1,18 @@
 import type {
+  AiPlanningGenerationInput,
+  AiPlanningPreferenceInput,
+  AiPlanningPreferences,
+  AiPlanningSetup,
   PlannerSnapshot,
   RouteGeometry,
   TravelMode,
   TripPlannerInitialData,
 } from "./types";
+
+export type AiItineraryGenerationResult = {
+  generationId: number;
+  plannerSnapshot: PlannerSnapshot;
+};
 
 export async function loadTripPlannerInitialData(
   tripId: number,
@@ -14,6 +23,61 @@ export async function loadTripPlannerInitialData(
   }
 
   return response.json();
+}
+
+export async function loadAiPlanningSetup(
+  tripId: number,
+): Promise<AiPlanningSetup> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/setup`);
+  if (!response.ok) {
+    throw new Error("Failed to load AI planning setup.");
+  }
+
+  return response.json();
+}
+
+export async function saveAiPlanningPreferences(
+  tripId: number,
+  payload: AiPlanningPreferenceInput,
+): Promise<AiPlanningPreferences> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/preferences`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "Failed to save AI planning preferences.",
+    );
+  }
+
+  return data;
+}
+
+export async function generateAiItinerary(
+  tripId: number,
+  payload: AiPlanningGenerationInput,
+): Promise<AiItineraryGenerationResult> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/generate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "Failed to generate AI itinerary.",
+    );
+  }
+
+  return data;
 }
 
 export function savePlaceRequest(

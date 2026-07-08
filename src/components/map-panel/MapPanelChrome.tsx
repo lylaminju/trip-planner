@@ -9,6 +9,7 @@ type Props = {
   canEdit: boolean;
   onToggleCurrentLocation: () => void;
   onAddPlace: () => void;
+  onPlanWithAi?: () => void;
 };
 
 export function MapPanelChrome(props: Props) {
@@ -16,12 +17,20 @@ export function MapPanelChrome(props: Props) {
     <>
       {!props.hasPlaces && (
         <div className="map-empty-state">
-          <p className="map-empty-state-title">No places yet</p>
           <p>Add your first place to start building the map.</p>
-          {props.canEdit && (
-            <button type="button" onClick={props.onAddPlace}>
-              Add place
-            </button>
+          {(props.canEdit || props.onPlanWithAi) && (
+            <div className="map-empty-state-actions">
+              {props.canEdit && (
+                <button type="button" onClick={props.onAddPlace}>
+                  Add place
+                </button>
+              )}
+              {props.onPlanWithAi && (
+                <button type="button" onClick={props.onPlanWithAi}>
+                  Plan with AI
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

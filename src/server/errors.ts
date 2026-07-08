@@ -66,3 +66,10 @@ export class GoogleRoutesUpstreamError extends Error {
     this.status = status;
   }
 }
+
+export class AiPlannerConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AiPlannerConfigError";
+  }
+}

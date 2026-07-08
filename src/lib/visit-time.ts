@@ -6,6 +6,9 @@ export const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) =>
 
 export const MINUTE_OPTIONS = ["00", "10", "20", "30", "40", "50"] as const;
 
+const VISIT_TIME_STEP_MINUTES = 10;
+const LATEST_GRID_MINUTE = 23 * 60 + 50;
+
 export function hasVisitDate(
   item: ItineraryItem,
 ): item is ItineraryItem & { visit_date: string } {
@@ -53,6 +56,17 @@ export function formatVisitTime(minutes: number): string {
   const remainder = minutes % 60;
 
   return `${String(hours).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
+export function roundVisitMinutesUpToGrid(minutes: number): number {
+  if (!Number.isFinite(minutes)) {
+    return minutes;
+  }
+
+  return Math.min(
+    Math.ceil(minutes / VISIT_TIME_STEP_MINUTES) * VISIT_TIME_STEP_MINUTES,
+    LATEST_GRID_MINUTE,
+  );
 }
 
 export function splitVisitTime(value: string | null): [string, string] {

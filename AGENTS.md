@@ -32,9 +32,12 @@ This file applies to the whole repository. Follow it when changing code here.
 - Preserve behavior first. Run existing tests and typecheck before and after behavior-preserving refactors.
 - Prefer extraction over rewrites: move code to clearer files before changing logic.
 - Avoid new dependencies unless the task explicitly requires one.
-- Do not introduce deprecated APIs, types, or framework patterns. When touching
-  recently updated libraries such as React or Next.js, verify current types and
-  docs instead of copying older repo usage blindly.
+- Do not introduce deprecated APIs, types, imports, event aliases, config
+  options, or framework patterns. Treat deprecation warnings from TypeScript
+  declarations, editor hints, build output, and official docs as blockers; use
+  current non-deprecated equivalents before implementing. When touching recently
+  updated libraries such as React or Next.js, verify current types and docs
+  instead of copying older repo usage blindly.
 - Keep props typed at component boundaries. Do not replace precise domain types with broad `any` to make extraction easier.
 - Keep CSS class names stable during structural refactors unless the task is explicitly visual.
 - In mobile layouts, keep short labels, badges, and action buttons on the same row unless the text is expected to be long.
@@ -45,6 +48,10 @@ This file applies to the whole repository. Follow it when changing code here.
 - Treat request-derived strings as untrusted input. Parsing helpers for cookies, URLs, headers, and form data should fail closed, and malformed-input regression tests are required when they affect auth, routing, or persistence.
 - Keep exported return types limited to the production contract. Do not expose fields used only by tests. If a preservation or detail field is an intentional API, production code should consume it or tests should clearly document the contract.
 - When touching files over the file-size guardrail, extract a focused hook, helper, or subcomponent as part of the change unless that would make the diff materially riskier.
+
+## Documentation Guidelines
+
+- Use Markdown link syntax (`[label](url)`) for website links unless the user explicitly asks for a different format.
 
 ## UI Layout Stability
 
