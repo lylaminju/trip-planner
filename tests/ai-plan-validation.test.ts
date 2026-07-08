@@ -8,7 +8,9 @@ describe("AI itinerary plan validation", () => {
     const result = validateAiItineraryPlan(plan(), {
       candidateIds: new Set([10, 11]),
       tripDates: ["2026-05-27"],
+      visitsPerDayMin: 1,
       visitsPerDayMax: 3,
+      mustSeeCandidateIds: [],
     });
 
     expect(result).toEqual({ status: "valid", errors: [] });
@@ -40,7 +42,9 @@ describe("AI itinerary plan validation", () => {
       {
         candidateIds: new Set([10]),
         tripDates: ["2026-05-27"],
+        visitsPerDayMin: 1,
         visitsPerDayMax: 1,
+        mustSeeCandidateIds: [],
       },
     );
 
@@ -50,6 +54,83 @@ describe("AI itinerary plan validation", () => {
     expect(result.errors).toContain("Visit time 25:00 must be HH:MM.");
     expect(result.errors).toContain(
       "Day 2026-05-29 has more visits than requested.",
+    );
+  });
+
+  it("rejects plans that omit required trip days", () => {
+    const result = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10]),
+        tripDates: ["2026-05-27", "2026-05-28"],
+        visitsPerDayMin: 1,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+      },
+    );
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain("Day 2026-05-28 is missing from the plan.");
+  });
+
+  it("rejects days with fewer visits than requested", () => {
+    const result = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10]),
+        tripDates: ["2026-05-27"],
+        visitsPerDayMin: 2,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+      },
+    );
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Day 2026-05-27 has fewer visits than requested.",
+    );
+  });
+
+  it("rejects plans that omit must-see candidates", () => {
+    const result = validateAiItineraryPlan(plan(), {
+      candidateIds: new Set([10, 11, 12]),
+      tripDates: ["2026-05-27"],
+      visitsPerDayMin: 1,
+      visitsPerDayMax: 3,
+      mustSeeCandidateIds: [12],
+    });
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Must-see candidate 12 is missing from the plan.",
     );
   });
 });

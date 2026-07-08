@@ -232,6 +232,9 @@ describe("ai-planning-service request boundary", () => {
     expect(requestAiItineraryPlan.mock.calls[1][0].context.validationErrors).toContain(
       "Candidate 99 is not in the curated list.",
     );
+    expect(requestAiItineraryPlan.mock.calls[1][0].context.validationErrors).toContain(
+      "Must-see candidate 10 is missing from the plan.",
+    );
     expect(replaceAiGeneratedBatch).toHaveBeenCalledWith(
       1,
       55,

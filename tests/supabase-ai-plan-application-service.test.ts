@@ -77,11 +77,43 @@ describe("supabase AI plan application service", () => {
       }),
     ]);
   });
+
+  it("does not delete the previous AI batch when staging a replacement fails", async () => {
+    const { client, deleteCalls } = createMockSupabaseClient({
+      failItineraryItemInsert: true,
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/supabase-place-service", () => ({
+      getPlannerSnapshot: vi.fn(),
+    }));
+    vi.doMock("@/server/route-geometry-service", () => ({
+      getRouteGeometry: vi.fn(),
+    }));
+
+    const service = await import("@/server/supabase-ai-plan-application-service");
+
+    await expect(
+      service.replaceAiGeneratedBatch(1, 55, plan(), candidates(), {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: [],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [],
+      }),
+    ).rejects.toThrow("Supabase query failed: itinerary insert failed");
+
+    expect(
+      deleteCalls.filter((call) => !hasFilter(call, "ai_generation_id", 55)),
+    ).toEqual([]);
+  });
 });
 
 type QueryResult = {
   data: Record<string, unknown>[] | null;
-  error: null;
+  error: { message: string } | null;
 };
 
 type UpdateCall = {
@@ -90,8 +122,16 @@ type UpdateCall = {
   filters: Array<[string, unknown]>;
 };
 
-function createMockSupabaseClient() {
+type DeleteCall = {
+  table: string;
+  filters: Array<[string, unknown]>;
+};
+
+function createMockSupabaseClient(
+  options: { failItineraryItemInsert?: boolean } = {},
+) {
   const updateCalls: UpdateCall[] = [];
+  const deleteCalls: DeleteCall[] = [];
 
   class QueryBuilder {
     private operation: "delete" | "insert" | "select" | "update" | null = null;
@@ -132,6 +172,16 @@ function createMockSupabaseClient() {
       return this;
     }
 
+    is(column: string, value: unknown) {
+      this.filters.push([column, value]);
+      return this;
+    }
+
+    neq(column: string, value: unknown) {
+      this.filters.push([column, value]);
+      return this;
+    }
+
     in(column: string, values: unknown[]) {
       this.filters.push([column, values]);
       return this;
@@ -155,6 +205,13 @@ function createMockSupabaseClient() {
       }
 
       if (this.operation === "insert" && this.table === "itinerary_items") {
+        if (options.failItineraryItemInsert) {
+          return {
+            data: null,
+            error: { message: "itinerary insert failed" },
+          };
+        }
+
         return {
           data: [{ id: 201 }, { id: 202 }, { id: 203 }],
           error: null,
@@ -180,17 +237,36 @@ function createMockSupabaseClient() {
         });
       }
 
+      if (this.operation === "delete") {
+        deleteCalls.push({
+          table: this.table,
+          filters: [...this.filters],
+        });
+      }
+
       return { data: null, error: null };
     }
   }
 
   return {
+    deleteCalls,
     updateCalls,
     client: {
       from: vi.fn((table: string) => new QueryBuilder(table)),
       rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     },
   };
+}
+
+function hasFilter(
+  call: { filters: Array<[string, unknown]> },
+  column: string,
+  value: unknown,
+): boolean {
+  return call.filters.some(
+    ([filterColumn, filterValue]) =>
+      filterColumn === column && filterValue === value,
+  );
 }
 
 function plan(): AiItineraryPlan {

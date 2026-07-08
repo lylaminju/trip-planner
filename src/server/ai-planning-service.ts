@@ -152,7 +152,9 @@ export async function generateAiItineraryForRequest(
     const primaryValidation = validateAiItineraryPlan(primary.plan, {
       candidateIds: candidateIdSet(candidates),
       tripDates,
+      visitsPerDayMin: savedPreferences.visits_per_day_min,
       visitsPerDayMax: savedPreferences.visits_per_day_max,
+      mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
     });
 
     let finalPlan = primary.plan;
@@ -179,7 +181,9 @@ export async function generateAiItineraryForRequest(
       const repairValidation = validateAiItineraryPlan(repair.plan, {
         candidateIds: candidateIdSet(candidates),
         tripDates,
+        visitsPerDayMin: savedPreferences.visits_per_day_min,
         visitsPerDayMax: savedPreferences.visits_per_day_max,
+        mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
       });
       repairValidationStatus = repairValidation.status;
       repairValidationErrors = repairValidation.errors;

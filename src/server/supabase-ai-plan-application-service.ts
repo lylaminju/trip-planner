@@ -58,6 +58,7 @@ type RouteSegmentRow = {
   to_item_id: number;
 };
 
+const AI_BATCH_TABLES = ["route_segments", "itinerary_items", "places"] as const;
 const AI_ROUTE_MODE_WALKING_PROBE_LIMIT = 10;
 
 export async function createAiPlanGeneration(
@@ -100,8 +101,6 @@ export async function replaceAiGeneratedBatch(
   candidates: AiDestinationCandidate[],
   preferences: AiPlanningPreferenceInput,
 ): Promise<PlannerSnapshot> {
-  await deletePreviousAiBatch(tripId);
-
   const candidateById = new Map(
     candidates.map((candidate) => [candidate.id, candidate]),
   );
@@ -134,37 +133,46 @@ export async function replaceAiGeneratedBatch(
   });
 
   if (placeRows.length === 0) {
+    await deletePreviousAiBatch(tripId, generationId);
     return getPlannerSnapshot(tripId);
   }
 
-  const { data: places, error: placeError } = await getSupabaseClient()
-    .from("places")
-    .insert(placeRows)
-    .select("id");
+  let insertedItems: Array<{ id: number }>;
 
-  if (placeError) throwSupabaseError(placeError);
+  try {
+    const { data: places, error: placeError } = await getSupabaseClient()
+      .from("places")
+      .insert(placeRows)
+      .select("id");
 
-  const placeIds = ((places ?? []) as Array<{ id: number }>).map(
-    (place) => place.id,
-  );
-  const itemRows = visits.map(({ date, visit }, index) => ({
-    trip_id: tripId,
-    place_id: placeIds[index],
-    visit_date: date,
-    visit_time: visit.start_time,
-    notes: visit.notes,
-    created_by_source: "ai",
-    ai_generation_id: generationId,
-  }));
+    if (placeError) throwSupabaseError(placeError);
 
-  const { data: items, error: itemError } = await getSupabaseClient()
-    .from("itinerary_items")
-    .insert(itemRows)
-    .select("id");
+    const placeIds = ((places ?? []) as Array<{ id: number }>).map(
+      (place) => place.id,
+    );
+    const itemRows = visits.map(({ date, visit }, index) => ({
+      trip_id: tripId,
+      place_id: placeIds[index],
+      visit_date: date,
+      visit_time: visit.start_time,
+      notes: visit.notes,
+      created_by_source: "ai",
+      ai_generation_id: generationId,
+    }));
 
-  if (itemError) throwSupabaseError(itemError);
+    const { data: items, error: itemError } = await getSupabaseClient()
+      .from("itinerary_items")
+      .insert(itemRows)
+      .select("id");
 
-  const insertedItems = (items ?? []) as Array<{ id: number }>;
+    if (itemError) throwSupabaseError(itemError);
+    insertedItems = (items ?? []) as Array<{ id: number }>;
+  } catch (error) {
+    await deleteAiBatchForGeneration(tripId, generationId).catch(() => undefined);
+    throw error;
+  }
+
+  await deletePreviousAiBatch(tripId, generationId);
   await reconcileRoutesForTrip(tripId);
   await tagGeneratedRouteSegments(
     tripId,
@@ -193,16 +201,51 @@ export async function replaceAiGeneratedBatch(
   return getPlannerSnapshot(tripId);
 }
 
-async function deletePreviousAiBatch(tripId: number): Promise<void> {
-  for (const table of ["route_segments", "itinerary_items", "places"]) {
-    const { error } = await getSupabaseClient()
-      .from(table)
-      .delete()
-      .eq("trip_id", tripId)
-      .eq("created_by_source", "ai");
-
-    if (error) throwSupabaseError(error);
+async function deletePreviousAiBatch(
+  tripId: number,
+  generationId: number,
+): Promise<void> {
+  for (const table of AI_BATCH_TABLES) {
+    await runDelete(
+      getSupabaseClient()
+        .from(table)
+        .delete()
+        .eq("trip_id", tripId)
+        .eq("created_by_source", "ai")
+        .is("ai_generation_id", null),
+    );
+    await runDelete(
+      getSupabaseClient()
+        .from(table)
+        .delete()
+        .eq("trip_id", tripId)
+        .eq("created_by_source", "ai")
+        .neq("ai_generation_id", generationId),
+    );
   }
+}
+
+async function deleteAiBatchForGeneration(
+  tripId: number,
+  generationId: number,
+): Promise<void> {
+  for (const table of AI_BATCH_TABLES) {
+    await runDelete(
+      getSupabaseClient()
+        .from(table)
+        .delete()
+        .eq("trip_id", tripId)
+        .eq("created_by_source", "ai")
+        .eq("ai_generation_id", generationId),
+    );
+  }
+}
+
+async function runDelete(
+  result: PromiseLike<{ error: { message: string } | null }>,
+): Promise<void> {
+  const { error } = await result;
+  if (error) throwSupabaseError(error);
 }
 
 async function reconcileRoutesForTrip(tripId: number): Promise<void> {
