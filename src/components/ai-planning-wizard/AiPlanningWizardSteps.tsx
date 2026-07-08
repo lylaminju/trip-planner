@@ -84,13 +84,17 @@ export function InterestStep({ draft, onChange }: StepProps) {
 
 export function LogisticsStep({
   currentLodging,
+  dailyStartTime,
   draft,
   lodgingGoogleMapsUrl,
   onChange,
+  onDailyStartTimeChange,
   onLodgingGoogleMapsUrlChange,
 }: StepProps & {
   currentLodging: TripLodging | null;
+  dailyStartTime: string;
   lodgingGoogleMapsUrl: string;
+  onDailyStartTimeChange: (value: string) => void;
   onLodgingGoogleMapsUrlChange: (value: string) => void;
 }) {
   return (
@@ -125,6 +129,16 @@ export function LogisticsStep({
           })}
         </div>
       </div>
+      <label className="ai-start-time-field">
+        <span>Daily start time</span>
+        <input
+          type="time"
+          value={dailyStartTime}
+          onChange={(event) =>
+            onDailyStartTimeChange(event.currentTarget.value)
+          }
+        />
+      </label>
       <label className="ai-lodging-url-field">
         <span>Lodging Google Maps URL</span>
         <input

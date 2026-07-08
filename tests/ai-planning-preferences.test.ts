@@ -48,6 +48,7 @@ describe("ai planning preference defaults", () => {
           interest_tags: ["nature"],
           preferred_travel_modes: ["walking", "transit"],
           must_see_candidate_ids: [10],
+          daily_start_time: "08:30",
           lodging_google_maps_url: " https://maps.app.goo.gl/example ",
         },
         new Set([10]),
@@ -60,8 +61,36 @@ describe("ai planning preference defaults", () => {
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [10],
       },
+      daily_start_time: "08:30",
       lodging_google_maps_url: "https://maps.app.goo.gl/example",
     });
+  });
+
+  it("defaults the daily start time for generation and rejects malformed times", () => {
+    expect(
+      parseAiPlanningGenerationInput(
+        {
+          visits_per_day_min: 1,
+          visits_per_day_max: 3,
+          interest_tags: ["nature"],
+          preferred_travel_modes: ["walking"],
+          must_see_candidate_ids: [],
+        },
+        new Set([10]),
+      ).daily_start_time,
+    ).toBe("09:00");
+
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          visits_per_day_min: 1,
+          visits_per_day_max: 3,
+          preferred_travel_modes: ["walking"],
+          daily_start_time: "8:30",
+        },
+        new Set([10]),
+      ),
+    ).toThrow("Daily start time must be HH:MM.");
   });
 });
 

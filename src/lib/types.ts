@@ -152,6 +152,7 @@ export type AiPlanningPreferenceInput = {
 
 export type AiPlanningGenerationInput = AiPlanningPreferenceInput & {
   lodging_google_maps_url?: string | null;
+  daily_start_time?: string | null;
 };
 
 export type AiPlanningPreferences = AiPlanningPreferenceInput & {

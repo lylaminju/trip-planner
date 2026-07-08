@@ -51,6 +51,7 @@ describe("AiPlanningWizard", () => {
     const markup = renderToStaticMarkup(
       createElement(LogisticsStep, {
         draft: preferenceDraft(),
+        dailyStartTime: "08:30",
         lodgingGoogleMapsUrl: "",
         currentLodging: {
           id: 2,
@@ -67,11 +68,15 @@ describe("AiPlanningWizard", () => {
           updated_at: "2026-01-01T00:00:00.000Z",
         },
         onChange: vi.fn(),
+        onDailyStartTimeChange: vi.fn(),
         onLodgingGoogleMapsUrlChange: vi.fn(),
       }),
     );
 
     expect(markup).toContain("Preferred travel modes");
+    expect(markup).toContain("Daily start time");
+    expect(markup).toContain('type="time"');
+    expect(markup).toContain('value="08:30"');
     expect(markup).toContain("Lodging Google Maps URL");
     expect(markup).toContain('type="url"');
     expect(markup).toContain("Pod Times Square");

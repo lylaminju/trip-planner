@@ -4,10 +4,11 @@ import {
   useEffect,
   useMemo,
   useState,
-  type FormEvent,
+  type SubmitEvent,
 } from "react";
 
 import {
+  AI_DEFAULT_DAILY_START_TIME,
   buildAiPlanningPreferenceDraft,
 } from "@/lib/ai-planning-preferences";
 import type {
@@ -42,16 +43,20 @@ export function AiPlanningWizard(props: Props) {
     [props.setup],
   );
   const [draft, setDraft] = useState<AiPlanningPreferenceInput>(initialDraft);
+  const [dailyStartTime, setDailyStartTime] = useState(
+    AI_DEFAULT_DAILY_START_TIME,
+  );
   const [lodgingGoogleMapsUrl, setLodgingGoogleMapsUrl] = useState("");
   const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
     setDraft(initialDraft);
+    setDailyStartTime(AI_DEFAULT_DAILY_START_TIME);
     setLodgingGoogleMapsUrl("");
     setStepIndex(0);
   }, [initialDraft]);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (stepIndex < STEPS.length - 1) {
       setStepIndex((current) => current + 1);
@@ -64,6 +69,7 @@ export function AiPlanningWizard(props: Props) {
         lodgingGoogleMapsUrl.trim() === ""
           ? null
           : lodgingGoogleMapsUrl.trim(),
+      daily_start_time: dailyStartTime || AI_DEFAULT_DAILY_START_TIME,
     });
   }
 
@@ -138,9 +144,11 @@ export function AiPlanningWizard(props: Props) {
               {stepIndex === 2 && (
                 <LogisticsStep
                   currentLodging={props.setup.lodging}
+                  dailyStartTime={dailyStartTime}
                   draft={draft}
                   lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
                   onChange={setDraft}
+                  onDailyStartTimeChange={setDailyStartTime}
                   onLodgingGoogleMapsUrlChange={setLodgingGoogleMapsUrl}
                 />
               )}

@@ -30,6 +30,8 @@ export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   must_see_candidate_ids: [],
 };
 
+export const AI_DEFAULT_DAILY_START_TIME = "09:00";
+
 const INTEREST_TAG_VALUES = new Set<string>(
   AI_INTEREST_TAG_OPTIONS.map((option) => option.value),
 );

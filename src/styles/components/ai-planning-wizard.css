@@ -120,12 +120,14 @@
 }
 
 .ai-logistics-section,
+.ai-start-time-field,
 .ai-lodging-url-field {
   display: grid;
   gap: 8px;
 }
 
 .ai-logistics-label,
+.ai-start-time-field span,
 .ai-lodging-url-field span {
   color: var(--text);
   font-size: 13px;

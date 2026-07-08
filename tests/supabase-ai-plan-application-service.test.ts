@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { AiDestinationCandidate } from "@/lib/types";
+import type { AiDestinationCandidate, TripLodging } from "@/lib/types";
 import type { AiItineraryPlan } from "@/server/openai-ai-planner";
 
 describe("supabase AI plan application service", () => {
@@ -109,6 +109,92 @@ describe("supabase AI plan application service", () => {
       deleteCalls.filter((call) => !hasFilter(call, "ai_generation_id", 55)),
     ).toEqual([]);
   });
+
+  it("materializes lodging as the first generated itinerary item for each day", async () => {
+    const { client, insertCalls } = createMockSupabaseClient();
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/supabase-place-service", () => ({
+      getPlannerSnapshot: vi.fn().mockResolvedValue({
+        places: [],
+        itineraryItems: [],
+        routeSegments: [],
+      }),
+    }));
+    vi.doMock("@/server/route-geometry-service", () => ({
+      getRouteGeometry: vi.fn(),
+    }));
+
+    const service = await import("@/server/supabase-ai-plan-application-service");
+    const replaceAiGeneratedBatch =
+      service.replaceAiGeneratedBatch as unknown as (
+        ...args: unknown[]
+      ) => Promise<unknown>;
+
+    await replaceAiGeneratedBatch(
+      1,
+      55,
+      twoDayPlan(),
+      candidates(),
+      {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: [],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [],
+      },
+      lodging(),
+      "08:30",
+    );
+
+    const placeRows = insertedRows(insertCalls, "places");
+    expect(placeRows).toEqual([
+      expect.objectContaining({
+        trip_id: 1,
+        name: "Pod Times Square",
+        address: "400 W 42nd St",
+        google_maps_url:
+          "https://www.google.com/maps/search/?api=1&query=40.758%2C-73.993",
+        latitude: 40.758,
+        longitude: -73.993,
+        created_by_source: "ai",
+        ai_generation_id: 55,
+      }),
+      expect.objectContaining({ name: "Candidate 10" }),
+      expect.objectContaining({ name: "Candidate 11" }),
+    ]);
+
+    expect(insertedRows(insertCalls, "itinerary_items")).toEqual([
+      expect.objectContaining({
+        trip_id: 1,
+        place_id: 101,
+        visit_date: "2026-05-27",
+        visit_time: "08:30",
+        created_by_source: "ai",
+        ai_generation_id: 55,
+      }),
+      expect.objectContaining({
+        trip_id: 1,
+        place_id: 102,
+        visit_date: "2026-05-27",
+        visit_time: "09:00",
+      }),
+      expect.objectContaining({
+        trip_id: 1,
+        place_id: 101,
+        visit_date: "2026-05-28",
+        visit_time: "08:30",
+      }),
+      expect.objectContaining({
+        trip_id: 1,
+        place_id: 103,
+        visit_date: "2026-05-28",
+        visit_time: "10:00",
+      }),
+    ]);
+  });
 });
 
 type QueryResult = {
@@ -122,6 +208,11 @@ type UpdateCall = {
   filters: Array<[string, unknown]>;
 };
 
+type InsertCall = {
+  table: string;
+  payload: Record<string, unknown> | Record<string, unknown>[];
+};
+
 type DeleteCall = {
   table: string;
   filters: Array<[string, unknown]>;
@@ -130,6 +221,7 @@ type DeleteCall = {
 function createMockSupabaseClient(
   options: { failItineraryItemInsert?: boolean } = {},
 ) {
+  const insertCalls: InsertCall[] = [];
   const updateCalls: UpdateCall[] = [];
   const deleteCalls: DeleteCall[] = [];
 
@@ -198,13 +290,17 @@ function createMockSupabaseClient(
 
     private resolve(): QueryResult {
       if (this.operation === "insert" && this.table === "places") {
+        const rows = payloadRows(this.payload);
+        insertCalls.push({ table: this.table, payload: rows });
         return {
-          data: [{ id: 101 }, { id: 102 }, { id: 103 }],
+          data: rows.map((_, index) => ({ id: 101 + index })),
           error: null,
         };
       }
 
       if (this.operation === "insert" && this.table === "itinerary_items") {
+        const rows = payloadRows(this.payload);
+        insertCalls.push({ table: this.table, payload: rows });
         if (options.failItineraryItemInsert) {
           return {
             data: null,
@@ -213,7 +309,7 @@ function createMockSupabaseClient(
         }
 
         return {
-          data: [{ id: 201 }, { id: 202 }, { id: 203 }],
+          data: rows.map((_, index) => ({ id: 201 + index })),
           error: null,
         };
       }
@@ -250,12 +346,28 @@ function createMockSupabaseClient(
 
   return {
     deleteCalls,
+    insertCalls,
     updateCalls,
     client: {
       from: vi.fn((table: string) => new QueryBuilder(table)),
       rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     },
   };
+}
+
+function payloadRows(
+  payload: Record<string, unknown> | Record<string, unknown>[] | null,
+): Record<string, unknown>[] {
+  if (!payload) return [];
+  return Array.isArray(payload) ? payload : [payload];
+}
+
+function insertedRows(
+  calls: InsertCall[],
+  table: string,
+): Record<string, unknown>[] {
+  const call = calls.find((insertCall) => insertCall.table === table);
+  return call ? payloadRows(call.payload) : [];
 }
 
 function hasFilter(
@@ -281,6 +393,38 @@ function plan(): AiItineraryPlan {
         ],
       },
     ],
+  };
+}
+
+function twoDayPlan(): AiItineraryPlan {
+  return {
+    days: [
+      {
+        date: "2026-05-27",
+        visits: [visit(10, "09:00")],
+      },
+      {
+        date: "2026-05-28",
+        visits: [visit(11, "10:00")],
+      },
+    ],
+  };
+}
+
+function lodging(): TripLodging {
+  return {
+    id: 7,
+    trip_id: 1,
+    name: "Pod Times Square",
+    address: "400 W 42nd St",
+    latitude: 40.758,
+    longitude: -73.993,
+    google_place_id: "google-pod",
+    check_in_date: null,
+    check_out_date: null,
+    is_primary: true,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
   };
 }
 

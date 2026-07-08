@@ -21,6 +21,7 @@ export type AiPlannerPromptContext = {
   trip: Pick<Trip, "destination" | "start_date" | "end_date">;
   preferences: AiPlanningPreferenceInput;
   lodging: Pick<TripLodging, "name" | "address" | "latitude" | "longitude"> | null;
+  daily_start_time: string;
   candidates: Array<
     Pick<
       AiDestinationCandidate,
@@ -58,6 +59,7 @@ const SYSTEM_PROMPT = [
   "Use only candidate IDs in the response.",
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
   "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
+  "Use the provided daily_start_time as the time each day starts from lodging; attraction visits should start after that time.",
   "If validation errors are provided, repair only those issues.",
 ].join(" ");
 

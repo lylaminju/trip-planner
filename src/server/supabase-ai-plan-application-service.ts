@@ -2,9 +2,16 @@ import type {
   AiDestinationCandidate,
   AiPlanningPreferenceInput,
   PlannerSnapshot,
+  TripLodging,
   TravelMode,
 } from "@/lib/types";
+import { AI_DEFAULT_DAILY_START_TIME } from "@/lib/ai-planning-preferences";
 
+import {
+  buildAiGeneratedPlaceRows,
+  buildGeneratedScheduleEntries,
+  type Coordinates,
+} from "./ai-plan-batch-rows";
 import { chooseAiRouteMode } from "./ai-route-mode-selection";
 import { getSupabaseClient } from "./supabase";
 import { getPlannerSnapshot } from "./supabase-place-service";
@@ -43,7 +50,7 @@ type GeneratedVisitContext = {
   itemId: number;
   date: string;
   startTime: string;
-  candidate: AiDestinationCandidate;
+  location: Coordinates;
   order: number;
 };
 
@@ -60,7 +67,6 @@ type RouteSegmentRow = {
 
 const AI_BATCH_TABLES = ["route_segments", "itinerary_items", "places"] as const;
 const AI_ROUTE_MODE_WALKING_PROBE_LIMIT = 10;
-
 export async function createAiPlanGeneration(
   tripId: number,
   input: GenerationInsert,
@@ -100,36 +106,20 @@ export async function replaceAiGeneratedBatch(
   plan: AiItineraryPlan,
   candidates: AiDestinationCandidate[],
   preferences: AiPlanningPreferenceInput,
+  lodging: TripLodging | null = null,
+  lodgingStartTime = AI_DEFAULT_DAILY_START_TIME,
 ): Promise<PlannerSnapshot> {
   const candidateById = new Map(
     candidates.map((candidate) => [candidate.id, candidate]),
   );
-  const visits = plan.days.flatMap((day) =>
-    day.visits.map((visit) => ({ date: day.date, visit })),
-  );
+  const shouldMaterializeLodging = lodging !== null && plan.days.length > 0;
 
-  const placeRows = visits.map(({ visit }) => {
-    const candidate = candidateById.get(visit.candidate_id);
-    if (!candidate) {
-      throw new Error(`Candidate ${visit.candidate_id} is not available.`);
-    }
-
-    return {
-      trip_id: tripId,
-      name: candidate.name,
-      address: candidate.area,
-      google_maps_url: googleMapsSearchUrl(candidate),
-      place_id: candidate.google_place_id,
-      google_place_token: null,
-      google_internal_ids: null,
-      source_list_url: null,
-      latitude: candidate.latitude,
-      longitude: candidate.longitude,
-      notes: visit.notes,
-      links: [],
-      created_by_source: "ai",
-      ai_generation_id: generationId,
-    };
+  const placeRows = buildAiGeneratedPlaceRows({
+    tripId,
+    generationId,
+    plan,
+    candidateById,
+    lodging: shouldMaterializeLodging ? lodging : null,
   });
 
   if (placeRows.length === 0) {
@@ -150,12 +140,22 @@ export async function replaceAiGeneratedBatch(
     const placeIds = ((places ?? []) as Array<{ id: number }>).map(
       (place) => place.id,
     );
-    const itemRows = visits.map(({ date, visit }, index) => ({
+    const scheduleEntries = buildGeneratedScheduleEntries({
+      plan,
+      candidateById,
+      lodging: shouldMaterializeLodging ? lodging : null,
+      lodgingStartTime,
+      lodgingPlaceId: shouldMaterializeLodging ? (placeIds[0] ?? null) : null,
+      candidatePlaceIds: shouldMaterializeLodging
+        ? placeIds.slice(1)
+        : placeIds,
+    });
+    const itemRows = scheduleEntries.map((entry) => ({
       trip_id: tripId,
-      place_id: placeIds[index],
-      visit_date: date,
-      visit_time: visit.start_time,
-      notes: visit.notes,
+      place_id: entry.placeId,
+      visit_date: entry.date,
+      visit_time: entry.startTime,
+      notes: entry.notes,
       created_by_source: "ai",
       ai_generation_id: generationId,
     }));
@@ -167,36 +167,32 @@ export async function replaceAiGeneratedBatch(
 
     if (itemError) throwSupabaseError(itemError);
     insertedItems = (items ?? []) as Array<{ id: number }>;
+
+    await deletePreviousAiBatch(tripId, generationId);
+    await reconcileRoutesForTrip(tripId);
+    await tagGeneratedRouteSegments(
+      tripId,
+      generationId,
+      scheduleEntries.map((entry, index) => {
+        const item = insertedItems[index];
+        if (!item) {
+          throw new Error("Inserted itinerary item was not returned.");
+        }
+
+        return {
+          itemId: item.id,
+          date: entry.date,
+          startTime: entry.startTime,
+          location: entry.location,
+          order: entry.order,
+        };
+      }),
+      preferences.preferred_travel_modes,
+    );
   } catch (error) {
     await deleteAiBatchForGeneration(tripId, generationId).catch(() => undefined);
     throw error;
   }
-
-  await deletePreviousAiBatch(tripId, generationId);
-  await reconcileRoutesForTrip(tripId);
-  await tagGeneratedRouteSegments(
-    tripId,
-    generationId,
-    visits.map(({ date, visit }, index) => {
-      const candidate = candidateById.get(visit.candidate_id);
-      if (!candidate) {
-        throw new Error(`Candidate ${visit.candidate_id} is not available.`);
-      }
-      const item = insertedItems[index];
-      if (!item) {
-        throw new Error("Inserted itinerary item was not returned.");
-      }
-
-      return {
-        itemId: item.id,
-        date,
-        startTime: visit.start_time,
-        candidate,
-        order: index,
-      };
-    }),
-    preferences.preferred_travel_modes,
-  );
 
   return getPlannerSnapshot(tripId);
 }
@@ -292,8 +288,8 @@ async function tagGeneratedRouteSegments(
 
     const mode = await chooseAiRouteMode({
       preferredModes,
-      from: routePair.from.candidate,
-      to: routePair.to.candidate,
+      from: routePair.from.location,
+      to: routePair.to.location,
       canProbeWalking: walkingProbeCount < AI_ROUTE_MODE_WALKING_PROBE_LIMIT,
       getWalkingDurationSeconds: async () => {
         walkingProbeCount += 1;
@@ -365,11 +361,6 @@ function compareGeneratedVisits(
 
 function routePairKey(fromItemId: number, toItemId: number): string {
   return `${fromItemId}->${toItemId}`;
-}
-
-function googleMapsSearchUrl(candidate: AiDestinationCandidate): string {
-  const query = encodeURIComponent(`${candidate.latitude},${candidate.longitude}`);
-  return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
 function throwSupabaseError(error: { message: string }): never {

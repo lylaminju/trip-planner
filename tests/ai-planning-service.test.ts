@@ -219,6 +219,7 @@ describe("ai-planning-service request boundary", () => {
             interest_tags: ["landmarks"],
             preferred_travel_modes: ["walking", "transit"],
             must_see_candidate_ids: [10],
+            daily_start_time: "08:30",
           }),
         ).resolves.toEqual({ generationId: 55, plannerSnapshot });
       },
@@ -235,12 +236,17 @@ describe("ai-planning-service request boundary", () => {
     expect(requestAiItineraryPlan.mock.calls[1][0].context.validationErrors).toContain(
       "Must-see candidate 10 is missing from the plan.",
     );
+    expect(requestAiItineraryPlan.mock.calls[0][0].context.daily_start_time).toBe(
+      "08:30",
+    );
     expect(replaceAiGeneratedBatch).toHaveBeenCalledWith(
       1,
       55,
       expect.any(Object),
       [candidateRecord(10)],
       savedPreferences,
+      null,
+      "08:30",
     );
     expect(updateAiPlanGeneration).toHaveBeenLastCalledWith(
       55,
@@ -324,6 +330,7 @@ describe("ai-planning-service request boundary", () => {
             interest_tags: ["landmarks"],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [10],
+            daily_start_time: "08:30",
             lodging_google_maps_url: " https://maps.app.goo.gl/example ",
           }),
         ).resolves.toEqual({ generationId: 55, plannerSnapshot });
@@ -346,6 +353,15 @@ describe("ai-planning-service request boundary", () => {
           },
         }),
       }),
+    );
+    expect(replaceAiGeneratedBatch).toHaveBeenCalledWith(
+      1,
+      55,
+      expect.any(Object),
+      [candidateRecord(10)],
+      savedPreferences,
+      lodging,
+      "08:30",
     );
   });
 

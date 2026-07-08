@@ -1,4 +1,6 @@
+import { isValid24HourTime } from "@/app/api/_utils";
 import {
+  AI_DEFAULT_DAILY_START_TIME,
   AI_DEFAULT_PLANNING_PREFERENCES,
   AI_INTEREST_TAG_OPTIONS,
   AI_TRAVEL_MODE_OPTIONS,
@@ -57,6 +59,7 @@ export function parseAiPlanningGenerationInput(
 ): {
   preferences: AiPlanningPreferenceInput;
   lodging_google_maps_url: string | null;
+  daily_start_time: string;
 } {
   const body = asRecord(payload);
 
@@ -65,6 +68,7 @@ export function parseAiPlanningGenerationInput(
     lodging_google_maps_url: optionalLodgingGoogleMapsUrl(
       body.lodging_google_maps_url,
     ),
+    daily_start_time: dailyStartTime(body.daily_start_time),
   };
 }
 
@@ -132,6 +136,21 @@ function optionalLodgingGoogleMapsUrl(value: unknown): string | null {
 
   const trimmed = value.trim();
   return trimmed === "" ? null : trimmed;
+}
+
+function dailyStartTime(value: unknown): string {
+  if (value === undefined || value === null) return AI_DEFAULT_DAILY_START_TIME;
+  if (typeof value !== "string") {
+    throw new TripValidationError("Daily start time must be HH:MM.");
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === "") return AI_DEFAULT_DAILY_START_TIME;
+  if (!isValid24HourTime(trimmed)) {
+    throw new TripValidationError("Daily start time must be HH:MM.");
+  }
+
+  return trimmed;
 }
 
 function mustSeeCandidateIds(

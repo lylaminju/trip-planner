@@ -59,6 +59,9 @@ describe("OpenAI AI planner adapter", () => {
     );
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.model).toBe("gpt-5.5");
+    expect(JSON.parse(body.input[1].content[0].text).daily_start_time).toBe(
+      "09:00",
+    );
     expect(body.text.format.type).toBe("json_schema");
     expect(body.text.format.strict).toBe(true);
     expect(body.text.format.schema.properties.days.type).toBe("array");
@@ -95,6 +98,7 @@ function promptContext(): AiPlannerPromptContext {
       must_see_candidate_ids: [10],
     },
     lodging: null,
+    daily_start_time: "09:00",
     candidates: [
       {
         id: 10,

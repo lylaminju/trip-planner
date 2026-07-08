@@ -1,4 +1,5 @@
 import { isValid24HourTime, isValidIsoDate } from "@/app/api/_utils";
+import { parseVisitTime } from "@/lib/visit-time";
 
 import type { AiItineraryPlan } from "./openai-ai-planner";
 
@@ -12,6 +13,7 @@ type ValidationContext = {
   visitsPerDayMin: number;
   visitsPerDayMax: number;
   mustSeeCandidateIds: readonly number[];
+  firstVisitAfterTime?: string | null;
 };
 
 export function validateAiItineraryPlan(
@@ -41,6 +43,7 @@ export function validateAiItineraryPlan(
     if (day.visits.length > context.visitsPerDayMax) {
       errors.push(`Day ${day.date} has more visits than requested.`);
     }
+    let hasVisitAtOrBeforeStartTime = false;
 
     for (const visit of day.visits) {
       if (!context.candidateIds.has(visit.candidate_id)) {
@@ -56,6 +59,9 @@ export function validateAiItineraryPlan(
       if (!isValid24HourTime(visit.start_time)) {
         errors.push(`Visit time ${visit.start_time} must be HH:MM.`);
       }
+      if (startsAtOrBefore(visit.start_time, context.firstVisitAfterTime)) {
+        hasVisitAtOrBeforeStartTime = true;
+      }
       if (
         !Number.isInteger(visit.duration_minutes) ||
         visit.duration_minutes <= 0
@@ -64,6 +70,11 @@ export function validateAiItineraryPlan(
           `Candidate ${visit.candidate_id} duration must be a positive integer.`,
         );
       }
+    }
+    if (hasVisitAtOrBeforeStartTime && context.firstVisitAfterTime) {
+      errors.push(
+        `Day ${day.date} has a visit that does not start after ${context.firstVisitAfterTime}.`,
+      );
     }
   }
 
@@ -82,4 +93,18 @@ export function validateAiItineraryPlan(
   return errors.length === 0
     ? { status: "valid", errors: [] }
     : { status: "invalid", errors };
+}
+
+function startsAtOrBefore(
+  visitStartTime: string,
+  firstVisitAfterTime: string | null | undefined,
+): boolean {
+  if (!firstVisitAfterTime) return false;
+  const visitMinutes = parseVisitTime(visitStartTime);
+  const startMinutes = parseVisitTime(firstVisitAfterTime);
+  return (
+    visitMinutes !== null &&
+    startMinutes !== null &&
+    visitMinutes <= startMinutes
+  );
 }

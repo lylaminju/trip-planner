@@ -145,6 +145,7 @@ export async function generateAiItineraryForRequest(
         lodging,
         candidates,
         preferences: savedPreferences,
+        dailyStartTime: generationInput.daily_start_time,
         tripDates,
         validationErrors: [],
       }),
@@ -155,6 +156,7 @@ export async function generateAiItineraryForRequest(
       visitsPerDayMin: savedPreferences.visits_per_day_min,
       visitsPerDayMax: savedPreferences.visits_per_day_max,
       mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
+      firstVisitAfterTime: lodging ? generationInput.daily_start_time : null,
     });
 
     let finalPlan = primary.plan;
@@ -174,6 +176,7 @@ export async function generateAiItineraryForRequest(
           lodging,
           candidates,
           preferences: savedPreferences,
+          dailyStartTime: generationInput.daily_start_time,
           tripDates,
           validationErrors: primaryValidation.errors,
         }),
@@ -184,6 +187,7 @@ export async function generateAiItineraryForRequest(
         visitsPerDayMin: savedPreferences.visits_per_day_min,
         visitsPerDayMax: savedPreferences.visits_per_day_max,
         mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
+        firstVisitAfterTime: lodging ? generationInput.daily_start_time : null,
       });
       repairValidationStatus = repairValidation.status;
       repairValidationErrors = repairValidation.errors;
@@ -229,6 +233,8 @@ export async function generateAiItineraryForRequest(
       finalPlan,
       candidates,
       savedPreferences,
+      lodging,
+      generationInput.daily_start_time,
     );
     await updateAiPlanGeneration(generation.id, {
       status: "completed",
@@ -307,6 +313,7 @@ function promptContext(input: {
   lodging: TripLodging | null;
   candidates: AiDestinationCandidate[];
   preferences: AiPlanningPreferenceInput;
+  dailyStartTime: string;
   tripDates: string[];
   validationErrors: string[];
 }): AiPlannerPromptContext {
@@ -325,6 +332,7 @@ function promptContext(input: {
           longitude: input.lodging.longitude,
         }
       : null,
+    daily_start_time: input.dailyStartTime,
     candidates: input.candidates.map((candidate) => ({
       id: candidate.id,
       name: candidate.name,

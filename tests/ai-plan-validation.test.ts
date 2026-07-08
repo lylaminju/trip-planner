@@ -133,6 +133,22 @@ describe("AI itinerary plan validation", () => {
       "Must-see candidate 12 is missing from the plan.",
     );
   });
+
+  it("rejects visits that do not start after the lodging start time", () => {
+    const result = validateAiItineraryPlan(plan(), {
+      candidateIds: new Set([10, 11]),
+      tripDates: ["2026-05-27"],
+      visitsPerDayMin: 1,
+      visitsPerDayMax: 3,
+      mustSeeCandidateIds: [],
+      firstVisitAfterTime: "09:00",
+    });
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Day 2026-05-27 has a visit that does not start after 09:00.",
+    );
+  });
 });
 
 function plan(): AiItineraryPlan {
