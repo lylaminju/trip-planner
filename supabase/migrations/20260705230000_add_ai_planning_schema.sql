@@ -88,8 +88,8 @@ create table if not exists public.ai_planning_preferences (
   updated_at timestamptz not null default now(),
   constraint ai_planning_preferences_visit_range_valid
     check (
-      visits_per_day_min between 1 and 4
-      and visits_per_day_max between 1 and 4
+      visits_per_day_min between 1 and 5
+      and visits_per_day_max between 1 and 5
       and visits_per_day_min <= visits_per_day_max
     ),
   constraint ai_planning_preferences_travel_modes_valid

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AiPlanningWizard } from "@/components/AiPlanningWizard";
 import { LogisticsStep } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
+import { formatVisitsPerDayRangeLabel } from "@/lib/ai-planning-preferences";
 import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
 
 describe("AiPlanningWizard", () => {
@@ -42,8 +43,14 @@ describe("AiPlanningWizard", () => {
     expect(markup).not.toContain("New York City - ");
     expect(markup).not.toContain("2 curated attractions");
     expect(markup).toContain("Visits per day");
-    expect(markup).toContain("Up to 3 visits/day");
-    expect(markup).toContain('type="range"');
+    expect(markup).toContain("2-3 visits/day");
+    expect(markup).toContain('aria-label="Visits per day range"');
+    expect(markup).toContain('aria-label="Minimum visits per day, 2"');
+    expect(markup).toContain('aria-label="Maximum visits per day, 3"');
+    expect(countOccurrences(markup, 'class="ai-range-slider-track"')).toBe(1);
+    expect(markup).toContain(
+      'class="ai-range-tick" style="--ai-range-position:100%">5</span>',
+    );
     expect(markup).toContain("Next");
   });
 
@@ -103,6 +110,17 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Pod Times Square");
   });
 });
+
+describe("formatVisitsPerDayRangeLabel", () => {
+  it("formats collapsed and expanded visit ranges", () => {
+    expect(formatVisitsPerDayRangeLabel(2, 3)).toBe("2-3 visits/day");
+    expect(formatVisitsPerDayRangeLabel(3, 3)).toBe("3 visits/day");
+  });
+});
+
+function countOccurrences(value: string, search: string): number {
+  return value.split(search).length - 1;
+}
 
 function preferenceDraft(): AiPlanningPreferenceInput {
   return {

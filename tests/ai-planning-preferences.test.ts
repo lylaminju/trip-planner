@@ -21,7 +21,7 @@ describe("ai planning preference defaults", () => {
           preferences: {
             trip_id: 1,
             visits_per_day_min: 1,
-            visits_per_day_max: 4,
+            visits_per_day_max: 5,
             interest_tags: ["nature", "museums"],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [10, 99],
@@ -32,10 +32,27 @@ describe("ai planning preference defaults", () => {
       ),
     ).toEqual({
       visits_per_day_min: 1,
-      visits_per_day_max: 4,
+      visits_per_day_max: 5,
       interest_tags: ["nature", "museums"],
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
+    });
+  });
+
+  it("accepts five visits per day as the upper bound", () => {
+    expect(
+      parseAiPlanningGenerationInput(
+        {
+          visits_per_day_min: 2,
+          visits_per_day_max: 5,
+          preferred_travel_modes: ["walking"],
+          must_see_candidate_ids: [],
+        },
+        new Set([10]),
+      ).preferences,
+    ).toMatchObject({
+      visits_per_day_min: 2,
+      visits_per_day_max: 5,
     });
   });
 

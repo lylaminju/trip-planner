@@ -4,6 +4,8 @@ import {
   AI_DEFAULT_PLANNING_PREFERENCES,
   AI_INTEREST_TAG_OPTIONS,
   AI_TRAVEL_MODE_OPTIONS,
+  AI_VISITS_PER_DAY_MAX,
+  AI_VISITS_PER_DAY_MIN,
 } from "@/lib/ai-planning-preferences";
 import type { AiPlanningPreferenceInput, TravelMode } from "@/lib/types";
 
@@ -83,10 +85,12 @@ function visitCount(value: unknown, fallback: number): number {
   if (
     typeof value !== "number" ||
     !Number.isInteger(value) ||
-    value < 1 ||
-    value > 4
+    value < AI_VISITS_PER_DAY_MIN ||
+    value > AI_VISITS_PER_DAY_MAX
   ) {
-    throw new TripValidationError("Visits per day must be between 1 and 4.");
+    throw new TripValidationError(
+      `Visits per day must be between ${AI_VISITS_PER_DAY_MIN} and ${AI_VISITS_PER_DAY_MAX}.`,
+    );
   }
 
   return value;

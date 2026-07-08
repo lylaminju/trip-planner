@@ -22,6 +22,9 @@ export const AI_TRAVEL_MODE_OPTIONS: {
   { value: "driving", label: "Driving" },
 ];
 
+export const AI_VISITS_PER_DAY_MIN = 1;
+export const AI_VISITS_PER_DAY_MAX = 5;
+
 export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   visits_per_day_min: 2,
   visits_per_day_max: 3,
@@ -66,8 +69,13 @@ export function buildAiPlanningPreferenceDraft(
   };
 }
 
-export function formatVisitsPerDayLabel(maxVisits: number): string {
-  return `Up to ${maxVisits} visits/day`;
+export function formatVisitsPerDayRangeLabel(
+  minVisits: number,
+  maxVisits: number,
+): string {
+  return minVisits === maxVisits
+    ? `${maxVisits} visits/day`
+    : `${minVisits}-${maxVisits} visits/day`;
 }
 
 export function isAiInterestTag(value: string): boolean {
@@ -76,7 +84,10 @@ export function isAiInterestTag(value: string): boolean {
 
 function clampVisitCount(value: number): number {
   if (!Number.isInteger(value)) return 3;
-  return Math.min(4, Math.max(1, value));
+  return Math.min(
+    AI_VISITS_PER_DAY_MAX,
+    Math.max(AI_VISITS_PER_DAY_MIN, value),
+  );
 }
 
 function unique<T>(values: T[]): T[] {

@@ -1,7 +1,11 @@
+import type { CSSProperties } from "react";
+
 import {
   AI_INTEREST_TAG_OPTIONS,
   AI_TRAVEL_MODE_OPTIONS,
-  formatVisitsPerDayLabel,
+  AI_VISITS_PER_DAY_MAX,
+  AI_VISITS_PER_DAY_MIN,
+  formatVisitsPerDayRangeLabel,
 } from "@/lib/ai-planning-preferences";
 import type {
   AiDestinationCandidate,
@@ -14,40 +18,48 @@ type StepProps = {
   onChange: (draft: AiPlanningPreferenceInput) => void;
 };
 
+const VISITS_PER_DAY_TICKS = [1, 2, 3, 4, 5];
+
 export function PaceStep({ draft, onChange }: StepProps) {
   return (
     <fieldset className="ai-wizard-fieldset">
       <legend>Visits per day</legend>
       <div className="ai-visit-range-summary">
-        <span>Minimum {draft.visits_per_day_min}</span>
-        <strong>{formatVisitsPerDayLabel(draft.visits_per_day_max)}</strong>
+        <span>Selected range</span>
+        <strong>
+          {formatVisitsPerDayRangeLabel(
+            draft.visits_per_day_min,
+            draft.visits_per_day_max,
+          )}
+        </strong>
       </div>
-      <RangeInput
-        label="Minimum"
-        value={draft.visits_per_day_min}
-        onChange={(value) =>
+      <VisitsPerDayRangeSlider
+        minValue={draft.visits_per_day_min}
+        maxValue={draft.visits_per_day_max}
+        onMinChange={(value) => {
           onChange({
             ...draft,
             visits_per_day_min: Math.min(value, draft.visits_per_day_max),
-          })
-        }
-      />
-      <RangeInput
-        label="Maximum"
-        value={draft.visits_per_day_max}
-        onChange={(value) =>
+          });
+        }}
+        onMaxChange={(value) => {
           onChange({
             ...draft,
             visits_per_day_min: Math.min(draft.visits_per_day_min, value),
             visits_per_day_max: value,
-          })
-        }
+          });
+        }}
       />
       <div className="ai-range-ticks" aria-hidden="true">
-        <span>1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
+        {VISITS_PER_DAY_TICKS.map((value) => (
+          <span
+            key={value}
+            className="ai-range-tick"
+            style={rangePositionStyle(value)}
+          >
+            {value}
+          </span>
+        ))}
       </div>
     </fieldset>
   );
@@ -201,27 +213,82 @@ export function MustSeeStep({
   );
 }
 
-function RangeInput({
-  label,
-  value,
-  onChange,
+function VisitsPerDayRangeSlider({
+  minValue,
+  maxValue,
+  onMinChange,
+  onMaxChange,
 }: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
+  minValue: number;
+  maxValue: number;
+  onMinChange: (value: number) => void;
+  onMaxChange: (value: number) => void;
 }) {
+  const rangeStyle = {
+    "--ai-range-min": `${visitCountPercentage(minValue)}%`,
+    "--ai-range-max": `${visitCountPercentage(maxValue)}%`,
+  } as CSSProperties;
+  const isCollapsed = minValue === maxValue;
+  const sliderClassName = [
+    "ai-range-slider",
+    isCollapsed ? "is-collapsed" : "",
+    isCollapsed && minValue === AI_VISITS_PER_DAY_MAX
+      ? "is-collapsed-at-max"
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <label className="ai-range-control">
-      <span>{label}</span>
-      <input
-        type="range"
-        min="1"
-        max="4"
-        value={value}
-        onChange={(event) => onChange(Number(event.currentTarget.value))}
-      />
-    </label>
+    <div
+      className={sliderClassName}
+      role="group"
+      aria-label="Visits per day range"
+      style={rangeStyle}
+    >
+      <div className="ai-range-slider-labels" aria-hidden="true">
+        <span>Min {minValue}</span>
+        <span>Max {maxValue}</span>
+      </div>
+      <div className="ai-range-slider-control">
+        <div className="ai-range-slider-track" aria-hidden="true">
+          <span className="ai-range-slider-selection" />
+        </div>
+        <input
+          className="ai-range-slider-input ai-range-slider-input-min"
+          type="range"
+          min={AI_VISITS_PER_DAY_MIN}
+          max={AI_VISITS_PER_DAY_MAX}
+          value={minValue}
+          aria-label={`Minimum visits per day, ${minValue}`}
+          onChange={(event) => onMinChange(Number(event.currentTarget.value))}
+        />
+        <input
+          className="ai-range-slider-input ai-range-slider-input-max"
+          type="range"
+          min={AI_VISITS_PER_DAY_MIN}
+          max={AI_VISITS_PER_DAY_MAX}
+          value={maxValue}
+          aria-label={`Maximum visits per day, ${maxValue}`}
+          onChange={(event) => onMaxChange(Number(event.currentTarget.value))}
+        />
+      </div>
+    </div>
   );
+}
+
+function visitCountPercentage(value: number): number {
+  return (
+    ((value - AI_VISITS_PER_DAY_MIN) /
+      (AI_VISITS_PER_DAY_MAX - AI_VISITS_PER_DAY_MIN)) *
+    100
+  );
+}
+
+function rangePositionStyle(value: number): CSSProperties {
+  return {
+    "--ai-range-position": `${visitCountPercentage(value)}%`,
+  } as CSSProperties;
 }
 
 function toggleValue<T>(values: T[], value: T): T[] {
