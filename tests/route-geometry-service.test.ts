@@ -13,9 +13,18 @@ describe("route-geometry-service", () => {
     }));
 
     try {
-      const { getRouteGeometry } =
+      const { getRouteDurationSeconds, getRouteGeometry } =
         await import("@/server/route-geometry-service");
       await expect(getRouteGeometry(1, 1)).rejects.toMatchObject({
+        name: "GoogleRoutesConfigError",
+      });
+      await expect(
+        getRouteDurationSeconds({
+          from: { latitude: 40, longitude: -74 },
+          to: { latitude: 40.1, longitude: -73.9 },
+          mode: "walking",
+        }),
+      ).rejects.toMatchObject({
         name: "GoogleRoutesConfigError",
       });
     } finally {
@@ -64,6 +73,48 @@ describe("route-geometry-service", () => {
       );
     } finally {
       vi.doUnmock("@/server/supabase-route-geometry-service");
+      vi.resetModules();
+      if (originalRoutesKey === undefined) {
+        delete process.env.GOOGLE_MAPS_ROUTES_API_KEY;
+      } else {
+        process.env.GOOGLE_MAPS_ROUTES_API_KEY = originalRoutesKey;
+      }
+    }
+  });
+
+  it("computes point-to-point route duration with the server Routes key", async () => {
+    const originalRoutesKey = process.env.GOOGLE_MAPS_ROUTES_API_KEY;
+    process.env.GOOGLE_MAPS_ROUTES_API_KEY = "test-routes-key";
+
+    const computeGoogleRoute = vi.fn().mockResolvedValue({
+      status: "ok",
+      encoded_polyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@",
+      duration_seconds: 540,
+    });
+
+    vi.resetModules();
+    vi.doMock("@/server/google-routes", () => ({
+      computeGoogleRoute,
+    }));
+
+    try {
+      const { getRouteDurationSeconds } =
+        await import("@/server/route-geometry-service");
+      const from = { latitude: 40, longitude: -74 };
+      const to = { latitude: 40.1, longitude: -73.9 };
+
+      await expect(
+        getRouteDurationSeconds({ from, to, mode: "transit" }),
+      ).resolves.toBe(540);
+      expect(computeGoogleRoute).toHaveBeenCalledWith({
+        apiKey: "test-routes-key",
+        from,
+        to,
+        mode: "transit",
+        includePolyline: false,
+      });
+    } finally {
+      vi.doUnmock("@/server/google-routes");
       vi.resetModules();
       if (originalRoutesKey === undefined) {
         delete process.env.GOOGLE_MAPS_ROUTES_API_KEY;

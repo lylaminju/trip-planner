@@ -6,6 +6,11 @@ import type {
   TravelMode,
 } from "@/lib/types";
 import { AI_DEFAULT_DAILY_START_TIME } from "@/lib/ai-planning-preferences";
+import {
+  formatVisitTime,
+  parseVisitTime,
+  roundVisitMinutesUpToGrid,
+} from "@/lib/visit-time";
 
 import {
   buildAiGeneratedPlaceRows,
@@ -16,7 +21,10 @@ import { chooseAiRouteMode } from "./ai-route-mode-selection";
 import { getSupabaseClient } from "./supabase";
 import { getPlannerSnapshot } from "./supabase-place-service";
 import type { AiItineraryPlan } from "./openai-ai-planner";
-import { getRouteGeometry } from "./route-geometry-service";
+import {
+  getRouteDurationSeconds,
+  getRouteGeometry,
+} from "./route-geometry-service";
 
 type GenerationRecord = {
   id: number;
@@ -57,12 +65,23 @@ type GeneratedVisitContext = {
 type GeneratedRoutePair = {
   from: GeneratedVisitContext;
   to: GeneratedVisitContext;
+  isFirstOfDay: boolean;
+};
+
+type TaggedGeneratedRouteSegment = {
+  segmentId: number;
+  routePair: GeneratedRoutePair;
 };
 
 type RouteSegmentRow = {
   id: number;
   from_item_id: number;
   to_item_id: number;
+};
+
+type GeneratedRoutePlan = {
+  mode: TravelMode;
+  durationSeconds: number | null;
 };
 
 const AI_BATCH_TABLES = ["route_segments", "itinerary_items", "places"] as const;
@@ -127,6 +146,16 @@ export async function replaceAiGeneratedBatch(
     return getPlannerSnapshot(tripId);
   }
 
+  const firstVisitRoutePlansByDate = await buildFirstVisitRoutePlansByDate({
+    plan,
+    candidateById,
+    lodging: shouldMaterializeLodging ? lodging : null,
+    preferredModes: preferences.preferred_travel_modes,
+  });
+  const firstVisitTravelDurationsByDate = routePlanDurationsByDate(
+    firstVisitRoutePlansByDate,
+  );
+
   let insertedItems: Array<{ id: number }>;
 
   try {
@@ -149,6 +178,7 @@ export async function replaceAiGeneratedBatch(
       candidatePlaceIds: shouldMaterializeLodging
         ? placeIds.slice(1)
         : placeIds,
+      firstVisitTravelDurationsByDate,
     });
     const itemRows = scheduleEntries.map((entry) => ({
       trip_id: tripId,
@@ -170,24 +200,32 @@ export async function replaceAiGeneratedBatch(
 
     await deletePreviousAiBatch(tripId, generationId);
     await reconcileRoutesForTrip(tripId);
-    await tagGeneratedRouteSegments(
+    const generatedVisits = scheduleEntries.map((entry, index) => {
+      const item = insertedItems[index];
+      if (!item) {
+        throw new Error("Inserted itinerary item was not returned.");
+      }
+
+      return {
+        itemId: item.id,
+        date: entry.date,
+        startTime: entry.startTime,
+        location: entry.location,
+        order: entry.order,
+      };
+    });
+    const taggedRouteSegments = await tagGeneratedRouteSegments(
       tripId,
       generationId,
-      scheduleEntries.map((entry, index) => {
-        const item = insertedItems[index];
-        if (!item) {
-          throw new Error("Inserted itinerary item was not returned.");
-        }
-
-        return {
-          itemId: item.id,
-          date: entry.date,
-          startTime: entry.startTime,
-          location: entry.location,
-          order: entry.order,
-        };
-      }),
+      generatedVisits,
       preferences.preferred_travel_modes,
+      firstVisitRoutePlansByDate,
+    );
+    await alignFirstGeneratedVisitsWithRouteGeometry(
+      tripId,
+      generatedVisits,
+      taggedRouteSegments,
+      firstVisitRoutePlansByDate,
     );
   } catch (error) {
     await deleteAiBatchForGeneration(tripId, generationId).catch(() => undefined);
@@ -195,6 +233,89 @@ export async function replaceAiGeneratedBatch(
   }
 
   return getPlannerSnapshot(tripId);
+}
+
+async function buildFirstVisitRoutePlansByDate(input: {
+  plan: AiItineraryPlan;
+  candidateById: Map<number, AiDestinationCandidate>;
+  lodging: TripLodging | null;
+  preferredModes: TravelMode[];
+}): Promise<Map<string, GeneratedRoutePlan>> {
+  const plansByDate = new Map<string, GeneratedRoutePlan>();
+  if (!input.lodging) return plansByDate;
+
+  for (const day of input.plan.days) {
+    const firstVisit = day.visits[0];
+    if (!firstVisit) continue;
+
+    const candidate = input.candidateById.get(firstVisit.candidate_id);
+    if (!candidate) {
+      throw new Error(`Candidate ${firstVisit.candidate_id} is not available.`);
+    }
+
+    const routePlan = await resolveTravelPlan(
+      input.lodging,
+      candidate,
+      input.preferredModes,
+    );
+    plansByDate.set(day.date, routePlan);
+  }
+
+  return plansByDate;
+}
+
+function routePlanDurationsByDate(
+  routePlansByDate: Map<string, GeneratedRoutePlan>,
+): Map<string, number> {
+  const durationsByDate = new Map<string, number>();
+  for (const [date, routePlan] of routePlansByDate) {
+    if (routePlan.durationSeconds !== null) {
+      durationsByDate.set(date, routePlan.durationSeconds);
+    }
+  }
+  return durationsByDate;
+}
+
+async function resolveTravelPlan(
+  from: Coordinates,
+  to: Coordinates,
+  preferredModes: TravelMode[],
+): Promise<GeneratedRoutePlan> {
+  let walkingDurationSeconds: number | null | undefined;
+  const mode = await chooseAiRouteMode({
+    preferredModes,
+    from,
+    to,
+    getWalkingDurationSeconds: async () => {
+      walkingDurationSeconds = await safeRouteDurationSeconds(
+        from,
+        to,
+        "walking",
+      );
+      return walkingDurationSeconds;
+    },
+  });
+
+  if (mode === "walking" && walkingDurationSeconds !== undefined) {
+    return { mode, durationSeconds: walkingDurationSeconds };
+  }
+
+  return {
+    mode,
+    durationSeconds: await safeRouteDurationSeconds(from, to, mode),
+  };
+}
+
+async function safeRouteDurationSeconds(
+  from: Coordinates,
+  to: Coordinates,
+  mode: TravelMode,
+): Promise<number | null> {
+  try {
+    return await getRouteDurationSeconds({ from, to, mode });
+  } catch {
+    return null;
+  }
 }
 
 async function deletePreviousAiBatch(
@@ -258,9 +379,10 @@ async function tagGeneratedRouteSegments(
   generationId: number,
   visits: GeneratedVisitContext[],
   preferredModes: TravelMode[],
-): Promise<void> {
+  firstVisitRoutePlansByDate: Map<string, GeneratedRoutePlan> = new Map(),
+): Promise<TaggedGeneratedRouteSegment[]> {
   const routePairs = buildGeneratedRoutePairs(visits);
-  if (routePairs.length === 0) return;
+  if (routePairs.length === 0) return [];
 
   const itemIds = visits.map((visit) => visit.itemId);
   const { data, error } = await getSupabaseClient()
@@ -279,6 +401,7 @@ async function tagGeneratedRouteSegments(
     ]),
   );
   let walkingProbeCount = 0;
+  const taggedSegments: TaggedGeneratedRouteSegment[] = [];
 
   for (const routePair of routePairs) {
     const segment = segmentByPair.get(
@@ -286,20 +409,124 @@ async function tagGeneratedRouteSegments(
     );
     if (!segment) continue;
 
-    const mode = await chooseAiRouteMode({
-      preferredModes,
-      from: routePair.from.location,
-      to: routePair.to.location,
-      canProbeWalking: walkingProbeCount < AI_ROUTE_MODE_WALKING_PROBE_LIMIT,
-      getWalkingDurationSeconds: async () => {
-        walkingProbeCount += 1;
-        const geometry = await getRouteGeometry(tripId, segment.id);
-        return geometry.status === "ok" ? geometry.duration_seconds ?? null : null;
-      },
-    });
+    const firstVisitRoutePlan = routePair.isFirstOfDay
+      ? firstVisitRoutePlansByDate.get(routePair.from.date)
+      : undefined;
+    const mode =
+      firstVisitRoutePlan?.mode ??
+      (await chooseAiRouteMode({
+        preferredModes,
+        from: routePair.from.location,
+        to: routePair.to.location,
+        canProbeWalking: walkingProbeCount < AI_ROUTE_MODE_WALKING_PROBE_LIMIT,
+        getWalkingDurationSeconds: async () => {
+          walkingProbeCount += 1;
+          const geometry = await getRouteGeometry(tripId, segment.id);
+          return geometry.status === "ok"
+            ? (geometry.duration_seconds ?? null)
+            : null;
+        },
+      }));
 
     await updateGeneratedRouteSegment(tripId, generationId, segment.id, mode);
+    taggedSegments.push({ segmentId: segment.id, routePair });
   }
+
+  return taggedSegments;
+}
+
+async function alignFirstGeneratedVisitsWithRouteGeometry(
+  tripId: number,
+  visits: GeneratedVisitContext[],
+  routeSegments: TaggedGeneratedRouteSegment[],
+  firstVisitRoutePlansByDate: Map<string, GeneratedRoutePlan>,
+): Promise<void> {
+  if (firstVisitRoutePlansByDate.size === 0) return;
+
+  const visitById = new Map(visits.map((visit) => [visit.itemId, visit]));
+  for (const segment of routeSegments) {
+    if (!segment.routePair.isFirstOfDay) {
+      continue;
+    }
+
+    const firstVisitRoutePlan = firstVisitRoutePlansByDate.get(
+      segment.routePair.from.date,
+    );
+    if (!firstVisitRoutePlan) continue;
+
+    const fromVisit = visitById.get(segment.routePair.from.itemId);
+    const toVisit = visitById.get(segment.routePair.to.itemId);
+    if (!fromVisit || !toVisit) continue;
+
+    const routeDurationSeconds =
+      firstVisitRoutePlan.durationSeconds ??
+      (await routeDurationSecondsForSegment(tripId, segment.segmentId));
+    if (routeDurationSeconds === null) continue;
+
+    const adjustedVisitTime = visitTimeAfterRouteDuration(
+      fromVisit.startTime,
+      toVisit.startTime,
+      routeDurationSeconds,
+    );
+    if (adjustedVisitTime === toVisit.startTime) continue;
+
+    toVisit.startTime = adjustedVisitTime;
+    await updateGeneratedItineraryItemTime(
+      tripId,
+      toVisit.itemId,
+      adjustedVisitTime,
+    );
+  }
+}
+
+async function routeDurationSecondsForSegment(
+  tripId: number,
+  segmentId: number,
+): Promise<number | null> {
+  try {
+    const geometry = await getRouteGeometry(tripId, segmentId);
+    return geometry?.status === "ok" ? (geometry.duration_seconds ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
+function visitTimeAfterRouteDuration(
+  fromVisitTime: string,
+  toVisitTime: string,
+  routeDurationSeconds: number,
+): string {
+  const fromMinutes = parseVisitTime(fromVisitTime);
+  const toMinutes = parseVisitTime(toVisitTime);
+  if (fromMinutes === null || toMinutes === null) return toVisitTime;
+
+  const roundedToMinutes = roundVisitMinutesUpToGrid(toMinutes);
+  const routeMinutes = Math.ceil(routeDurationSeconds / 60);
+  if (!Number.isFinite(routeMinutes) || routeMinutes < 0) {
+    return formatVisitTime(roundedToMinutes);
+  }
+
+  const earliestArrivalMinutes = roundVisitMinutesUpToGrid(
+    fromMinutes + routeMinutes,
+  );
+  const adjustedMinutes = Math.max(roundedToMinutes, earliestArrivalMinutes);
+  return toMinutes === adjustedMinutes
+    ? toVisitTime
+    : formatVisitTime(adjustedMinutes);
+}
+
+async function updateGeneratedItineraryItemTime(
+  tripId: number,
+  itemId: number,
+  visitTime: string,
+): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("itinerary_items")
+    .update({ visit_time: visitTime, updated_at: new Date().toISOString() })
+    .eq("trip_id", tripId)
+    .eq("id", itemId);
+
+  if (error) throwSupabaseError(error);
 }
 
 async function updateGeneratedRouteSegment(
@@ -341,6 +568,7 @@ function buildGeneratedRoutePairs(
       routePairs.push({
         from: sortedVisits[index],
         to: sortedVisits[index + 1],
+        isFirstOfDay: index === 0,
       });
     }
   }

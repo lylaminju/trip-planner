@@ -62,6 +62,10 @@ describe("OpenAI AI planner adapter", () => {
     expect(JSON.parse(body.input[1].content[0].text).daily_start_time).toBe(
       "09:00",
     );
+    expect(body.input[0].content[0].text).toContain(
+      "travel time from lodging to the first attraction",
+    );
+    expect(body.input[0].content[0].text).toContain("10-minute increments");
     expect(body.text.format.type).toBe("json_schema");
     expect(body.text.format.strict).toBe(true);
     expect(body.text.format.schema.properties.days.type).toBe("array");

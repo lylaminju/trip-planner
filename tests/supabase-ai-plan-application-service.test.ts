@@ -32,6 +32,7 @@ describe("supabase AI plan application service", () => {
     }));
     vi.doMock("@/server/route-geometry-service", () => ({
       getRouteGeometry,
+      getRouteDurationSeconds: vi.fn().mockResolvedValue(null),
     }));
 
     const service = await import("@/server/supabase-ai-plan-application-service");
@@ -91,6 +92,7 @@ describe("supabase AI plan application service", () => {
     }));
     vi.doMock("@/server/route-geometry-service", () => ({
       getRouteGeometry: vi.fn(),
+      getRouteDurationSeconds: vi.fn().mockResolvedValue(null),
     }));
 
     const service = await import("@/server/supabase-ai-plan-application-service");
@@ -125,6 +127,7 @@ describe("supabase AI plan application service", () => {
     }));
     vi.doMock("@/server/route-geometry-service", () => ({
       getRouteGeometry: vi.fn(),
+      getRouteDurationSeconds: vi.fn().mockResolvedValue(null),
     }));
 
     const service = await import("@/server/supabase-ai-plan-application-service");
@@ -194,6 +197,160 @@ describe("supabase AI plan application service", () => {
         visit_time: "10:00",
       }),
     ]);
+  });
+
+  it("schedules each day's first attraction after the lodging route duration", async () => {
+    const { client, insertCalls } = createMockSupabaseClient();
+    const getRouteDurationSeconds = vi
+      .fn()
+      .mockResolvedValueOnce(18 * 60)
+      .mockResolvedValueOnce(22 * 60);
+    const getRouteGeometry = vi.fn();
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/supabase-place-service", () => ({
+      getPlannerSnapshot: vi.fn().mockResolvedValue({
+        places: [],
+        itineraryItems: [],
+        routeSegments: [],
+      }),
+    }));
+    vi.doMock("@/server/route-geometry-service", () => ({
+      getRouteGeometry,
+      getRouteDurationSeconds,
+    }));
+
+    const service = await import("@/server/supabase-ai-plan-application-service");
+    const replaceAiGeneratedBatch =
+      service.replaceAiGeneratedBatch as unknown as (
+        ...args: unknown[]
+      ) => Promise<unknown>;
+
+    await replaceAiGeneratedBatch(
+      1,
+      55,
+      twoDayLodgingStartPlan(),
+      candidates(),
+      {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: [],
+        preferred_travel_modes: ["walking"],
+        must_see_candidate_ids: [],
+      },
+      lodging(),
+      "09:00",
+    );
+
+    expect(getRouteDurationSeconds).toHaveBeenCalledTimes(2);
+    expect(getRouteGeometry).not.toHaveBeenCalled();
+    expect(insertedRows(insertCalls, "itinerary_items")).toEqual([
+      expect.objectContaining({
+        place_id: 101,
+        visit_date: "2026-05-27",
+        visit_time: "09:00",
+      }),
+      expect.objectContaining({
+        place_id: 102,
+        visit_date: "2026-05-27",
+        visit_time: "09:20",
+      }),
+      expect.objectContaining({
+        place_id: 101,
+        visit_date: "2026-05-28",
+        visit_time: "09:00",
+      }),
+      expect.objectContaining({
+        place_id: 103,
+        visit_date: "2026-05-28",
+        visit_time: "09:30",
+      }),
+    ]);
+  });
+
+  it("corrects the first attraction when final route geometry takes longer than the AI time", async () => {
+    const { client, insertCalls, updateCalls } = createMockSupabaseClient();
+    const getRouteDurationSeconds = vi.fn().mockResolvedValue(null);
+    const getRouteGeometry = vi.fn().mockResolvedValue({
+      segment_id: 301,
+      status: "ok",
+      duration_seconds: 35 * 60,
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/supabase-place-service", () => ({
+      getPlannerSnapshot: vi.fn().mockResolvedValue({
+        places: [],
+        itineraryItems: [],
+        routeSegments: [],
+      }),
+    }));
+    vi.doMock("@/server/route-geometry-service", () => ({
+      getRouteGeometry,
+      getRouteDurationSeconds,
+    }));
+
+    const service = await import("@/server/supabase-ai-plan-application-service");
+    const replaceAiGeneratedBatch =
+      service.replaceAiGeneratedBatch as unknown as (
+        ...args: unknown[]
+      ) => Promise<unknown>;
+
+    await replaceAiGeneratedBatch(
+      1,
+      55,
+      oneDayLodgingStartPlan("09:20"),
+      brooklynBridgeCandidates(),
+      {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: [],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [],
+      },
+      lodging(),
+      "09:00",
+    );
+
+    expect(insertedRows(insertCalls, "itinerary_items")).toEqual([
+      expect.objectContaining({
+        place_id: 101,
+        visit_date: "2026-05-27",
+        visit_time: "09:00",
+      }),
+      expect.objectContaining({
+        place_id: 102,
+        visit_date: "2026-05-27",
+        visit_time: "09:20",
+      }),
+    ]);
+    expect(getRouteGeometry).toHaveBeenCalledWith(1, 301);
+    expect(updateCalls).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        table: "route_segments",
+        filters: [
+          ["trip_id", 1],
+          ["id", 301],
+        ],
+        payload: expect.objectContaining({
+          mode: "transit",
+        }),
+      }),
+      expect.objectContaining({
+        table: "itinerary_items",
+        filters: [
+          ["trip_id", 1],
+          ["id", 202],
+        ],
+        payload: expect.objectContaining({
+          visit_time: "09:40",
+        }),
+      }),
+    ]));
   });
 });
 
@@ -411,6 +568,32 @@ function twoDayPlan(): AiItineraryPlan {
   };
 }
 
+function twoDayLodgingStartPlan(): AiItineraryPlan {
+  return {
+    days: [
+      {
+        date: "2026-05-27",
+        visits: [visit(10, "09:00")],
+      },
+      {
+        date: "2026-05-28",
+        visits: [visit(11, "09:00")],
+      },
+    ],
+  };
+}
+
+function oneDayLodgingStartPlan(startTime = "09:00"): AiItineraryPlan {
+  return {
+    days: [
+      {
+        date: "2026-05-27",
+        visits: [visit(10, startTime)],
+      },
+    ],
+  };
+}
+
 function lodging(): TripLodging {
   return {
     id: 7,
@@ -443,6 +626,10 @@ function candidates(): AiDestinationCandidate[] {
     candidate(11, 34.102, -118.3409),
     candidate(12, 34.134115, -118.321548),
   ];
+}
+
+function brooklynBridgeCandidates(): AiDestinationCandidate[] {
+  return [candidate(10, 40.7060855, -73.9968643)];
 }
 
 function candidate(

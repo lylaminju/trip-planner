@@ -134,19 +134,49 @@ describe("AI itinerary plan validation", () => {
     );
   });
 
-  it("rejects visits that do not start after the lodging start time", () => {
+  it("accepts visits that start at the lodging start time", () => {
     const result = validateAiItineraryPlan(plan(), {
       candidateIds: new Set([10, 11]),
       tripDates: ["2026-05-27"],
       visitsPerDayMin: 1,
       visitsPerDayMax: 3,
       mustSeeCandidateIds: [],
-      firstVisitAfterTime: "09:00",
+      earliestVisitStartTime: "09:00",
     });
+
+    expect(result).toEqual({ status: "valid", errors: [] });
+  });
+
+  it("rejects visits before the lodging start time", () => {
+    const result = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "08:30",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10]),
+        tripDates: ["2026-05-27"],
+        visitsPerDayMin: 1,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+        earliestVisitStartTime: "09:00",
+      },
+    );
 
     expect(result.status).toBe("invalid");
     expect(result.errors).toContain(
-      "Day 2026-05-27 has a visit that does not start after 09:00.",
+      "Day 2026-05-27 has a visit before 09:00.",
     );
   });
 });

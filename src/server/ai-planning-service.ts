@@ -156,7 +156,7 @@ export async function generateAiItineraryForRequest(
       visitsPerDayMin: savedPreferences.visits_per_day_min,
       visitsPerDayMax: savedPreferences.visits_per_day_max,
       mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
-      firstVisitAfterTime: lodging ? generationInput.daily_start_time : null,
+      earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
     });
 
     let finalPlan = primary.plan;
@@ -187,7 +187,7 @@ export async function generateAiItineraryForRequest(
         visitsPerDayMin: savedPreferences.visits_per_day_min,
         visitsPerDayMax: savedPreferences.visits_per_day_max,
         mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
-        firstVisitAfterTime: lodging ? generationInput.daily_start_time : null,
+        earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
       });
       repairValidationStatus = repairValidation.status;
       repairValidationErrors = repairValidation.errors;

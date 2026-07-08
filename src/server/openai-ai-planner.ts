@@ -59,7 +59,8 @@ const SYSTEM_PROMPT = [
   "Use only candidate IDs in the response.",
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
   "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
-  "Use the provided daily_start_time as the time each day starts from lodging; attraction visits should start after that time.",
+  "Use the provided daily_start_time as the time each day starts from lodging; the first attraction should account for realistic travel time from lodging to the first attraction.",
+  "Use 10-minute increments for all visit start times, for example 09:00, 09:10, 09:20, 09:30, 09:40, or 09:50.",
   "If validation errors are provided, repair only those issues.",
 ].join(" ");
 

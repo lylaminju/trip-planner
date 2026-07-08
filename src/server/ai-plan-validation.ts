@@ -13,7 +13,7 @@ type ValidationContext = {
   visitsPerDayMin: number;
   visitsPerDayMax: number;
   mustSeeCandidateIds: readonly number[];
-  firstVisitAfterTime?: string | null;
+  earliestVisitStartTime?: string | null;
 };
 
 export function validateAiItineraryPlan(
@@ -43,7 +43,7 @@ export function validateAiItineraryPlan(
     if (day.visits.length > context.visitsPerDayMax) {
       errors.push(`Day ${day.date} has more visits than requested.`);
     }
-    let hasVisitAtOrBeforeStartTime = false;
+    let hasVisitBeforeStartTime = false;
 
     for (const visit of day.visits) {
       if (!context.candidateIds.has(visit.candidate_id)) {
@@ -59,8 +59,8 @@ export function validateAiItineraryPlan(
       if (!isValid24HourTime(visit.start_time)) {
         errors.push(`Visit time ${visit.start_time} must be HH:MM.`);
       }
-      if (startsAtOrBefore(visit.start_time, context.firstVisitAfterTime)) {
-        hasVisitAtOrBeforeStartTime = true;
+      if (startsBefore(visit.start_time, context.earliestVisitStartTime)) {
+        hasVisitBeforeStartTime = true;
       }
       if (
         !Number.isInteger(visit.duration_minutes) ||
@@ -71,9 +71,9 @@ export function validateAiItineraryPlan(
         );
       }
     }
-    if (hasVisitAtOrBeforeStartTime && context.firstVisitAfterTime) {
+    if (hasVisitBeforeStartTime && context.earliestVisitStartTime) {
       errors.push(
-        `Day ${day.date} has a visit that does not start after ${context.firstVisitAfterTime}.`,
+        `Day ${day.date} has a visit before ${context.earliestVisitStartTime}.`,
       );
     }
   }
@@ -95,16 +95,16 @@ export function validateAiItineraryPlan(
     : { status: "invalid", errors };
 }
 
-function startsAtOrBefore(
+function startsBefore(
   visitStartTime: string,
-  firstVisitAfterTime: string | null | undefined,
+  earliestVisitStartTime: string | null | undefined,
 ): boolean {
-  if (!firstVisitAfterTime) return false;
+  if (!earliestVisitStartTime) return false;
   const visitMinutes = parseVisitTime(visitStartTime);
-  const startMinutes = parseVisitTime(firstVisitAfterTime);
+  const startMinutes = parseVisitTime(earliestVisitStartTime);
   return (
     visitMinutes !== null &&
     startMinutes !== null &&
-    visitMinutes <= startMinutes
+    visitMinutes < startMinutes
   );
 }

@@ -2,6 +2,11 @@ import type {
   AiDestinationCandidate,
   TripLodging,
 } from "@/lib/types";
+import {
+  formatVisitTime,
+  parseVisitTime,
+  roundVisitMinutesUpToGrid,
+} from "@/lib/visit-time";
 import type { AiItineraryPlan } from "./openai-ai-planner";
 
 export type Coordinates = {
@@ -54,6 +59,7 @@ export function buildGeneratedScheduleEntries(input: {
   lodgingStartTime: string;
   lodgingPlaceId: number | null;
   candidatePlaceIds: number[];
+  firstVisitTravelDurationsByDate?: Map<string, number>;
 }): GeneratedScheduleEntry[] {
   const entries: GeneratedScheduleEntry[] = [];
   let candidatePlaceIndex = 0;
@@ -76,7 +82,7 @@ export function buildGeneratedScheduleEntries(input: {
       order += 1;
     }
 
-    for (const visit of day.visits) {
+    day.visits.forEach((visit, visitIndex) => {
       const candidate = input.candidateById.get(visit.candidate_id);
       if (!candidate) {
         throw new Error(`Candidate ${visit.candidate_id} is not available.`);
@@ -88,7 +94,13 @@ export function buildGeneratedScheduleEntries(input: {
 
       entries.push({
         date: day.date,
-        startTime: visit.start_time,
+        startTime: scheduleAfterLodgingTravel(
+          visit.start_time,
+          input.lodging ? input.lodgingStartTime : null,
+          visitIndex === 0
+            ? (input.firstVisitTravelDurationsByDate?.get(day.date) ?? null)
+            : null,
+        ),
         placeId,
         notes: visit.notes,
         location: candidate,
@@ -96,10 +108,40 @@ export function buildGeneratedScheduleEntries(input: {
       });
       candidatePlaceIndex += 1;
       order += 1;
-    }
+    });
   }
 
   return entries;
+}
+
+function scheduleAfterLodgingTravel(
+  visitStartTime: string,
+  lodgingStartTime: string | null,
+  travelDurationSeconds: number | null,
+): string {
+  const visitMinutes = parseVisitTime(visitStartTime);
+  if (visitMinutes === null) {
+    return visitStartTime;
+  }
+
+  const roundedVisitMinutes = roundVisitMinutesUpToGrid(visitMinutes);
+  if (!lodgingStartTime || travelDurationSeconds === null) {
+    return formatVisitTime(roundedVisitMinutes);
+  }
+
+  const lodgingMinutes = parseVisitTime(lodgingStartTime);
+  if (lodgingMinutes === null) {
+    return formatVisitTime(roundedVisitMinutes);
+  }
+  const travelMinutes = Math.ceil(travelDurationSeconds / 60);
+  if (!Number.isFinite(travelMinutes) || travelMinutes < 0) {
+    return formatVisitTime(roundedVisitMinutes);
+  }
+
+  const earliestVisitMinute = roundVisitMinutesUpToGrid(
+    lodgingMinutes + travelMinutes,
+  );
+  return formatVisitTime(Math.max(roundedVisitMinutes, earliestVisitMinute));
 }
 
 function candidatePlaceRow(

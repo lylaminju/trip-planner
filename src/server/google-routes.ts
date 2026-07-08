@@ -12,6 +12,7 @@ type ComputeRouteInput = {
     longitude: number;
   };
   mode: TravelMode;
+  includePolyline?: boolean;
 };
 
 type GoogleRoutesResponse = {
@@ -32,6 +33,7 @@ export async function computeGoogleRoute(
 ): Promise<Omit<RouteGeometry, "segment_id">> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const includePolyline = input.includePolyline ?? true;
 
   try {
     const response = await fetch(ROUTES_ENDPOINT, {
@@ -39,14 +41,20 @@ export async function computeGoogleRoute(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": input.apiKey,
-        "X-Goog-FieldMask": "routes.duration,routes.polyline.encodedPolyline",
+        "X-Goog-FieldMask": includePolyline
+          ? "routes.duration,routes.polyline.encodedPolyline"
+          : "routes.duration",
       },
       body: JSON.stringify({
         origin: { location: { latLng: input.from } },
         destination: { location: { latLng: input.to } },
         travelMode: toGoogleTravelMode(input.mode),
-        polylineEncoding: "ENCODED_POLYLINE",
-        polylineQuality: "OVERVIEW",
+        ...(includePolyline
+          ? {
+              polylineEncoding: "ENCODED_POLYLINE",
+              polylineQuality: "OVERVIEW",
+            }
+          : {}),
       }),
       signal: controller.signal,
     });
@@ -62,6 +70,12 @@ export async function computeGoogleRoute(
     const route = payload.routes?.[0];
     const encodedPolyline = route?.polyline?.encodedPolyline;
     const durationSeconds = parseGoogleDuration(route?.duration);
+
+    if (!includePolyline) {
+      return durationSeconds === null
+        ? { status: "no_route" }
+        : { status: "ok", duration_seconds: durationSeconds };
+    }
 
     return typeof encodedPolyline === "string" && encodedPolyline
       ? {
