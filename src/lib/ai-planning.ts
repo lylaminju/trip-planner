@@ -4,6 +4,9 @@ export const AI_SUPPORTED_DESTINATION_SLUGS = [
   "los-angeles",
 ] as const;
 
+export const AI_OPENING_HOURS_WARNING =
+  "AI itinerary created. Opening hours may change, so check Google Maps or the venue before you go.";
+
 const AI_SUPPORTED_DESTINATION_SLUG_SET = new Set<string>(
   AI_SUPPORTED_DESTINATION_SLUGS,
 );

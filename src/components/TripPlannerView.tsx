@@ -54,6 +54,7 @@ type Props = {
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
   error: string | null;
+  aiGenerationToast: string | null;
   exportFeedback: ExportFeedback;
   canEdit: boolean;
   canEditTripMetadata: boolean;
@@ -219,6 +220,11 @@ export function TripPlannerView(props: Props) {
         onSelectPlace={props.onSelectItem}
         onSelectSegment={props.onToggleSegmentSelection}
       />
+      {props.aiGenerationToast && (
+        <div className="ai-generation-toast" role="status">
+          {props.aiGenerationToast}
+        </div>
+      )}
       {(props.isAdding || props.editingPlace) && (
         <AddEditPlaceModal
           place={props.editingPlace}

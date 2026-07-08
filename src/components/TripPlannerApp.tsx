@@ -15,7 +15,10 @@ import { useRouteGeometries } from "@/hooks/useRouteGeometries";
 import { useTripPlannerMutations } from "@/hooks/useTripPlannerMutations";
 import { useTripPlannerModals } from "@/hooks/useTripPlannerModals";
 import { useTripPlannerSelection } from "@/hooks/useTripPlannerSelection";
-import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
+import {
+  AI_OPENING_HOURS_WARNING,
+  isAiPlanningDestinationSupported,
+} from "@/lib/ai-planning";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
 import { errorMessage } from "@/lib/error-message";
 import { buildVisitDateOptions } from "@/lib/itinerary";
@@ -92,6 +95,9 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       setup: null,
       error: null,
     });
+  const [aiGenerationToast, setAiGenerationToast] = useState<string | null>(
+    null,
+  );
 
   const itinerary = useMemo(
     () => buildItineraryForTrip(plannerSnapshot, trip),
@@ -255,6 +261,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       isGenerating: true,
       error: null,
     }));
+    setAiGenerationToast(null);
 
     try {
       const result = await generateAiItinerary(tripId, input);
@@ -266,6 +273,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
         error: null,
       }));
       setError(null);
+      setAiGenerationToast(AI_OPENING_HOURS_WARNING);
     } catch (reason) {
       setAiPlanningWizard((current) => ({
         ...current,
@@ -294,6 +302,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       routeGeometries={routeGeometries}
       routeGeometryError={routeGeometryError}
       error={error}
+      aiGenerationToast={aiGenerationToast}
       exportFeedback={exportFeedback}
       canEdit={canEdit}
       canEditTripMetadata={canEditTripMetadata}

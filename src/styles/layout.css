@@ -177,6 +177,22 @@
   box-shadow: var(--focus-ring-strong);
 }
 
+.ai-generation-toast {
+  background: var(--surface-inverse);
+  border-radius: 8px;
+  bottom: 20px;
+  box-shadow: var(--shadow-floating-large);
+  color: var(--text-on-accent);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 10px 12px;
+  position: fixed;
+  right: 20px;
+  z-index: 20;
+}
+
 .panel-expand-toggle {
   align-items: center;
   display: inline-flex;
