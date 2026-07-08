@@ -80,6 +80,28 @@ describe("TripPlannerApp", () => {
     expect(markup).toContain("Plan with AI");
   });
 
+  it("shows AI planning in the empty map state for supported new trips", () => {
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "test-key";
+
+    const markup = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        initialData: buildTripPlannerInitialData({
+          trip: buildTrip({
+            destination: "New York City",
+            destination_slug: "new-york-city",
+          }),
+        }),
+      }),
+    );
+    const emptyState = markupBetween(markup, "map-empty-state", "div");
+
+    expect(emptyState).toContain(
+      "Add your first place to start building the map.",
+    );
+    expect(emptyState).toContain("Plan with AI");
+  });
+
   it("keeps AI planning available for non-empty supported trips", () => {
     const withPlaces = renderToStaticMarkup(
       createElement(TripPlannerApp, {
@@ -195,4 +217,15 @@ function localIsoDate(timeZone: string): string {
   }
 
   return `${year}-${month}-${day}`;
+}
+
+function markupBetween(markup: string, className: string, tag: string) {
+  const start = markup.indexOf(className);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const elementStart = markup.lastIndexOf(`<${tag}`, start);
+  const elementEnd = markup.indexOf(`</${tag}>`, start);
+  expect(elementStart).toBeGreaterThanOrEqual(0);
+  expect(elementEnd).toBeGreaterThanOrEqual(0);
+
+  return markup.slice(elementStart, elementEnd + tag.length + 3);
 }

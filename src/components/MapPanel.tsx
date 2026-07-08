@@ -52,6 +52,7 @@ type Props = {
   canEdit: boolean;
   onToggleCurrentLocation: () => void;
   onAddPlace: () => void;
+  onPlanWithAi?: () => void;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
 };
@@ -429,6 +430,7 @@ export function MapPanel(props: Props) {
         canEdit={props.canEdit}
         onToggleCurrentLocation={props.onToggleCurrentLocation}
         onAddPlace={props.onAddPlace}
+        onPlanWithAi={props.onPlanWithAi}
       />
     </section>
   );

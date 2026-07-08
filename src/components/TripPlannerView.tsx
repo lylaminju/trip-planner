@@ -215,6 +215,7 @@ export function TripPlannerView(props: Props) {
         canEdit={props.canEdit}
         onToggleCurrentLocation={props.onToggleCurrentLocation}
         onAddPlace={props.onOpenAddModal}
+        onPlanWithAi={props.onPlanWithAi}
         onSelectPlace={props.onSelectItem}
         onSelectSegment={props.onToggleSegmentSelection}
       />
