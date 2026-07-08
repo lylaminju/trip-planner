@@ -4,10 +4,6 @@ import type { PlannerSnapshot, Trip } from "@/lib/types";
 
 import type { TripFormState } from "./trip-form-types";
 
-export function errorMessage(reason: unknown, fallback: string): string {
-  return reason instanceof Error ? reason.message : fallback;
-}
-
 export function buildItineraryForTrip(
   plannerSnapshot: PlannerSnapshot,
   trip: Trip | null,

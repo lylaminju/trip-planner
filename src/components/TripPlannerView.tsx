@@ -3,6 +3,7 @@
 import type { SubmitEvent } from "react";
 
 import type { CurrentLocationPosition } from "@/lib/current-location";
+import { errorMessage } from "@/lib/error-message";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
   AiPlanningGenerationInput,
@@ -23,7 +24,6 @@ import { EditTripModal } from "./EditTripModal";
 import { MapPanel } from "./MapPanel";
 import { PlannerPanel } from "./PlannerPanel";
 import type { TripFormState } from "./trip-form-types";
-import { errorMessage } from "./trip-planner-app-utils";
 
 type ExportFeedback = {
   action: "copy" | "download";
