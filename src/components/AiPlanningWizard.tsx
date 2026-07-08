@@ -85,12 +85,6 @@ export function AiPlanningWizard(props: Props) {
         <header className="modal-header">
           <div>
             <h2 id="ai-planning-title">Plan with AI</h2>
-            {props.setup && (
-              <p className="modal-subtitle">
-                {props.setup.trip.destination} -{" "}
-                {candidateCountLabel(props.setup.candidates.length)}
-              </p>
-            )}
           </div>
           <button
             type="button"
@@ -202,8 +196,4 @@ export function AiPlanningWizard(props: Props) {
       </form>
     </ModalShell>
   );
-}
-
-function candidateCountLabel(count: number): string {
-  return `${count} curated attraction${count === 1 ? "" : "s"}`;
 }

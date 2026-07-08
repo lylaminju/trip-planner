@@ -24,7 +24,7 @@ describe("AiPlanningWizard", () => {
     expect(markup).not.toContain("Must-see attractions");
   });
 
-  it("renders the first wizard step with curated setup context", () => {
+  it("renders the first wizard step without a destination summary subtitle", () => {
     const markup = renderToStaticMarkup(
       createElement(AiPlanningWizard, {
         setup: setup(),
@@ -39,8 +39,8 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain('class="modal ai-planning-modal"');
     expect(markup).toContain("Plan with AI");
     expect(markup).toContain("Step 1 of 4");
-    expect(markup).toContain("New York City");
-    expect(markup).toContain("2 curated attractions");
+    expect(markup).not.toContain("New York City - ");
+    expect(markup).not.toContain("2 curated attractions");
     expect(markup).toContain("Visits per day");
     expect(markup).toContain("Up to 3 visits/day");
     expect(markup).toContain('type="range"');
