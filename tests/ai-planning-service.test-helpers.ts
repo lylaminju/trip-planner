@@ -167,6 +167,7 @@ export function candidateRecord(id: number) {
     google_place_id: null,
     typical_duration_minutes: 90,
     indoor_outdoor: "mixed",
+    planning_note: null,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   };

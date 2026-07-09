@@ -112,6 +112,7 @@ function promptContext(): AiPlannerPromptContext {
         area: "Manhattan",
         region_distance_tier: "central",
         typical_duration_minutes: 120,
+        planning_note: "Online booking recommended.",
       },
     ],
     tripDates: ["2026-05-27"],

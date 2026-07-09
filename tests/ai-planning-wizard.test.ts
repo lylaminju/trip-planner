@@ -3,7 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { AiPlanningWizard } from "@/components/AiPlanningWizard";
-import { LogisticsStep } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
+import {
+  LogisticsStep,
+  MustSeeStep,
+} from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
 import { formatVisitsPerDayRangeLabel } from "@/lib/ai-planning-preferences";
 import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
 
@@ -109,6 +112,30 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain('type="url"');
     expect(markup).toContain("Pod Times Square");
   });
+
+  it("shows candidate planning notes on the must-see step", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MustSeeStep, {
+        candidates: [
+          {
+            ...candidate(
+              12,
+              "Village Vanguard",
+              "jazz_club",
+              ["landmarks"],
+              "Greenwich Village",
+            ),
+            planning_note: "Online booking recommended.",
+          },
+        ],
+        draft: preferenceDraft(),
+        onChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("Village Vanguard");
+    expect(markup).toContain("Online booking recommended.");
+  });
 });
 
 describe("formatVisitsPerDayRangeLabel", () => {
@@ -176,6 +203,7 @@ function candidate(
     google_place_id: null,
     typical_duration_minutes: 120,
     indoor_outdoor: "mixed" as const,
+    planning_note: null,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   };

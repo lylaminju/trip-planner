@@ -204,6 +204,9 @@ export function MustSeeStep({
                   {formatCategory(candidate.category)}
                   {candidate.area ? ` - ${candidate.area}` : ""}
                 </small>
+                {candidate.planning_note && (
+                  <small>{candidate.planning_note}</small>
+                )}
               </span>
             </label>
           );

@@ -32,6 +32,7 @@ export type AiPlannerPromptContext = {
       | "area"
       | "region_distance_tier"
       | "typical_duration_minutes"
+      | "planning_note"
     >
   >;
   tripDates: string[];
@@ -61,6 +62,7 @@ const SYSTEM_PROMPT = [
   "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
   "Use the provided daily_start_time as the time each day starts from lodging; the first attraction should account for realistic travel time from lodging to the first attraction.",
   "Use 10-minute increments for all visit start times, for example 09:00, 09:10, 09:20, 09:30, 09:40, or 09:50.",
+  "Use candidate planning notes when relevant, for example booking recommendations.",
   "If validation errors are provided, repair only those issues.",
 ].join(" ");
 

@@ -123,6 +123,7 @@ export type AiDestinationCandidate = {
   google_place_id: string | null;
   typical_duration_minutes: number;
   indoor_outdoor: AiIndoorOutdoor | null;
+  planning_note: string | null;
   created_at: string;
   updated_at: string;
 };

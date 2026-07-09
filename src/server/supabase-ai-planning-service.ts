@@ -10,7 +10,7 @@ import { resolveGoogleMapsUrl } from "./google-url-resolver";
 import { getSupabaseClient } from "./supabase";
 
 const AI_DESTINATION_CANDIDATE_COLUMNS =
-  "id, destination_slug, name, category, tags, area, region_distance_tier, sort_order, latitude, longitude, google_place_id, typical_duration_minutes, indoor_outdoor, created_at, updated_at";
+  "id, destination_slug, name, category, tags, area, region_distance_tier, sort_order, latitude, longitude, google_place_id, typical_duration_minutes, indoor_outdoor, planning_note, created_at, updated_at";
 const TRIP_LODGING_COLUMNS =
   "id, trip_id, name, address, latitude, longitude, google_place_id, check_in_date, check_out_date, is_primary, created_at, updated_at";
 const AI_PLANNING_PREFERENCES_COLUMNS =

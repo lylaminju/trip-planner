@@ -86,6 +86,31 @@ The main tables are:
 - `itinerary_items`: scheduled visits that reference places.
 - `route_segments`: travel-mode choices between consecutive timed itinerary items.
 - `route_geometry_cache`: cached Google Routes API results.
+- `ai_destination_candidates`: curated attraction candidates for supported AI planning destinations.
+
+### AI Destination Candidate Counts
+
+AI itinerary generation is intentionally constrained to curated rows in
+`ai_destination_candidates`. The model receives candidate IDs and validation
+rejects generated visits outside that list, which keeps plans grounded and
+prevents arbitrary restaurants, duplicate attractions, or unsupported places
+from entering generated itineraries.
+
+Candidate counts should be sized from the largest itinerary the app is expected
+to generate, plus some choice buffer:
+
+```text
+estimated visits = trip days x max visits/day
+4 days x 5 visits/day = 20 visits
+```
+
+The current catalog targets about 30 candidates for large city destinations and
+about 25 for Banff-style park destinations. That is enough for typical 3-5 day
+trips at 2-5 visits per day while leaving alternatives for interests,
+must-see selections, weather, geography, and lodging location. If the product
+starts optimizing for longer trips, for example 7 days x 5 visits/day = 35
+visits, expand the relevant destination catalog before relying on generated
+plans for that trip length.
 
 Existing deployments that predate trip memberships need a one-time backfill for
 the default shared New York City trip. See

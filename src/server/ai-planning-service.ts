@@ -341,6 +341,7 @@ function promptContext(input: {
       area: candidate.area,
       region_distance_tier: candidate.region_distance_tier,
       typical_duration_minutes: candidate.typical_duration_minutes,
+      planning_note: candidate.planning_note,
     })),
     tripDates: input.tripDates,
     validationErrors: input.validationErrors,
