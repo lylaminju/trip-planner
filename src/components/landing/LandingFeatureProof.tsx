@@ -34,10 +34,10 @@ const FEATURE_CARDS = [
     tone: "unscheduled outline",
   },
   {
-    title: "Markdown export",
-    body: "Copy or download your entire itinerary as clean Markdown in a single click.",
-    icon: <ExportIcon />,
-    tone: "export outline",
+    title: "Plan with AI",
+    body: "Choose your pace, interests, travel modes, and lodging, then generate a dated draft you can edit on the map.",
+    icon: <MagicWandIcon />,
+    tone: "accent outline",
   },
 ] satisfies Array<{
   title: string;
@@ -191,12 +191,18 @@ function PinIcon() {
   );
 }
 
-function ExportIcon() {
+function MagicWandIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path d="M10 2.5 V12" />
-      <path d="M6 8 L10 12 L14 8" />
-      <path d="M4 16 H16" />
+      <path d="M5.1 15.6 L13.4 7.3" />
+      <path d="M6.5 17 L14.8 8.7" />
+      <path d="M12.5 5.7 L16.4 9.6" />
+      <path d="M4.1 4.5 L4.1 6.7" />
+      <path d="M3 5.6 H5.2" />
+      <path d="M16.1 3.1 L16.1 5.3" />
+      <path d="M15 4.2 H17.2" />
+      <circle cx="14.6" cy="14.7" r="0.8" />
+      <circle cx="8.6" cy="3.7" r="0.7" />
     </svg>
   );
 }

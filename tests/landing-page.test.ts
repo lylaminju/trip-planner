@@ -227,6 +227,8 @@ describe("LandingPage", () => {
     expect(markup).toContain("numbered map stops, route lines");
     expect(markup).toContain("Route segments");
     expect(markup).toContain("Trip dashboard");
+    expect(markup).toContain("Plan with AI");
+    expect(markup).toContain("generate a dated draft you can edit on the map");
     expect(markup).toContain("Three steps");
     expect(markup).toContain("Save your places");
     expect(markup).toContain("Arrange by day");
