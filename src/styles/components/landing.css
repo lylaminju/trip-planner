@@ -309,6 +309,11 @@ body:has(.sign-in-page-shell) {
   color: var(--landing-maps-icon);
 }
 
+.landing-feature-icon-ai {
+  background: var(--landing-ai-icon-bg);
+  color: var(--landing-ai-icon);
+}
+
 .landing-feature-icon-unscheduled {
   background: var(--landing-unscheduled-icon-bg);
   color: var(--landing-unscheduled-icon);

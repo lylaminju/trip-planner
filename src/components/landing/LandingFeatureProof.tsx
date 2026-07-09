@@ -6,7 +6,7 @@ const FEATURE_CARDS = [
   {
     title: "Date buckets",
     body: "Visits group by date, timed stops first, with compact weekday labels you can scan in a glance.",
-    icon: <CalendarGridIcon />,
+    icon: <DashboardIcon />,
     tone: "accent",
   },
   {
@@ -22,10 +22,10 @@ const FEATURE_CARDS = [
     tone: "route outline",
   },
   {
-    title: "Trip dashboard",
-    body: "Trips are grouped into active and past plans, with undated trips kept visible until you add dates.",
-    icon: <DashboardIcon />,
-    tone: "accent",
+    title: "Plan with AI",
+    body: "Choose your pace, interests, travel modes, and lodging, then generate a dated draft you can edit on the map.",
+    icon: <MagicWandIcon />,
+    tone: "ai outline",
   },
   {
     title: "Unscheduled places",
@@ -34,10 +34,10 @@ const FEATURE_CARDS = [
     tone: "unscheduled outline",
   },
   {
-    title: "Plan with AI",
-    body: "Choose your pace, interests, travel modes, and lodging, then generate a dated draft you can edit on the map.",
-    icon: <MagicWandIcon />,
-    tone: "accent outline",
+    title: "Trip dashboard",
+    body: "Trips are grouped into active and past plans, with undated trips kept visible until you add dates.",
+    icon: <CalendarGridIcon />,
+    tone: "accent",
   },
 ] satisfies Array<{
   title: string;
@@ -193,16 +193,81 @@ function PinIcon() {
 
 function MagicWandIcon() {
   return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path d="M5.1 15.6 L13.4 7.3" />
-      <path d="M6.5 17 L14.8 8.7" />
-      <path d="M12.5 5.7 L16.4 9.6" />
-      <path d="M4.1 4.5 L4.1 6.7" />
-      <path d="M3 5.6 H5.2" />
-      <path d="M16.1 3.1 L16.1 5.3" />
-      <path d="M15 4.2 H17.2" />
-      <circle cx="14.6" cy="14.7" r="0.8" />
-      <circle cx="8.6" cy="3.7" r="0.7" />
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      focusable="false"
+      className="magic-wand-svg"
+    >
+      {/* Thick wand body with a transparent tip slot. */}
+      <g transform="translate(-4 0)">
+        <g transform="rotate(-45 10 10)">
+          <path
+            d="
+              M 3.9 11.15
+              H 15
+              A 1.45 1.45 0 0 1 16.45 12.6
+              V 13.95
+              A 1.45 1.45 0 0 1 15 15.4
+              H 3.9
+              A 2.12 2.12 0 0 1 1.78 13.28
+              A 2.12 2.12 0 0 1 3.9 11.15
+              Z
+              M 12.08 12.12
+              H 14.22
+              A 0.38 0.38 0 0 1 14.6 12.5
+              V 14.05
+              A 0.38 0.38 0 0 1 14.22 14.43
+              H 12.08
+              A 0.38 0.38 0 0 1 11.7 14.05
+              V 12.5
+              A 0.38 0.38 0 0 1 12.08 12.12
+              Z
+            "
+            fillRule="evenodd"
+            style={{ fill: "currentColor", stroke: "none" }}
+          />
+        </g>
+      </g>
+
+      {/* Sparkle 1 (Large 4-pointed star) */}
+      <path
+        d="M 15 1 Q 15 5 11 5 Q 15 5 15 9 Q 15 5 19 5 Q 15 5 15 1 Z"
+        className="wand-sparkle wand-sparkle-1"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      {/* Sparkle 2 (Medium 4-pointed star) */}
+      <path
+        d="M 7.5 2 Q 7.5 4.5 5 4.5 Q 7.5 4.5 7.5 7 Q 7.5 4.5 10 4.5 Q 7.5 4.5 7.5 2 Z"
+        className="wand-sparkle wand-sparkle-2"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      {/* Sparkle 3 (Small 4-pointed star) */}
+      <path
+        d="M 17 9.5 Q 17 11.5 15 11.5 Q 17 11.5 17 13.5 Q 17 11.5 19 11.5 Q 17 11.5 17 9.5 Z"
+        className="wand-sparkle wand-sparkle-3"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      {/* Fairy dust dot 1 */}
+      <circle
+        cx="11.5"
+        cy="3.5"
+        r="0.6"
+        className="wand-sparkle wand-sparkle-dot-1"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      {/* Fairy dust dot 2 */}
+      <circle
+        cx="14.5"
+        cy="11"
+        r="0.5"
+        className="wand-sparkle wand-sparkle-dot-2"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
     </svg>
   );
 }
