@@ -8,6 +8,81 @@ export function PencilIcon() {
   );
 }
 
+export function MagicWandIcon({ className }: { className?: string } = {}) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      focusable="false"
+      className={className ? `magic-wand-svg ${className}` : "magic-wand-svg"}
+    >
+      <g transform="translate(-4 0)">
+        <g transform="rotate(-45 10 10)">
+          <path
+            d="
+              M 3.9 11.15
+              H 15
+              A 1.45 1.45 0 0 1 16.45 12.6
+              V 13.95
+              A 1.45 1.45 0 0 1 15 15.4
+              H 3.9
+              A 2.12 2.12 0 0 1 1.78 13.28
+              A 2.12 2.12 0 0 1 3.9 11.15
+              Z
+              M 12.08 12.12
+              H 14.22
+              A 0.38 0.38 0 0 1 14.6 12.5
+              V 14.05
+              A 0.38 0.38 0 0 1 14.22 14.43
+              H 12.08
+              A 0.38 0.38 0 0 1 11.7 14.05
+              V 12.5
+              A 0.38 0.38 0 0 1 12.08 12.12
+              Z
+            "
+            fillRule="evenodd"
+            style={{ fill: "currentColor", stroke: "none" }}
+          />
+        </g>
+      </g>
+
+      <path
+        d="M 15 1 Q 15 5 11 5 Q 15 5 15 9 Q 15 5 19 5 Q 15 5 15 1 Z"
+        className="wand-sparkle wand-sparkle-1"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      <path
+        d="M 7.5 2 Q 7.5 4.5 5 4.5 Q 7.5 4.5 7.5 7 Q 7.5 4.5 10 4.5 Q 7.5 4.5 7.5 2 Z"
+        className="wand-sparkle wand-sparkle-2"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      <path
+        d="M 17 9.5 Q 17 11.5 15 11.5 Q 17 11.5 17 13.5 Q 17 11.5 19 11.5 Q 17 11.5 17 9.5 Z"
+        className="wand-sparkle wand-sparkle-3"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      <circle
+        cx="11.5"
+        cy="3.5"
+        r="0.6"
+        className="wand-sparkle wand-sparkle-dot-1"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+
+      <circle
+        cx="14.5"
+        cy="11"
+        r="0.5"
+        className="wand-sparkle wand-sparkle-dot-2"
+        style={{ fill: "currentColor", stroke: "none" }}
+      />
+    </svg>
+  );
+}
+
 export function TrashIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

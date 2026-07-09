@@ -179,6 +179,21 @@
   justify-content: center;
 }
 
+.map-empty-state-ai-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.map-empty-state-ai-button svg {
+  display: block;
+  flex: 0 0 16px;
+  height: 16px;
+  width: 16px;
+}
+
 .map-fallback {
   overflow: auto;
   padding: 16px;

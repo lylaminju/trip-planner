@@ -29,7 +29,9 @@ describe("PlannerPanel view toggle", () => {
     const buttonMarkup = markupBetween(markup, "panel-expand-toggle", "button");
 
     expect(buttonMarkup).toContain("Collapse");
-    expect(buttonMarkup).toContain('aria-label="Collapse planner and show map"');
+    expect(buttonMarkup).toContain(
+      'aria-label="Collapse planner and show map"',
+    );
     expect(buttonMarkup).toContain("panel-expand-toggle-icon");
     expect(buttonMarkup).toContain("<svg");
     expect(
@@ -44,9 +46,10 @@ describe("PlannerPanel view toggle", () => {
         plannerPanelProps({ isExpanded: false, onPlanWithAi: vi.fn() }),
       ),
     );
+    const buttonMarkup = markupBetween(markup, "ai-plan-button", "button");
 
-    expect(markup).toContain("Plan with AI");
-    expect(markup).toContain('class="ai-plan-button"');
+    expect(buttonMarkup).toContain("Plan with AI");
+    expect(buttonMarkup).toContain("magic-wand-svg");
   });
 
   it("hides the AI planning action when one is not available", () => {

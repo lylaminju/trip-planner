@@ -16,7 +16,12 @@ import type {
 } from "@/lib/types";
 
 import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
-import { ChevronLeftIcon, ChevronRightIcon, PencilIcon } from "./Icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MagicWandIcon,
+  PencilIcon,
+} from "./Icons";
 import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
 
@@ -189,7 +194,8 @@ export function PlannerPanel(props: Props) {
                   className="ai-plan-button"
                   onClick={props.onPlanWithAi}
                 >
-                  Plan with AI
+                  <MagicWandIcon />
+                  <span>Plan with AI</span>
                 </button>
               )}
               <button

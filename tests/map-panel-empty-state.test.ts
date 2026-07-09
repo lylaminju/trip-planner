@@ -79,6 +79,7 @@ describe("MapPanel empty state", () => {
 
     expect(actions).toContain("Add place");
     expect(actions).toContain("Plan with AI");
+    expect(actions).toContain("magic-wand-svg");
     expect(rule).toContain("display: flex;");
     expect(rule).toContain("justify-content: center;");
   });

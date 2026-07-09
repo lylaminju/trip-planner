@@ -1,5 +1,7 @@
 "use client";
 
+import { MagicWandIcon } from "../Icons";
+
 type Props = {
   hasPlaces: boolean;
   routeGeometryError: string | null;
@@ -26,8 +28,13 @@ export function MapPanelChrome(props: Props) {
                 </button>
               )}
               {props.onPlanWithAi && (
-                <button type="button" onClick={props.onPlanWithAi}>
-                  Plan with AI
+                <button
+                  type="button"
+                  className="map-empty-state-ai-button"
+                  onClick={props.onPlanWithAi}
+                >
+                  <MagicWandIcon />
+                  <span>Plan with AI</span>
                 </button>
               )}
             </div>
