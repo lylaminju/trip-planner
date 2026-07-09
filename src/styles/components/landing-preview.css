@@ -97,6 +97,25 @@
   pointer-events: none;
 }
 
+.landing-product-frame .place-marker-label,
+.landing-workflow-product-frame .place-marker-label {
+  align-items: center;
+  border: 2px solid var(--surface-panel);
+  border-radius: 999px;
+  box-shadow: var(--shadow-place-marker);
+  color: var(--text-on-accent);
+  display: inline-flex;
+  flex: 0 0 18px;
+  font-size: 10px;
+  font-weight: 700;
+  height: 18px;
+  justify-content: center;
+  line-height: 1;
+  margin-right: 6px;
+  min-width: 18px;
+  width: 18px;
+}
+
 .landing-itinerary-stop .place-main > span {
   font-size: 12px;
   white-space: nowrap;

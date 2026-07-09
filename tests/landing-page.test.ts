@@ -190,6 +190,28 @@ describe("LandingPage", () => {
 
   });
 
+  it("keeps landing itinerary order numbers styled as compact marker badges", () => {
+    const css = fs.readFileSync(
+      "src/styles/components/landing-preview.css",
+      "utf8",
+    );
+    const markerRule = cssRule(
+      css,
+      ".landing-product-frame .place-marker-label,\n.landing-workflow-product-frame .place-marker-label",
+    );
+
+    expect(markerRule).toContain("align-items: center;");
+    expect(markerRule).toContain("border-radius: 999px;");
+    expect(markerRule).toContain("color: var(--text-on-accent);");
+    expect(markerRule).toContain("display: inline-flex;");
+    expect(markerRule).toContain("flex: 0 0 18px;");
+    expect(markerRule).toContain("font-size: 10px;");
+    expect(markerRule).toContain("height: 18px;");
+    expect(markerRule).toContain("justify-content: center;");
+    expect(markerRule).toContain("margin-right: 6px;");
+    expect(markerRule).toContain("width: 18px;");
+  });
+
   it("shows feature proof and steps below the workflow showcase", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
@@ -319,4 +341,13 @@ function cssMediaBlock(css: string, mediaQuery: string) {
   const nextMedia = css.indexOf("\n@media", start + mediaQuery.length);
 
   return css.slice(start, nextMedia === -1 ? undefined : nextMedia);
+}
+
+function cssRule(css: string, selector: string) {
+  const start = css.indexOf(`${selector} {`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = css.indexOf("\n}", start);
+  expect(end).toBeGreaterThanOrEqual(0);
+
+  return css.slice(start, end + 2);
 }
