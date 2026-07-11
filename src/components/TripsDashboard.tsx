@@ -41,6 +41,7 @@ export function defaultTripSectionOpenState(
 export function TripsDashboard(props: {
   userName?: string | null;
   userEmail?: string | null;
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const [trips, setTrips] = useState<TripSummary[]>([]);
@@ -74,6 +75,7 @@ export function TripsDashboard(props: {
   );
   const displayName = props.userName?.trim() || "Traveler";
   const userEmail = props.userEmail?.trim();
+  const isAdmin = props.isAdmin ?? false;
   const createCoverImage = getTripCoverImage({
     destination: form.destination,
     destinationSlug: form.destinationSlug,
@@ -191,6 +193,7 @@ export function TripsDashboard(props: {
           displayName={displayName}
           userEmail={userEmail}
           onLogout={logout}
+          isAdmin={isAdmin}
         />
 
         <section className="trips-main-pane">

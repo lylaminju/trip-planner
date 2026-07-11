@@ -24,5 +24,7 @@ export default async function TripsPage() {
         ? user.user_metadata.full_name
         : null;
 
-  return <TripsDashboard userName={userName} userEmail={user.email} />;
+  const isAdmin = !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
+
+  return <TripsDashboard userName={userName} userEmail={user.email} isAdmin={isAdmin} />;
 }

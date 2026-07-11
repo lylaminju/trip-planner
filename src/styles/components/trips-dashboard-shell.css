@@ -367,3 +367,130 @@
     transition: none;
   }
 }
+
+/* Admin nav in the rail */
+.trips-rail-nav {
+  display: grid;
+  gap: 4px;
+}
+
+.trips-rail-nav-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.trips-rail-nav-button:hover {
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.trips-rail-nav-button-active {
+  background: var(--accent-soft-bg);
+  color: var(--accent);
+}
+
+.trips-rail-nav-button-active:hover {
+  background: var(--accent-soft-bg);
+  color: var(--accent);
+}
+
+/* Admin dashboard page */
+.admin-page {
+  background: var(--surface-base);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px;
+}
+
+.admin-page-header {
+  align-items: baseline;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  max-width: 900px;
+}
+
+.admin-page-back {
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-page-back:hover {
+  color: var(--text);
+}
+
+.admin-page-header h1 {
+  color: var(--text);
+  font-size: 22px;
+  margin: 0;
+}
+
+.admin-page-content {
+  max-width: 900px;
+}
+
+/* Admin dashboard */
+.admin-dashboard {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-user-card {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-user-email {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-charts-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-chart-block {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-chart-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-chart-label span {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.admin-usage-chart {
+  display: block;
+  width: 100%;
+}

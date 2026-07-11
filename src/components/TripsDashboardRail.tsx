@@ -33,6 +33,7 @@ export function TripsDashboardRail(props: {
   displayName: string;
   userEmail?: string;
   onLogout: () => void;
+  isAdmin?: boolean;
 }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -122,6 +123,14 @@ export function TripsDashboardRail(props: {
             {props.userEmail && <span>{props.userEmail}</span>}
           </div>
         </section>
+
+        {props.isAdmin && (
+          <nav className="trips-rail-nav">
+            <a href="/dashboard" className="trips-rail-nav-button">
+              Dashboard
+            </a>
+          </nav>
+        )}
 
         <div className="trips-account-actions">
           <button type="button" onClick={logout}>
