@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
 import { SERVICE_TITLE } from "@/lib/service-brand";
+import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: SERVICE_TITLE,
-  description: "Local-first itinerary planner",
+  description: "View itineraries and routes at a glance",
 };
 
 export default function RootLayout({
