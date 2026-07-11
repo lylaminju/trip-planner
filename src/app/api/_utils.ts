@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import type { Session, User } from "@supabase/supabase-js";
 
 import {
+  AiGenerationRateLimitError,
+  AiPlannerConfigError,
   GoogleRoutesConfigError,
   GoogleRoutesUpstreamError,
-  ItineraryItemNotFoundError,
   GoogleMapsUrlUpstreamError,
   GoogleMapsUrlValidationError,
-  AiPlannerConfigError,
+  ItineraryItemNotFoundError,
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
   TripAccessDeniedError,
@@ -95,6 +96,10 @@ export function mapRouteError(error: unknown): NextResponse | null {
 
   if (error instanceof GoogleRoutesConfigError) {
     return jsonError(error.message, 503);
+  }
+
+  if (error instanceof AiGenerationRateLimitError) {
+    return jsonError(error.message, 429);
   }
 
   if (error instanceof AiPlannerConfigError) {

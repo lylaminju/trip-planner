@@ -30,12 +30,14 @@ type GenerationUpdate = {
 
 export async function createAiPlanGeneration(
   tripId: number,
+  userId: string,
   input: GenerationInsert,
 ): Promise<GenerationRecord> {
   const { data, error } = await getSupabaseClient()
     .from("ai_plan_generations")
     .insert({
       trip_id: tripId,
+      created_by_user_id: userId,
       status: input.status ?? "running",
       prompt_version: input.prompt_version,
       preferences_snapshot: input.preferences_snapshot,
@@ -47,6 +49,22 @@ export async function createAiPlanGeneration(
 
   if (error) throwSupabaseError(error);
   return data as GenerationRecord;
+}
+
+export async function countUserGenerationsToday(
+  userId: string,
+): Promise<number> {
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+
+  const { count, error } = await getSupabaseClient()
+    .from("ai_plan_generations")
+    .select("*", { count: "exact", head: true })
+    .eq("created_by_user_id", userId)
+    .gte("created_at", todayStart.toISOString());
+
+  if (error) throwSupabaseError(error);
+  return count ?? 0;
 }
 
 export async function updateAiPlanGeneration(

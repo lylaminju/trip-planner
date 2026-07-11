@@ -16,8 +16,13 @@ import {
   parseAiPlanningGenerationInput,
   parseAiPlanningPreferenceInput,
 } from "./ai-planning-preferences";
-import { AiPlannerConfigError, TripValidationError } from "./errors";
 import {
+  AiGenerationRateLimitError,
+  AiPlannerConfigError,
+  TripValidationError,
+} from "./errors";
+import {
+  countUserGenerationsToday,
   createAiPlanGeneration,
   replaceAiGeneratedBatch,
   updateAiPlanGeneration,
@@ -38,6 +43,7 @@ import { requireTripRole } from "./trip-access";
 import { getTripById } from "./trip-service";
 
 const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v1";
+const AI_GENERATION_DAILY_LIMIT = 30;
 
 export async function getAiPlanningSetupForRequest(
   tripId: number,
@@ -107,6 +113,14 @@ export async function generateAiItineraryForRequest(
 ): Promise<{ generationId: number; plannerSnapshot: PlannerSnapshot }> {
   const startedAt = Date.now();
   await requireTripRole(tripId, userId, "owner");
+
+  const todayCount = await countUserGenerationsToday(userId);
+  if (todayCount >= AI_GENERATION_DAILY_LIMIT) {
+    throw new AiGenerationRateLimitError(
+      "Daily AI generation limit reached. Please try again tomorrow.",
+    );
+  }
+
   const trip = await getTripById(tripId);
   ensureSupportedDestination(trip);
   const tripDates = tripDateRange(trip);
@@ -128,7 +142,7 @@ export async function generateAiItineraryForRequest(
     tripId,
     generationInput.preferences,
   );
-  const generation = await createAiPlanGeneration(tripId, {
+  const generation = await createAiPlanGeneration(tripId, userId, {
     prompt_version: AI_PLANNER_PROMPT_VERSION,
     preferences_snapshot: savedPreferences,
     candidate_count: candidates.length,

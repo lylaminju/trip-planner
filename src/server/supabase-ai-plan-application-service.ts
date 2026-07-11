@@ -38,6 +38,7 @@ import {
 } from "./supabase-ai-plan-batch-store";
 
 export {
+  countUserGenerationsToday,
   createAiPlanGeneration,
   updateAiPlanGeneration,
 } from "./supabase-ai-plan-generation-store";

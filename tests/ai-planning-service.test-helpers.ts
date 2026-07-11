@@ -42,6 +42,7 @@ export async function withMockedAiPlanningService(
     ...mocks.aiPlanner,
   }));
   vi.doMock("@/server/supabase-ai-plan-application-service", () => ({
+    countUserGenerationsToday: vi.fn().mockResolvedValue(0),
     createAiPlanGeneration: vi.fn(),
     updateAiPlanGeneration: vi.fn(),
     replaceAiGeneratedBatch: vi.fn(),

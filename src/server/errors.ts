@@ -73,3 +73,10 @@ export class AiPlannerConfigError extends Error {
     this.name = "AiPlannerConfigError";
   }
 }
+
+export class AiGenerationRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AiGenerationRateLimitError";
+  }
+}
