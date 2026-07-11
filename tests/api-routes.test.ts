@@ -810,6 +810,11 @@ describe("API routes transport behavior", () => {
 
   it("returns cached route geometry for a route segment", async () => {
     await withFreshTestEnv(async () => {
+      vi.doMock("@/server/supabase-google-routes-usage-store", () => ({
+        GOOGLE_ROUTES_DAILY_LIMIT: 200,
+        countUserGoogleRoutesCallsToday: vi.fn().mockResolvedValue(0),
+        recordGoogleRoutesCall: vi.fn().mockResolvedValue(undefined),
+      }));
       vi.doMock("@/server/route-geometry-service", () => ({
         getRouteGeometry: vi.fn().mockResolvedValue({
           segment_id: 12,

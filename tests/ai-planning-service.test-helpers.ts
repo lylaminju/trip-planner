@@ -48,6 +48,11 @@ export async function withMockedAiPlanningService(
     replaceAiGeneratedBatch: vi.fn(),
     ...mocks.aiPlanApplication,
   }));
+  vi.doMock("@/server/supabase-google-routes-usage-store", () => ({
+    GOOGLE_ROUTES_DAILY_LIMIT: 200,
+    countUserGoogleRoutesCallsToday: vi.fn().mockResolvedValue(0),
+    recordGoogleRoutesCall: vi.fn().mockResolvedValue(undefined),
+  }));
   vi.doMock("@/server/trip-access", () => ({
     requireTripRole:
       mocks.requireTripRole ?? vi.fn().mockResolvedValue(membership()),
@@ -63,6 +68,7 @@ export async function withMockedAiPlanningService(
     vi.doUnmock("@/server/supabase-ai-planning-service");
     vi.doUnmock("@/server/openai-ai-planner");
     vi.doUnmock("@/server/supabase-ai-plan-application-service");
+    vi.doUnmock("@/server/supabase-google-routes-usage-store");
     vi.doUnmock("@/server/trip-access");
     vi.doUnmock("@/server/trip-service");
     if (originalOpenAiApiKey === undefined) {

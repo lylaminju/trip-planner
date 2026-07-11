@@ -247,6 +247,7 @@ describe("ai-planning-service request boundary", () => {
       savedPreferences,
       null,
       "08:30",
+      "user-1",
     );
     expect(updateAiPlanGeneration).toHaveBeenLastCalledWith(
       55,
@@ -362,6 +363,7 @@ describe("ai-planning-service request boundary", () => {
       savedPreferences,
       lodging,
       "08:30",
+      "user-1",
     );
   });
 

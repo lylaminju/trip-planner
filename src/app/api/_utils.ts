@@ -5,6 +5,7 @@ import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
   GoogleRoutesConfigError,
+  GoogleRoutesRateLimitError,
   GoogleRoutesUpstreamError,
   GoogleMapsUrlUpstreamError,
   GoogleMapsUrlValidationError,
@@ -92,6 +93,10 @@ export function mapRouteError(error: unknown): NextResponse | null {
 
   if (error instanceof GoogleMapsUrlUpstreamError) {
     return jsonError(error.message, error.status);
+  }
+
+  if (error instanceof GoogleRoutesRateLimitError) {
+    return jsonError(error.message, 429);
   }
 
   if (error instanceof GoogleRoutesConfigError) {

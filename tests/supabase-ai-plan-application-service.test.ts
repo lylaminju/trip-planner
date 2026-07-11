@@ -52,7 +52,7 @@ describe("supabase AI plan application service", () => {
     );
 
     expect(getRouteGeometry).toHaveBeenCalledTimes(1);
-    expect(getRouteGeometry).toHaveBeenCalledWith(1, 301);
+    expect(getRouteGeometry).toHaveBeenCalledWith(1, 301, undefined);
     expect(updateCalls).toEqual([
       expect.objectContaining({
         filters: [
@@ -328,7 +328,7 @@ describe("supabase AI plan application service", () => {
         visit_time: "09:20",
       }),
     ]);
-    expect(getRouteGeometry).toHaveBeenCalledWith(1, 301);
+    expect(getRouteGeometry).toHaveBeenCalledWith(1, 301, undefined);
     expect(updateCalls).toEqual(expect.arrayContaining([
       expect.objectContaining({
         table: "route_segments",

@@ -18,6 +18,7 @@ docs/business
 .gemini/
 .kiro/
 .omx/
+.omc/
 .superpowers/
 tsconfig.tsbuildinfo
 data/*.sqlite

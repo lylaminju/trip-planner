@@ -58,6 +58,7 @@ export async function replaceAiGeneratedBatch(
   preferences: AiPlanningPreferenceInput,
   lodging: TripLodging | null = null,
   lodgingStartTime = AI_DEFAULT_DAILY_START_TIME,
+  userId?: string,
 ): Promise<PlannerSnapshot> {
   const candidateById = new Map(
     candidates.map((candidate) => [candidate.id, candidate]),
@@ -82,6 +83,7 @@ export async function replaceAiGeneratedBatch(
     candidateById,
     lodging: shouldMaterializeLodging ? lodging : null,
     preferredModes: preferences.preferred_travel_modes,
+    userId,
   });
   const firstVisitTravelDurationsByDate = routePlanDurationsByDate(
     firstVisitRoutePlansByDate,
@@ -137,12 +139,14 @@ export async function replaceAiGeneratedBatch(
       generatedVisits,
       preferences.preferred_travel_modes,
       firstVisitRoutePlansByDate,
+      userId,
     );
     await alignFirstGeneratedVisitsWithRouteGeometry(
       tripId,
       generatedVisits,
       taggedRouteSegments,
       firstVisitRoutePlansByDate,
+      userId,
     );
   } catch (error) {
     await deleteAiBatchForGeneration(tripId, generationId).catch(() => undefined);
@@ -157,6 +161,7 @@ async function buildFirstVisitRoutePlansByDate(input: {
   candidateById: Map<number, AiDestinationCandidate>;
   lodging: TripLodging | null;
   preferredModes: TravelMode[];
+  userId?: string;
 }): Promise<Map<string, GeneratedRoutePlan>> {
   const plansByDate = new Map<string, GeneratedRoutePlan>();
   if (!input.lodging) return plansByDate;
@@ -174,6 +179,7 @@ async function buildFirstVisitRoutePlansByDate(input: {
       input.lodging,
       candidate,
       input.preferredModes,
+      input.userId,
     );
     plansByDate.set(day.date, routePlan);
   }
@@ -197,6 +203,7 @@ async function resolveTravelPlan(
   from: Coordinates,
   to: Coordinates,
   preferredModes: TravelMode[],
+  userId?: string,
 ): Promise<GeneratedRoutePlan> {
   let walkingDurationSeconds: number | null | undefined;
   const mode = await chooseAiRouteMode({
@@ -208,6 +215,7 @@ async function resolveTravelPlan(
         from,
         to,
         "walking",
+        userId,
       );
       return walkingDurationSeconds;
     },
@@ -219,7 +227,7 @@ async function resolveTravelPlan(
 
   return {
     mode,
-    durationSeconds: await safeRouteDurationSeconds(from, to, mode),
+    durationSeconds: await safeRouteDurationSeconds(from, to, mode, userId),
   };
 }
 
@@ -227,9 +235,10 @@ async function safeRouteDurationSeconds(
   from: Coordinates,
   to: Coordinates,
   mode: TravelMode,
+  userId?: string,
 ): Promise<number | null> {
   try {
-    return await getRouteDurationSeconds({ from, to, mode });
+    return await getRouteDurationSeconds({ from, to, mode, userId });
   } catch {
     return null;
   }
@@ -241,6 +250,7 @@ async function tagGeneratedRouteSegments(
   visits: GeneratedVisitContext[],
   preferredModes: TravelMode[],
   firstVisitRoutePlansByDate: Map<string, GeneratedRoutePlan> = new Map(),
+  userId?: string,
 ): Promise<TaggedGeneratedRouteSegment[]> {
   const routePairs = buildGeneratedRoutePairs(visits);
   if (routePairs.length === 0) return [];
@@ -274,7 +284,7 @@ async function tagGeneratedRouteSegments(
         canProbeWalking: walkingProbeCount < AI_ROUTE_MODE_WALKING_PROBE_LIMIT,
         getWalkingDurationSeconds: async () => {
           walkingProbeCount += 1;
-          const geometry = await getRouteGeometry(tripId, segment.id);
+          const geometry = await getRouteGeometry(tripId, segment.id, userId);
           return geometry.status === "ok"
             ? (geometry.duration_seconds ?? null)
             : null;
@@ -293,6 +303,7 @@ async function alignFirstGeneratedVisitsWithRouteGeometry(
   visits: GeneratedVisitContext[],
   routeSegments: TaggedGeneratedRouteSegment[],
   firstVisitRoutePlansByDate: Map<string, GeneratedRoutePlan>,
+  userId?: string,
 ): Promise<void> {
   if (firstVisitRoutePlansByDate.size === 0) return;
 
@@ -313,7 +324,7 @@ async function alignFirstGeneratedVisitsWithRouteGeometry(
 
     const routeDurationSeconds =
       firstVisitRoutePlan.durationSeconds ??
-      (await routeDurationSecondsForSegment(tripId, segment.segmentId));
+      (await routeDurationSecondsForSegment(tripId, segment.segmentId, userId));
     if (routeDurationSeconds === null) continue;
 
     const adjustedVisitTime = visitTimeAfterRouteDuration(
@@ -335,9 +346,10 @@ async function alignFirstGeneratedVisitsWithRouteGeometry(
 async function routeDurationSecondsForSegment(
   tripId: number,
   segmentId: number,
+  userId?: string,
 ): Promise<number | null> {
   try {
-    const geometry = await getRouteGeometry(tripId, segmentId);
+    const geometry = await getRouteGeometry(tripId, segmentId, userId);
     return geometry?.status === "ok" ? (geometry.duration_seconds ?? null) : null;
   } catch {
     return null;

@@ -19,6 +19,7 @@ import {
 import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
+  GoogleRoutesRateLimitError,
   TripValidationError,
 } from "./errors";
 import {
@@ -27,6 +28,10 @@ import {
   replaceAiGeneratedBatch,
   updateAiPlanGeneration,
 } from "./supabase-ai-plan-application-service";
+import {
+  countUserGoogleRoutesCallsToday,
+  GOOGLE_ROUTES_DAILY_LIMIT,
+} from "./supabase-google-routes-usage-store";
 import {
   getPlanningPreferences,
   getPrimaryLodging,
@@ -118,6 +123,13 @@ export async function generateAiItineraryForRequest(
   if (todayCount >= AI_GENERATION_DAILY_LIMIT) {
     throw new AiGenerationRateLimitError(
       "Daily AI generation limit reached. Please try again tomorrow.",
+    );
+  }
+
+  const googleRoutesCount = await countUserGoogleRoutesCallsToday(userId);
+  if (googleRoutesCount >= GOOGLE_ROUTES_DAILY_LIMIT) {
+    throw new GoogleRoutesRateLimitError(
+      "Daily Google Routes limit reached. Please try again tomorrow.",
     );
   }
 
@@ -249,6 +261,7 @@ export async function generateAiItineraryForRequest(
       savedPreferences,
       lodging,
       generationInput.daily_start_time,
+      userId,
     );
     await updateAiPlanGeneration(generation.id, {
       status: "completed",

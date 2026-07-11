@@ -80,3 +80,10 @@ export class AiGenerationRateLimitError extends Error {
     this.name = "AiGenerationRateLimitError";
   }
 }
+
+export class GoogleRoutesRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GoogleRoutesRateLimitError";
+  }
+}

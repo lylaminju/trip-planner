@@ -2,6 +2,7 @@ import type { RouteGeometry, TravelMode } from "@/lib/types";
 import { RouteSegmentNotFoundError } from "@/server/errors";
 import { computeGoogleRoute } from "@/server/google-routes";
 import { getSupabaseClient } from "@/server/supabase";
+import { recordGoogleRoutesCall } from "@/server/supabase-google-routes-usage-store";
 
 type SegmentRouteRow = {
   segment_id: number;
@@ -101,6 +102,7 @@ export async function getRouteGeometry(
   tripId: number,
   segmentId: number,
   apiKey: string,
+  userId?: string,
 ): Promise<RouteGeometry> {
   const segment = await getSegmentRouteRow(tripId, segmentId);
   const cacheKey = routeGeometryCacheKey(segment);
@@ -122,6 +124,10 @@ export async function getRouteGeometry(
     },
     mode: segment.mode,
   });
+
+  if (userId) {
+    recordGoogleRoutesCall(userId).catch(() => {});
+  }
 
   await saveRouteGeometry(cacheKey, segment, computed);
   return { segment_id: segmentId, ...computed };
