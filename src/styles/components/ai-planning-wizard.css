@@ -103,11 +103,6 @@
   line-height: 1.2;
 }
 
-.ai-wizard-brand-subtitle {
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .ai-wizard-trip-card {
   background: var(--panel);
   border: 1px solid var(--line);

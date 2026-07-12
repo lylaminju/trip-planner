@@ -21,7 +21,7 @@ import {
   PaceStep,
   ReviewStep,
 } from "./ai-planning-wizard/AiPlanningWizardSteps";
-import { CloseIcon } from "./Icons";
+import { CloseIcon, MagicWandIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 
 type Props = {
@@ -168,13 +168,12 @@ export function AiPlanningWizard(props: Props) {
               <aside className="ai-wizard-rail">
                 <div className="ai-wizard-brand">
                   <span className="ai-wizard-brand-icon" aria-hidden="true">
-                    <SparkleIcon />
+                    <MagicWandIcon />
                   </span>
                   <div>
                     <div id="ai-planning-title" className="ai-wizard-brand-title">
                       Plan with AI
                     </div>
-                    <div className="ai-wizard-brand-subtitle">Guided setup</div>
                   </div>
                 </div>
 
@@ -323,7 +322,7 @@ export function AiPlanningWizard(props: Props) {
                           className="ai-wizard-primary-icon"
                           aria-hidden="true"
                         >
-                          <SparkleIcon />
+                          <MagicWandIcon />
                         </span>
                       )}
                       {isReviewStep ? "Create itinerary" : "Next"}
@@ -421,14 +420,6 @@ function AiGenerationScreen({
         <span className="ai-generation-bar-fill" />
       </div>
     </div>
-  );
-}
-
-function SparkleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2.5l1.7 6.4 6.3 1.7-6.3 1.7L12 21.5 10.3 12.3 4 10.6l6.3-1.7z" />
-    </svg>
   );
 }
 
