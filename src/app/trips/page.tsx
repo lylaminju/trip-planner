@@ -18,11 +18,13 @@ export default async function TripsPage() {
   }
 
   const userName =
-    typeof user.user_metadata?.name === "string"
-      ? user.user_metadata.name
-      : typeof user.user_metadata?.full_name === "string"
-        ? user.user_metadata.full_name
-        : null;
+    typeof user.user_metadata?.username === "string"
+      ? user.user_metadata.username
+      : typeof user.user_metadata?.name === "string"
+        ? user.user_metadata.name
+        : typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name
+          : null;
 
   const isAdmin = !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
 
