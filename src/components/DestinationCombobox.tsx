@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 
+import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
 import {
   filterDestinationOptions,
   findDestinationOption,
@@ -92,6 +93,11 @@ export function DestinationCombobox(props: {
                 <span className="destination-combobox-option-name">
                   {option.name}
                 </span>
+                {isAiPlanningDestinationSupported(option.slug) ? (
+                  <span className="destination-combobox-option-badge">
+                    🪄 AI-planning available
+                  </span>
+                ) : null}
               </button>
             );
           })}

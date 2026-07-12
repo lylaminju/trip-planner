@@ -1,4 +1,5 @@
 import { DESTINATIONS } from "../data/destinations";
+import { isAiPlanningDestinationSupported } from "./ai-planning";
 
 export type DestinationOption = {
   slug: string;
@@ -67,7 +68,13 @@ function destinationImagePath(slug: string): string {
 function sortDestinationOptions(
   options: DestinationOption[],
 ): DestinationOption[] {
-  return [...options].sort((first, second) =>
-    first.name.localeCompare(second.name),
-  );
+  return [...options].sort((first, second) => {
+    const firstAiSupported = isAiPlanningDestinationSupported(first.slug);
+    const secondAiSupported = isAiPlanningDestinationSupported(second.slug);
+    if (firstAiSupported !== secondAiSupported) {
+      return firstAiSupported ? -1 : 1;
+    }
+
+    return first.name.localeCompare(second.name);
+  });
 }
