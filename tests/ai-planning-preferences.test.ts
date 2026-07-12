@@ -39,6 +39,30 @@ describe("ai planning preference defaults", () => {
     });
   });
 
+  it("keeps the current interest-tag vocabulary and drops retired tags", () => {
+    expect(
+      buildAiPlanningPreferenceDraft(
+        setup({
+          preferences: {
+            trip_id: 1,
+            visits_per_day_min: 2,
+            visits_per_day_max: 3,
+            interest_tags: [
+              "local-vibe",
+              "food",
+              "kid-friendly",
+              "neighborhoods",
+            ],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [],
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          },
+        }),
+      ).interest_tags,
+    ).toEqual(["local-vibe", "food", "kid-friendly"]);
+  });
+
   it("accepts five visits per day as the upper bound", () => {
     expect(
       parseAiPlanningGenerationInput(

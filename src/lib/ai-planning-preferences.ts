@@ -9,7 +9,9 @@ export const AI_INTEREST_TAG_OPTIONS = [
   { value: "museums", label: "Museums" },
   { value: "nature", label: "Nature" },
   { value: "viewpoints", label: "Viewpoints" },
-  { value: "neighborhoods", label: "Neighborhoods" },
+  { value: "local-vibe", label: "Local vibe" },
+  { value: "food", label: "Food & markets" },
+  { value: "kid-friendly", label: "Kid-friendly" },
 ] as const;
 
 export const AI_TRAVEL_MODE_OPTIONS: {
