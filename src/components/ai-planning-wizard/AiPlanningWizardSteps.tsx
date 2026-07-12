@@ -104,11 +104,23 @@ export function InterestStep({ draft, onChange }: StepProps) {
   const count = draft.interest_tags.length;
   return (
     <div className="ai-choice-step">
-      <p className="ai-choice-count">
-        {count > 0
-          ? `${count} selected`
-          : "Nothing selected — that's fine, we'll keep it broad."}
-      </p>
+      <div className="ai-choice-header">
+        <span className="ai-choice-count">
+          {count > 0
+            ? `${count} selected`
+            : "Nothing selected — that's fine, we'll keep it broad."}
+        </span>
+        {count > 0 && (
+          <button
+            type="button"
+            className="ai-choice-clear"
+            aria-label="Clear selected interests"
+            onClick={() => onChange({ ...draft, interest_tags: [] })}
+          >
+            Clear
+          </button>
+        )}
+      </div>
       <div className="ai-chip-grid">
         {AI_INTEREST_TAG_OPTIONS.map((option) => {
           const isSelected = draft.interest_tags.includes(option.value);
@@ -235,11 +247,23 @@ export function MustSeeStep({
   const count = draft.must_see_candidate_ids.length;
   return (
     <div className="ai-choice-step">
-      <p className="ai-choice-count">
-        {count > 0
-          ? `${count} selected`
-          : "None selected — AI will pick the highlights."}
-      </p>
+      <div className="ai-choice-header">
+        <span className="ai-choice-count">
+          {count > 0
+            ? `${count} selected`
+            : "None selected — AI will pick the highlights."}
+        </span>
+        {count > 0 && (
+          <button
+            type="button"
+            className="ai-choice-clear"
+            aria-label="Clear selected must-sees"
+            onClick={() => onChange({ ...draft, must_see_candidate_ids: [] })}
+          >
+            Clear
+          </button>
+        )}
+      </div>
       <div className="ai-candidate-list">
         {candidates.map((candidate) => {
           const isSelected = draft.must_see_candidate_ids.includes(

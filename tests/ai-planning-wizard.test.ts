@@ -135,6 +135,21 @@ describe("AiPlanningWizard", () => {
 
     expect(markup).toContain("Village Vanguard");
     expect(markup).toContain("Online booking recommended.");
+    expect(markup).not.toContain('aria-label="Clear selected must-sees"');
+  });
+
+  it("shows a Clear control only once must-sees are selected", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MustSeeStep, {
+        candidates: [candidate(10, "Central Park", "park", ["nature"], "Manhattan")],
+        draft: { ...preferenceDraft(), must_see_candidate_ids: [10] },
+        onChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("1 selected");
+    expect(markup).toContain('aria-label="Clear selected must-sees"');
+    expect(markup).toContain(">Clear</button>");
   });
 });
 

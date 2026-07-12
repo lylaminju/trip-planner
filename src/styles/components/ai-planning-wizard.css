@@ -419,11 +419,38 @@
   gap: 12px;
 }
 
+.ai-choice-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  /* Reserve the Clear button's height so the row doesn't shift when it
+     appears/disappears with selection. */
+  min-height: 26px;
+}
+
 .ai-choice-count {
   color: var(--text-tertiary);
   font-size: 13px;
   font-weight: 700;
   margin: 0;
+}
+
+.ai-choice-clear {
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 6px;
+}
+
+.ai-choice-clear:hover {
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
 }
 
 /* Chips (interests + travel modes) */
