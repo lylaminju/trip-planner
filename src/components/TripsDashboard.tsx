@@ -74,6 +74,7 @@ export function TripsDashboard(props: {
     ],
     [featuredTrip, groups.needsDates, groups.ongoing, groups.upcoming],
   );
+  const isEmptyState = !isLoading && trips.length === 0;
   const displayName = props.userName?.trim() || "Traveler";
   const userEmail = props.userEmail?.trim();
   const isAdmin = props.isAdmin ?? false;
@@ -198,26 +199,28 @@ export function TripsDashboard(props: {
         />
 
         <section className="trips-main-pane">
-          <header className="trips-header">
-            <h1>Hi, {displayName}!</h1>
-            <div className="trips-header-actions">
-              <button
-                type="button"
-                className="trip-create-trigger"
-                aria-controls="create-trip-modal"
-                aria-expanded={isCreateModalOpen}
-                aria-haspopup="dialog"
-                onClick={openCreateModal}
-              >
-                + New Trip
-              </button>
-            </div>
-          </header>
+          {!isEmptyState && (
+            <header className="trips-header">
+              <h1>Hi, {displayName}!</h1>
+              <div className="trips-header-actions">
+                <button
+                  type="button"
+                  className="trip-create-trigger"
+                  aria-controls="create-trip-modal"
+                  aria-expanded={isCreateModalOpen}
+                  aria-haspopup="dialog"
+                  onClick={openCreateModal}
+                >
+                  + New Trip
+                </button>
+              </div>
+            </header>
+          )}
 
           {error && !isCreateModalOpen && <p className="error-text">{error}</p>}
           {isLoading ? (
             <p className="trip-empty-text">Loading trips...</p>
-          ) : trips.length === 0 ? (
+          ) : isEmptyState ? (
             <div className="trips-empty-state">
               <div className="trips-empty-state-card">
                 <span className="trips-empty-state-icon">
