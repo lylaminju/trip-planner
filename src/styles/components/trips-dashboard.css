@@ -563,6 +563,71 @@
   white-space: nowrap;
 }
 
+.trips-empty-state {
+  display: grid;
+  flex: 1;
+  min-height: 60vh;
+  place-items: center;
+  padding: 24px 0;
+}
+
+.trips-empty-state-card {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+  text-align: center;
+  width: 100%;
+}
+
+.trips-empty-state-icon {
+  align-items: center;
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  display: inline-flex;
+  height: 72px;
+  justify-content: center;
+  width: 72px;
+}
+
+.trips-empty-state-icon svg {
+  fill: none;
+  height: 34px;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.4;
+  width: 34px;
+}
+
+.trips-empty-state-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trips-empty-state-copy h2 {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.trips-empty-state-copy p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 auto;
+  max-width: 42ch;
+}
+
+.trips-empty-state-cta {
+  font-size: 15px;
+  padding: 11px 20px;
+}
+
 .trip-empty-bucket {
   align-items: center;
   background: var(--surface-panel);

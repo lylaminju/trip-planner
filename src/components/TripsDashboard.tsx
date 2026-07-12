@@ -10,6 +10,7 @@ import { errorMessage } from "@/lib/error-message";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
 import { CreateTripModal } from "./CreateTripModal";
+import { FoldedMapIcon } from "./Icons";
 import { TripsDashboardRail } from "./TripsDashboardRail";
 import { TripSection } from "./TripSection";
 import { tripMetadataPayloadFromForm } from "./trip-form-state";
@@ -216,6 +217,28 @@ export function TripsDashboard(props: {
           {error && !isCreateModalOpen && <p className="error-text">{error}</p>}
           {isLoading ? (
             <p className="trip-empty-text">Loading trips...</p>
+          ) : trips.length === 0 ? (
+            <div className="trips-empty-state">
+              <div className="trips-empty-state-card">
+                <span className="trips-empty-state-icon">
+                  <FoldedMapIcon />
+                </span>
+                <div className="trips-empty-state-copy">
+                  <h2>Plan your first trip</h2>
+                  <p>Map your stops, set the dates, and see the whole trip at a glance.</p>
+                </div>
+                <button
+                  type="button"
+                  className="trip-create-trigger trips-empty-state-cta"
+                  aria-controls="create-trip-modal"
+                  aria-expanded={isCreateModalOpen}
+                  aria-haspopup="dialog"
+                  onClick={openCreateModal}
+                >
+                  + New Trip
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="trip-sections">
               <TripSection
