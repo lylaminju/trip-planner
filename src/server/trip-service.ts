@@ -22,6 +22,7 @@ export async function getTripById(tripId: number): Promise<Trip> {
     .from("trips")
     .select(TRIP_SELECT_FIELDS)
     .eq("id", tripId)
+    .is("deleted_at", null)
     .single();
 
   if (error) throwSupabaseError(error);
@@ -54,6 +55,7 @@ export async function listTripsForRequest(
       "id",
       memberships.map((membership) => membership.trip_id),
     )
+    .is("deleted_at", null)
     .order("start_date", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
 
@@ -135,8 +137,9 @@ export async function deleteTripForRequest(
   await requireTripRole(tripId, userId, "owner");
   const { error } = await getSupabaseClient()
     .from("trips")
-    .delete()
-    .eq("id", tripId);
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", tripId)
+    .is("deleted_at", null);
 
   if (error) throwSupabaseError(error);
 }
