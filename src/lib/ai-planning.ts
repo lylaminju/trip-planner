@@ -2,6 +2,7 @@ export const AI_SUPPORTED_DESTINATION_SLUGS = [
   "new-york-city",
   "banff-national-park",
   "los-angeles",
+  "toronto",
 ] as const;
 
 export const AI_OPENING_HOURS_WARNING =

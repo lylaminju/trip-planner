@@ -10,6 +10,7 @@ import {
   findDestinationOption,
 } from "@/lib/destination-options";
 import { DEFAULT_TRIP_COVER_IMAGE, getTripCoverImage } from "@/lib/city-covers";
+import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
 
 describe("destination options", () => {
   it("provides a cover image for every curated destination", () => {
@@ -60,16 +61,31 @@ describe("destination options", () => {
     }
   });
 
-  it("returns dropdown options in alphabetical order", () => {
-    const destinationNames = DESTINATIONS.map(
-      (destination) => destination.name,
+  it("lists AI-planning destinations first, then alphabetical within each group", () => {
+    const options = filterDestinationOptions("");
+
+    // Every curated destination appears exactly once.
+    expect(options.map((option) => option.name).sort(byName)).toEqual(
+      DESTINATIONS.map((destination) => destination.name).sort(byName),
     );
 
-    expect(filterDestinationOptions("").map((option) => option.name)).toEqual(
-      [...destinationNames].sort((first, second) =>
-        first.localeCompare(second),
-      ),
+    // AI-supported destinations are grouped ahead of the unsupported ones.
+    const supportedFlags = options.map((option) =>
+      isAiPlanningDestinationSupported(option.slug),
     );
+    const firstUnsupported = supportedFlags.indexOf(false);
+    expect(supportedFlags.slice(0, firstUnsupported).every(Boolean)).toBe(true);
+    expect(supportedFlags.slice(firstUnsupported).some(Boolean)).toBe(false);
+
+    // Names stay alphabetical within each group.
+    const supportedNames = options
+      .filter((option) => isAiPlanningDestinationSupported(option.slug))
+      .map((option) => option.name);
+    const unsupportedNames = options
+      .filter((option) => !isAiPlanningDestinationSupported(option.slug))
+      .map((option) => option.name);
+    expect(supportedNames).toEqual([...supportedNames].sort(byName));
+    expect(unsupportedNames).toEqual([...unsupportedNames].sort(byName));
   });
 
   it("keeps the source destination list alphabetized by name", () => {
@@ -168,3 +184,7 @@ describe("destination options", () => {
     ).toBe(DEFAULT_TRIP_COVER_IMAGE);
   });
 });
+
+function byName(first: string, second: string): number {
+  return first.localeCompare(second);
+}

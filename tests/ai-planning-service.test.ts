@@ -49,7 +49,7 @@ describe("ai-planning-service request boundary", () => {
   });
 
   it("returns unsupported setup without reading AI planning tables", async () => {
-    const trip = tripRecord({ destination_slug: "toronto" });
+    const trip = tripRecord({ destination_slug: "montreal" });
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const getTripById = vi.fn().mockResolvedValue(trip);
     const listDestinationCandidates = vi.fn();
