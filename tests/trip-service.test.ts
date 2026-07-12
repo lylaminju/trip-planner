@@ -60,7 +60,79 @@ describe("trip-service", () => {
       vi.resetModules();
     }
   });
+
+  it("soft-deletes trips instead of removing the row", async () => {
+    const updates: Record<string, unknown>[] = [];
+    let deleteCalled = false;
+    vi.resetModules();
+    vi.doMock("@/server/trip-access", () => ({
+      requireTripRole: vi.fn().mockResolvedValue({
+        trip_id: 1,
+        user_id: "user-1",
+        role: "owner",
+        created_at: "2026-01-01T00:00:00.000Z",
+      }),
+    }));
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () =>
+        tripDeleteClient(updates, () => {
+          deleteCalled = true;
+        }),
+    }));
+
+    try {
+      const { deleteTripForRequest } = await import("@/server/trip-service");
+
+      await deleteTripForRequest(1, "user-1");
+
+      expect(deleteCalled).toBe(false);
+      expect(updates).toHaveLength(1);
+      expect(updates[0]).toHaveProperty("deleted_at");
+      expect(typeof updates[0].deleted_at).toBe("string");
+    } finally {
+      vi.doUnmock("@/server/trip-access");
+      vi.doUnmock("@/server/supabase");
+      vi.restoreAllMocks();
+      vi.resetModules();
+    }
+  });
 });
+
+function tripDeleteClient(
+  updates: Record<string, unknown>[],
+  onDelete: () => void,
+) {
+  return {
+    from(table: string) {
+      if (table !== "trips") {
+        throw new Error(`Unexpected table ${table}`);
+      }
+
+      return {
+        update(input: Record<string, unknown>) {
+          updates.push(input);
+          return {
+            eq() {
+              return {
+                async is() {
+                  return { error: null };
+                },
+              };
+            },
+          };
+        },
+        delete() {
+          onDelete();
+          return {
+            async eq() {
+              return { error: null };
+            },
+          };
+        },
+      };
+    },
+  };
+}
 
 function tripCreateClient(
   insertedTrips: Record<string, unknown>[],
@@ -130,8 +202,12 @@ function tripClient() {
           return {
             eq() {
               return {
-                async single() {
-                  return { data: storedTrip, error: null };
+                is() {
+                  return {
+                    async single() {
+                      return { data: storedTrip, error: null };
+                    },
+                  };
                 },
               };
             },

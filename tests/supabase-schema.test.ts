@@ -13,6 +13,13 @@ describe("supabase route segment reconciliation schema", () => {
     expect(schema).toContain("('new-york-city', 'New York City')");
   });
 
+  it("supports soft-deleting trips", () => {
+    expect(schema).toMatch(/deleted_at timestamptz/);
+    expect(schema).toMatch(
+      /add column if not exists deleted_at timestamptz/,
+    );
+  });
+
   it("defines a transaction-scoped RPC for route reconciliation", () => {
     expect(schema).toMatch(
       /create or replace function public\.reconcile_route_segments_for_trip\(p_trip_id bigint\)/,

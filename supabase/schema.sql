@@ -6,6 +6,7 @@ create table if not exists public.trips (
   destination_slug text,
   start_date date,
   end_date date,
+  deleted_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint trips_date_range_valid check (
@@ -22,6 +23,13 @@ alter table public.trips
 
 alter table public.trips
   add column if not exists destination_slug text;
+
+alter table public.trips
+  add column if not exists deleted_at timestamptz;
+
+create index if not exists idx_trips_active
+  on public.trips (id)
+  where deleted_at is null;
 
 alter table public.trips
   drop constraint if exists trips_timezone_not_blank;
