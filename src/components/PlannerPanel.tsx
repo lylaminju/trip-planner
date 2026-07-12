@@ -64,6 +64,7 @@ type Props = {
   onSelectSegment: (id: number | null) => void;
   onToggleDateCollapsed: (date: string) => void;
   onSelectDate: (date: string) => void;
+  onClearSelection: () => void;
   onSchedulePlace: (
     id: number,
     visitDate: string | null,
@@ -127,6 +128,14 @@ export function PlannerPanel(props: Props) {
     });
   }
 
+  function clearSelectionOnBackgroundClick(event: MouseEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("[data-planner-select]")) {
+      return;
+    }
+
+    props.onClearSelection();
+  }
+
   function confirmDeletion(targetLabel: string): boolean {
     return window.confirm(
       `Delete ${targetLabel}?\n\nThis action cannot be restored.`,
@@ -161,7 +170,10 @@ export function PlannerPanel(props: Props) {
           <span aria-hidden="true" />
         </button>
       </div>
-      <div className="mobile-sheet-content">
+      <div
+        className="mobile-sheet-content"
+        onClick={clearSelectionOnBackgroundClick}
+      >
         <header className="app-header">
           <div className="app-header-title-row">
             <div className="app-header-title-stack">

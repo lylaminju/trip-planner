@@ -58,7 +58,11 @@ export function SegmentRow({
   });
 
   return (
-    <div className={`segment-row ${active ? "active" : ""}`} onClick={onSelect}>
+    <div
+      className={`segment-row ${active ? "active" : ""}`}
+      data-planner-select
+      onClick={onSelect}
+    >
       <div
         className="route-mode-picker"
         onBlur={(event) => {

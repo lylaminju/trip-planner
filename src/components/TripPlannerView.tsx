@@ -90,6 +90,7 @@ type Props = {
   onToggleSegmentSelection: (id: number | null) => void;
   onToggleDateCollapsed: (date: string) => void;
   onSelectDate: (date: string) => void;
+  onClearSelection: () => void;
   onSchedulePlace: (
     id: number,
     visitDate: string | null,
@@ -171,6 +172,7 @@ export function TripPlannerView(props: Props) {
         onSelectSegment={props.onToggleSegmentSelection}
         onToggleDateCollapsed={props.onToggleDateCollapsed}
         onSelectDate={props.onSelectDate}
+        onClearSelection={props.onClearSelection}
         onSchedulePlace={(id, date, time) =>
           props.onSchedulePlace(id, date, time).catch((reason) => {
             props.onSetError(errorMessage(reason, "Failed to schedule place."));

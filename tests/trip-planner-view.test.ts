@@ -81,6 +81,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onToggleSegmentSelection: vi.fn(),
     onToggleDateCollapsed: vi.fn(),
     onSelectDate: vi.fn(),
+    onClearSelection: vi.fn(),
     onSchedulePlace: vi.fn().mockResolvedValue(undefined),
     onScheduleItineraryItem: vi.fn().mockResolvedValue(undefined),
     onDeleteItineraryItem: vi.fn().mockResolvedValue(undefined),

@@ -101,6 +101,7 @@ function plannerPanelProps(overrides: {
     onSelectSegment: vi.fn(),
     onToggleDateCollapsed: vi.fn(),
     onSelectDate: vi.fn(),
+    onClearSelection: vi.fn(),
     onSchedulePlace: vi.fn(),
     onScheduleItem: vi.fn(),
     onModeChange: vi.fn(),

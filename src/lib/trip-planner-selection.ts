@@ -73,6 +73,21 @@ export function selectDate(
   };
 }
 
+export function clearSelection(
+  selection: TripPlannerSelectionState,
+): TripPlannerSelectionState {
+  if (
+    selection.activeItemId === null &&
+    selection.activeCanonicalPlaceId === null &&
+    selection.activeSegmentId === null &&
+    selection.activeDate === null
+  ) {
+    return selection;
+  }
+
+  return EMPTY_TRIP_PLANNER_SELECTION;
+}
+
 export function clearSelectionForDeletedPlace(
   selection: TripPlannerSelectionState,
   placeId: number,

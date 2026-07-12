@@ -340,6 +340,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onToggleSegmentSelection={selection.toggleSegmentSelection}
       onToggleDateCollapsed={toggleDateCollapsed}
       onSelectDate={selection.selectDate}
+      onClearSelection={selection.clearSelection}
       onSchedulePlace={plannerMutations.schedulePlace}
       onScheduleItineraryItem={plannerMutations.scheduleItineraryItem}
       onDeleteItineraryItem={plannerMutations.deleteItineraryItem}

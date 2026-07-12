@@ -100,6 +100,7 @@ export function ItineraryDayBlock(props: Props) {
           <button
             type="button"
             className="day-heading-button"
+            data-planner-select
             aria-pressed={props.activeDate === props.day.date}
             onClick={() => props.onSelectDate(props.day.date)}
           >

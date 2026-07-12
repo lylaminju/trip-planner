@@ -86,6 +86,7 @@ export function ItineraryItemRow(props: {
           <button
             type="button"
             className="place-main visit-place-main"
+            data-planner-select
             onClick={props.onSelect}
           >
             <strong className="place-title">
@@ -147,7 +148,12 @@ export function PlaceListRow(props: {
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
-      <button type="button" className="place-main" onClick={props.onSelect}>
+      <button
+        type="button"
+        className="place-main"
+        data-planner-select
+        onClick={props.onSelect}
+      >
         <strong className="place-title">
           <span className="place-title-text">
             <span className="place-name">{display.title}</span>

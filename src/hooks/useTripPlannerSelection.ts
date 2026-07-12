@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import type { ItineraryItem } from "@/lib/types";
 import {
+  clearSelection as clearSelectionState,
   clearSelectionForDeletedItineraryItem,
   clearSelectionForDeletedPlace,
   EMPTY_TRIP_PLANNER_SELECTION,
@@ -28,6 +29,10 @@ export function useTripPlannerSelection() {
 
   const selectDate = useCallback((date: string) => {
     setSelection((current) => selectDateState(current, date));
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelection((current) => clearSelectionState(current));
   }, []);
 
   const clearActiveCanonicalPlace = useCallback(() => {
@@ -58,6 +63,7 @@ export function useTripPlannerSelection() {
     selectCanonicalPlace,
     toggleSegmentSelection,
     selectDate,
+    clearSelection,
     clearActiveCanonicalPlace,
     clearDeletedPlaceSelection,
     clearDeletedItineraryItemSelection,
