@@ -1,11 +1,9 @@
-import type { CSSProperties } from "react";
-
 import {
   AI_INTEREST_TAG_OPTIONS,
+  AI_PACE_PRESETS,
   AI_TRAVEL_MODE_OPTIONS,
-  AI_VISITS_PER_DAY_MAX,
-  AI_VISITS_PER_DAY_MIN,
-  formatVisitsPerDayRangeLabel,
+  describePace,
+  estimateStopCount,
 } from "@/lib/ai-planning-preferences";
 import type {
   AiDestinationCandidate,
@@ -18,65 +16,107 @@ type StepProps = {
   onChange: (draft: AiPlanningPreferenceInput) => void;
 };
 
-const VISITS_PER_DAY_TICKS = [1, 2, 3, 4, 5];
-
-export function PaceStep({ draft, onChange }: StepProps) {
+function CheckIcon() {
   return (
-    <fieldset className="ai-wizard-fieldset">
-      <legend>Visits per day</legend>
-      <div className="ai-visit-range-summary">
-        <span>Selected range</span>
-        <strong>
-          {formatVisitsPerDayRangeLabel(
-            draft.visits_per_day_min,
-            draft.visits_per_day_max,
-          )}
-        </strong>
+    <svg
+      className="ai-check-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
+export function PaceStep({
+  draft,
+  onChange,
+  days,
+}: StepProps & { days: number }) {
+  const stopsEstimate = estimateStopCount(
+    draft.visits_per_day_min,
+    draft.visits_per_day_max,
+    days,
+  );
+
+  return (
+    <div className="ai-pace-step">
+      <div className="ai-pace-grid" role="radiogroup" aria-label="Daily pace">
+        {AI_PACE_PRESETS.map((preset) => {
+          const isSelected =
+            draft.visits_per_day_min === preset.min &&
+            draft.visits_per_day_max === preset.max;
+          const rangeLabel =
+            preset.min === preset.max
+              ? `${preset.min} / day`
+              : `${preset.min}–${preset.max} / day`;
+          return (
+            <button
+              key={preset.label}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              className={isSelected ? "ai-pace-card selected" : "ai-pace-card"}
+              onClick={() =>
+                onChange({
+                  ...draft,
+                  visits_per_day_min: preset.min,
+                  visits_per_day_max: preset.max,
+                })
+              }
+            >
+              <span className="ai-pace-check" aria-hidden="true">
+                <CheckIcon />
+              </span>
+              <span className="ai-pace-dots" aria-hidden="true">
+                {[1, 2, 3, 4, 5].map((dot) => (
+                  <span
+                    key={dot}
+                    className={
+                      dot >= preset.min && dot <= preset.max
+                        ? "ai-pace-dot active"
+                        : "ai-pace-dot"
+                    }
+                  />
+                ))}
+              </span>
+              <span className="ai-pace-label">{preset.label}</span>
+              <span className="ai-pace-range">{rangeLabel}</span>
+              <span className="ai-pace-descriptor">{preset.descriptor}</span>
+            </button>
+          );
+        })}
       </div>
-      <VisitsPerDayRangeSlider
-        minValue={draft.visits_per_day_min}
-        maxValue={draft.visits_per_day_max}
-        onMinChange={(value) => {
-          onChange({
-            ...draft,
-            visits_per_day_min: Math.min(value, draft.visits_per_day_max),
-          });
-        }}
-        onMaxChange={(value) => {
-          onChange({
-            ...draft,
-            visits_per_day_min: Math.min(draft.visits_per_day_min, value),
-            visits_per_day_max: value,
-          });
-        }}
-      />
-      <div className="ai-range-ticks" aria-hidden="true">
-        {VISITS_PER_DAY_TICKS.map((value) => (
-          <span
-            key={value}
-            className="ai-range-tick"
-            style={rangePositionStyle(value)}
-          >
-            {value}
-          </span>
-        ))}
-      </div>
-    </fieldset>
+      <p className="ai-pace-estimate">
+        That&apos;s roughly <strong>{stopsEstimate} stops</strong> across your{" "}
+        {days} days.
+      </p>
+    </div>
   );
 }
 
 export function InterestStep({ draft, onChange }: StepProps) {
+  const count = draft.interest_tags.length;
   return (
-    <fieldset className="ai-wizard-fieldset">
-      <legend>Interests</legend>
-      <div className="ai-choice-grid">
+    <div className="ai-choice-step">
+      <p className="ai-choice-count">
+        {count > 0
+          ? `${count} selected`
+          : "Nothing selected — that's fine, we'll keep it broad."}
+      </p>
+      <div className="ai-chip-grid">
         {AI_INTEREST_TAG_OPTIONS.map((option) => {
           const isSelected = draft.interest_tags.includes(option.value);
           return (
             <button
               key={option.value}
               type="button"
-              className={isSelected ? "ai-choice selected" : "ai-choice"}
+              className={isSelected ? "ai-chip selected" : "ai-chip"}
               aria-pressed={isSelected}
               onClick={() =>
                 onChange({
@@ -90,7 +130,7 @@ export function InterestStep({ draft, onChange }: StepProps) {
           );
         })}
       </div>
-    </fieldset>
+    </div>
   );
 }
 
@@ -109,12 +149,13 @@ export function LogisticsStep({
   onDailyStartTimeChange: (value: string) => void;
   onLodgingGoogleMapsUrlChange: (value: string) => void;
 }) {
+  const modesEmpty = draft.preferred_travel_modes.length === 0;
+
   return (
-    <fieldset className="ai-wizard-fieldset">
-      <legend>Logistics</legend>
-      <div className="ai-logistics-section">
-        <span className="ai-logistics-label">Preferred travel modes</span>
-        <div className="ai-choice-grid">
+    <div className="ai-logistics-step">
+      <div className="ai-field-group">
+        <span className="ai-field-label">Travel modes</span>
+        <div className="ai-chip-grid">
           {AI_TRAVEL_MODE_OPTIONS.map((option) => {
             const isSelected = draft.preferred_travel_modes.includes(
               option.value,
@@ -123,7 +164,7 @@ export function LogisticsStep({
               <button
                 key={option.value}
                 type="button"
-                className={isSelected ? "ai-choice selected" : "ai-choice"}
+                className={isSelected ? "ai-chip selected" : "ai-chip"}
                 aria-pressed={isSelected}
                 onClick={() =>
                   onChange({
@@ -140,9 +181,15 @@ export function LogisticsStep({
             );
           })}
         </div>
+        {modesEmpty && (
+          <p className="ai-field-error" role="alert">
+            Pick at least one way to get around.
+          </p>
+        )}
       </div>
-      <label className="ai-start-time-field">
-        <span>Daily start time</span>
+
+      <label className="ai-field-group">
+        <span className="ai-field-label">Daily start time</span>
         <input
           type="time"
           value={dailyStartTime}
@@ -151,24 +198,32 @@ export function LogisticsStep({
           }
         />
       </label>
-      <label className="ai-lodging-url-field">
-        <span>Lodging Google Maps URL</span>
+
+      <label className="ai-field-group">
+        <span className="ai-field-label">
+          Where your days begin
+          <span className="ai-field-optional"> — optional</span>
+        </span>
         <input
           type="url"
           value={lodgingGoogleMapsUrl}
-          placeholder="https://maps.app.goo.gl/..."
+          placeholder="Paste a Google Maps link to where you're staying"
           onChange={(event) =>
             onLodgingGoogleMapsUrlChange(event.currentTarget.value)
           }
         />
+        <span className="ai-field-hint">
+          We route each day out from here and back.
+        </span>
       </label>
+
       {currentLodging && (
         <p className="ai-current-lodging">
           Current start point: <strong>{currentLodging.name}</strong>
-          {currentLodging.address ? ` - ${currentLodging.address}` : ""}
+          {currentLodging.address ? ` — ${currentLodging.address}` : ""}
         </p>
       )}
-    </fieldset>
+    </div>
   );
 }
 
@@ -177,121 +232,141 @@ export function MustSeeStep({
   draft,
   onChange,
 }: StepProps & { candidates: AiDestinationCandidate[] }) {
+  const count = draft.must_see_candidate_ids.length;
   return (
-    <fieldset className="ai-wizard-fieldset">
-      <legend>Must-see attractions</legend>
+    <div className="ai-choice-step">
+      <p className="ai-choice-count">
+        {count > 0
+          ? `${count} selected`
+          : "None selected — AI will pick the highlights."}
+      </p>
       <div className="ai-candidate-list">
         {candidates.map((candidate) => {
-          const isSelected = draft.must_see_candidate_ids.includes(candidate.id);
+          const isSelected = draft.must_see_candidate_ids.includes(
+            candidate.id,
+          );
           return (
-            <label key={candidate.id} className="ai-candidate-option">
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() =>
-                  onChange({
-                    ...draft,
-                    must_see_candidate_ids: toggleValue(
-                      draft.must_see_candidate_ids,
-                      candidate.id,
-                    ),
-                  })
-                }
-              />
-              <span>
-                <strong>{candidate.name}</strong>
-                <small>
+            <button
+              key={candidate.id}
+              type="button"
+              className={
+                isSelected ? "ai-candidate-card selected" : "ai-candidate-card"
+              }
+              aria-pressed={isSelected}
+              onClick={() =>
+                onChange({
+                  ...draft,
+                  must_see_candidate_ids: toggleValue(
+                    draft.must_see_candidate_ids,
+                    candidate.id,
+                  ),
+                })
+              }
+            >
+              <span className="ai-candidate-check" aria-hidden="true">
+                {isSelected && <CheckIcon />}
+              </span>
+              <span className="ai-candidate-body">
+                <span className="ai-candidate-name">{candidate.name}</span>
+                <span className="ai-candidate-meta">
                   {formatCategory(candidate.category)}
-                  {candidate.area ? ` - ${candidate.area}` : ""}
-                </small>
+                  {candidate.area ? ` · ${candidate.area}` : ""}
+                </span>
                 {candidate.planning_note && (
-                  <small>{candidate.planning_note}</small>
+                  <span className="ai-candidate-note">
+                    {candidate.planning_note}
+                  </span>
                 )}
               </span>
-            </label>
+            </button>
           );
         })}
-      </div>
-    </fieldset>
-  );
-}
-
-function VisitsPerDayRangeSlider({
-  minValue,
-  maxValue,
-  onMinChange,
-  onMaxChange,
-}: {
-  minValue: number;
-  maxValue: number;
-  onMinChange: (value: number) => void;
-  onMaxChange: (value: number) => void;
-}) {
-  const rangeStyle = {
-    "--ai-range-min": `${visitCountPercentage(minValue)}%`,
-    "--ai-range-max": `${visitCountPercentage(maxValue)}%`,
-  } as CSSProperties;
-  const isCollapsed = minValue === maxValue;
-  const sliderClassName = [
-    "ai-range-slider",
-    isCollapsed ? "is-collapsed" : "",
-    isCollapsed && minValue === AI_VISITS_PER_DAY_MAX
-      ? "is-collapsed-at-max"
-      : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <div
-      className={sliderClassName}
-      role="group"
-      aria-label="Visits per day range"
-      style={rangeStyle}
-    >
-      <div className="ai-range-slider-labels" aria-hidden="true">
-        <span>Min {minValue}</span>
-        <span>Max {maxValue}</span>
-      </div>
-      <div className="ai-range-slider-control">
-        <div className="ai-range-slider-track" aria-hidden="true">
-          <span className="ai-range-slider-selection" />
-        </div>
-        <input
-          className="ai-range-slider-input ai-range-slider-input-min"
-          type="range"
-          min={AI_VISITS_PER_DAY_MIN}
-          max={AI_VISITS_PER_DAY_MAX}
-          value={minValue}
-          aria-label={`Minimum visits per day, ${minValue}`}
-          onChange={(event) => onMinChange(Number(event.currentTarget.value))}
-        />
-        <input
-          className="ai-range-slider-input ai-range-slider-input-max"
-          type="range"
-          min={AI_VISITS_PER_DAY_MIN}
-          max={AI_VISITS_PER_DAY_MAX}
-          value={maxValue}
-          aria-label={`Maximum visits per day, ${maxValue}`}
-          onChange={(event) => onMaxChange(Number(event.currentTarget.value))}
-        />
       </div>
     </div>
   );
 }
 
-function visitCountPercentage(value: number): number {
+export function ReviewStep({
+  draft,
+  candidates,
+  dailyStartTime,
+  days,
+  onEditStep,
+}: {
+  draft: AiPlanningPreferenceInput;
+  candidates: AiDestinationCandidate[];
+  dailyStartTime: string;
+  days: number;
+  onEditStep: (stepIndex: number) => void;
+}) {
+  const stopsEstimate = estimateStopCount(
+    draft.visits_per_day_min,
+    draft.visits_per_day_max,
+    days,
+  );
+  const rows = [
+    {
+      label: "Pace",
+      value: `${describePace(draft.visits_per_day_min, draft.visits_per_day_max)} · ~${stopsEstimate} stops total`,
+      step: 0,
+    },
+    {
+      label: "Interests",
+      value: draft.interest_tags.length
+        ? labelsFor(draft.interest_tags, AI_INTEREST_TAG_OPTIONS).join(", ")
+        : "Open to anything",
+      step: 1,
+    },
+    {
+      label: "Getting around",
+      value: draft.preferred_travel_modes.length
+        ? labelsFor(
+            draft.preferred_travel_modes,
+            AI_TRAVEL_MODE_OPTIONS,
+          ).join(", ")
+        : "Not set",
+      step: 2,
+    },
+    { label: "Daily start", value: dailyStartTime || "09:00", step: 2 },
+    {
+      label: "Must-sees",
+      value: draft.must_see_candidate_ids.length
+        ? `${draft.must_see_candidate_ids.length} locked in`
+        : "None — let AI choose",
+      step: 3,
+    },
+  ];
+
   return (
-    ((value - AI_VISITS_PER_DAY_MIN) /
-      (AI_VISITS_PER_DAY_MAX - AI_VISITS_PER_DAY_MIN)) *
-    100
+    <div className="ai-review-step">
+      <div className="ai-review-table">
+        {rows.map((row) => (
+          <div key={row.label} className="ai-review-row">
+            <span className="ai-review-label">{row.label}</span>
+            <span className="ai-review-value">{row.value}</span>
+            <button
+              type="button"
+              className="ai-review-edit"
+              onClick={() => onEditStep(row.step)}
+            >
+              Edit
+            </button>
+          </div>
+        ))}
+      </div>
+      <p className="ai-review-note">
+        AI drafts from public info — double-check opening hours before you go.
+      </p>
+    </div>
   );
 }
 
-function rangePositionStyle(value: number): CSSProperties {
-  return {
-    "--ai-range-position": `${visitCountPercentage(value)}%`,
-  } as CSSProperties;
+function labelsFor<T extends string | number>(
+  values: T[],
+  options: readonly { value: T; label: string }[],
+): string[] {
+  const map = new Map(options.map((option) => [option.value, option.label]));
+  return values.map((value) => map.get(value)).filter(Boolean) as string[];
 }
 
 function toggleValue<T>(values: T[], value: T): T[] {

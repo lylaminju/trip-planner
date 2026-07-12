@@ -23,9 +23,9 @@ describe("AiPlanningWizard", () => {
       }),
     );
 
-    expect(markup).toContain("Preparing AI planner...");
-    expect(markup).not.toContain("Visits per day");
-    expect(markup).not.toContain("Must-see attractions");
+    expect(markup).toContain("Preparing AI planner…");
+    expect(markup).not.toContain("How full should each day feel?");
+    expect(markup).not.toContain("Anything you can't miss?");
   });
 
   it("renders the first wizard step without a destination summary subtitle", () => {
@@ -42,18 +42,18 @@ describe("AiPlanningWizard", () => {
 
     expect(markup).toContain('class="modal ai-planning-modal"');
     expect(markup).toContain("Plan with AI");
-    expect(markup).toContain("Step 1 of 4");
+    expect(markup).toContain("Step 1 of 5");
     expect(markup).not.toContain("New York City - ");
     expect(markup).not.toContain("2 curated attractions");
-    expect(markup).toContain("Visits per day");
-    expect(markup).toContain("2-3 visits/day");
-    expect(markup).toContain('aria-label="Visits per day range"');
-    expect(markup).toContain('aria-label="Minimum visits per day, 2"');
-    expect(markup).toContain('aria-label="Maximum visits per day, 3"');
-    expect(countOccurrences(markup, 'class="ai-range-slider-track"')).toBe(1);
-    expect(markup).toContain(
-      'class="ai-range-tick" style="--ai-range-position:100%">5</span>',
-    );
+    expect(markup).toContain("How full should each day feel?");
+    expect(markup).toContain("Relaxed");
+    expect(markup).toContain("Balanced");
+    expect(markup).toContain("Packed");
+    // 2026-05-27 to 2026-05-29 inclusive = 3 days; ~((2+3)/2)*3 = 8 stops.
+    expect(markup).toContain("May 27 – May 29");
+    expect(markup).toContain("3 days");
+    expect(markup).toContain("8 stops");
+    expect(markup).toContain("across your 3 days");
     expect(markup).toContain("Next");
   });
 
@@ -69,13 +69,13 @@ describe("AiPlanningWizard", () => {
       }),
     );
 
-    expect(markup).toContain('class="ai-generation-loading"');
+    expect(markup).toContain('class="ai-generation-screen"');
     expect(markup).toContain('role="status"');
     expect(markup).toContain("Creating itinerary");
     expect(markup).toContain('class="ai-generation-icons"');
-    expect(markup).not.toContain("Step 1 of 4");
-    expect(markup).not.toContain("Visits per day");
-    expect(markup).not.toContain("Creating...");
+    expect(markup).toContain("Building your New York City itinerary");
+    expect(markup).not.toContain("Step 1 of 5");
+    expect(markup).not.toContain("How full should each day feel?");
   });
 
   it("renders an optional lodging Google Maps URL on the logistics step", () => {
@@ -104,11 +104,11 @@ describe("AiPlanningWizard", () => {
       }),
     );
 
-    expect(markup).toContain("Preferred travel modes");
+    expect(markup).toContain("Travel modes");
     expect(markup).toContain("Daily start time");
     expect(markup).toContain('type="time"');
     expect(markup).toContain('value="08:30"');
-    expect(markup).toContain("Lodging Google Maps URL");
+    expect(markup).toContain("Where your days begin");
     expect(markup).toContain('type="url"');
     expect(markup).toContain("Pod Times Square");
   });
@@ -144,10 +144,6 @@ describe("formatVisitsPerDayRangeLabel", () => {
     expect(formatVisitsPerDayRangeLabel(3, 3)).toBe("3 visits/day");
   });
 });
-
-function countOccurrences(value: string, search: string): number {
-  return value.split(search).length - 1;
-}
 
 function preferenceDraft(): AiPlanningPreferenceInput {
   return {

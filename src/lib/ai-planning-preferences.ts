@@ -27,6 +27,35 @@ export const AI_TRAVEL_MODE_OPTIONS: {
 export const AI_VISITS_PER_DAY_MIN = 1;
 export const AI_VISITS_PER_DAY_MAX = 5;
 
+export const AI_PACE_PRESETS = [
+  {
+    label: "Relaxed",
+    min: 1,
+    max: 2,
+    descriptor: "Slow mornings, room to wander.",
+  },
+  {
+    label: "Balanced",
+    min: 2,
+    max: 3,
+    descriptor: "A full day without the rush.",
+  },
+  {
+    label: "Packed",
+    min: 3,
+    max: 5,
+    descriptor: "Fit in as much as you can.",
+  },
+] as const;
+
+const MS_PER_DAY = 86_400_000;
+
+const SHORT_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+  month: "short",
+  day: "numeric",
+});
+
 export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   visits_per_day_min: 2,
   visits_per_day_max: 3,
@@ -82,6 +111,37 @@ export function formatVisitsPerDayRangeLabel(
 
 export function isAiInterestTag(value: string): boolean {
   return INTEREST_TAG_VALUES.has(value);
+}
+
+export function describePace(minVisits: number, maxVisits: number): string {
+  if (maxVisits <= 2) return "Relaxed";
+  if (minVisits >= 3) return "Packed";
+  return "Balanced";
+}
+
+export function estimateStopCount(
+  minVisits: number,
+  maxVisits: number,
+  days: number,
+): number {
+  return Math.round(((minVisits + maxVisits) / 2) * days);
+}
+
+export function countTripDays(startDate: string, endDate: string): number {
+  const start = Date.parse(`${startDate}T00:00:00Z`);
+  const end = Date.parse(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 1;
+  return Math.round((end - start) / MS_PER_DAY) + 1;
+}
+
+export function formatTripDateRangeShort(
+  startDate: string,
+  endDate: string,
+): string {
+  const start = SHORT_DATE_FORMATTER.format(new Date(`${startDate}T00:00:00Z`));
+  if (startDate === endDate) return start;
+  const end = SHORT_DATE_FORMATTER.format(new Date(`${endDate}T00:00:00Z`));
+  return `${start} – ${end}`;
 }
 
 function clampVisitCount(value: number): number {
