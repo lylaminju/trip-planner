@@ -239,7 +239,7 @@ export async function generateAiItineraryForRequest(
           failure_reason: "AI itinerary response could not be validated.",
         });
         throw new TripValidationError(
-          "AI itinerary response could not be validated.",
+          "The AI planner couldn't create an itinerary with your current preferences. Please try again.",
         );
       }
 
