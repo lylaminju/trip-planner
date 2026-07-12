@@ -282,7 +282,7 @@
 .landing-workflow-map-marker text {
   dominant-baseline: central;
   fill: var(--text-on-accent);
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
   font-size: 3px;
   font-weight: 700;
   text-anchor: middle;

@@ -19,7 +19,7 @@ body:has(.sign-in-page-shell) {
   background: var(--landing-bg);
   color: var(--landing-text);
   display: grid;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
   justify-content: stretch;
   min-height: 100vh;
   min-height: 100dvh;
@@ -218,7 +218,7 @@ body:has(.sign-in-page-shell) {
 
 .landing-access-copy {
   color: var(--landing-text-soft);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
   line-height: 1.45;
   margin: 14px 0 0;
@@ -364,7 +364,11 @@ body:has(.sign-in-page-shell) {
 }
 
 .landing-steps-panel::before {
-  background-image: radial-gradient(circle at 1px 1px, var(--landing-steps-dot) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--landing-steps-dot) 1px,
+    transparent 0
+  );
   background-size: 22px 22px;
   content: "";
   inset: 0;
@@ -448,7 +452,7 @@ body:has(.sign-in-page-shell) {
   border-top: 1px solid var(--landing-border);
   color: var(--landing-text-inverse-muted);
   display: flex;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-size: 11.5px;
   margin: 70px auto 0;
   padding: 30px 24px 50px;
