@@ -72,11 +72,15 @@ describe("TripsDashboard", () => {
     );
     expect(markup).toContain('class="modal trip-create-modal"');
     expect(markup).toContain("Create trip");
-    expect(markup).toContain('class="destination-combobox"');
+    expect(markup).toContain(
+      'class="destination-combobox destination-combobox-has-icon"',
+    );
     expect(markup).toContain('placeholder="Search or type destination"');
-    expect(markup).toContain('class="trip-form-cover"');
+    expect(markup).toContain('aria-label="AI-planning available"');
+    expect(markup).toContain('class="trip-create-hero"');
+    expect(markup).toContain("Pick a destination to see it come alive");
     expect(markup).toContain('class="trip-date-range-picker"');
-    expect(markup).toContain("Add dates");
+    expect(markup).toContain("Add your dates");
     expect(markup).not.toContain('type="date"');
     expect(markup).toContain("Cancel");
     expect(markup.indexOf("Cancel")).toBeLessThan(
@@ -148,7 +152,7 @@ describe("TripsDashboard", () => {
     expect(
       defaultTripSectionOpenState(
         [
-            buildTripSummary({
+          buildTripSummary({
             id: 12,
             start_date: "2026-07-01",
             end_date: "2026-07-02",
@@ -170,7 +174,7 @@ describe("TripsDashboard", () => {
     expect(
       defaultTripSectionOpenState(
         [
-            buildTripSummary({
+          buildTripSummary({
             id: 14,
             name: "Past only",
             start_date: "2025-07-01",
@@ -301,7 +305,6 @@ describe("TripsDashboard", () => {
 
     expect(cssRule(css, "html")).toContain("scrollbar-gutter: stable;");
   });
-
 });
 
 function markupBetween(markup: string, className: string, tag: string) {

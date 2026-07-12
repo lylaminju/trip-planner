@@ -6,10 +6,12 @@ import {
   useState,
   type FocusEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 
 import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
 import {
+  countryNameFromCode,
   filterDestinationOptions,
   findDestinationOption,
 } from "@/lib/destination-options";
@@ -18,6 +20,8 @@ export function DestinationCombobox(props: {
   value: string;
   onChange: (destination: string) => void;
   inputId?: string;
+  leadingIcon?: ReactNode;
+  showPreview?: boolean;
 }) {
   const generatedInputId = useId();
   const listId = useId();
@@ -55,8 +59,17 @@ export function DestinationCombobox(props: {
     }
   }
 
+  const wrapperClassName = props.leadingIcon
+    ? "destination-combobox destination-combobox-has-icon"
+    : "destination-combobox";
+
   return (
-    <div className="destination-combobox" onBlur={closeOnBlur}>
+    <div className={wrapperClassName} onBlur={closeOnBlur}>
+      {props.leadingIcon ? (
+        <span className="destination-combobox-icon" aria-hidden="true">
+          {props.leadingIcon}
+        </span>
+      ) : null}
       <input
         id={inputId}
         value={props.value}
@@ -79,6 +92,9 @@ export function DestinationCombobox(props: {
         <div className="destination-combobox-list" id={listId} role="listbox">
           {filteredOptions.map((option) => {
             const isSelected = matchedOption?.slug === option.slug;
+            const countryName = props.showPreview
+              ? countryNameFromCode(option.countryCode)
+              : null;
 
             return (
               <button
@@ -90,12 +106,50 @@ export function DestinationCombobox(props: {
                 role="option"
                 aria-selected={isSelected}
               >
-                <span className="destination-combobox-option-name">
-                  {option.name}
-                </span>
+                {props.showPreview ? (
+                  <span
+                    className="destination-combobox-option-thumb"
+                    style={{ backgroundImage: `url("${option.imagePath}")` }}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {props.showPreview ? (
+                  <span className="destination-combobox-option-text">
+                    <span className="destination-combobox-option-name">
+                      {option.name}
+                    </span>
+                    {countryName ? (
+                      <span className="destination-combobox-option-country">
+                        {countryName}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : (
+                  <span className="destination-combobox-option-name">
+                    {option.name}
+                  </span>
+                )}
                 {isAiPlanningDestinationSupported(option.slug) ? (
-                  <span className="destination-combobox-option-badge">
-                    🪄 AI-planning available
+                  <span
+                    className="destination-combobox-option-badge"
+                    aria-label="AI-planning available"
+                  >
+                    <span
+                      className="destination-combobox-option-badge-icon"
+                      aria-hidden="true"
+                    >
+                      🪄
+                    </span>
+                    <span className="destination-combobox-option-badge-text">
+                      AI-planning available
+                    </span>
+                    <span
+                      className="destination-combobox-option-badge-short"
+                      aria-hidden="true"
+                    >
+                      <span>🪄 AI</span>
+                      <span>Planning</span>
+                    </span>
                   </span>
                 ) : null}
               </button>

@@ -45,6 +45,28 @@ export function findDestinationOption(
   );
 }
 
+const COUNTRY_NAME_FORMATTER = new Intl.DisplayNames(["en"], {
+  type: "region",
+});
+
+export function countryNameFromCode(
+  countryCode: string | null | undefined,
+): string | null {
+  if (!countryCode) return null;
+
+  try {
+    return COUNTRY_NAME_FORMATTER.of(countryCode) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function countryLabelForDestination(
+  value: string | null | undefined,
+): string | null {
+  return countryNameFromCode(findDestinationOption(value)?.countryCode);
+}
+
 export function normalizeDestinationText(
   value: string | null | undefined,
 ): string {

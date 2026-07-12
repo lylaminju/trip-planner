@@ -2,7 +2,10 @@
 
 import type { SubmitEvent } from "react";
 
+import { countryLabelForDestination } from "@/lib/destination-options";
+
 import { DestinationCombobox } from "./DestinationCombobox";
+import { CloseIcon, MapPinIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { TripDateRangePicker } from "./TripDateRangePicker";
 import {
@@ -22,11 +25,11 @@ type Props = {
 };
 
 export function CreateTripModal(props: Props) {
+  const hasDestination = Boolean(props.form.destination.trim());
+  const countryLabel = countryLabelForDestination(props.form.destinationSlug);
+
   return (
-    <ModalShell
-      className="trip-create-modal-backdrop"
-      onClose={props.onCancel}
-    >
+    <ModalShell className="trip-create-modal-backdrop" onClose={props.onCancel}>
       <form
         aria-labelledby="create-trip-title"
         aria-modal="true"
@@ -35,71 +38,104 @@ export function CreateTripModal(props: Props) {
         role="dialog"
         onSubmit={props.onSubmit}
       >
-        <header className="modal-header">
-          <h2 id="create-trip-title">Create trip</h2>
+        <div
+          className="trip-create-hero"
+          style={
+            hasDestination
+              ? { backgroundImage: `url("${props.coverImage}")` }
+              : undefined
+          }
+        >
+          {hasDestination ? (
+            <>
+              <div className="trip-create-hero-scrim" aria-hidden="true" />
+              <div className="trip-create-hero-meta">
+                <span className="trip-create-hero-title" id="create-trip-title">
+                  {props.form.destination}
+                </span>
+                {countryLabel ? (
+                  <span className="trip-create-hero-country">
+                    {countryLabel}
+                  </span>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="trip-create-hero-empty">
+              <span className="trip-create-hero-empty-icon" aria-hidden="true">
+                <MapPinIcon />
+              </span>
+              <span id="create-trip-title">
+                Pick a destination to see it come alive
+              </span>
+            </div>
+          )}
           <button
             type="button"
-            className="icon-button"
+            className="trip-create-hero-close"
             onClick={props.onCancel}
             aria-label="Close"
           >
-            X
+            <CloseIcon />
           </button>
-        </header>
+        </div>
 
-        {props.error && (
-          <p className="error-text trip-create-error" role="alert">
-            {props.error}
-          </p>
-        )}
+        <div className="trip-create-body">
+          {props.error && (
+            <p className="error-text trip-create-error" role="alert">
+              {props.error}
+            </p>
+          )}
 
-        <label className="trip-form-name">
-          <span>Name</span>
-          <input
-            value={props.form.name}
-            onChange={(event) =>
-              props.onChange(
-                updateTripFormField(
-                  props.form,
-                  "name",
-                  event.currentTarget.value,
-                ),
-              )
-            }
-            required
-            autoFocus
-          />
-        </label>
+          <label className="trip-create-field trip-create-name-field">
+            <span className="trip-create-field-label">Trip name</span>
+            <input
+              className="trip-create-name-input"
+              value={props.form.name}
+              onChange={(event) =>
+                props.onChange(
+                  updateTripFormField(
+                    props.form,
+                    "name",
+                    event.currentTarget.value,
+                  ),
+                )
+              }
+              required
+              autoFocus
+            />
+          </label>
 
-        <label className="trip-form-destination">
-          <span>Destination</span>
-          <DestinationCombobox
-            value={props.form.destination}
-            onChange={(destination) =>
-              props.onChange(tripDestinationFormChange(props.form, destination))
-            }
-          />
-        </label>
+          <div className="trip-create-field">
+            <span className="trip-create-field-label">Destination</span>
+            <DestinationCombobox
+              value={props.form.destination}
+              leadingIcon={<MapPinIcon />}
+              showPreview
+              onChange={(destination) =>
+                props.onChange(
+                  tripDestinationFormChange(props.form, destination),
+                )
+              }
+            />
+          </div>
 
-        <div
-          className="trip-form-cover"
-          aria-hidden="true"
-          style={{ backgroundImage: `url("${props.coverImage}")` }}
-        />
+          <div className="trip-create-field trip-create-dates-field">
+            <TripDateRangePicker
+              startDate={props.form.startDate}
+              endDate={props.form.endDate}
+              onChange={(range) =>
+                props.onChange({
+                  ...props.form,
+                  startDate: range.startDate,
+                  endDate: range.endDate,
+                })
+              }
+            />
+          </div>
+        </div>
 
-        <TripDateRangePicker
-          startDate={props.form.startDate}
-          endDate={props.form.endDate}
-          onChange={(range) =>
-            props.onChange({
-              ...props.form,
-              startDate: range.startDate,
-              endDate: range.endDate,
-            })
-          }
-        />
-
-        <footer className="modal-actions trip-form-actions">
+        <footer className="modal-actions trip-form-actions trip-create-footer">
           <button
             type="button"
             className="trip-form-cancel"

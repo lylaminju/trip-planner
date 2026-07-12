@@ -1,15 +1,13 @@
 "use client";
 
-import {
-  type ChangeEvent,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "./Icons";
+import {
+  CalendarIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "./Icons";
 import {
   buildTripCalendarMonth,
   formatTripDateRangeSummary,
@@ -48,10 +46,17 @@ type Props = TripDateRangeValue & {
 export function TripDateRangePicker(props: Props) {
   const calendarId = useId();
   const pickerRef = useRef<HTMLDivElement | null>(null);
+  const monthJumpRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isMonthJumpOpen, setIsMonthJumpOpen] = useState(false);
   const [hoverDate, setHoverDate] = useState<string | null>(null);
   const [anchorMonth, setAnchorMonth] = useState(() =>
     monthKeyFromDateOrMonth(props.startDate || todayIsoDate()),
+  );
+  const [monthJumpYear, setMonthJumpYear] = useState(() =>
+    tripCalendarYearFromMonthKey(
+      monthKeyFromDateOrMonth(props.startDate || todayIsoDate()),
+    ),
   );
   const currentYear = tripCalendarYearFromMonthKey(
     monthKeyFromDateOrMonth(todayIsoDate()),
@@ -62,6 +67,8 @@ export function TripDateRangePicker(props: Props) {
     () => visibleTripCalendarYears(currentYear),
     [currentYear],
   );
+  const minJumpYear = yearOptions[0];
+  const maxJumpYear = yearOptions[yearOptions.length - 1];
   const monthKeys = useMemo(
     () => visibleTripCalendarMonths(anchorMonth),
     [anchorMonth],
@@ -99,12 +106,39 @@ export function TripDateRangePicker(props: Props) {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isMonthJumpOpen) {
+      return;
+    }
+
+    function closeMonthJumpOnOutsidePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !monthJumpRef.current?.contains(event.target)
+      ) {
+        setIsMonthJumpOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "pointerdown",
+      closeMonthJumpOnOutsidePointerDown,
+    );
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        closeMonthJumpOnOutsidePointerDown,
+      );
+    };
+  }, [isMonthJumpOpen]);
+
   function toggleOpen() {
     const nextAnchorMonth = monthKeyFromDateOrMonth(
       props.startDate || todayIsoDate(),
     );
 
     setAnchorMonth(nextAnchorMonth);
+    setIsMonthJumpOpen(false);
     setIsOpen((current) => !current);
   }
 
@@ -112,22 +146,24 @@ export function TripDateRangePicker(props: Props) {
     setAnchorMonth(monthKey);
   }
 
-  function shiftVisibleMonth(offset: number) {
-    showMonth(shiftTripCalendarMonth(anchorMonth, offset));
+  function openMonthJump() {
+    setMonthJumpYear(anchorYear);
+    setIsMonthJumpOpen(true);
   }
 
-  function changeVisibleMonth(event: ChangeEvent<HTMLSelectElement>) {
-    showMonth(monthKeyFromYearMonth(anchorYear, Number(event.target.value)));
-  }
-
-  function changeVisibleYear(event: ChangeEvent<HTMLSelectElement>) {
-    showMonth(
-      monthKeyFromYearMonth(Number(event.target.value), anchorMonthNumber),
+  function shiftMonthJumpYear(offset: number) {
+    setMonthJumpYear((current) =>
+      Math.min(Math.max(current + offset, minJumpYear), maxJumpYear),
     );
   }
 
-  function jumpToThisMonth() {
-    showMonth(monthKeyFromDateOrMonth(todayIsoDate()));
+  function pickMonthJumpMonth(monthNumber: number) {
+    showMonth(monthKeyFromYearMonth(monthJumpYear, monthNumber));
+    setIsMonthJumpOpen(false);
+  }
+
+  function shiftVisibleMonth(offset: number) {
+    showMonth(shiftTripCalendarMonth(anchorMonth, offset));
   }
 
   function selectDate(isoDate: string) {
@@ -170,7 +206,19 @@ export function TripDateRangePicker(props: Props) {
         aria-labelledby={`${calendarId}-label ${calendarId}-summary`}
         onClick={toggleOpen}
       >
-        <span id={`${calendarId}-summary`}>{summary}</span>
+        <span className="trip-date-range-trigger-icon" aria-hidden="true">
+          <CalendarIcon />
+        </span>
+        <span
+          id={`${calendarId}-summary`}
+          className={
+            props.startDate
+              ? "trip-date-range-trigger-value"
+              : "trip-date-range-trigger-placeholder"
+          }
+        >
+          {props.startDate ? summary : "Add your dates"}
+        </span>
       </button>
 
       {isOpen && (
@@ -180,116 +228,160 @@ export function TripDateRangePicker(props: Props) {
           role="dialog"
           aria-label="Date range calendar"
         >
-          <div className="trip-date-calendar-header">
-            <button
-              type="button"
-              className="trip-date-nav-button"
-              aria-label="Previous month"
-              onClick={() => shiftVisibleMonth(-1)}
-            >
-              <ChevronLeftIcon />
-            </button>
-            <div className="trip-date-calendar-selects">
-              <label>
-                <span className="sr-only">Visible month</span>
-                <select
-                  className="trip-date-month-select"
-                  aria-label="Visible month"
-                  value={anchorMonthNumber}
-                  onChange={changeVisibleMonth}
+          {isMonthJumpOpen ? (
+            <div className="trip-date-month-jump" ref={monthJumpRef}>
+              <div className="trip-date-calendar-header">
+                <button
+                  type="button"
+                  className="trip-date-nav-button"
+                  aria-label="Previous year"
+                  disabled={monthJumpYear <= minJumpYear}
+                  onClick={() => shiftMonthJumpYear(-1)}
                 >
-                  {MONTH_OPTIONS.map((monthLabel, index) => (
-                    <option key={monthLabel} value={index + 1}>
+                  <ChevronLeftIcon />
+                </button>
+                <span className="trip-date-month-jump-year">
+                  {monthJumpYear}
+                </span>
+                <button
+                  type="button"
+                  className="trip-date-nav-button"
+                  aria-label="Next year"
+                  disabled={monthJumpYear >= maxJumpYear}
+                  onClick={() => shiftMonthJumpYear(1)}
+                >
+                  <ChevronRightIcon />
+                </button>
+              </div>
+              <div className="trip-date-month-jump-grid">
+                {MONTH_OPTIONS.map((monthLabel, index) => {
+                  const monthNumber = index + 1;
+                  const isSelected =
+                    monthJumpYear === anchorYear &&
+                    monthNumber === anchorMonthNumber;
+                  return (
+                    <button
+                      type="button"
+                      key={monthLabel}
+                      className={
+                        isSelected
+                          ? "trip-date-month-jump-option trip-date-month-jump-option-selected"
+                          : "trip-date-month-jump-option"
+                      }
+                      aria-pressed={isSelected}
+                      onClick={() => pickMonthJumpMonth(monthNumber)}
+                    >
                       {monthLabel}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="sr-only">Visible year</span>
-                <select
-                  className="trip-date-year-select"
-                  aria-label="Visible year"
-                  value={anchorYear}
-                  onChange={changeVisibleYear}
-                >
-                  {yearOptions.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <button
-              type="button"
-              className="trip-date-nav-button"
-              aria-label="Next month"
-              onClick={() => shiftVisibleMonth(1)}
-            >
-              <ChevronRightIcon />
-            </button>
-          </div>
-
-          <div className="trip-date-calendar-months">
-            {months.map((month) => (
-              <section
-                className="trip-date-calendar-month"
-                key={month.monthKey}
-                aria-label={month.label}
-              >
-                <h3>{month.label}</h3>
-                <div className="trip-date-calendar-grid">
-                  {WEEKDAYS.map((weekday) => (
-                    <span className="trip-date-calendar-weekday" key={weekday}>
-                      {weekday}
-                    </span>
+          ) : (
+            <>
+              <div className="trip-date-calendar-header">
+                <button
+                  type="button"
+                  className="trip-date-nav-button"
+                  aria-label="Previous month"
+                  onClick={() => shiftVisibleMonth(-1)}
+                >
+                  <ChevronLeftIcon />
+                </button>
+                <div className="trip-date-calendar-month-jumps">
+                  {months.map((month, index) => (
+                    <button
+                      type="button"
+                      key={month.monthKey}
+                      className={
+                        index === 0
+                          ? "trip-date-month-jump-toggle"
+                          : "trip-date-month-jump-toggle trip-date-month-jump-toggle-secondary"
+                      }
+                      aria-haspopup="true"
+                      aria-expanded={isMonthJumpOpen}
+                      title="Jump to month"
+                      onClick={openMonthJump}
+                    >
+                      {month.label}
+                      <ChevronDownIcon />
+                    </button>
                   ))}
-                  {month.days.map((day, index) =>
-                    day ? (
-                      <button
-                        type="button"
-                        key={day.isoDate}
-                        className={dayClassName(
-                          day.isoDate,
-                          {
-                            startDate: props.startDate,
-                            endDate: props.endDate,
-                          },
-                          previewRange,
-                        )}
-                        aria-pressed={
-                          day.isoDate === props.startDate ||
-                          day.isoDate === props.endDate
-                        }
-                        onClick={() => selectDate(day.isoDate)}
-                        onFocus={() => setHoverDate(day.isoDate)}
-                        onMouseEnter={() => setHoverDate(day.isoDate)}
-                      >
-                        {day.day}
-                      </button>
-                    ) : (
-                      <span
-                        className="trip-date-calendar-empty"
-                        key={`${month.monthKey}-blank-${index}`}
-                      />
-                    ),
-                  )}
                 </div>
-              </section>
-            ))}
-          </div>
+                <button
+                  type="button"
+                  className="trip-date-nav-button"
+                  aria-label="Next month"
+                  onClick={() => shiftVisibleMonth(1)}
+                >
+                  <ChevronRightIcon />
+                </button>
+              </div>
 
-          <div className="trip-date-calendar-actions">
+              <div className="trip-date-calendar-months">
+                {months.map((month) => (
+                  <section
+                    className="trip-date-calendar-month"
+                    key={month.monthKey}
+                    aria-label={month.label}
+                  >
+                    <div className="trip-date-calendar-grid">
+                      {WEEKDAYS.map((weekday) => (
+                        <span
+                          className="trip-date-calendar-weekday"
+                          key={weekday}
+                        >
+                          {weekday}
+                        </span>
+                      ))}
+                      {month.days.map((day, index) =>
+                        day ? (
+                          <button
+                            type="button"
+                            key={day.isoDate}
+                            className={dayClassName(
+                              day.isoDate,
+                              {
+                                startDate: props.startDate,
+                                endDate: props.endDate,
+                              },
+                              previewRange,
+                            )}
+                            aria-pressed={
+                              day.isoDate === props.startDate ||
+                              day.isoDate === props.endDate
+                            }
+                            onClick={() => selectDate(day.isoDate)}
+                            onFocus={() => setHoverDate(day.isoDate)}
+                            onMouseEnter={() => setHoverDate(day.isoDate)}
+                          >
+                            {day.day}
+                          </button>
+                        ) : (
+                          <span
+                            className="trip-date-calendar-empty"
+                            key={`${month.monthKey}-blank-${index}`}
+                          />
+                        ),
+                      )}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div
+            className={
+              isMonthJumpOpen
+                ? "trip-date-calendar-actions trip-date-calendar-actions-hidden"
+                : "trip-date-calendar-actions"
+            }
+            aria-hidden={isMonthJumpOpen}
+          >
             <button
               type="button"
-              className="trip-date-this-month-button"
-              onClick={jumpToThisMonth}
-            >
-              This month
-            </button>
-            <button
-              type="button"
+              className="trip-date-clear-button"
               disabled={!props.startDate && !props.endDate}
               onClick={clearDates}
             >
@@ -330,12 +422,23 @@ function dayClassName(
   previewRange: TripDateRangeValue,
 ): string {
   const classNames = ["trip-date-day"];
-  if (isoDate === selectedRange.startDate) {
-    classNames.push("trip-date-day-selected-start");
-  }
+  const isStart = isoDate === selectedRange.startDate;
+  const isEnd = isoDate === selectedRange.endDate;
+  const isSingle =
+    isStart &&
+    (!selectedRange.endDate ||
+      selectedRange.endDate === selectedRange.startDate);
 
-  if (isoDate === selectedRange.endDate) {
-    classNames.push("trip-date-day-selected-end");
+  if (isSingle) {
+    classNames.push("trip-date-day-selected-single");
+  } else {
+    if (isStart) {
+      classNames.push("trip-date-day-selected-start");
+    }
+
+    if (isEnd) {
+      classNames.push("trip-date-day-selected-end");
+    }
   }
 
   if (

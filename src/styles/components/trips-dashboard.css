@@ -26,7 +26,7 @@
 .destination-combobox-popover {
   background: var(--surface-panel);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: var(--shadow-popover);
   left: 0;
   padding: 6px;
@@ -51,21 +51,59 @@
 
 .destination-combobox-option {
   align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: var(--text);
+  cursor: pointer;
   display: flex;
+  gap: 11px;
   justify-content: flex-start;
   min-width: 0;
-  padding: 8px;
+  padding: 8px 9px;
   text-align: left;
   width: 100%;
 }
 
+.destination-combobox-option:hover:not(:disabled),
+.destination-combobox-option:focus-visible {
+  background: var(--surface-subtle);
+  outline: none;
+}
+
+.destination-combobox-option-thumb {
+  background-color: var(--surface-subtle);
+  background-position: center;
+  background-size: cover;
+  border-radius: 8px;
+  flex: none;
+  height: 30px;
+  width: 30px;
+}
+
+.destination-combobox-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.destination-combobox-option-country {
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .destination-combobox-option[aria-selected="true"] {
-  border-color: var(--accent-selected-border);
   color: var(--accent);
 }
 
 .destination-combobox-option-name {
   color: inherit;
+  font-size: 14px;
+  font-weight: 600;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -73,17 +111,45 @@
 }
 
 .destination-combobox-option-badge {
+  align-items: center;
   background: var(--accent-soft-bg);
   border: 1px solid var(--accent-soft-border);
   border-radius: 999px;
   color: var(--accent);
+  display: inline-flex;
   flex-shrink: 0;
+  gap: 4px;
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1;
   margin-left: auto;
   padding: 4px 8px;
   white-space: nowrap;
+}
+
+.destination-combobox-option-badge-short {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .destination-combobox-option-badge-icon,
+  .destination-combobox-option-badge-text {
+    display: none;
+  }
+
+  .destination-combobox-option-badge-short {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+
+  .destination-combobox-option-badge {
+    gap: 0;
+    padding: 3px 7px;
+  }
 }
 
 .destination-combobox-custom-option {
