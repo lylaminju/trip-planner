@@ -18,6 +18,7 @@ describe("MapPanel empty state", () => {
     const markup = renderToStaticMarkup(
       createElement(MapPanel, {
         itinerary,
+        destinationFocus: null,
         routeSegments: [],
         activePlaceId: null,
         activeCanonicalPlaceId: null,
@@ -53,6 +54,7 @@ describe("MapPanel empty state", () => {
     const markup = renderToStaticMarkup(
       createElement(MapPanel, {
         itinerary,
+        destinationFocus: null,
         routeSegments: [],
         activePlaceId: null,
         activeCanonicalPlaceId: null,

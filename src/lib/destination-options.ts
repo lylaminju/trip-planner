@@ -5,7 +5,16 @@ export type DestinationOption = {
   slug: string;
   name: string;
   countryCode: string;
+  latitude: number;
+  longitude: number;
+  zoom: number;
   imagePath: string;
+};
+
+export type DestinationFocus = {
+  latitude: number;
+  longitude: number;
+  zoom: number;
 };
 
 export const DESTINATION_OPTIONS: DestinationOption[] = DESTINATIONS.map(
@@ -43,6 +52,19 @@ export function findDestinationOption(
       );
     }) ?? null
   );
+}
+
+export function findDestinationFocus(
+  value: string | null | undefined,
+): DestinationFocus | null {
+  const option = findDestinationOption(value);
+  if (!option) return null;
+
+  return {
+    latitude: option.latitude,
+    longitude: option.longitude,
+    zoom: option.zoom,
+  };
 }
 
 const COUNTRY_NAME_FORMATTER = new Intl.DisplayNames(["en"], {

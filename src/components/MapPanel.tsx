@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type { CurrentLocationPosition } from "@/lib/current-location";
+import type { DestinationFocus } from "@/lib/destination-options";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   getSelectedDatePositions,
@@ -13,6 +14,7 @@ import {
 import type { ItineraryView, RouteGeometry, RouteSegment } from "@/lib/types";
 
 import { CoordinateFallback } from "./map-panel/CoordinateFallback";
+import { focusMapOnDestination } from "./map-panel/map-destination";
 import { loadGoogleMaps } from "./map-panel/google-maps-loader";
 import { MapPanelChrome } from "./map-panel/MapPanelChrome";
 import {
@@ -36,6 +38,7 @@ import {
 
 type Props = {
   itinerary: ItineraryView;
+  destinationFocus: DestinationFocus | null;
   routeSegments: RouteSegment[];
   activePlaceId: number | null;
   activeCanonicalPlaceId: number | null;
@@ -66,6 +69,7 @@ export function MapPanel(props: Props) {
     null,
   );
   const boundsSignatureRef = useRef<string>("");
+  const focusedDestinationRef = useRef<string | null>(null);
   const infoWindowRef = useRef<any>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -401,6 +405,38 @@ export function MapPanel(props: Props) {
     props.hidden,
     props.mobileSheetState,
     routeSegmentsSignature,
+  ]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const focus = props.destinationFocus;
+    if (
+      !apiKey ||
+      loadFailed ||
+      !isMapReady ||
+      !map ||
+      props.hidden ||
+      hasPlaces ||
+      !focus
+    ) {
+      return;
+    }
+
+    const signature = `${focus.latitude},${focus.longitude},${focus.zoom}`;
+    if (focusedDestinationRef.current === signature) {
+      return;
+    }
+
+    focusedDestinationRef.current = signature;
+    focusMapOnDestination(map, focus, props.mobileSheetState);
+  }, [
+    apiKey,
+    hasPlaces,
+    isMapReady,
+    loadFailed,
+    props.destinationFocus,
+    props.hidden,
+    props.mobileSheetState,
   ]);
 
   if (!apiKey || loadFailed) {

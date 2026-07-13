@@ -20,6 +20,7 @@ import {
   isAiPlanningDestinationSupported,
 } from "@/lib/ai-planning";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
+import { findDestinationFocus } from "@/lib/destination-options";
 import { errorMessage } from "@/lib/error-message";
 import { buildVisitDateOptions } from "@/lib/itinerary";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
@@ -102,6 +103,10 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
   const itinerary = useMemo(
     () => buildItineraryForTrip(plannerSnapshot, trip),
     [plannerSnapshot, trip],
+  );
+  const destinationFocus = useMemo(
+    () => findDestinationFocus(trip?.destination_slug ?? trip?.destination),
+    [trip?.destination_slug, trip?.destination],
   );
   const visitDateOptions = useMemo(
     () => buildVisitDateOptions(toTripDateRange(trip)),
@@ -292,6 +297,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       isPlannerPanelExpanded={isPlannerPanelExpanded}
       tripTitle={tripTitle}
       tripPeriodLabel={tripPeriodLabel}
+      destinationFocus={destinationFocus}
       itinerary={itinerary}
       plannerSnapshot={plannerSnapshot}
       activeItemId={selection.activeItemId}

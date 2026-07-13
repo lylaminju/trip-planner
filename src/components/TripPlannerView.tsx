@@ -3,6 +3,7 @@
 import type { SubmitEvent } from "react";
 
 import type { CurrentLocationPosition } from "@/lib/current-location";
+import type { DestinationFocus } from "@/lib/destination-options";
 import { errorMessage } from "@/lib/error-message";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
@@ -44,6 +45,7 @@ type Props = {
   isPlannerPanelExpanded: boolean;
   tripTitle: string;
   tripPeriodLabel: string | null;
+  destinationFocus: DestinationFocus | null;
   itinerary: ItineraryView;
   plannerSnapshot: PlannerSnapshot;
   activeItemId: number | null;
@@ -202,6 +204,7 @@ export function TripPlannerView(props: Props) {
       />
       <MapPanel
         itinerary={props.itinerary}
+        destinationFocus={props.destinationFocus}
         routeSegments={props.plannerSnapshot.routeSegments}
         activePlaceId={props.activeItemId}
         activeCanonicalPlaceId={props.activeCanonicalPlaceId}
