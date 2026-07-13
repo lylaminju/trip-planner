@@ -2,61 +2,120 @@
 
 import { useState, type SubmitEvent } from "react";
 
-import { nullableValue, stringValue } from "@/lib/form-data";
+import type { ResolvedPlace } from "@/lib/planner-api";
 import type { Place, VisitDateOption } from "@/lib/types";
-import {
-  composeVisitTime,
-  HOUR_OPTIONS,
-  MINUTE_OPTIONS,
-  splitVisitTime,
-} from "@/lib/visit-time";
 
 import { TrashIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
-import { VisitDateField } from "./VisitDateField";
 
 type Props = {
   place: Place | null;
   visitDateOptions: VisitDateOption[];
   defaultVisitDate?: string | null;
   onCancel: () => void;
+  onResolveUrl: (googleMapsUrl: string) => Promise<ResolvedPlace>;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
 };
+
+const TIME_PRESETS = [
+  { label: "9 AM", value: "09:00" },
+  { label: "2 PM", value: "14:00" },
+  { label: "7 PM", value: "19:00" },
+] as const;
+
+const WEEKDAY_FORMAT = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+  weekday: "short",
+});
+
+function weekdayLabel(iso: string): string {
+  return WEEKDAY_FORMAT.format(new Date(`${iso}T00:00:00Z`));
+}
 
 export function AddEditPlaceModal({
   place,
   visitDateOptions,
   defaultVisitDate,
   onCancel,
+  onResolveUrl,
   onSave,
 }: Props) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [links, setLinks] = useState<string[]>(place?.links ?? [""]);
-  const [visitTimeHour, visitTimeMinute] = splitVisitTime(null);
   const isEditing = place !== null;
 
-  async function submit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSaving(true);
-    setError(null);
+  const [step, setStep] = useState<1 | 2>(isEditing ? 2 : 1);
+  const [url, setUrl] = useState(place?.google_maps_url ?? "");
+  const [canonicalUrl, setCanonicalUrl] = useState(place?.google_maps_url ?? "");
+  const [name, setName] = useState(place?.name ?? "");
+  const [hasResolvedName, setHasResolvedName] = useState(isEditing);
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    defaultVisitDate ?? null,
+  );
+  const [visitTime, setVisitTime] = useState<string | null>(null);
+  const [notesOpen, setNotesOpen] = useState(isEditing);
+  const [notes, setNotes] = useState(place?.notes ?? "");
+  const [links, setLinks] = useState<string[]>(
+    place?.links?.length ? place.links : [""],
+  );
+  const [isResolving, setIsResolving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const form = new FormData(event.currentTarget);
-    const payload: Record<string, unknown> = {
-      google_maps_url: stringValue(form, "google_maps_url"),
-      name: stringValue(form, "name"),
-      address: nullableValue(form, "address"),
-      notes: nullableValue(form, "notes"),
-      links: links.map((link) => link.trim()).filter(Boolean),
-    };
-    if (!isEditing) {
-      payload.visit_date = nullableValue(form, "visit_date");
-      payload.visit_time = composeVisitTime(
-        stringValue(form, "visit_time_hour"),
-        stringValue(form, "visit_time_minute"),
-      );
+  async function handleResolve(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = url.trim();
+    if (!trimmed) {
+      setError("Paste a Google Maps link first.");
+      return;
     }
 
+    setIsResolving(true);
+    setError(null);
+    try {
+      const resolved = await onResolveUrl(trimmed);
+      setCanonicalUrl(resolved.google_maps_url);
+      setName(resolved.name ?? "");
+      setHasResolvedName(resolved.name !== null);
+      setStep(2);
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "Failed to resolve link.",
+      );
+    } finally {
+      setIsResolving(false);
+    }
+  }
+
+  async function handleSave(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isEditing && !url.trim()) {
+      setError("Google Maps link is required.");
+      return;
+    }
+    if (!name.trim()) {
+      setError("Add a name for this place.");
+      return;
+    }
+
+    const trimmedLinks = links.map((link) => link.trim()).filter(Boolean);
+    const payload: Record<string, unknown> = isEditing
+      ? {
+          google_maps_url: url.trim(),
+          name: name.trim(),
+          notes: notes.trim() || null,
+          links: trimmedLinks,
+        }
+      : {
+          google_maps_url: canonicalUrl || url.trim(),
+          name: name.trim(),
+          notes: notes.trim() || null,
+          links: trimmedLinks,
+          visit_date: selectedDate,
+          visit_time: selectedDate ? visitTime : null,
+        };
+
+    setIsSaving(true);
+    setError(null);
     try {
       await onSave(payload);
     } catch (reason) {
@@ -67,141 +126,303 @@ export function AddEditPlaceModal({
     }
   }
 
+  const title = isEditing ? "Edit place" : "Add place";
+
   return (
     <ModalShell onClose={onCancel}>
-      <form className="modal" onSubmit={submit}>
-        <header className="modal-header">
-          <h2>{isEditing ? "Edit Place" : "Add Place"}</h2>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onCancel}
-            aria-label="Close"
-          >
-            X
-          </button>
+      <div className="modal place-modal">
+        <header className="place-modal-header">
+          <div className="place-modal-header-left">
+            {!isEditing && step === 2 && (
+              <button
+                type="button"
+                className="place-modal-back"
+                aria-label="Back"
+                onClick={() => {
+                  setStep(1);
+                  setError(null);
+                }}
+              >
+                ←
+              </button>
+            )}
+            <h2>{title}</h2>
+          </div>
+          <div className="place-modal-header-right">
+            {!isEditing && (
+              <div className="place-steps" aria-hidden="true">
+                <span className="place-step-dot place-step-dot--active" />
+                <span
+                  className={
+                    step === 2
+                      ? "place-step-dot place-step-dot--active"
+                      : "place-step-dot"
+                  }
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              className="place-modal-close"
+              onClick={onCancel}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </header>
 
-        <label>
-          Google Maps URL
-          <input
-            name="google_maps_url"
-            required
-            defaultValue={place?.google_maps_url ?? ""}
-          />
-        </label>
-
-        <label>
-          Name
-          <input
-            name="name"
-            required={isEditing}
-            defaultValue={place?.name ?? ""}
-            placeholder="Auto-filled when possible"
-          />
-        </label>
-
-        <label>
-          Address
-          <input name="address" defaultValue={place?.address ?? ""} />
-        </label>
-
-        {!isEditing && (
-          <div className="form-grid">
-            <VisitDateField
-              label="Initial visit date"
-              name="visit_date"
-              defaultValue={defaultVisitDate}
-              options={visitDateOptions}
-            />
-            <div className="time-picker">
-              <span className="field-label">Initial visit time</span>
-              <div className="time-picker-grid">
-                <select name="visit_time_hour" defaultValue={visitTimeHour}>
-                  <option value="">Hour</option>
-                  {HOUR_OPTIONS.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  name="visit_time_minute"
-                  defaultValue={visitTimeMinute || "00"}
-                >
-                  {MINUTE_OPTIONS.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
+        {!isEditing && step === 1 ? (
+          <form className="place-paste" onSubmit={handleResolve}>
+            <div className="place-paste-intro">
+              <div className="place-paste-icon" aria-hidden="true">
+                🔗
               </div>
+              <p className="place-paste-title">Paste a Google Maps link</p>
+              <p className="place-paste-hint">
+                Share a place from Google Maps and we&apos;ll pull in its name
+                and pin automatically.
+              </p>
             </div>
-          </div>
-        )}
-
-        <label>
-          Place notes
-          <textarea name="notes" rows={5} defaultValue={place?.notes ?? ""} />
-        </label>
-
-        <fieldset className="modal-links-fieldset">
-          <legend>Links</legend>
-          <div className="modal-links-list">
-            {links.map((link, index) => (
-              <div key={index} className="modal-link-row">
+            <input
+              className="place-paste-input"
+              value={url}
+              onChange={(event) => setUrl(event.currentTarget.value)}
+              placeholder="https://maps.app.goo.gl/…"
+              autoFocus
+              aria-label="Google Maps link"
+            />
+            {error && <p className="error-text">{error}</p>}
+            <button
+              type="submit"
+              className="place-primary-button"
+              disabled={isResolving}
+            >
+              {isResolving && <span className="place-spinner" />}
+              Continue
+            </button>
+          </form>
+        ) : (
+          <form className="place-details" onSubmit={handleSave}>
+            <div className="place-resolved">
+              <div className="place-resolved-pin" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                </svg>
+              </div>
+              <div className="place-resolved-body">
                 <input
-                  type="url"
-                  value={link}
-                  placeholder="https://example.com"
-                  onChange={(event) => {
-                    const nextValue = event.currentTarget.value;
-                    setLinks((current) =>
-                      current.map((value, valueIndex) =>
-                        valueIndex === index ? nextValue : value,
-                      ),
-                    );
-                  }}
+                  className="place-resolved-name"
+                  value={name}
+                  onChange={(event) => setName(event.currentTarget.value)}
+                  placeholder="Place name"
+                  aria-label="Place name"
                 />
-                <button
-                  type="button"
-                  className="icon-button danger-button"
-                  aria-label="Remove link"
-                  title="Remove link"
-                  onClick={() =>
-                    setLinks((current) =>
-                      current.length === 1
-                        ? [""]
-                        : current.filter(
-                            (_, valueIndex) => valueIndex !== index,
-                          ),
-                    )
+                <span
+                  className={
+                    hasResolvedName
+                      ? "place-resolved-found"
+                      : "place-resolved-found place-resolved-found--muted"
                   }
                 >
-                  <TrashIcon />
-                </button>
+                  {hasResolvedName
+                    ? "✓ Found on Google Maps"
+                    : "Add a name for this place"}
+                </span>
               </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setLinks((current) => [...current, ""])}
-          >
-            Add link
-          </button>
-        </fieldset>
+            </div>
 
-        {error && <p className="error-text">{error}</p>}
+            {isEditing && (
+              <label className="place-field">
+                <span className="place-field-label">Google Maps link</span>
+                <input
+                  className="place-input"
+                  value={url}
+                  onChange={(event) => setUrl(event.currentTarget.value)}
+                  placeholder="https://maps.app.goo.gl/…"
+                />
+              </label>
+            )}
 
-        <footer className="modal-actions">
-          <button type="button" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-        </footer>
-      </form>
+            {!isEditing && (
+              <>
+                <div className="place-field">
+                  <span className="place-field-label">Which day?</span>
+                  <div className="place-day-grid">
+                    {visitDateOptions.map((option, index) => {
+                      const active = selectedDate === option.value;
+                      return (
+                        <button
+                          type="button"
+                          key={option.value}
+                          className={
+                            active
+                              ? "place-day-tile place-day-tile--active"
+                              : "place-day-tile"
+                          }
+                          onClick={() => setSelectedDate(option.value)}
+                        >
+                          <span className="place-day-tile-top">
+                            {weekdayLabel(option.value)}
+                          </span>
+                          <span className="place-day-tile-big">
+                            Day {index + 1}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className={
+                      selectedDate === null
+                        ? "place-later-button place-later-button--active"
+                        : "place-later-button"
+                    }
+                    onClick={() => {
+                      setSelectedDate(null);
+                      setVisitTime(null);
+                    }}
+                  >
+                    Decide later — keep it unscheduled
+                  </button>
+                </div>
+
+                {selectedDate !== null && (
+                  <div className="place-field">
+                    <span className="place-field-label">
+                      Around what time?{" "}
+                      <span className="place-optional">(optional)</span>
+                    </span>
+                    <div className="place-time-row">
+                      {TIME_PRESETS.map((preset) => (
+                        <button
+                          type="button"
+                          key={preset.value}
+                          className={
+                            visitTime === preset.value
+                              ? "place-time-pill place-time-pill--active"
+                              : "place-time-pill"
+                          }
+                          onClick={() => setVisitTime(preset.value)}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                      <span className="place-time-divider" aria-hidden="true" />
+                      <input
+                        type="time"
+                        className="place-time-input"
+                        value={visitTime ?? ""}
+                        onChange={(event) =>
+                          setVisitTime(event.currentTarget.value || null)
+                        }
+                        aria-label="Specific time"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="place-disclosure">
+              <button
+                type="button"
+                className="place-disclosure-toggle"
+                onClick={() => setNotesOpen((open) => !open)}
+                aria-expanded={notesOpen}
+              >
+                <span className="place-disclosure-caret" aria-hidden="true">
+                  {notesOpen ? "▾" : "▸"}
+                </span>{" "}
+                Notes &amp; links
+              </button>
+              {notesOpen && (
+                <div className="place-disclosure-body">
+                  <textarea
+                    className="place-input"
+                    rows={3}
+                    value={notes}
+                    onChange={(event) => setNotes(event.currentTarget.value)}
+                    placeholder="e.g. Book tickets ahead, closed Tuesdays"
+                  />
+                  <div className="place-links-list">
+                    {links.map((link, index) => (
+                      <div key={index} className="place-link-row">
+                        <input
+                          type="url"
+                          className="place-input"
+                          value={link}
+                          placeholder="https://… (reservation, article)"
+                          onChange={(event) => {
+                            const nextValue = event.currentTarget.value;
+                            setLinks((current) =>
+                              current.map((value, valueIndex) =>
+                                valueIndex === index ? nextValue : value,
+                              ),
+                            );
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="place-link-remove"
+                          aria-label="Remove link"
+                          title="Remove link"
+                          onClick={() =>
+                            setLinks((current) =>
+                              current.length === 1
+                                ? [""]
+                                : current.filter(
+                                    (_, valueIndex) => valueIndex !== index,
+                                  ),
+                            )
+                          }
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="place-add-link"
+                    onClick={() => setLinks((current) => [...current, ""])}
+                  >
+                    Add link
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {error && <p className="error-text">{error}</p>}
+
+            <div className="place-actions">
+              <button
+                type="button"
+                className="place-secondary-button"
+                onClick={
+                  isEditing
+                    ? onCancel
+                    : () => {
+                        setStep(1);
+                        setError(null);
+                      }
+                }
+              >
+                {isEditing ? "Cancel" : "Back"}
+              </button>
+              <button
+                type="submit"
+                className="place-primary-button"
+                disabled={isSaving}
+              >
+                {isSaving && <span className="place-spinner" />}
+                {isEditing ? "Save" : "Add place"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </ModalShell>
   );
 }

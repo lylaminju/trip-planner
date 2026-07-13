@@ -14,6 +14,33 @@ export type AiItineraryGenerationResult = {
   plannerSnapshot: PlannerSnapshot;
 };
 
+export type ResolvedPlace = {
+  google_maps_url: string;
+  name: string | null;
+  latitude: number;
+  longitude: number;
+};
+
+export async function resolvePlaceRequest(
+  tripId: number,
+  googleMapsUrl: string,
+): Promise<ResolvedPlace> {
+  const response = await fetch(`${tripApiBase(tripId)}/places/resolve`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ google_maps_url: googleMapsUrl }),
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      typeof data?.error === "string" ? data.error : "Failed to resolve link.",
+    );
+  }
+
+  return data;
+}
+
 export async function loadTripPlannerInitialData(
   tripId: number,
 ): Promise<TripPlannerInitialData> {

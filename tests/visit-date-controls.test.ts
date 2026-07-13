@@ -12,60 +12,48 @@ const visitDateOptions: VisitDateOption[] = [
   { value: "2026-06-02", label: "Day 2 · Jun 2, 2026" },
 ];
 
-describe("visit date controls", () => {
-  it("allows add-place submission without a typed name for URL auto-fill", () => {
-    const addMarkup = renderToStaticMarkup(
-      createElement(AddEditPlaceModal, {
-        place: null,
-        visitDateOptions,
-        onCancel: vi.fn(),
-        onSave: vi.fn(),
-      }),
-    );
-    const editMarkup = renderToStaticMarkup(
+function renderAddModal(overrides: Record<string, unknown> = {}) {
+  return renderToStaticMarkup(
+    createElement(AddEditPlaceModal, {
+      place: null,
+      visitDateOptions,
+      onCancel: vi.fn(),
+      onResolveUrl: vi.fn(),
+      onSave: vi.fn(),
+      ...overrides,
+    }),
+  );
+}
+
+describe("add / edit place modal", () => {
+  it("opens the add flow on the paste step", () => {
+    const markup = renderAddModal();
+
+    expect(markup).toContain("Paste a Google Maps link");
+    expect(markup).toContain("Continue");
+    // Scheduling (day tiles / date select) only appears after the link resolves.
+    expect(markup).not.toContain("Which day?");
+    expect(markup).not.toContain('name="visit_date"');
+    expect(markup).not.toContain('type="date"');
+  });
+
+  it("shows the resolved place details when editing", () => {
+    const markup = renderToStaticMarkup(
       createElement(AddEditPlaceModal, {
         place: buildPlace({ name: "Existing stop" }),
         visitDateOptions,
         onCancel: vi.fn(),
+        onResolveUrl: vi.fn(),
         onSave: vi.fn(),
       }),
     );
 
-    const addNameInput = addMarkup.match(/<input[^>]*name="name"[^>]*>/)?.[0];
-    const editNameInput = editMarkup.match(/<input[^>]*name="name"[^>]*>/)?.[0];
-
-    expect(addNameInput).toContain('placeholder="Auto-filled when possible"');
-    expect(addNameInput).not.toContain('required=""');
-    expect(editNameInput).toContain('required=""');
-  });
-
-  it("uses a valid trip-day select when adding an initial visit", () => {
-    const markup = renderToStaticMarkup(
-      createElement(AddEditPlaceModal, {
-        place: null,
-        visitDateOptions,
-        onCancel: vi.fn(),
-        onSave: vi.fn(),
-      }),
-    );
-
-    expect(markup).toContain('<select name="visit_date"');
-    expect(markup).toContain("Day 1 · Jun 1, 2026");
-    expect(markup).not.toContain('type="date" name="visit_date"');
-  });
-
-  it("preselects a target visit date when creating from a day picker", () => {
-    const markup = renderToStaticMarkup(
-      createElement(AddEditPlaceModal, {
-        place: null,
-        visitDateOptions,
-        defaultVisitDate: "2026-06-02",
-        onCancel: vi.fn(),
-        onSave: vi.fn(),
-      }),
-    );
-
-    expect(markup).toContain('<option value="2026-06-02" selected="">');
+    expect(markup).toContain("Existing stop");
+    expect(markup).toContain("Google Maps link");
+    expect(markup).toContain("Found on Google Maps");
+    expect(markup).toContain("Save");
+    // Editing skips the paste step.
+    expect(markup).not.toContain("Continue");
   });
 
   it("drops an out-of-range visit date instead of preserving it", () => {
@@ -83,21 +71,6 @@ describe("visit date controls", () => {
 
     expect(markup).not.toContain("Current date");
     expect(markup).not.toContain('value="2026-06-05"');
-    expect(markup).not.toContain('type="date" name="visit_date"');
-  });
-
-  it("does not offer free date entry when trip dates are not confirmed", () => {
-    const markup = renderToStaticMarkup(
-      createElement(AddEditPlaceModal, {
-        place: null,
-        visitDateOptions: [],
-        onCancel: vi.fn(),
-        onSave: vi.fn(),
-      }),
-    );
-
-    expect(markup).toContain("Set trip dates first");
-    expect(markup).toContain("disabled");
     expect(markup).not.toContain('type="date" name="visit_date"');
   });
 });

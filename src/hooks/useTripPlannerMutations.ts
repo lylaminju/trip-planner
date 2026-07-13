@@ -5,11 +5,13 @@ import {
   createItineraryItemRequest,
   deleteItineraryItemRequest,
   deletePlaceRequest,
+  resolvePlaceRequest,
   saveItineraryItemRequest,
   savePlaceRequest,
   scheduleItineraryItemRequest,
   schedulePlaceRequest,
   updateSegmentModeRequest,
+  type ResolvedPlace,
 } from "@/lib/planner-api";
 import type {
   ItineraryItem,
@@ -42,6 +44,10 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
   const [deletingItineraryItemIds, setDeletingItineraryItemIds] = useState<
     Set<number>
   >(() => new Set());
+
+  async function resolvePlace(googleMapsUrl: string): Promise<ResolvedPlace> {
+    return resolvePlaceRequest(options.tripId, googleMapsUrl);
+  }
 
   async function savePlace(payload: Record<string, unknown>, id?: number) {
     if (!options.canEdit) return;
@@ -176,6 +182,7 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
   return {
     deletingPlaceIds,
     deletingItineraryItemIds,
+    resolvePlace,
     savePlace,
     saveItineraryItem,
     deletePlace,

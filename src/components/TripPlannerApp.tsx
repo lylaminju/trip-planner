@@ -353,6 +353,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       onUpdateSegmentMode={plannerMutations.updateSegmentMode}
       onToggleCurrentLocation={toggleCurrentLocation}
       onCloseModal={closeModal}
+      onResolvePlaceUrl={plannerMutations.resolvePlace}
       onSavePlace={plannerMutations.savePlace}
       onSaveItineraryItem={plannerMutations.saveItineraryItem}
       onCreateItineraryItem={plannerMutations.createItineraryItem}

@@ -89,6 +89,12 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onUpdateSegmentMode: vi.fn().mockResolvedValue(undefined),
     onToggleCurrentLocation: vi.fn(),
     onCloseModal: vi.fn(),
+    onResolvePlaceUrl: vi.fn().mockResolvedValue({
+      google_maps_url: "https://maps.app.goo.gl/example",
+      name: "Example place",
+      latitude: 0,
+      longitude: 0,
+    }),
     onSavePlace: vi.fn().mockResolvedValue(undefined),
     onSaveItineraryItem: vi.fn().mockResolvedValue(undefined),
     onCreateItineraryItem: vi.fn().mockResolvedValue(undefined),

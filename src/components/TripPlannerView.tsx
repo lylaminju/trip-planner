@@ -6,6 +6,7 @@ import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { DestinationFocus } from "@/lib/destination-options";
 import { errorMessage } from "@/lib/error-message";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
+import type { ResolvedPlace } from "@/lib/planner-api";
 import type {
   AiPlanningGenerationInput,
   AiPlanningSetup,
@@ -107,6 +108,7 @@ type Props = {
   onUpdateSegmentMode: (id: number, mode: TravelMode) => Promise<void>;
   onToggleCurrentLocation: () => void;
   onCloseModal: () => void;
+  onResolvePlaceUrl: (googleMapsUrl: string) => Promise<ResolvedPlace>;
   onSavePlace: (payload: Record<string, unknown>, id?: number) => Promise<void>;
   onSaveItineraryItem: (
     payload: Record<string, unknown>,
@@ -236,6 +238,7 @@ export function TripPlannerView(props: Props) {
           visitDateOptions={props.visitDateOptions}
           defaultVisitDate={props.editingPlace ? null : props.addPlaceVisitDate}
           onCancel={props.onCloseModal}
+          onResolveUrl={props.onResolvePlaceUrl}
           onSave={(payload) =>
             props.onSavePlace(payload, props.editingPlace?.id)
           }
