@@ -57,6 +57,20 @@ const CHART_BAR_AREA_HEIGHT = 64;
 const CHART_LABEL_HEIGHT = 16;
 const CHART_HEIGHT = CHART_BAR_AREA_HEIGHT + CHART_LABEL_HEIGHT;
 const BAR_GAP = 2;
+// Headroom above the tallest bar so it never touches the top edge.
+const CHART_AXIS_HEADROOM = 1.15;
+// Only pin the axis to the daily limit (and draw the limit line) once usage
+// climbs within this fraction of it; below that, fit the axis to the data.
+const CHART_LIMIT_PROXIMITY = 0.6;
+
+// Round up to a readable axis maximum (…, 5, 10, 25, 50, 100, …).
+function niceCeil(value: number): number {
+  if (value <= 5) return 5;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+  const normalized = value / magnitude;
+  const step = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  return step * magnitude;
+}
 
 type Tooltip = { left: number; top: number; text: string };
 
@@ -84,7 +98,12 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
     setTooltip(null);
   };
 
-  const maxCount = Math.max(...data.map((d) => d.count), limit);
+  const dataMax = Math.max(...data.map((d) => d.count), 1);
+  const nearLimit = dataMax >= limit * CHART_LIMIT_PROXIMITY;
+  // Fit the axis to the data on normal days; expand to the limit only when
+  // usage approaches it, so the limit line stays meaningful without flattening
+  // the bars the rest of the time.
+  const maxCount = nearLimit ? limit : niceCeil(dataMax * CHART_AXIS_HEADROOM);
   const barCount = data.length;
   const barWidth = (CHART_WIDTH - BAR_GAP * (barCount - 1)) / barCount;
   const today = new Date().toISOString().slice(0, 10);
@@ -97,17 +116,26 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
       className="admin-usage-chart"
       aria-hidden="true"
     >
-      {/* Limit line */}
-      <line
-        x1={0}
-        y1={limitY}
-        x2={CHART_WIDTH}
-        y2={limitY}
-        stroke="#e53e3e"
-        strokeWidth="1"
-        strokeDasharray="4 3"
-        opacity="0.6"
-      />
+      {/* Limit line — only shown once usage nears the cap, otherwise it would
+          sit off the top of a data-fitted axis and carry no information. */}
+      {nearLimit && (
+        <line
+          x1={0}
+          y1={limitY}
+          x2={CHART_WIDTH}
+          y2={limitY}
+          stroke="#e53e3e"
+          strokeWidth="1"
+          strokeDasharray="4 3"
+          opacity="0.6"
+        />
+      )}
+
+      {/* Axis scale hint: peak value on a data-fitted axis, or the cap when
+          the axis is pinned to the limit. */}
+      <text x={0} y={8} fontSize="8" fill="#94a3b8">
+        {nearLimit ? `cap ${limit}` : `peak ${dataMax}`}
+      </text>
 
       {data.map((d, i) => {
         const x = i * (barWidth + BAR_GAP);

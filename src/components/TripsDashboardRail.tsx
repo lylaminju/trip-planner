@@ -195,7 +195,7 @@ export function TripsDashboardRail(props: {
           {props.isAdmin && (
             <>
               <span className="trips-rail-nav-divider" aria-hidden="true" />
-              <a href="/dashboard" className="trips-rail-nav-item">
+              <a href="/admin/usage" className="trips-rail-nav-item">
                 <span className="trips-rail-nav-icon" aria-hidden="true">
                   <RailDashboardIcon />
                 </span>
