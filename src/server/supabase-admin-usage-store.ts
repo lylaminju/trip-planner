@@ -7,6 +7,7 @@ export type DailyCount = { date: string; count: number };
 export type UserUsageStats = {
   userId: string;
   email: string;
+  lastSignInAt: string | null;
   googleRoutesByDay: DailyCount[];
   aiGenerationsByDay: DailyCount[];
 };
@@ -38,6 +39,7 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
   return usersResult.data.users.map((u) => ({
     userId: u.id,
     email: u.email ?? u.id,
+    lastSignInAt: u.last_sign_in_at ?? null,
     googleRoutesByDay: aggregateByDay(
       (routesResult.data ?? []).filter((r) => r.user_id === u.id).map((r) => r.called_at as string),
       dates,

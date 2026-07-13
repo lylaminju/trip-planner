@@ -1,18 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { DailyCount, UserUsageStats } from "@/server/supabase-admin-usage-store";
 
 const GOOGLE_ROUTES_CHART_LIMIT = 200;
 const AI_GENERATIONS_CHART_LIMIT = 30;
 
+// Render the last sign-in timestamp in the viewer's local timezone, including
+// the timezone name (e.g. "Jul 13, 2026, 2:30 PM PDT").
+function formatLastSignIn(lastSignInAt: string | null): string {
+  if (!lastSignInAt) return "Last login: never";
+  return `Last login: ${new Date(lastSignInAt).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  })}`;
+}
+
 export function AdminDashboard() {
   const [stats, setStats] = useState<UserUsageStats[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/admin/usage")
+  const loadStats = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/admin/usage", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json() as Promise<UserUsageStats[]>;
@@ -20,18 +37,37 @@ export function AdminDashboard() {
       .then(setStats)
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : "Failed to load usage stats.");
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  if (error) return <p className="error-text">{error}</p>;
-  if (!stats) return <p className="trip-empty-text">Loading usage stats...</p>;
-  if (stats.length === 0) return <p className="trip-empty-text">No usage data yet.</p>;
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   return (
     <div className="admin-dashboard">
-      {stats.map((user) => (
+      <div className="admin-dashboard-toolbar">
+        <button
+          type="button"
+          className="admin-refresh-button"
+          onClick={loadStats}
+          disabled={loading}
+        >
+          {loading ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+
+      {error && <p className="error-text">{error}</p>}
+      {!stats && !error && <p className="trip-empty-text">Loading usage stats...</p>}
+      {stats && stats.length === 0 && <p className="trip-empty-text">No usage data yet.</p>}
+
+      {stats?.map((user) => (
         <div key={user.userId} className="admin-user-card">
-          <p className="admin-user-email">{user.email}</p>
+          <div className="admin-user-header">
+            <p className="admin-user-email">{user.email}</p>
+            <p className="admin-user-last-login">{formatLastSignIn(user.lastSignInAt)}</p>
+          </div>
           <div className="admin-charts-row">
             <div className="admin-chart-block">
               <p className="admin-chart-label">
