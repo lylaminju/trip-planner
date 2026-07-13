@@ -1,0 +1,176 @@
+/* Admin dashboard page */
+.admin-page {
+  background: var(--surface-base);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px;
+}
+
+.admin-page-header {
+  align-items: baseline;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  max-width: 900px;
+}
+
+.admin-page-back {
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-page-back:hover {
+  color: var(--text);
+}
+
+.admin-page-header h1 {
+  color: var(--text);
+  font-size: 22px;
+  margin: 0;
+}
+
+.admin-page-content {
+  max-width: 900px;
+}
+
+/* Admin dashboard */
+.admin-dashboard {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-dashboard-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-refresh-button {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 6px;
+  padding: 7px 14px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-refresh-button:hover:not(:disabled) {
+  background: var(--surface-subtle);
+  border-color: var(--accent);
+}
+
+.admin-refresh-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.admin-user-card {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-user-header {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  justify-content: space-between;
+}
+
+.admin-user-email {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-last-login {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.admin-charts-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 640px) {
+  .admin-page {
+    padding: 16px;
+  }
+
+  .admin-page-header {
+    margin-bottom: 16px;
+  }
+
+  .admin-refresh-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .admin-charts-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.admin-chart-block {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-chart-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.admin-chart-label span {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.admin-usage-chart-wrap {
+  position: relative;
+}
+
+.admin-usage-chart {
+  display: block;
+  width: 100%;
+}
+
+.admin-usage-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--text, #0f172a);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
