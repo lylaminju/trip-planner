@@ -232,7 +232,11 @@ export function TripsDashboard(props: {
                 </span>
                 <div className="trips-empty-state-copy">
                   <h2>Plan your first trip</h2>
-                  <p>Map your stops, set the dates, and see the whole trip at a glance.</p>
+                  <p>
+                    Map your stops, set the dates,
+                    <br />
+                    and see the whole trip at a glance.
+                  </p>
                 </div>
                 <button
                   type="button"

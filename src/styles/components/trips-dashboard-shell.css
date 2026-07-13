@@ -208,6 +208,10 @@
   padding: 24px;
 }
 
+.trips-main-pane:has(.trips-empty-state) {
+  align-content: stretch;
+}
+
 .trips-header {
   align-items: center;
   display: flex;
