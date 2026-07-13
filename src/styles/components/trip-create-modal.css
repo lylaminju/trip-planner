@@ -1,0 +1,276 @@
+/* Create-trip trigger button and create-trip modal. */
+.trip-create-trigger {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: 800;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.trip-create-trigger:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+
+.trip-create-modal {
+  border-radius: 18px;
+  box-shadow: 0 34px 80px -28px rgba(15, 23, 42, 0.62);
+  gap: 0;
+  max-width: 540px;
+  overflow: visible;
+  padding: 0;
+}
+
+.trip-create-hero {
+  background-color: var(--surface-subtle);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border-radius: 18px 18px 0 0;
+  min-height: 236px;
+  position: relative;
+}
+
+.trip-create-hero-scrim {
+  background: linear-gradient(
+    to top,
+    var(--trip-featured-overlay-bottom) 0%,
+    var(--trip-featured-overlay-mid) 42%,
+    transparent 70%
+  );
+  border-radius: inherit;
+  inset: 0;
+  position: absolute;
+}
+
+.trip-create-hero-meta {
+  bottom: 14px;
+  display: grid;
+  gap: 2px;
+  left: 18px;
+  position: absolute;
+  right: 18px;
+}
+
+.trip-create-hero-title {
+  color: var(--trip-featured-text);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-shadow: var(--trip-featured-text-shadow);
+}
+
+.trip-create-hero-country {
+  color: var(--trip-featured-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-shadow: var(--trip-featured-text-shadow);
+}
+
+.trip-create-hero-empty {
+  align-content: center;
+  color: var(--muted);
+  display: grid;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 12px;
+  inset: 0;
+  justify-items: center;
+  padding: 20px;
+  position: absolute;
+  text-align: center;
+}
+
+.trip-create-hero-empty-icon {
+  align-items: center;
+  border: 2px dashed var(--border-strong);
+  border-radius: 50%;
+  display: flex;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.trip-create-hero-empty-icon svg {
+  height: 20px;
+  width: 20px;
+}
+
+.trip-create-hero-close {
+  align-items: center;
+  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.34);
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 32px;
+}
+
+.trip-create-hero-close:hover {
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.trip-create-hero-close svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2.4;
+  width: 15px;
+}
+
+.trip-create-body {
+  display: grid;
+  gap: 18px;
+  padding: 20px 22px 4px;
+}
+
+.trip-create-field {
+  display: grid;
+  gap: 8px;
+}
+
+.trip-create-field-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.trip-create-modal .trip-create-name-input {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--line);
+  border-radius: 0;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  min-height: 0;
+  padding: 5px 2px;
+}
+
+.trip-create-modal .trip-create-name-input:focus-visible {
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+  outline: none;
+}
+
+.trip-create-modal .destination-combobox-icon {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  left: 12px;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.trip-create-modal .destination-combobox-icon svg {
+  height: 17px;
+  width: 17px;
+}
+
+.trip-create-modal .destination-combobox-has-icon input {
+  padding-left: 36px;
+}
+
+.trip-create-modal .destination-combobox input,
+.trip-create-modal .trip-date-range-trigger {
+  border-radius: 11px;
+  border-width: 1.5px;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.trip-create-dates-field .trip-date-range-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.trip-create-error {
+  color: var(--danger);
+  margin: 0 0 4px;
+}
+
+.trip-create-modal .trip-create-footer {
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 22px 18px;
+}
+
+.trip-create-footer .trip-form-cancel,
+.trip-create-footer .trip-form-submit {
+  border-radius: 10px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 14px;
+  height: 42px;
+}
+
+.trip-create-footer .trip-form-cancel {
+  background: var(--surface-panel);
+  border: 1.5px solid var(--line);
+  color: var(--text-tertiary);
+  font-weight: 700;
+  padding: 0 16px;
+}
+
+.trip-create-footer .trip-form-cancel:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+.trip-create-footer .trip-form-submit {
+  background: var(--accent);
+  border: 0;
+  color: #fff;
+  font-weight: 800;
+  padding: 0 20px;
+}
+
+.trip-create-footer .trip-form-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.trip-create-footer .trip-form-submit:disabled {
+  opacity: 0.45;
+}
+
+.trip-form-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.trip-form-submit {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  flex: 0 0 auto;
+}
+
+.trip-form-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+
+.trip-form-cancel {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
