@@ -257,7 +257,7 @@
   display: grid;
   gap: 10px;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  padding: 10px 8px 2px;
+  padding: 10px 0 2px;
 }
 
 .trips-avatar {
