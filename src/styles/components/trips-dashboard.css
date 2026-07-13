@@ -44,7 +44,7 @@
 .destination-combobox-list {
   display: grid;
   gap: 4px;
-  max-height: 220px;
+  max-height: 340px;
   overflow: auto;
   padding-right: 2px;
 }

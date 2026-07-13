@@ -123,9 +123,25 @@ describe("destination options", () => {
     expect(
       filterDestinationOptions("new-york-city").map((option) => option.name),
     ).toEqual(["New York City"]);
+  });
+
+  it("filters the curated destination list by country name", () => {
+    const canadianCities = DESTINATIONS.filter(
+      (destination) => destination.countryCode === "CA",
+    ).map((destination) => destination.name);
+
     expect(
-      filterDestinationOptions("tokyo japan").map((option) => option.name),
-    ).toEqual([]);
+      filterDestinationOptions("Canada")
+        .map((option) => option.name)
+        .sort(byName),
+    ).toEqual([...canadianCities].sort(byName));
+
+    // Lowercase queries match too.
+    expect(
+      filterDestinationOptions("canada")
+        .map((option) => option.name)
+        .sort(byName),
+    ).toEqual([...canadianCities].sort(byName));
   });
 
   it("finds curated destinations by canonical name or slug", () => {

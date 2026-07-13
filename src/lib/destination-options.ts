@@ -78,7 +78,7 @@ export function normalizeDestinationText(
 }
 
 function destinationSearchText(option: DestinationOption): string {
-  return [option.name, option.slug]
+  return [option.name, option.slug, countryNameFromCode(option.countryCode)]
     .map((value) => normalizeDestinationText(value))
     .join(" ");
 }
