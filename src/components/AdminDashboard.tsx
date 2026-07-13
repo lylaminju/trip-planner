@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { DailyCount, UserUsageStats } from "@/server/supabase-admin-usage-store";
 
@@ -58,8 +58,31 @@ const CHART_LABEL_HEIGHT = 16;
 const CHART_HEIGHT = CHART_BAR_AREA_HEIGHT + CHART_LABEL_HEIGHT;
 const BAR_GAP = 2;
 
+type Tooltip = { left: number; top: number; text: string };
+
 function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   if (data.length === 0) return null;
+
+  const showTooltip = (event: React.MouseEvent, d: DailyCount, index: number) => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    setHoveredIndex(index);
+    setTooltip({
+      left: event.clientX - rect.left,
+      top: event.clientY - rect.top,
+      text: `${d.date}: ${d.count}`,
+    });
+  };
+
+  const hideTooltip = () => {
+    setHoveredIndex(null);
+    setTooltip(null);
+  };
 
   const maxCount = Math.max(...data.map((d) => d.count), limit);
   const barCount = data.length;
@@ -68,6 +91,7 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
   const limitY = CHART_BAR_AREA_HEIGHT - (limit / maxCount) * CHART_BAR_AREA_HEIGHT;
 
   return (
+    <div className="admin-usage-chart-wrap" ref={wrapRef}>
     <svg
       viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
       className="admin-usage-chart"
@@ -90,6 +114,7 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
         const barH = maxCount > 0 ? (d.count / maxCount) * CHART_BAR_AREA_HEIGHT : 0;
         const y = CHART_BAR_AREA_HEIGHT - barH;
         const isToday = d.date === today;
+        const isHovered = i === hoveredIndex;
         const showLabel = i === 0 || i === data.length - 1 || i % 4 === 0;
         const labelDate = d.date.slice(5).replace("-", "/");
 
@@ -100,8 +125,8 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
               y={y}
               width={barWidth}
               height={barH}
-              fill="#0f766e"
-              opacity={isToday ? 1 : 0.55}
+              fill={isHovered ? "#14b8a6" : "#0f766e"}
+              opacity={isHovered || isToday ? 1 : 0.55}
               rx={1.5}
             />
             {showLabel && (
@@ -115,10 +140,30 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
                 {labelDate}
               </text>
             )}
-            {d.count > 0 && <title>{`${d.date}: ${d.count}`}</title>}
+            {/* Full-height transparent hover target so the exact count shows
+                anywhere over the column, not just on the drawn bar. */}
+            <rect
+              x={x}
+              y={0}
+              width={barWidth}
+              height={CHART_BAR_AREA_HEIGHT}
+              fill="transparent"
+              onMouseEnter={(e) => showTooltip(e, d, i)}
+              onMouseMove={(e) => showTooltip(e, d, i)}
+              onMouseLeave={hideTooltip}
+            />
           </g>
         );
       })}
     </svg>
+      {tooltip && (
+        <div
+          className="admin-usage-tooltip"
+          style={{ left: tooltip.left, top: tooltip.top }}
+        >
+          {tooltip.text}
+        </div>
+      )}
+    </div>
   );
 }
