@@ -572,28 +572,32 @@
 }
 
 .trip-card-actions .icon-button {
-  background: var(--surface-floating);
-  border-color: var(--line);
+  backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.36);
+  border: 0;
   border-radius: 10px;
-  box-shadow: var(--shadow-control);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.24);
+  color: #fff;
 }
 
 .trip-card-actions .icon-button:hover:not(:disabled) {
-  background: var(--surface-panel);
-  border-color: var(--border-strong);
+  background: rgba(15, 23, 42, 0.54);
+}
+
+.trip-card-actions .icon-button:disabled:hover {
+  background: rgba(15, 23, 42, 0.36);
 }
 
 .trip-card-actions .danger-button:hover:not(:disabled) {
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
-  color: var(--danger-strong);
+  background: rgba(180, 35, 24, 0.72);
+  color: #fff;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .trip-card-actions {
     opacity: 0;
     pointer-events: none;
-    transition: opacity 160ms ease;
+    transition: opacity 100ms ease;
   }
 
   .trip-card:hover .trip-card-actions,
