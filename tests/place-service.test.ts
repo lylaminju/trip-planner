@@ -43,8 +43,8 @@ describe("place-service request boundary", () => {
     expect(createPlace).toHaveBeenCalledWith(1, baseInput);
   });
 
-  it("requires editor access before creating a place for a request", async () => {
-    const requireTripRole = vi.fn().mockResolvedValue(membership("editor"));
+  it("requires owner access before creating a place for a request", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const createPlace = vi.fn().mockResolvedValue(plannerSnapshot);
 
     await withMockedPlaceService(
@@ -59,7 +59,7 @@ describe("place-service request boundary", () => {
       },
     );
 
-    expect(requireTripRole).toHaveBeenCalledWith(1, "user-1", "editor");
+    expect(requireTripRole).toHaveBeenCalledWith(1, "user-1", "owner");
     expect(createPlace).toHaveBeenCalledWith(1, baseInput);
   });
 
@@ -135,7 +135,7 @@ async function withMockedPlaceService(
   }
 }
 
-function membership(role: TripMembership["role"] = "editor"): TripMembership {
+function membership(role: TripMembership["role"] = "owner"): TripMembership {
   return {
     trip_id: 1,
     user_id: "user-1",

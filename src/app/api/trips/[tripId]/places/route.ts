@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: TripParams) {
   }
 
   try {
-    await requireTripRole(tripId, auth.user.id, "editor");
+    await requireTripRole(tripId, auth.user.id, "owner");
   } catch (error) {
     const response = mapRouteError(error);
     if (response) return response;

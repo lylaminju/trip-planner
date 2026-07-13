@@ -1,5 +1,5 @@
 export type TravelMode = "walking" | "transit" | "bicycling" | "driving";
-export type TripRole = "owner" | "editor" | "viewer";
+export type TripRole = "owner" | "viewer";
 
 export type Trip = {
   id: number;

@@ -65,7 +65,7 @@ export async function createPlaceForRequest(
   userId: string,
   input: PlaceCreateInput,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return createPlace(tripId, input);
 }
 
@@ -92,7 +92,7 @@ export async function editPlaceForRequest(
   id: number,
   input: PlaceEditInput,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return editPlace(tripId, id, input);
 }
 
@@ -108,7 +108,7 @@ export async function removePlaceForRequest(
   userId: string,
   id: number,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return removePlace(tripId, id);
 }
 
@@ -136,7 +136,7 @@ export async function schedulePlaceForRequest(
   visit_time: string | null,
   notes: string | null = null,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return schedulePlace(tripId, id, visit_date, visit_time, notes);
 }
 
@@ -161,7 +161,7 @@ export async function scheduleItineraryItemForRequest(
   visit_date: string | null,
   visit_time: string | null,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return scheduleItineraryItem(tripId, id, visit_date, visit_time);
 }
 
@@ -179,7 +179,7 @@ export async function editItineraryItemForRequest(
   id: number,
   input: ItineraryItemUpdate,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return editItineraryItem(tripId, id, input);
 }
 
@@ -195,7 +195,7 @@ export async function removeItineraryItemForRequest(
   userId: string,
   id: number,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return removeItineraryItem(tripId, id);
 }
 
@@ -213,6 +213,6 @@ export async function setRouteSegmentModeForRequest(
   id: number,
   mode: TravelMode,
 ): Promise<PlannerSnapshot> {
-  await requireTripRole(tripId, userId, "editor");
+  await requireTripRole(tripId, userId, "owner");
   return setRouteSegmentMode(tripId, id, mode);
 }

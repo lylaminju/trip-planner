@@ -42,7 +42,7 @@ async function withFreshTestEnv(
   }));
   vi.doMock("@/server/trip-access", async () => {
     const { TripAccessDeniedError } = await import("@/server/errors");
-    const roles: TripRole[] = ["viewer", "editor", "owner"];
+    const roles: TripRole[] = ["viewer", "owner"];
     return {
       requireTripRole: vi.fn(
         async (tripId: number, userId: string, minimumRole: TripRole) => {
@@ -296,7 +296,7 @@ describe("API routes transport behavior", () => {
           error: "Trip access denied.",
         });
       },
-      { role: "editor" },
+      { role: "viewer" },
     );
   });
 

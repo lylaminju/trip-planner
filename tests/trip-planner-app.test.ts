@@ -57,7 +57,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
-        initialData: buildTripPlannerInitialData({ role: "editor" }),
+        initialData: buildTripPlannerInitialData({ role: "viewer" }),
       }),
     );
 
@@ -134,7 +134,7 @@ describe("TripPlannerApp", () => {
       createElement(TripPlannerApp, {
         tripId: 1,
         initialData: buildTripPlannerInitialData({
-          role: "editor",
+          role: "viewer",
           trip: buildTrip({
             destination: "New York City",
             destination_slug: "new-york-city",

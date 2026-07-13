@@ -4,8 +4,7 @@ import { getSupabaseClient } from "@/server/supabase";
 
 const ROLE_RANK: Record<TripRole, number> = {
   viewer: 0,
-  editor: 1,
-  owner: 2,
+  owner: 1,
 };
 
 export async function requireTripRole(
