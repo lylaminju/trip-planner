@@ -1,14 +1,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { TripsDashboard } from "@/components/TripsDashboard";
+import { ProfilePage } from "@/components/ProfilePage";
 import { DEFAULT_PROFILE_COLOR } from "@/lib/profile-colors";
 import {
   getAuthenticatedUser,
   readAuthTokensFromCookieStore,
 } from "@/server/auth-session";
 
-export default async function TripsPage() {
+export default async function ProfileRoute() {
   const cookieStore = await cookies();
   const { user } = await getAuthenticatedUser(
     readAuthTokensFromCookieStore(cookieStore),
@@ -18,27 +18,28 @@ export default async function TripsPage() {
     redirect("/");
   }
 
-  const userName =
+  const username =
     typeof user.user_metadata?.username === "string"
       ? user.user_metadata.username
       : typeof user.user_metadata?.name === "string"
         ? user.user_metadata.name
         : typeof user.user_metadata?.full_name === "string"
           ? user.user_metadata.full_name
-          : null;
-
-  const isAdmin = !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
+          : "";
 
   const profileColor =
     typeof user.user_metadata?.profile_color === "string"
       ? user.user_metadata.profile_color
       : DEFAULT_PROFILE_COLOR;
 
+  const isAdmin =
+    !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
+
   return (
-    <TripsDashboard
-      userName={userName}
+    <ProfilePage
+      initialUsername={username}
+      initialProfileColor={profileColor}
       userEmail={user.email}
-      profileColor={profileColor}
       isAdmin={isAdmin}
     />
   );

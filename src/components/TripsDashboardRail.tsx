@@ -76,9 +76,12 @@ function RailLogoutIcon() {
 export function TripsDashboardRail(props: {
   displayName: string;
   userEmail?: string;
+  profileColor?: string;
+  isTripsActive?: boolean;
   onLogout: () => void;
   isAdmin?: boolean;
 }) {
+  const isTripsActive = props.isTripsActive ?? true;
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const railClasses = [
@@ -161,8 +164,12 @@ export function TripsDashboardRail(props: {
         <nav className="trips-rail-nav" aria-label="Primary">
           <a
             href="/trips"
-            className="trips-rail-nav-item trips-rail-nav-item-active"
-            aria-current="page"
+            className={
+              isTripsActive
+                ? "trips-rail-nav-item trips-rail-nav-item-active"
+                : "trips-rail-nav-item"
+            }
+            aria-current={isTripsActive ? "page" : undefined}
           >
             <span className="trips-rail-nav-icon" aria-hidden="true">
               <RailTripsIcon />
@@ -207,14 +214,29 @@ export function TripsDashboardRail(props: {
         </nav>
 
         <div className="trips-rail-footer">
-          <div className="trips-profile-card" aria-label="Signed in as">
-            <div className="trips-avatar" aria-hidden="true">
-              {props.displayName.slice(0, 1).toUpperCase()}
-            </div>
-            <div className="trips-profile-copy">
-              <strong>{props.displayName}</strong>
-              {props.userEmail && <span>{props.userEmail}</span>}
-            </div>
+          <div className="trips-profile-card">
+            <a
+              href="/profile"
+              className="trips-profile-link"
+              aria-label="Edit profile"
+              onClick={closeMobileNav}
+            >
+              <div
+                className="trips-avatar"
+                aria-hidden="true"
+                style={
+                  props.profileColor
+                    ? { background: props.profileColor, borderColor: props.profileColor, color: "#fff" }
+                    : undefined
+                }
+              >
+                {props.displayName.slice(0, 1).toUpperCase()}
+              </div>
+              <div className="trips-profile-copy">
+                <strong>{props.displayName}</strong>
+                {props.userEmail && <span>{props.userEmail}</span>}
+              </div>
+            </a>
             <button
               type="button"
               className="icon-button trips-logout-button"

@@ -271,8 +271,31 @@
   border: 0;
   display: grid;
   gap: 10px;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 10px 0 2px;
+}
+
+.trips-profile-link {
+  align-items: center;
+  border-radius: 12px;
+  color: inherit;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  margin: -6px -8px;
+  min-width: 0;
+  padding: 6px 8px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.trips-profile-link:hover {
+  background: var(--surface-subtle);
+}
+
+.trips-profile-link:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 
 .trips-avatar {

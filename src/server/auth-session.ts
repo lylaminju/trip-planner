@@ -133,6 +133,28 @@ export async function signInWithPassword(
   return data.session;
 }
 
+export async function updateUserProfile(
+  userId: string,
+  updates: { username: string; profileColor: string },
+): Promise<{ username: string; profileColor: string }> {
+  const client = createSupabaseAuthClient();
+  const { data, error } = await client.auth.admin.updateUserById(userId, {
+    user_metadata: {
+      username: updates.username,
+      profile_color: updates.profileColor,
+    },
+  });
+
+  if (error || !data.user) {
+    throw new Error("Failed to update profile.");
+  }
+
+  return {
+    username: updates.username,
+    profileColor: updates.profileColor,
+  };
+}
+
 function createSupabaseAuthClient() {
   const url = process.env.SUPABASE_URL?.trim();
   const key =

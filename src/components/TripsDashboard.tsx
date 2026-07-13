@@ -45,6 +45,7 @@ export function defaultTripSectionOpenState(
 export function TripsDashboard(props: {
   userName?: string | null;
   userEmail?: string | null;
+  profileColor?: string;
   isAdmin?: boolean;
 }) {
   const router = useRouter();
@@ -198,6 +199,7 @@ export function TripsDashboard(props: {
         <TripsDashboardRail
           displayName={displayName}
           userEmail={userEmail}
+          profileColor={props.profileColor}
           onLogout={logout}
           isAdmin={isAdmin}
         />
