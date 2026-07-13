@@ -848,6 +848,33 @@
     width: 30px;
   }
 
+  /*
+   * On phones the action buttons sit over the light content panel instead of
+   * the cover photo, so the dark "glass" overlay reads as gray blobs. Swap to a
+   * light ghost style that belongs on the surface.
+   */
+  .trip-card-actions .icon-button {
+    backdrop-filter: none;
+    background: var(--surface-panel);
+    border: 1px solid var(--line);
+    box-shadow: none;
+    color: var(--muted);
+  }
+
+  .trip-card-actions .icon-button:hover:not(:disabled),
+  .trip-card-actions .icon-button:disabled:hover {
+    background: var(--surface-panel);
+  }
+
+  .trip-card-actions .danger-button {
+    color: var(--danger);
+  }
+
+  .trip-card-actions .danger-button:hover:not(:disabled) {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+
   .trip-card-grid-upcoming {
     grid-template-columns: 1fr;
   }
