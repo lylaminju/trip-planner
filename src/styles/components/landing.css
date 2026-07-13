@@ -31,11 +31,6 @@ body:has(.sign-in-page-shell) {
   padding: 0 0 50px;
 }
 
-.sign-in-page-shell {
-  gap: 70px;
-  padding: 0 0 50px;
-}
-
 .landing-hero,
 .landing-preview,
 .landing-feature-section,
