@@ -17,11 +17,11 @@ import {
 import { buildTripSummary } from "./helpers/fixtures";
 
 describe("TripsDashboard", () => {
-  it("renders the shell with profile fallback, left-rail account controls, and header create action", () => {
+  it("renders the shell with a nav rail, pinned profile, and header create action", () => {
     const markup = renderToStaticMarkup(createElement(TripsDashboard));
 
     expect(markup).toContain('class="trips-dashboard-shell"');
-    expect(markup).toContain("Hi, Traveler!");
+    expect(markup).toContain("Hi, Traveler");
     expect(markup).toContain('class="trips-mobile-topbar"');
     expect(markup).toContain('class="trips-mobile-service-mark"');
     expect(markup.match(/class="trips-service-logo"/g)?.length ?? 0).toBe(2);
@@ -34,14 +34,19 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('id="trips-mobile-nav-drawer"');
     expect(markup).toContain('class="icon-button trips-mobile-nav-close"');
     expect(markup).toContain('class="trips-brand-rail"');
+    expect(markup).toContain('class="trips-rail-nav"');
+    expect(markup).toContain("Trips");
+    expect(markup).toContain("Friends");
+    expect(markup).toContain("Settings");
+    expect(markup).toContain('aria-current="page"');
     expect(markup).toContain('class="trips-profile-card"');
-    expect(markup).toContain('class="trips-account-actions"');
-    expect(markup).toContain("Log out");
+    expect(markup).toContain('class="icon-button trips-logout-button"');
+    expect(markup).toContain('aria-label="Log out"');
     expect(markup.indexOf('class="trips-service-mark"')).toBeLessThan(
-      markup.indexOf('class="trips-profile-card"'),
+      markup.indexOf('class="trips-rail-nav"'),
     );
-    expect(markup.indexOf('class="trips-profile-card"')).toBeLessThan(
-      markup.indexOf('class="trips-account-actions"'),
+    expect(markup.indexOf('class="trips-rail-nav"')).toBeLessThan(
+      markup.indexOf('class="trips-profile-card"'),
     );
     expect(markup).toContain('class="trips-header-actions"');
     expect(markup).toContain('class="trip-create-trigger"');
@@ -93,6 +98,7 @@ describe("TripsDashboard", () => {
       createElement(TripSection, {
         sectionId: "past-trips",
         title: "Past Trips",
+        variant: "past",
         trips: [],
         editing: null,
         isSaving: false,
@@ -116,7 +122,7 @@ describe("TripsDashboard", () => {
       markupBetween(markup, "trip-section-collapse-button", "button"),
     ).toContain("<svg");
     expect(markup).toContain('class="trip-empty-bucket"');
-    expect(markup).toContain("0 trips");
+    expect(markup).toContain("<span>0</span>");
     expect(markup).toContain('aria-label="No trips in this section."');
     expect(markup).toContain('viewBox="0 0 64 64"');
   });
@@ -126,6 +132,7 @@ describe("TripsDashboard", () => {
       createElement(TripSection, {
         sectionId: "past-trips",
         title: "Past Trips",
+        variant: "past",
         trips: [buildTripSummary()],
         isOpen: false,
         editing: null,
@@ -142,7 +149,7 @@ describe("TripsDashboard", () => {
 
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain('aria-label="Expand Past Trips"');
-    expect(markup).toContain("1 trip");
+    expect(markup).toContain("<span>1</span>");
     expect(markup).toContain('id="past-trips-panel" hidden=""');
   });
 
@@ -189,13 +196,13 @@ describe("TripsDashboard", () => {
     });
   });
 
-  it("converts the selected trip into an edit card without the legacy edit row", () => {
+  it("converts the selected trip into an inline edit card", () => {
     const trip = buildTripSummary();
     const markup = renderToStaticMarkup(
       createElement(TripSection, {
-        title: "Ongoing & Upcoming",
+        title: "Upcoming",
+        variant: "upcoming",
         trips: [trip],
-        featuredTripId: trip.id,
         editing: {
           tripId: trip.id,
           form: {
@@ -216,7 +223,7 @@ describe("TripsDashboard", () => {
       }),
     );
 
-    expect(markup).toContain('class="trip-row featured-trip trip-row-editing"');
+    expect(markup).toContain('class="trip-row trip-row-editing"');
     expect(markup).toContain("/city-covers/toronto.webp");
     expect(markup).toContain('value="Toronto June"');
     expect(markup).toContain('value="2026-06-01"');
@@ -235,22 +242,29 @@ describe("TripsDashboard", () => {
     );
   });
 
-  it("keeps the desktop dashboard shell centered while the sticky rail fills the viewport", () => {
+  it("renders the desktop shell as a fixed-height card with a static rail and a scrolling main pane", () => {
     const css = readFileSync(
       "src/styles/components/trips-dashboard-shell.css",
       "utf8",
     );
+    const pageRule = cssRule(css, ".trips-page");
     const shellRule = cssRule(css, ".trips-dashboard-shell");
     const railRule = cssRule(css, ".trips-brand-rail");
     const mainPaneRule = cssRule(css, ".trips-main-pane");
 
+    expect(pageRule).toContain("height: 100dvh;");
+    expect(pageRule).toContain("overflow: hidden;");
     expect(shellRule).toContain("margin: 0 auto;");
     expect(shellRule).toContain("max-width: 1320px;");
-    expect(shellRule).toContain("min-height: 100dvh;");
-    expect(railRule).toContain("position: sticky;");
+    expect(shellRule).toContain("grid-template-rows: minmax(0, 1fr);");
+    expect(shellRule).toContain("overflow: hidden;");
+    expect(railRule).toContain("height: 100%;");
     expect(mainPaneRule).toContain("align-content: start;");
+    expect(mainPaneRule).toContain("overflow-y: auto;");
+    expect(mainPaneRule).toContain("min-height: 0;");
+    // Mobile reverts to full-bleed native scroll.
     expect(css).toMatch(
-      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-main-pane\s*{[^}]*min-height:\s*0;/s,
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trips-main-pane\s*{[^}]*overflow:\s*visible;/s,
     );
   });
 
@@ -286,17 +300,20 @@ describe("TripsDashboard", () => {
     expect(rule).toContain("align-content: start;");
   });
 
-  it("keeps desktop trip grid rows at a consistent height", () => {
+  it("lays out the upcoming and past card grids in responsive columns", () => {
     const css = readFileSync(
       "src/styles/components/trips-dashboard.css",
       "utf8",
     );
 
-    expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list\s*{[^}]*--trip-card-desktop-height:\s*[^;]+;[^}]*grid-auto-rows:\s*var\(--trip-card-desktop-height\);/s,
+    expect(cssRule(css, ".trip-card-grid-upcoming")).toContain(
+      "grid-template-columns: repeat(3, minmax(0, 1fr));",
+    );
+    expect(cssRule(css, ".trip-card-grid-past")).toContain(
+      "grid-template-columns: repeat(4, minmax(0, 1fr));",
     );
     expect(css).toMatch(
-      /@media \(min-width: 921px\)\s*{[\s\S]*\.trip-list > \.trip-row\s*{[^}]*height:\s*100%;/s,
+      /@media \(max-width: 920px\)\s*{[\s\S]*\.trip-card-grid-upcoming\s*{[^}]*grid-template-columns:\s*1fr;/s,
     );
   });
 

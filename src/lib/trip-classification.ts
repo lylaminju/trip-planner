@@ -60,6 +60,13 @@ export function isTripOngoing(
   return trip.start_date <= today && trip.end_date >= today;
 }
 
+export function todayIsoDate(
+  now = new Date(),
+  viewerTimeZone = detectBrowserTimeZone(),
+): string {
+  return localIsoDate(now, viewerTimeZone);
+}
+
 export function detectBrowserTimeZone(): string {
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

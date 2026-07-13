@@ -3,15 +3,15 @@ import type { SubmitEvent } from "react";
 import type { TripSummary } from "@/lib/types";
 import { CollapseToggleButton } from "./CollapseToggleButton";
 import { FoldedMapIcon } from "./Icons";
+import { TripCard, type TripCardVariant } from "./TripCard";
 import { TripEditForm } from "./TripEditForm";
-import { TripRow } from "./TripRow";
 import type { TripFormState } from "./trip-form-types";
 
 export function TripSection(props: {
   sectionId?: string;
   title: string;
+  variant: TripCardVariant;
   trips: TripSummary[];
-  featuredTripId?: number;
   isOpen?: boolean;
   editing: { tripId: number; form: TripFormState } | null;
   isSaving: boolean;
@@ -23,11 +23,10 @@ export function TripSection(props: {
   onDelete: (trip: TripSummary) => void;
   onToggleOpen?: () => void;
 }) {
-  const tripCountLabel =
-    props.trips.length === 1 ? "1 trip" : `${props.trips.length} trips`;
   const isOpen = props.isOpen ?? true;
   const sectionId = props.sectionId ?? tripSectionId(props.title);
   const sectionPanelId = `${sectionId}-panel`;
+  const gridClassName = `trip-card-grid trip-card-grid-${props.variant}`;
 
   return (
     <section className="trip-section">
@@ -42,11 +41,11 @@ export function TripSection(props: {
           />
           <h2>{props.title}</h2>
         </div>
-        <span>{tripCountLabel}</span>
+        <span>{props.trips.length}</span>
       </div>
       <div id={sectionPanelId} hidden={!isOpen}>
         {props.trips.length === 0 ? (
-          <div className="trip-list">
+          <div className={gridClassName}>
             <div
               className="trip-empty-bucket"
               aria-label="No trips in this section."
@@ -55,24 +54,24 @@ export function TripSection(props: {
             </div>
           </div>
         ) : (
-          <div className="trip-list">
+          <div className={gridClassName}>
             {props.trips.map((trip) =>
               props.editing?.tripId === trip.id ? (
                 <TripEditForm
                   key={trip.id}
                   trip={trip}
                   form={props.editing.form}
-                  isFeatured={trip.id === props.featuredTripId}
                   isSaving={props.isSaving}
                   onChange={props.onEditChange}
                   onCancel={props.onEditCancel}
                   onSubmit={props.onEditSubmit}
                 />
               ) : (
-                <TripRow
+                <TripCard
                   key={trip.id}
                   trip={trip}
-                  isFeatured={trip.id === props.featuredTripId}
+                  variant={props.variant}
+                  canEdit={trip.role === "owner"}
                   isDeleting={props.deletingTripIds.has(trip.id)}
                   onEdit={() => props.onEditStart(trip)}
                   onDelete={() => props.onDelete(trip)}

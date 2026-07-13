@@ -7,10 +7,13 @@ import { getTripCoverImage } from "@/lib/city-covers";
 import { logoutRequest } from "@/lib/planner-api";
 import { groupTripsByTiming } from "@/lib/trip-classification";
 import { errorMessage } from "@/lib/error-message";
+import { isTripOngoing } from "@/lib/trip-classification";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
 import { CreateTripModal } from "./CreateTripModal";
+import { FeaturedTripCard } from "./FeaturedTripCard";
 import { FoldedMapIcon } from "./Icons";
+import { TripEditForm } from "./TripEditForm";
 import { TripsDashboardRail } from "./TripsDashboardRail";
 import { TripSection } from "./TripSection";
 import { tripMetadataPayloadFromForm } from "./trip-form-state";
@@ -65,15 +68,16 @@ export function TripsDashboard(props: {
   const [error, setError] = useState<string | null>(null);
   const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
   const featuredTrip = groups.ongoing[0] ?? groups.upcoming[0] ?? null;
-  const activeTrips = useMemo(
+  const upcomingTrips = useMemo(
     () => [
-      ...(featuredTrip ? [featuredTrip] : []),
       ...groups.ongoing.filter((trip) => trip.id !== featuredTrip?.id),
       ...groups.upcoming.filter((trip) => trip.id !== featuredTrip?.id),
       ...groups.needsDates,
     ],
     [featuredTrip, groups.needsDates, groups.ongoing, groups.upcoming],
   );
+  const isEditingFeatured =
+    !!featuredTrip && editing?.tripId === featuredTrip.id;
   const isEmptyState = !isLoading && trips.length === 0;
   const displayName = props.userName?.trim() || "Traveler";
   const userEmail = props.userEmail?.trim();
@@ -140,7 +144,7 @@ export function TripsDashboard(props: {
   async function removeTrip(trip: TripSummary) {
     if (
       !window.confirm(
-        `Delete ${trip.name}?\n\nThis removes the trip and planner data permanently.`,
+        `Delete ${trip.name}?\n\nThis removes the trip and its planner data from your dashboard.`,
       )
     ) {
       return;
@@ -201,7 +205,7 @@ export function TripsDashboard(props: {
         <section className="trips-main-pane">
           {!isEmptyState && (
             <header className="trips-header">
-              <h1>Hi, {displayName}!</h1>
+              <h1>Hi, {displayName}</h1>
               <div className="trips-header-actions">
                 <button
                   type="button"
@@ -244,45 +248,77 @@ export function TripsDashboard(props: {
             </div>
           ) : (
             <div className="trip-sections">
-              <TripSection
-                sectionId="active-trips"
-                title="Ongoing & Upcoming trips"
-                trips={activeTrips}
-                featuredTripId={featuredTrip?.id}
-                isOpen={openTripSections.active}
-                editing={editing}
-                isSaving={isSaving}
-                deletingTripIds={deletingTripIds}
-                onEditStart={setEditingFromTrip}
-                onEditCancel={() => setEditing(null)}
-                onEditChange={(form) =>
-                  setEditing((current) =>
-                    current ? { ...current, form } : current,
-                  )
-                }
-                onEditSubmit={submitEdit}
-                onDelete={removeTrip}
-                onToggleOpen={() => toggleTripSection("active")}
-              />
-              <TripSection
-                sectionId="past-trips"
-                title="Past Trips"
-                trips={groups.past}
-                isOpen={openTripSections.past}
-                editing={editing}
-                isSaving={isSaving}
-                deletingTripIds={deletingTripIds}
-                onEditStart={setEditingFromTrip}
-                onEditCancel={() => setEditing(null)}
-                onEditChange={(form) =>
-                  setEditing((current) =>
-                    current ? { ...current, form } : current,
-                  )
-                }
-                onEditSubmit={submitEdit}
-                onDelete={removeTrip}
-                onToggleOpen={() => toggleTripSection("past")}
-              />
+              {featuredTrip &&
+                (isEditingFeatured && editing ? (
+                  <TripEditForm
+                    trip={featuredTrip}
+                    form={editing.form}
+                    isFeatured
+                    isSaving={isSaving}
+                    onChange={(form) =>
+                      setEditing((current) =>
+                        current ? { ...current, form } : current,
+                      )
+                    }
+                    onCancel={() => setEditing(null)}
+                    onSubmit={submitEdit}
+                  />
+                ) : (
+                  <FeaturedTripCard
+                    trip={featuredTrip}
+                    isOngoing={isTripOngoing(featuredTrip)}
+                    canEdit={featuredTrip.role === "owner"}
+                    isDeleting={deletingTripIds.has(featuredTrip.id)}
+                    onEdit={() => setEditingFromTrip(featuredTrip)}
+                    onDelete={() => removeTrip(featuredTrip)}
+                  />
+                ))}
+
+              {upcomingTrips.length > 0 && (
+                <TripSection
+                  sectionId="upcoming-trips"
+                  title="Upcoming"
+                  variant="upcoming"
+                  trips={upcomingTrips}
+                  isOpen={openTripSections.active}
+                  editing={editing}
+                  isSaving={isSaving}
+                  deletingTripIds={deletingTripIds}
+                  onEditStart={setEditingFromTrip}
+                  onEditCancel={() => setEditing(null)}
+                  onEditChange={(form) =>
+                    setEditing((current) =>
+                      current ? { ...current, form } : current,
+                    )
+                  }
+                  onEditSubmit={submitEdit}
+                  onDelete={removeTrip}
+                  onToggleOpen={() => toggleTripSection("active")}
+                />
+              )}
+
+              {groups.past.length > 0 && (
+                <TripSection
+                  sectionId="past-trips"
+                  title="Past trips"
+                  variant="past"
+                  trips={groups.past}
+                  isOpen={openTripSections.past}
+                  editing={editing}
+                  isSaving={isSaving}
+                  deletingTripIds={deletingTripIds}
+                  onEditStart={setEditingFromTrip}
+                  onEditCancel={() => setEditing(null)}
+                  onEditChange={(form) =>
+                    setEditing((current) =>
+                      current ? { ...current, form } : current,
+                    )
+                  }
+                  onEditSubmit={submitEdit}
+                  onDelete={removeTrip}
+                  onToggleOpen={() => toggleTripSection("past")}
+                />
+              )}
             </div>
           )}
         </section>

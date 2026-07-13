@@ -1,41 +1,40 @@
 /* Trip dashboard shell, account rail, and create modal. */
 .trips-page {
-  --trips-page-padding-x: clamp(16px, 3vw, 32px);
+  --trips-page-padding-x: clamp(14px, 2.2vw, 22px);
 
   background: var(--surface-base);
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow: visible;
-  padding: 0 var(--trips-page-padding-x);
+  height: 100dvh;
+  overflow: hidden;
+  padding: var(--trips-page-padding-x);
 }
 
 .trips-dashboard-shell {
-  align-items: start;
+  align-items: stretch;
   background: var(--surface-base);
-  border: 0;
-  border-radius: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px -36px rgba(15, 23, 42, 0.35);
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 216px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
   margin: 0 auto;
   max-width: 1320px;
-  min-height: 100dvh;
-  overflow: visible;
+  min-height: 0;
+  overflow: hidden;
   width: 100%;
 }
 
 .trips-brand-rail {
   background: var(--surface-panel);
-  border-radius: 0;
+  border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  height: 100dvh;
-  max-height: 100dvh;
+  gap: 0;
+  height: 100%;
   min-width: 0;
   overflow: auto;
-  padding: 18px;
-  position: sticky;
-  top: 0;
+  padding: 18px 14px 16px;
 }
 
 .trips-mobile-topbar,
@@ -45,16 +44,19 @@
 }
 
 .trips-brand-rail-header {
-  display: block;
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
 }
 
 .trips-service-mark {
   align-items: center;
   color: var(--text);
   display: inline-flex;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   gap: 8px;
+  padding: 0 8px;
 }
 
 .trips-service-logo {
@@ -76,25 +78,133 @@
   stroke-width: 4;
 }
 
-.trips-account-actions {
-  display: grid;
-  gap: 10px;
-  margin-top: auto;
+.trips-rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 24px;
 }
 
-.trips-account-actions > button {
-  justify-content: center;
-  width: 100%;
+.trips-rail-nav-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  font-size: 13.5px;
+  font-weight: 600;
+  gap: 10px;
+  padding: 9px 12px;
+  text-decoration: none;
+}
+
+.trips-rail-nav-item:hover {
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.trips-rail-nav-item-active,
+.trips-rail-nav-item-active:hover {
+  background: var(--accent-soft-bg);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.trips-rail-nav-item-disabled,
+.trips-rail-nav-item-disabled:hover {
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: default;
+  opacity: 0.55;
+}
+
+.trips-rail-nav-icon {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 15px;
+  height: 15px;
+  width: 15px;
+}
+
+.trips-rail-nav-icon svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  width: 15px;
+}
+
+.trips-rail-nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trips-rail-nav-soon {
+  background: var(--surface-subtle);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.trips-rail-nav-badge {
+  background: var(--accent-soft-bg);
+  border-radius: 999px;
+  color: var(--accent);
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 6px;
+  text-transform: uppercase;
+}
+
+.trips-rail-nav-divider {
+  background: var(--line);
+  display: block;
+  height: 1px;
+  margin: 8px 4px;
+}
+
+.trips-rail-footer {
+  border-top: 1px solid var(--line);
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.trips-rail-footer .trips-logout-button {
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  flex: 0 0 30px;
+}
+
+.trips-rail-footer .trips-logout-button:hover {
+  background: var(--surface-subtle);
+  border: 0;
+  color: var(--text);
 }
 
 .trips-main-pane {
   align-content: start;
   background: var(--surface-dashboard);
-  border-radius: 0;
   display: grid;
   gap: 18px;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow-y: auto;
   padding: 24px;
 }
 
@@ -138,13 +248,12 @@
 
 .trips-profile-card {
   align-items: center;
-  background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: transparent;
+  border: 0;
   display: grid;
-  gap: 12px;
-  grid-template-columns: auto minmax(0, 1fr);
-  padding: 10px;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 10px 8px 2px;
 }
 
 .trips-avatar {
@@ -154,11 +263,11 @@
   border-radius: 999px;
   color: var(--accent);
   display: inline-flex;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
-  height: 36px;
+  height: 32px;
   justify-content: center;
-  width: 36px;
+  width: 32px;
 }
 
 .trips-profile-copy {
@@ -454,15 +563,20 @@
 @media (max-width: 920px) {
   .trips-page {
     background: var(--surface-base);
+    height: auto;
+    overflow: visible;
     padding: 0;
   }
 
   .trips-dashboard-shell {
     border: 0;
     border-radius: 0;
+    box-shadow: none;
     grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .trips-mobile-topbar {
@@ -493,6 +607,42 @@
     width: 34px;
   }
 
+  .trips-mobile-nav-toggle {
+    background: transparent;
+    border: 0;
+    color: var(--text);
+  }
+
+  .trips-mobile-nav-toggle:hover {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .trips-mobile-nav-toggle svg {
+    height: 20px;
+    stroke-width: 1.7;
+    width: 20px;
+  }
+
+  .trips-mobile-nav-close {
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary);
+  }
+
+  .trips-mobile-nav-close:hover {
+    background: var(--surface-subtle);
+    border: 0;
+    box-shadow: none;
+    color: var(--text);
+  }
+
+  .trips-mobile-nav-close svg {
+    height: 20px;
+    width: 20px;
+  }
+
   .trips-mobile-nav-backdrop {
     background: var(--overlay-backdrop);
     border: 0;
@@ -519,6 +669,7 @@
     justify-content: flex-start;
     max-height: 100dvh;
     overflow: auto;
+    padding-top: 12px;
     position: fixed;
     right: 0;
     top: 0;
@@ -527,7 +678,7 @@
       transform 180ms ease,
       visibility 180ms ease;
     visibility: hidden;
-    width: min(320px, calc(100vw - 48px));
+    width: min(284px, calc(100vw - 56px));
     z-index: 25;
   }
 
@@ -537,32 +688,26 @@
   }
 
   .trips-brand-rail-header {
-    align-items: center;
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
+    justify-content: flex-end;
+  }
+
+  .trips-brand-rail-header .trips-service-mark {
+    display: none;
+  }
+
+  .trips-rail-nav {
+    margin-top: 4px;
   }
 
   .trips-mobile-nav-close {
     display: inline-flex;
   }
 
-  .trips-account-actions {
-    display: grid;
-    margin-top: 0;
-  }
-
-  .trips-account-actions > button {
-    width: 100%;
-  }
-
-  .trips-profile-card {
-    max-width: none;
-  }
-
   .trips-main-pane {
     border-radius: 0;
+    height: auto;
     min-height: 0;
+    overflow: visible;
     padding: 18px;
   }
 
@@ -575,43 +720,6 @@
   .trips-brand-rail {
     transition: none;
   }
-}
-
-/* Admin nav in the rail */
-.trips-rail-nav {
-  display: grid;
-  gap: 4px;
-}
-
-.trips-rail-nav-button {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 7px;
-  color: var(--muted);
-  cursor: pointer;
-  display: flex;
-  font-size: 13px;
-  font-weight: 600;
-  gap: 8px;
-  padding: 8px 10px;
-  text-align: left;
-  width: 100%;
-}
-
-.trips-rail-nav-button:hover {
-  background: var(--surface-subtle);
-  color: var(--text);
-}
-
-.trips-rail-nav-button-active {
-  background: var(--accent-soft-bg);
-  color: var(--accent);
-}
-
-.trips-rail-nav-button-active:hover {
-  background: var(--accent-soft-bg);
-  color: var(--accent);
 }
 
 /* Admin dashboard page */
