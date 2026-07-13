@@ -7,6 +7,7 @@ import type { Place, VisitDateOption } from "@/lib/types";
 
 import { TrashIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
+import { VisitScheduleFields } from "./VisitScheduleFields";
 
 type Props = {
   place: Place | null;
@@ -16,21 +17,6 @@ type Props = {
   onResolveUrl: (googleMapsUrl: string) => Promise<ResolvedPlace>;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
 };
-
-const TIME_PRESETS = [
-  { label: "9 AM", value: "09:00" },
-  { label: "2 PM", value: "14:00" },
-  { label: "7 PM", value: "19:00" },
-] as const;
-
-const WEEKDAY_FORMAT = new Intl.DateTimeFormat("en-US", {
-  timeZone: "UTC",
-  weekday: "short",
-});
-
-function weekdayLabel(iso: string): string {
-  return WEEKDAY_FORMAT.format(new Date(`${iso}T00:00:00Z`));
-}
 
 export function AddEditPlaceModal({
   place,
@@ -245,84 +231,13 @@ export function AddEditPlaceModal({
             )}
 
             {!isEditing && (
-              <>
-                <div className="place-field">
-                  <span className="place-field-label">Which day?</span>
-                  <div className="place-day-grid">
-                    {visitDateOptions.map((option, index) => {
-                      const active = selectedDate === option.value;
-                      return (
-                        <button
-                          type="button"
-                          key={option.value}
-                          className={
-                            active
-                              ? "place-day-tile place-day-tile--active"
-                              : "place-day-tile"
-                          }
-                          onClick={() => setSelectedDate(option.value)}
-                        >
-                          <span className="place-day-tile-top">
-                            {weekdayLabel(option.value)}
-                          </span>
-                          <span className="place-day-tile-big">
-                            Day {index + 1}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <button
-                    type="button"
-                    className={
-                      selectedDate === null
-                        ? "place-later-button place-later-button--active"
-                        : "place-later-button"
-                    }
-                    onClick={() => {
-                      setSelectedDate(null);
-                      setVisitTime(null);
-                    }}
-                  >
-                    Decide later — keep it unscheduled
-                  </button>
-                </div>
-
-                {selectedDate !== null && (
-                  <div className="place-field">
-                    <span className="place-field-label">
-                      Around what time?{" "}
-                      <span className="place-optional">(optional)</span>
-                    </span>
-                    <div className="place-time-row">
-                      {TIME_PRESETS.map((preset) => (
-                        <button
-                          type="button"
-                          key={preset.value}
-                          className={
-                            visitTime === preset.value
-                              ? "place-time-pill place-time-pill--active"
-                              : "place-time-pill"
-                          }
-                          onClick={() => setVisitTime(preset.value)}
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                      <span className="place-time-divider" aria-hidden="true" />
-                      <input
-                        type="time"
-                        className="place-time-input"
-                        value={visitTime ?? ""}
-                        onChange={(event) =>
-                          setVisitTime(event.currentTarget.value || null)
-                        }
-                        aria-label="Specific time"
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
+              <VisitScheduleFields
+                visitDateOptions={visitDateOptions}
+                visitDate={selectedDate}
+                visitTime={visitTime}
+                onVisitDateChange={setSelectedDate}
+                onVisitTimeChange={setVisitTime}
+              />
             )}
 
             <div className="place-disclosure">

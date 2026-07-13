@@ -2,17 +2,10 @@
 
 import { useState, type SubmitEvent } from "react";
 
-import { nullableValue, stringValue } from "@/lib/form-data";
 import type { ItineraryItem, Place, VisitDateOption } from "@/lib/types";
-import {
-  composeVisitTime,
-  HOUR_OPTIONS,
-  MINUTE_OPTIONS,
-  splitVisitTime,
-} from "@/lib/visit-time";
 
 import { ModalShell } from "./ModalShell";
-import { VisitDateField } from "./VisitDateField";
+import { VisitScheduleFields } from "./VisitScheduleFields";
 
 type Props = {
   item?: ItineraryItem;
@@ -37,27 +30,31 @@ export function EditItineraryItemModal({
   const placeLinks = displayPlace.links.filter(
     (link) => link.trim().length > 0,
   );
+  const isCreating = !item;
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [visitTimeHour, visitTimeMinute] = splitVisitTime(
+  const validDates = new Set(visitDateOptions.map((option) => option.value));
+  const initialDate =
+    item?.visit_date && validDates.has(item.visit_date)
+      ? item.visit_date
+      : null;
+
+  const [visitDate, setVisitDate] = useState<string | null>(initialDate);
+  const [visitTime, setVisitTime] = useState<string | null>(
     item?.visit_time ?? null,
   );
-  const isCreating = !item;
+  const [notes, setNotes] = useState(item?.notes ?? "");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
     setError(null);
 
-    const form = new FormData(event.currentTarget);
     const payload = {
-      visit_date: nullableValue(form, "visit_date"),
-      visit_time: composeVisitTime(
-        stringValue(form, "visit_time_hour"),
-        stringValue(form, "visit_time_minute"),
-      ),
-      notes: nullableValue(form, "notes"),
+      visit_date: visitDate,
+      visit_time: visitDate ? visitTime : null,
+      notes: notes.trim() || null,
     };
 
     try {
@@ -72,92 +69,111 @@ export function EditItineraryItemModal({
 
   return (
     <ModalShell onClose={onCancel}>
-      <form className="modal" onSubmit={submit}>
-        <header className="modal-header">
-          <h2>{isCreating ? "Add Visit" : "Edit Visit"}</h2>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={onCancel}
-            aria-label="Close"
-          >
-            X
-          </button>
+      <div className="modal place-modal">
+        <header className="place-modal-header">
+          <div className="place-modal-header-left">
+            <h2>{isCreating ? "Add visit" : "Edit visit"}</h2>
+          </div>
+          <div className="place-modal-header-right">
+            <button
+              type="button"
+              className="place-modal-close"
+              onClick={onCancel}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </header>
 
-        <p className="modal-subtitle">{displayPlace.name}</p>
-
-        {placeNotes && (
-          <section
-            className="modal-note-block"
-            aria-label="Original place notes"
-          >
-            <span className="modal-note-label">Place notes</span>
-            <p className="modal-note-text">{placeNotes}</p>
-          </section>
-        )}
-
-        {placeLinks.length > 0 && (
-          <section className="modal-note-block" aria-label="Place links">
-            <span className="modal-note-label">Links</span>
-            <div className="modal-links-readonly">
-              {placeLinks.map((link) => (
-                <a key={link} href={link} target="_blank" rel="noreferrer">
-                  {link}
-                </a>
-              ))}
+        <form className="place-details" onSubmit={submit}>
+          <div className="place-resolved">
+            <div className="place-resolved-pin" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+              </svg>
             </div>
-          </section>
-        )}
-
-        <div className="form-grid">
-          <VisitDateField
-            label="Visit date"
-            name="visit_date"
-            defaultValue={item?.visit_date ?? ""}
-            options={visitDateOptions}
-          />
-          <div className="time-picker">
-            <span className="field-label">Visit time</span>
-            <div className="time-picker-grid">
-              <select name="visit_time_hour" defaultValue={visitTimeHour}>
-                <option value="">Hour</option>
-                {HOUR_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="visit_time_minute"
-                defaultValue={visitTimeMinute || "00"}
-              >
-                {MINUTE_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+            <div className="place-resolved-body">
+              <span className="place-card-title">{displayPlace.name}</span>
+              {displayPlace.address && (
+                <span className="place-resolved-found place-resolved-found--muted">
+                  {displayPlace.address}
+                </span>
+              )}
             </div>
           </div>
-        </div>
 
-        <label>
-          Visit notes
-          <textarea name="notes" rows={5} defaultValue={item?.notes ?? ""} />
-        </label>
+          {(placeNotes || placeLinks.length > 0) && (
+            <div className="place-context">
+              {placeNotes && (
+                <section
+                  className="place-context-block"
+                  aria-label="Original place notes"
+                >
+                  <span className="place-context-label">Place notes</span>
+                  <p className="place-context-text">{placeNotes}</p>
+                </section>
+              )}
+              {placeLinks.length > 0 && (
+                <section className="place-context-block" aria-label="Place links">
+                  <span className="place-context-label">Links</span>
+                  <div className="place-context-links">
+                    {placeLinks.map((link) => (
+                      <a
+                        key={link}
+                        href={link}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {link}
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
 
-        {error && <p className="error-text">{error}</p>}
+          <VisitScheduleFields
+            visitDateOptions={visitDateOptions}
+            visitDate={visitDate}
+            visitTime={visitTime}
+            onVisitDateChange={setVisitDate}
+            onVisitTimeChange={setVisitTime}
+          />
 
-        <footer className="modal-actions">
-          <button type="button" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-        </footer>
-      </form>
+          <label className="place-field">
+            <span className="place-field-label">Visit notes</span>
+            <textarea
+              className="place-input"
+              rows={4}
+              value={notes}
+              onChange={(event) => setNotes(event.currentTarget.value)}
+              placeholder="e.g. Meet Sarah at the entrance"
+            />
+          </label>
+
+          {error && <p className="error-text">{error}</p>}
+
+          <div className="place-actions">
+            <button
+              type="button"
+              className="place-secondary-button"
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="place-primary-button"
+              disabled={isSaving}
+            >
+              {isSaving && <span className="place-spinner" />}
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </ModalShell>
   );
 }
