@@ -68,7 +68,7 @@ describe("visit date controls", () => {
     expect(markup).toContain('<option value="2026-06-02" selected="">');
   });
 
-  it("keeps an existing out-of-range visit date without offering free date entry", () => {
+  it("drops an out-of-range visit date instead of preserving it", () => {
     const markup = renderToStaticMarkup(
       createElement(EditItineraryItemModal, {
         item: buildItineraryItem({
@@ -81,7 +81,8 @@ describe("visit date controls", () => {
       }),
     );
 
-    expect(markup).toContain("Current date: Jun 5, 2026");
+    expect(markup).not.toContain("Current date");
+    expect(markup).not.toContain('value="2026-06-05"');
     expect(markup).not.toContain('type="date" name="visit_date"');
   });
 

@@ -21,18 +21,11 @@ export function VisitDateField(props: Props) {
     );
   }
 
-  const hasDefaultOption =
-    defaultValue.length === 0 ||
-    props.options.some((option) => option.value === defaultValue);
-
   return (
     <label>
       {props.label}
       <select name={props.name} defaultValue={defaultValue}>
         <option value="">Unscheduled</option>
-        {!hasDefaultOption && (
-          <option value={defaultValue}>{`Current date: ${formatLongDate(defaultValue)}`}</option>
-        )}
         {props.options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -41,18 +34,4 @@ export function VisitDateField(props: Props) {
       </select>
     </label>
   );
-}
-
-function formatLongDate(value: string): string {
-  const parsedDate = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "UTC",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(parsedDate);
 }
