@@ -58,19 +58,47 @@ export function parseAiPlanningPreferenceInput(
 export function parseAiPlanningGenerationInput(
   payload: unknown,
   allowedCandidateIds: ReadonlySet<number>,
+  allowedTransitHubIds: ReadonlySet<number> = new Set(),
 ): {
   preferences: AiPlanningPreferenceInput;
   lodging_google_maps_url: string | null;
   daily_start_time: string;
+  arrival_hub_id: number | null;
+  arrival_google_maps_url: string | null;
+  arrival_time: string | null;
+  departure_hub_id: number | null;
+  departure_google_maps_url: string | null;
+  departure_time: string | null;
 } {
   const body = asRecord(payload);
 
   return {
     preferences: parseAiPlanningPreferenceInput(payload, allowedCandidateIds),
-    lodging_google_maps_url: optionalLodgingGoogleMapsUrl(
+    lodging_google_maps_url: optionalGoogleMapsUrl(
       body.lodging_google_maps_url,
+      "Lodging",
     ),
     daily_start_time: dailyStartTime(body.daily_start_time),
+    arrival_hub_id: optionalTransitHubId(
+      body.arrival_hub_id,
+      "Arrival stop",
+      allowedTransitHubIds,
+    ),
+    arrival_google_maps_url: optionalGoogleMapsUrl(
+      body.arrival_google_maps_url,
+      "Arrival stop",
+    ),
+    arrival_time: optionalEventTime(body.arrival_time, "Arrival time"),
+    departure_hub_id: optionalTransitHubId(
+      body.departure_hub_id,
+      "Departure stop",
+      allowedTransitHubIds,
+    ),
+    departure_google_maps_url: optionalGoogleMapsUrl(
+      body.departure_google_maps_url,
+      "Departure stop",
+    ),
+    departure_time: optionalEventTime(body.departure_time, "Departure time"),
   };
 }
 
@@ -132,14 +160,49 @@ function travelModes(value: unknown): TravelMode[] {
   );
 }
 
-function optionalLodgingGoogleMapsUrl(value: unknown): string | null {
+function optionalGoogleMapsUrl(value: unknown, label: string): string | null {
   if (value === undefined || value === null) return null;
   if (typeof value !== "string") {
-    throw new TripValidationError("Lodging Google Maps URL must be a string.");
+    throw new TripValidationError(`${label} Google Maps URL must be a string.`);
   }
 
   const trimmed = value.trim();
   return trimmed === "" ? null : trimmed;
+}
+
+function optionalTransitHubId(
+  value: unknown,
+  label: string,
+  allowedTransitHubIds: ReadonlySet<number>,
+): number | null {
+  if (value === undefined || value === null) return null;
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value <= 0 ||
+    !allowedTransitHubIds.has(value)
+  ) {
+    throw new TripValidationError(
+      `${label} must be one of the destination's transit hubs.`,
+    );
+  }
+
+  return value;
+}
+
+function optionalEventTime(value: unknown, label: string): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") {
+    throw new TripValidationError(`${label} must be HH:MM.`);
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (!isValid24HourTime(trimmed)) {
+    throw new TripValidationError(`${label} must be HH:MM.`);
+  }
+
+  return trimmed;
 }
 
 function dailyStartTime(value: unknown): string {

@@ -530,6 +530,63 @@
   margin: 0;
 }
 
+.ai-field-row {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ai-field-time input[type="time"] {
+  width: 132px;
+}
+
+.ai-field-hint-success {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.ai-field-hint-danger {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.ai-field-label-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+/* Scoped through the modal class: modals.css sets `.modal label { display: grid }`
+   and `.modal input { min-height; width: 100% }`, which would stack and inflate
+   the checkbox at equal specificity. */
+.ai-planning-modal .ai-label-checkbox {
+  align-items: center;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: row;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+  user-select: none;
+}
+
+.ai-planning-modal .ai-label-checkbox.selected {
+  color: var(--accent);
+}
+
+.ai-planning-modal .ai-label-checkbox input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 15px;
+  margin: 0;
+  min-height: 0;
+  padding: 0;
+  width: 15px;
+}
+
 .ai-planning-modal input[type="time"],
 .ai-planning-modal input[type="url"] {
   color-scheme: light;
@@ -915,6 +972,10 @@
   }
 
   .ai-pace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-field-row {
     grid-template-columns: 1fr;
   }
 

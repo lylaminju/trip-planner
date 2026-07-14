@@ -5,6 +5,8 @@ import {
   candidateRecord,
   membership,
   savedPreferenceRecord,
+  transitHubRecord,
+  transitPointRecord,
   tripRecord,
   withMockedAiPlanningService,
 } from "./ai-planning-service.test-helpers";
@@ -36,6 +38,9 @@ describe("ai-planning-service request boundary", () => {
           isSupportedDestination: true,
           candidates: [],
           lodging: null,
+          arrivalPoint: null,
+          departurePoint: null,
+          transitHubs: [],
           preferences: null,
         });
       },
@@ -74,6 +79,9 @@ describe("ai-planning-service request boundary", () => {
           isSupportedDestination: false,
           candidates: [],
           lodging: null,
+          arrivalPoint: null,
+          departurePoint: null,
+          transitHubs: [],
           preferences: null,
         });
       },
@@ -248,6 +256,8 @@ describe("ai-planning-service request boundary", () => {
       null,
       "08:30",
       "user-1",
+      null,
+      null,
     );
     expect(updateAiPlanGeneration).toHaveBeenLastCalledWith(
       55,
@@ -364,6 +374,218 @@ describe("ai-planning-service request boundary", () => {
       lodging,
       "08:30",
       "user-1",
+      null,
+      null,
+    );
+  });
+
+  it("uses submitted arrival and departure stops as trip start and end anchors", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    const getTripById = vi.fn().mockResolvedValue(
+      tripRecord({
+        start_date: "2026-05-27",
+        end_date: "2026-05-27",
+      }),
+    );
+    const listDestinationCandidates = vi.fn().mockResolvedValue([
+      candidateRecord(10),
+    ]);
+    const savedPreferences = savedPreferenceRecord({
+      visits_per_day_min: 1,
+      visits_per_day_max: 3,
+      preferred_travel_modes: ["walking"],
+      must_see_candidate_ids: [10],
+    });
+    const arrivalPoint = transitPointRecord("arrival", "15:00");
+    const departurePoint = transitPointRecord("departure", "21:00");
+    const upsertTransitPointFromGoogleMapsUrl = vi
+      .fn()
+      .mockImplementation((_tripId, kind) =>
+        Promise.resolve(kind === "arrival" ? arrivalPoint : departurePoint),
+      );
+    const requestAiItineraryPlan = vi.fn().mockResolvedValue({
+      plan: {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "16:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      usage: { inputTokens: 10, outputTokens: 20 },
+    });
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 55 });
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+    const replaceAiGeneratedBatch = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById,
+        requireTripRole,
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          getPrimaryLodging: vi.fn().mockResolvedValue(null),
+          getTransitPoints: vi.fn().mockResolvedValue([]),
+          upsertPlanningPreferences: vi.fn().mockResolvedValue(savedPreferences),
+          upsertTransitPointFromGoogleMapsUrl,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration,
+          updateAiPlanGeneration: vi.fn(),
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+            interest_tags: ["landmarks"],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [10],
+            daily_start_time: "08:30",
+            arrival_google_maps_url: "https://maps.app.goo.gl/arrive",
+            arrival_time: "15:00",
+            departure_google_maps_url: "https://maps.app.goo.gl/depart",
+            departure_time: "21:00",
+          }),
+        ).resolves.toEqual({ generationId: 55, plannerSnapshot });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(upsertTransitPointFromGoogleMapsUrl).toHaveBeenCalledWith(
+      1,
+      "arrival",
+      "https://maps.app.goo.gl/arrive",
+      "15:00",
+    );
+    expect(upsertTransitPointFromGoogleMapsUrl).toHaveBeenCalledWith(
+      1,
+      "departure",
+      "https://maps.app.goo.gl/depart",
+      "21:00",
+    );
+    expect(requestAiItineraryPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          trip_start_point: {
+            name: "JFK Airport",
+            latitude: 40.641,
+            longitude: -73.778,
+            time: "15:00",
+          },
+          trip_end_point: {
+            name: "JFK Airport",
+            latitude: 40.641,
+            longitude: -73.778,
+            time: "21:00",
+          },
+        }),
+      }),
+    );
+    expect(replaceAiGeneratedBatch).toHaveBeenCalledWith(
+      1,
+      55,
+      expect.any(Object),
+      [candidateRecord(10)],
+      savedPreferences,
+      null,
+      "08:30",
+      "user-1",
+      arrivalPoint,
+      departurePoint,
+    );
+  });
+
+  it("resolves a selected transit hub into the trip's arrival stop", async () => {
+    const hub = transitHubRecord(71, "John F. Kennedy International Airport");
+    const arrivalPoint = transitPointRecord("arrival", "15:00");
+    const upsertTransitPointFromHub = vi.fn().mockResolvedValue(arrivalPoint);
+    const upsertTransitPointFromGoogleMapsUrl = vi.fn();
+    const requestAiItineraryPlan = vi.fn().mockResolvedValue({
+      plan: {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "16:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      usage: { inputTokens: 10, outputTokens: 20 },
+    });
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+    const replaceAiGeneratedBatch = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(
+          tripRecord({ start_date: "2026-05-27", end_date: "2026-05-27" }),
+        ),
+        supabaseAiPlanningService: {
+          listDestinationCandidates: vi
+            .fn()
+            .mockResolvedValue([candidateRecord(10)]),
+          listDestinationTransitHubs: vi.fn().mockResolvedValue([hub]),
+          upsertPlanningPreferences: vi.fn().mockResolvedValue(
+            savedPreferenceRecord({ must_see_candidate_ids: [10] }),
+          ),
+          upsertTransitPointFromHub,
+          upsertTransitPointFromGoogleMapsUrl,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration: vi.fn().mockResolvedValue({ id: 55 }),
+          updateAiPlanGeneration: vi.fn(),
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await service.generateAiItineraryForRequest(1, "user-1", {
+          visits_per_day_min: 1,
+          visits_per_day_max: 3,
+          preferred_travel_modes: ["walking"],
+          must_see_candidate_ids: [10],
+          arrival_hub_id: 71,
+          arrival_time: "15:00",
+        });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(upsertTransitPointFromHub).toHaveBeenCalledWith(
+      1,
+      "arrival",
+      hub,
+      "15:00",
+    );
+    expect(upsertTransitPointFromGoogleMapsUrl).not.toHaveBeenCalled();
+    expect(requestAiItineraryPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: expect.objectContaining({
+          trip_start_point: {
+            name: "JFK Airport",
+            latitude: 40.641,
+            longitude: -73.778,
+            time: "15:00",
+          },
+        }),
+      }),
     );
   });
 

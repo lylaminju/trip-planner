@@ -179,6 +179,84 @@ describe("AI itinerary plan validation", () => {
       "Day 2026-05-27 has a visit before 09:00.",
     );
   });
+
+  it("applies the arrival-time floor only to the first trip day", () => {
+    const result = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "14:00",
+                duration_minutes: 60,
+                notes: null,
+              },
+            ],
+          },
+          {
+            date: "2026-05-28",
+            visits: [
+              {
+                candidate_id: 11,
+                start_time: "09:30",
+                duration_minutes: 60,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10, 11]),
+        tripDates: ["2026-05-27", "2026-05-28"],
+        visitsPerDayMin: 1,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+        earliestVisitStartTime: "09:00",
+        firstDayEarliestStartTime: "15:00",
+      },
+    );
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toEqual([
+      "Day 2026-05-27 has a visit before 15:00.",
+    ]);
+  });
+
+  it("rejects last-day visits that end after the departure time", () => {
+    const result = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10]),
+        tripDates: ["2026-05-27"],
+        visitsPerDayMin: 1,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+        lastDayLatestEndTime: "10:30",
+      },
+    );
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Day 2026-05-27 has a visit ending after 10:30.",
+    );
+  });
 });
 
 function plan(): AiItineraryPlan {

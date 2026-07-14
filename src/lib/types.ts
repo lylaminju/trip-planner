@@ -143,6 +143,40 @@ export type TripLodging = {
   updated_at: string;
 };
 
+export type TripTransitPointKind = "arrival" | "departure";
+
+export type AiTransitHubType =
+  | "airport"
+  | "train_station"
+  | "bus_terminal"
+  | "ferry_terminal";
+
+export type AiDestinationTransitHub = {
+  id: number;
+  destination_slug: string;
+  name: string;
+  hub_type: AiTransitHubType;
+  iata_code: string | null;
+  latitude: number;
+  longitude: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TripTransitPoint = {
+  id: number;
+  trip_id: number;
+  kind: TripTransitPointKind;
+  name: string;
+  latitude: number;
+  longitude: number;
+  google_place_id: string | null;
+  event_time: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AiPlanningPreferenceInput = {
   visits_per_day_min: number;
   visits_per_day_max: number;
@@ -154,6 +188,12 @@ export type AiPlanningPreferenceInput = {
 export type AiPlanningGenerationInput = AiPlanningPreferenceInput & {
   lodging_google_maps_url?: string | null;
   daily_start_time?: string | null;
+  arrival_hub_id?: number | null;
+  arrival_google_maps_url?: string | null;
+  arrival_time?: string | null;
+  departure_hub_id?: number | null;
+  departure_google_maps_url?: string | null;
+  departure_time?: string | null;
 };
 
 export type AiPlanningPreferences = AiPlanningPreferenceInput & {
@@ -167,5 +207,8 @@ export type AiPlanningSetup = {
   isSupportedDestination: boolean;
   candidates: AiDestinationCandidate[];
   lodging: TripLodging | null;
+  arrivalPoint: TripTransitPoint | null;
+  departurePoint: TripTransitPoint | null;
+  transitHubs: AiDestinationTransitHub[];
   preferences: AiPlanningPreferences | null;
 };

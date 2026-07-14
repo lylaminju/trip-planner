@@ -1,6 +1,11 @@
 import { vi } from "vitest";
 
-import type { Trip, TripMembership } from "@/lib/types";
+import type {
+  Trip,
+  TripMembership,
+  TripTransitPoint,
+  TripTransitPointKind,
+} from "@/lib/types";
 
 export async function withMockedAiPlanningService(
   mocks: {
@@ -31,10 +36,15 @@ export async function withMockedAiPlanningService(
 
   vi.doMock("@/server/supabase-ai-planning-service", () => ({
     listDestinationCandidates: vi.fn().mockResolvedValue([]),
+    listDestinationTransitHubs: vi.fn().mockResolvedValue([]),
     getPrimaryLodging: vi.fn().mockResolvedValue(null),
+    getTransitPoints: vi.fn().mockResolvedValue([]),
     getPlanningPreferences: vi.fn().mockResolvedValue(null),
     upsertPlanningPreferences: vi.fn(),
     upsertPrimaryLodgingFromGoogleMapsUrl: vi.fn(),
+    upsertTransitPointFromGoogleMapsUrl: vi.fn(),
+    upsertTransitPointFromHub: vi.fn(),
+    updateTransitPointTime: vi.fn(),
     ...mocks.supabaseAiPlanningService,
   }));
   vi.doMock("@/server/openai-ai-planner", () => ({
@@ -156,6 +166,39 @@ export function tripRecord(overrides: Partial<Trip> = {}): Trip {
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...overrides,
+  };
+}
+
+export function transitHubRecord(id: number, name: string) {
+  return {
+    id,
+    destination_slug: "new-york-city",
+    name,
+    hub_type: "airport" as const,
+    iata_code: "JFK",
+    latitude: 40.641,
+    longitude: -73.778,
+    sort_order: 1,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+}
+
+export function transitPointRecord(
+  kind: TripTransitPointKind,
+  eventTime: string | null,
+): TripTransitPoint {
+  return {
+    id: kind === "arrival" ? 8 : 9,
+    trip_id: 1,
+    kind,
+    name: "JFK Airport",
+    latitude: 40.641,
+    longitude: -73.778,
+    google_place_id: null,
+    event_time: eventTime,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
   };
 }
 

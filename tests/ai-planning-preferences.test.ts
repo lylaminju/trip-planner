@@ -104,7 +104,91 @@ describe("ai planning preference defaults", () => {
       },
       daily_start_time: "08:30",
       lodging_google_maps_url: "https://maps.app.goo.gl/example",
+      arrival_hub_id: null,
+      arrival_google_maps_url: null,
+      arrival_time: null,
+      departure_hub_id: null,
+      departure_google_maps_url: null,
+      departure_time: null,
     });
+  });
+
+  it("parses optional arrival and departure stops with times for generation", () => {
+    expect(
+      parseAiPlanningGenerationInput(
+        {
+          visits_per_day_min: 1,
+          visits_per_day_max: 3,
+          preferred_travel_modes: ["walking"],
+          arrival_google_maps_url: " https://maps.app.goo.gl/arrive ",
+          arrival_time: "15:30",
+          departure_google_maps_url: "https://maps.app.goo.gl/depart",
+          departure_time: " ",
+        },
+        new Set([10]),
+      ),
+    ).toMatchObject({
+      arrival_google_maps_url: "https://maps.app.goo.gl/arrive",
+      arrival_time: "15:30",
+      departure_google_maps_url: "https://maps.app.goo.gl/depart",
+      departure_time: null,
+    });
+  });
+
+  it("accepts transit hub selections from the allowed set and rejects others", () => {
+    expect(
+      parseAiPlanningGenerationInput(
+        {
+          preferred_travel_modes: ["walking"],
+          arrival_hub_id: 7,
+        },
+        new Set([10]),
+        new Set([7, 8]),
+      ),
+    ).toMatchObject({ arrival_hub_id: 7, departure_hub_id: null });
+
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          preferred_travel_modes: ["walking"],
+          departure_hub_id: 99,
+        },
+        new Set([10]),
+        new Set([7, 8]),
+      ),
+    ).toThrow("Departure stop must be one of the destination's transit hubs.");
+  });
+
+  it("rejects malformed arrival and departure inputs", () => {
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          preferred_travel_modes: ["walking"],
+          arrival_time: "3pm",
+        },
+        new Set([10]),
+      ),
+    ).toThrow("Arrival time must be HH:MM.");
+
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          preferred_travel_modes: ["walking"],
+          departure_time: 900,
+        },
+        new Set([10]),
+      ),
+    ).toThrow("Departure time must be HH:MM.");
+
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          preferred_travel_modes: ["walking"],
+          departure_google_maps_url: 42,
+        },
+        new Set([10]),
+      ),
+    ).toThrow("Departure stop Google Maps URL must be a string.");
   });
 
   it("defaults the daily start time for generation and rejects malformed times", () => {
@@ -172,6 +256,9 @@ function setup(
       },
     ],
     lodging: null,
+    arrivalPoint: null,
+    departurePoint: null,
+    transitHubs: [],
     preferences: null,
     ...overrides,
   };

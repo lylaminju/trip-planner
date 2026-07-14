@@ -4,9 +4,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AiPlanningWizard } from "@/components/AiPlanningWizard";
 import {
-  LogisticsStep,
   MustSeeStep,
+  ReviewStep,
 } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
+import { LogisticsStep } from "@/components/ai-planning-wizard/LogisticsStep";
+import { TransitStopsStep } from "@/components/ai-planning-wizard/TransitStopsStep";
+import { transitStopPayload } from "@/components/ai-planning-wizard/transit-stop-draft";
 import { formatVisitsPerDayRangeLabel } from "@/lib/ai-planning-preferences";
 import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
 
@@ -42,7 +45,7 @@ describe("AiPlanningWizard", () => {
 
     expect(markup).toContain('class="modal ai-planning-modal"');
     expect(markup).toContain("Plan with AI");
-    expect(markup).toContain("Step 1 of 5");
+    expect(markup).toContain("Step 1 of 6");
     expect(markup).not.toContain("New York City - ");
     expect(markup).not.toContain("2 curated attractions");
     expect(markup).toContain("How full should each day feel?");
@@ -74,7 +77,7 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Creating itinerary");
     expect(markup).toContain('class="ai-generation-icons"');
     expect(markup).toContain("Building your New York City itinerary");
-    expect(markup).not.toContain("Step 1 of 5");
+    expect(markup).not.toContain("Step 1 of 6");
     expect(markup).not.toContain("How full should each day feel?");
   });
 
@@ -98,6 +101,7 @@ describe("AiPlanningWizard", () => {
           created_at: "2026-01-01T00:00:00.000Z",
           updated_at: "2026-01-01T00:00:00.000Z",
         },
+        tripId: 1,
         onChange: vi.fn(),
         onDailyStartTimeChange: vi.fn(),
         onLodgingGoogleMapsUrlChange: vi.fn(),
@@ -111,6 +115,61 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Where your days begin");
     expect(markup).toContain('type="url"');
     expect(markup).toContain("Pod Times Square");
+  });
+
+  it("renders hub chips and saved stops on the trip start and end step", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TransitStopsStep, {
+        currentArrivalPoint: {
+          id: 3,
+          trip_id: 1,
+          kind: "arrival",
+          name: "JFK Airport",
+          latitude: 40.641,
+          longitude: -73.778,
+          google_place_id: null,
+          event_time: "15:30",
+          created_at: "2026-01-01T00:00:00.000Z",
+          updated_at: "2026-01-01T00:00:00.000Z",
+        },
+        currentDeparturePoint: null,
+        transitDraft: {
+          arrivalChoice: 71,
+          arrivalUrl: "",
+          arrivalTime: "15:30",
+          departureChoice: "same",
+          departureUrl: "",
+          departureTime: "",
+        },
+        transitHubs: [
+          {
+            id: 71,
+            destination_slug: "new-york-city",
+            name: "John F. Kennedy International Airport",
+            hub_type: "airport",
+            iata_code: "JFK",
+            latitude: 40.6413,
+            longitude: -73.7781,
+            sort_order: 1,
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+        tripId: 1,
+        onTransitDraftChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("Where your trip starts");
+    expect(markup).toContain("Arrival time");
+    expect(markup).toContain("Where your trip ends");
+    expect(markup).toContain("Departure time");
+    expect(markup).toContain("JFK · John F. Kennedy International Airport");
+    expect(markup).toContain("Somewhere else");
+    expect(markup).toContain("Same as arrival");
+    expect(markup).toContain("JFK Airport");
+    expect(markup).toContain('value="15:30"');
+    expect(markup).not.toContain("— optional");
   });
 
   it("shows candidate planning notes on the must-see step", () => {
@@ -153,6 +212,108 @@ describe("AiPlanningWizard", () => {
   });
 });
 
+describe("ReviewStep", () => {
+  it("shows the lodging name alongside the daily start time when set", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ReviewStep, {
+        arrivalCustomName: null,
+        arrivalPointName: null,
+        candidates: [],
+        dailyStartTime: "08:30",
+        days: 3,
+        departureCustomName: null,
+        departurePointName: null,
+        draft: preferenceDraft(),
+        lodgingName: "Pod Times Square",
+        onEditStep: vi.fn(),
+        transitDraft: {
+          arrivalChoice: null,
+          arrivalUrl: "",
+          arrivalTime: "",
+          departureChoice: null,
+          departureUrl: "",
+          departureTime: "",
+        },
+        transitHubs: [],
+      }),
+    );
+
+    expect(markup).toContain("Pod Times Square · 08:30");
+  });
+
+  it("shows resolved names for custom trip start and end links", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ReviewStep, {
+        arrivalCustomName: "Niagara Falls Terminal",
+        arrivalPointName: null,
+        candidates: [],
+        dailyStartTime: "09:00",
+        days: 3,
+        departureCustomName: null,
+        departurePointName: null,
+        draft: preferenceDraft(),
+        lodgingName: null,
+        onEditStep: vi.fn(),
+        transitDraft: {
+          arrivalChoice: "custom",
+          arrivalUrl: "https://maps.app.goo.gl/arrive",
+          arrivalTime: "15:00",
+          departureChoice: "custom",
+          departureUrl: "https://maps.app.goo.gl/depart",
+          departureTime: "",
+        },
+        transitHubs: [],
+      }),
+    );
+
+    expect(markup).toContain("Niagara Falls Terminal · 15:00");
+    // Departure link not resolved yet: falls back to the generic label.
+    expect(markup).toContain("From link");
+  });
+});
+
+describe("transitStopPayload", () => {
+  it("mirrors the arrival choice when departure is marked same as arrival", () => {
+    expect(
+      transitStopPayload({
+        arrivalChoice: 71,
+        arrivalUrl: "",
+        arrivalTime: "15:00",
+        departureChoice: "same",
+        departureUrl: "",
+        departureTime: "10:00",
+      }),
+    ).toEqual({
+      arrival_hub_id: 71,
+      arrival_google_maps_url: null,
+      arrival_time: "15:00",
+      departure_hub_id: 71,
+      departure_google_maps_url: null,
+      departure_time: "10:00",
+    });
+  });
+
+  it("sends the custom link only for the side that selected it", () => {
+    expect(
+      transitStopPayload({
+        arrivalChoice: "custom",
+        arrivalUrl: " https://maps.app.goo.gl/arrive ",
+        arrivalTime: "",
+        departureChoice: 72,
+        departureUrl: "https://maps.app.goo.gl/stale",
+        departureTime: "",
+      }),
+    ).toEqual({
+      arrival_hub_id: null,
+      arrival_google_maps_url: "https://maps.app.goo.gl/arrive",
+      arrival_time: null,
+      departure_hub_id: 72,
+      departure_google_maps_url: null,
+      departure_time: null,
+    });
+  });
+});
+
 describe("formatVisitsPerDayRangeLabel", () => {
   it("formats collapsed and expanded visit ranges", () => {
     expect(formatVisitsPerDayRangeLabel(2, 3)).toBe("2-3 visits/day");
@@ -189,6 +350,9 @@ function setup(): AiPlanningSetup {
       candidate(11, "The Met", "museum", ["museums"], "Upper East Side"),
     ],
     lodging: null,
+    arrivalPoint: null,
+    departurePoint: null,
+    transitHubs: [],
     preferences: null,
   };
 }

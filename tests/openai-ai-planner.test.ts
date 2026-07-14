@@ -103,6 +103,8 @@ function promptContext(): AiPlannerPromptContext {
     },
     lodging: null,
     daily_start_time: "09:00",
+    trip_start_point: null,
+    trip_end_point: null,
     candidates: [
       {
         id: 10,

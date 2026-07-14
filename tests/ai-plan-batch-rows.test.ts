@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { buildGeneratedScheduleEntries } from "@/server/ai-plan-batch-rows";
-import type { AiDestinationCandidate, TripLodging } from "@/lib/types";
+import {
+  buildGeneratedScheduleEntries,
+  splitGeneratedPlaceIds,
+} from "@/server/ai-plan-batch-rows";
+import type {
+  AiDestinationCandidate,
+  TripLodging,
+  TripTransitPoint,
+  TripTransitPointKind,
+} from "@/lib/types";
 
 describe("AI plan batch rows", () => {
   it("moves the first attraction after the lodging travel duration on the 10-minute grid", () => {
@@ -83,6 +91,133 @@ describe("AI plan batch rows", () => {
       { placeId: 102, startTime: "10:40" },
     ]);
   });
+
+  it("replaces the day-one lodging anchor with the arrival stop and appends the departure stop", () => {
+    const entries = buildGeneratedScheduleEntries({
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+          {
+            date: "2026-08-11",
+            visits: [
+              {
+                candidate_id: 11,
+                start_time: "10:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([
+        [10, candidate(10)],
+        [11, candidate(11)],
+      ]),
+      lodging: lodging(),
+      lodgingStartTime: "09:00",
+      lodgingPlaceId: 101,
+      arrivalPoint: transitPoint("arrival", "15:00"),
+      arrivalPlaceId: 100,
+      departurePoint: transitPoint("departure", "18:30"),
+      departurePlaceId: 103,
+      candidatePlaceIds: [102, 104],
+      firstVisitTravelDurationsByDate: new Map([["2026-08-10", 30 * 60]]),
+    });
+
+    expect(
+      entries.map((entry) => ({
+        date: entry.date,
+        placeId: entry.placeId,
+        startTime: entry.startTime,
+      })),
+    ).toEqual([
+      { date: "2026-08-10", placeId: 100, startTime: "15:00" },
+      { date: "2026-08-10", placeId: 102, startTime: "15:30" },
+      { date: "2026-08-11", placeId: 101, startTime: "09:00" },
+      { date: "2026-08-11", placeId: 104, startTime: "10:00" },
+      { date: "2026-08-11", placeId: 103, startTime: "18:30" },
+    ]);
+  });
+
+  it("anchors a single-day trip on arrival and departure without lodging", () => {
+    const entries = buildGeneratedScheduleEntries({
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "12:00",
+                duration_minutes: 60,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([[10, candidate(10)]]),
+      lodging: null,
+      lodgingStartTime: "09:00",
+      lodgingPlaceId: null,
+      arrivalPoint: transitPoint("arrival", "11:00"),
+      arrivalPlaceId: 100,
+      departurePoint: transitPoint("departure", null),
+      departurePlaceId: 103,
+      candidatePlaceIds: [102],
+    });
+
+    expect(
+      entries.map((entry) => ({
+        placeId: entry.placeId,
+        startTime: entry.startTime,
+      })),
+    ).toEqual([
+      { placeId: 100, startTime: "11:00" },
+      { placeId: 102, startTime: "12:00" },
+      // No departure time given: departs after the last visit ends.
+      { placeId: 103, startTime: "13:00" },
+    ]);
+  });
+
+  it("maps inserted place ids back to arrival, lodging, departure, and candidates", () => {
+    expect(
+      splitGeneratedPlaceIds([1, 2, 3, 4, 5], {
+        hasArrival: true,
+        hasLodging: true,
+        hasDeparture: true,
+      }),
+    ).toEqual({
+      arrivalPlaceId: 1,
+      lodgingPlaceId: 2,
+      departurePlaceId: 3,
+      candidatePlaceIds: [4, 5],
+    });
+
+    expect(
+      splitGeneratedPlaceIds([1, 2, 3], {
+        hasArrival: false,
+        hasLodging: true,
+        hasDeparture: false,
+      }),
+    ).toEqual({
+      arrivalPlaceId: null,
+      lodgingPlaceId: 1,
+      departurePlaceId: null,
+      candidatePlaceIds: [2, 3],
+    });
+  });
 });
 
 function lodging(): TripLodging {
@@ -97,6 +232,24 @@ function lodging(): TripLodging {
     check_in_date: null,
     check_out_date: null,
     is_primary: true,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+}
+
+function transitPoint(
+  kind: TripTransitPointKind,
+  eventTime: string | null,
+): TripTransitPoint {
+  return {
+    id: kind === "arrival" ? 20 : 21,
+    trip_id: 1,
+    kind,
+    name: kind === "arrival" ? "JFK Airport" : "Newark Airport",
+    latitude: 40.64,
+    longitude: -73.78,
+    google_place_id: null,
+    event_time: eventTime,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   };

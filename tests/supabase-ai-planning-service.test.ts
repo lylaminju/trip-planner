@@ -196,6 +196,119 @@ describe("supabase ai planning service", () => {
       ],
     });
   });
+
+  it("normalizes transit point event times when listing them", async () => {
+    const { client } = createMockSupabaseClient({
+      trip_transit_points: [
+        {
+          id: 3,
+          trip_id: 1,
+          kind: "arrival",
+          name: "JFK Airport",
+          latitude: 40.641,
+          longitude: -73.778,
+          google_place_id: null,
+          event_time: "15:30:00",
+          created_at: "2026-01-01T00:00:00.000Z",
+          updated_at: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+
+    const service = await import("@/server/supabase-ai-planning-service");
+    const points = await service.getTransitPoints(1);
+
+    expect(points).toHaveLength(1);
+    expect(points[0]).toMatchObject({ kind: "arrival", event_time: "15:30" });
+  });
+
+  it("resolves a transit point Google Maps URL and upserts it by trip and kind", async () => {
+    const stored = {
+      id: 3,
+      trip_id: 1,
+      kind: "arrival",
+      name: "JFK Airport",
+      latitude: 40.641,
+      longitude: -73.778,
+      google_place_id: null,
+      event_time: "15:30:00",
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const { client, calls } = createMockSupabaseClient({
+      trip_transit_points: stored,
+    });
+    const resolveGoogleMapsUrl = vi.fn().mockResolvedValue({
+      google_maps_url: "https://www.google.com/maps/place/JFK",
+      name: "JFK Airport",
+      latitude: 40.641,
+      longitude: -73.778,
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/google-url-resolver", () => ({
+      resolveGoogleMapsUrl,
+    }));
+
+    const service = await import("@/server/supabase-ai-planning-service");
+    const point = await service.upsertTransitPointFromGoogleMapsUrl(
+      1,
+      "arrival",
+      "https://maps.app.goo.gl/jfk",
+      "15:30",
+    );
+
+    expect(point.event_time).toBe("15:30");
+    const upsertCall = calls.find(
+      (call) =>
+        call.table === "trip_transit_points" && call.method === "upsert",
+    );
+    expect(upsertCall?.args[0]).toMatchObject({
+      trip_id: 1,
+      kind: "arrival",
+      name: "JFK Airport",
+      latitude: 40.641,
+      longitude: -73.778,
+      event_time: "15:30",
+    });
+    expect(upsertCall?.args[1]).toEqual({ onConflict: "trip_id,kind" });
+  });
+
+  it("rejects transit point URLs that resolve without coordinates", async () => {
+    const { client } = createMockSupabaseClient({});
+    const resolveGoogleMapsUrl = vi.fn().mockResolvedValue({
+      google_maps_url: "https://www.google.com/maps/place/JFK",
+      name: "JFK Airport",
+      latitude: null,
+      longitude: null,
+    });
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/google-url-resolver", () => ({
+      resolveGoogleMapsUrl,
+    }));
+
+    const service = await import("@/server/supabase-ai-planning-service");
+
+    await expect(
+      service.upsertTransitPointFromGoogleMapsUrl(
+        1,
+        "departure",
+        "https://maps.app.goo.gl/jfk",
+        null,
+      ),
+    ).rejects.toThrow(
+      "Departure stop Google Maps URL must include coordinates.",
+    );
+  });
 });
 
 type TableResult = Record<string, unknown> | Record<string, unknown>[] | null;

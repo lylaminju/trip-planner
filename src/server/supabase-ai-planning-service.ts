@@ -1,8 +1,11 @@
 import type {
   AiDestinationCandidate,
+  AiDestinationTransitHub,
   AiPlanningPreferenceInput,
   AiPlanningPreferences,
   TripLodging,
+  TripTransitPoint,
+  TripTransitPointKind,
 } from "@/lib/types";
 
 import { TripValidationError } from "./errors";
@@ -15,6 +18,15 @@ const TRIP_LODGING_COLUMNS =
   "id, trip_id, name, address, latitude, longitude, google_place_id, check_in_date, check_out_date, is_primary, created_at, updated_at";
 const AI_PLANNING_PREFERENCES_COLUMNS =
   "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, preferred_travel_modes, must_see_candidate_ids, created_at, updated_at";
+const TRIP_TRANSIT_POINT_COLUMNS =
+  "id, trip_id, kind, name, latitude, longitude, google_place_id, event_time, created_at, updated_at";
+const AI_TRANSIT_HUB_COLUMNS =
+  "id, destination_slug, name, hub_type, iata_code, latitude, longitude, sort_order, created_at, updated_at";
+
+const TRANSIT_POINT_FALLBACK_NAMES: Record<TripTransitPointKind, string> = {
+  arrival: "Arrival stop",
+  departure: "Departure stop",
+};
 
 export async function listDestinationCandidates(
   destinationSlug: string,
@@ -61,6 +73,110 @@ export async function upsertPrimaryLodgingFromGoogleMapsUrl(
     longitude: resolved.longitude,
     google_place_id: null,
   });
+}
+
+export async function listDestinationTransitHubs(
+  destinationSlug: string,
+): Promise<AiDestinationTransitHub[]> {
+  const { data, error } = await getSupabaseClient()
+    .from("ai_destination_transit_hubs")
+    .select(AI_TRANSIT_HUB_COLUMNS)
+    .eq("destination_slug", destinationSlug)
+    .order("sort_order", { ascending: true });
+
+  if (error) throwSupabaseError(error);
+  return (data ?? []) as AiDestinationTransitHub[];
+}
+
+export async function getTransitPoints(
+  tripId: number,
+): Promise<TripTransitPoint[]> {
+  const { data, error } = await getSupabaseClient()
+    .from("trip_transit_points")
+    .select(TRIP_TRANSIT_POINT_COLUMNS)
+    .eq("trip_id", tripId);
+
+  if (error) throwSupabaseError(error);
+  return ((data ?? []) as TripTransitPoint[]).map(normalizeTransitPoint);
+}
+
+export async function upsertTransitPointFromGoogleMapsUrl(
+  tripId: number,
+  kind: TripTransitPointKind,
+  rawUrl: string,
+  eventTime: string | null,
+): Promise<TripTransitPoint> {
+  const resolved = await resolveGoogleMapsUrl(rawUrl);
+  if (resolved.latitude === null || resolved.longitude === null) {
+    throw new TripValidationError(
+      `${TRANSIT_POINT_FALLBACK_NAMES[kind]} Google Maps URL must include coordinates.`,
+    );
+  }
+
+  return upsertTransitPoint(tripId, kind, {
+    name: resolved.name?.trim() || TRANSIT_POINT_FALLBACK_NAMES[kind],
+    latitude: resolved.latitude,
+    longitude: resolved.longitude,
+    event_time: eventTime,
+  });
+}
+
+export async function upsertTransitPointFromHub(
+  tripId: number,
+  kind: TripTransitPointKind,
+  hub: AiDestinationTransitHub,
+  eventTime: string | null,
+): Promise<TripTransitPoint> {
+  return upsertTransitPoint(tripId, kind, {
+    name: hub.name,
+    latitude: hub.latitude,
+    longitude: hub.longitude,
+    event_time: eventTime,
+  });
+}
+
+async function upsertTransitPoint(
+  tripId: number,
+  kind: TripTransitPointKind,
+  input: {
+    name: string;
+    latitude: number;
+    longitude: number;
+    event_time: string | null;
+  },
+): Promise<TripTransitPoint> {
+  const values = {
+    trip_id: tripId,
+    kind,
+    ...input,
+    google_place_id: null,
+    updated_at: new Date().toISOString(),
+  };
+  const { data, error } = await getSupabaseClient()
+    .from("trip_transit_points")
+    .upsert(values, { onConflict: "trip_id,kind" })
+    .select(TRIP_TRANSIT_POINT_COLUMNS)
+    .maybeSingle();
+
+  if (error) throwSupabaseError(error);
+  return normalizeTransitPoint(data as TripTransitPoint);
+}
+
+export async function updateTransitPointTime(
+  tripId: number,
+  kind: TripTransitPointKind,
+  eventTime: string | null,
+): Promise<TripTransitPoint | null> {
+  const { data, error } = await getSupabaseClient()
+    .from("trip_transit_points")
+    .update({ event_time: eventTime, updated_at: new Date().toISOString() })
+    .eq("trip_id", tripId)
+    .eq("kind", kind)
+    .select(TRIP_TRANSIT_POINT_COLUMNS)
+    .maybeSingle();
+
+  if (error) throwSupabaseError(error);
+  return data ? normalizeTransitPoint(data as TripTransitPoint) : null;
 }
 
 export async function getPlanningPreferences(
@@ -131,6 +247,14 @@ async function upsertPrimaryLodging(
 
   if (error) throwSupabaseError(error);
   return data as TripLodging;
+}
+
+function normalizeTransitPoint(point: TripTransitPoint): TripTransitPoint {
+  return {
+    ...point,
+    // Postgres `time` columns read back as HH:MM:SS.
+    event_time: point.event_time ? point.event_time.slice(0, 5) : null,
+  };
 }
 
 function throwSupabaseError(error: { message: string }): never {

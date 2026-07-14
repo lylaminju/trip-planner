@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 
+import { useResolvedPlaceName } from "@/hooks/useResolvedPlaceName";
+
 import {
   AI_DEFAULT_DAILY_START_TIME,
   AI_TRAVEL_MODE_OPTIONS,
@@ -16,11 +18,19 @@ import type {
 
 import {
   InterestStep,
-  LogisticsStep,
   MustSeeStep,
   PaceStep,
   ReviewStep,
 } from "./ai-planning-wizard/AiPlanningWizardSteps";
+import { AiGenerationScreen } from "./ai-planning-wizard/AiGenerationScreen";
+import { LogisticsStep } from "./ai-planning-wizard/LogisticsStep";
+import { TransitStopsStep } from "./ai-planning-wizard/TransitStopsStep";
+import {
+  buildTransitStopDraft,
+  transitStopPayload,
+  transitStopsSummary,
+  type TransitStopDraft,
+} from "./ai-planning-wizard/transit-stop-draft";
 import { CloseIcon, MagicWandIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 
@@ -41,6 +51,11 @@ const STEP_META = [
     label: "Getting around",
     title: "How will you get around?",
   },
+  {
+    key: "startend",
+    label: "Start & end",
+    title: "Where does your trip start and end?",
+  },
   { key: "mustsee", label: "Must-sees", title: "Anything you can't miss?" },
   { key: "review", label: "Review", title: "Review & generate" },
 ] as const;
@@ -50,13 +65,14 @@ const STEP_HELPERS: Record<(typeof STEP_META)[number]["key"], string> = {
   interests: "Optional. Pick a few and we'll weight your plan toward them.",
   logistics:
     "Choose at least one way to travel, then set when your days start and where they begin.",
+  startend:
+    "Optional. Most trips begin and end at an airport, station, or terminal — pick yours and we'll plan around it.",
   mustsee:
     "Optional. Lock in the places you know you want, and we'll build around them.",
   review: "Here's your plan brief. Edit anything, then let AI build it.",
 };
 
 const LAST_STEP_INDEX = STEP_META.length - 1;
-const STATUS_INTERVAL_MS = 900;
 
 export function AiPlanningWizard(props: Props) {
   const initialDraft = useMemo(
@@ -68,14 +84,36 @@ export function AiPlanningWizard(props: Props) {
     AI_DEFAULT_DAILY_START_TIME,
   );
   const [lodgingGoogleMapsUrl, setLodgingGoogleMapsUrl] = useState("");
+  const [transitDraft, setTransitDraft] = useState<TransitStopDraft>(() =>
+    buildTransitStopDraft(props.setup),
+  );
   const [stepIndex, setStepIndex] = useState(0);
+  const setup = props.setup;
 
   useEffect(() => {
     setDraft(initialDraft);
     setDailyStartTime(AI_DEFAULT_DAILY_START_TIME);
     setLodgingGoogleMapsUrl("");
+    setTransitDraft(buildTransitStopDraft(setup));
     setStepIndex(0);
-  }, [initialDraft]);
+  }, [initialDraft, setup]);
+
+  const tripId = props.setup?.trip.id ?? 0;
+  const lodgingPreview = useResolvedPlaceName(tripId, lodgingGoogleMapsUrl);
+  const lodgingName =
+    lodgingGoogleMapsUrl.trim() !== ""
+      ? lodgingPreview.status === "resolved"
+        ? lodgingPreview.name
+        : "From link"
+      : (props.setup?.lodging?.name ?? null);
+  const arrivalPreview = useResolvedPlaceName(
+    tripId,
+    transitDraft.arrivalChoice === "custom" ? transitDraft.arrivalUrl : "",
+  );
+  const departurePreview = useResolvedPlaceName(
+    tripId,
+    transitDraft.departureChoice === "custom" ? transitDraft.departureUrl : "",
+  );
 
   const trip = props.setup?.trip;
   const days =
@@ -97,6 +135,7 @@ export function AiPlanningWizard(props: Props) {
       lodging_google_maps_url:
         lodgingGoogleMapsUrl.trim() === "" ? null : lodgingGoogleMapsUrl.trim(),
       daily_start_time: dailyStartTime || AI_DEFAULT_DAILY_START_TIME,
+      ...transitStopPayload(transitDraft),
     });
   }
 
@@ -113,6 +152,9 @@ export function AiPlanningWizard(props: Props) {
       return draft.preferred_travel_modes.length
         ? travelModeLabels(draft).join(", ")
         : "Not set";
+    }
+    if (key === "startend") {
+      return transitStopsSummary(transitDraft, props.setup);
     }
     if (key === "mustsee") {
       return draft.must_see_candidate_ids.length
@@ -272,9 +314,20 @@ export function AiPlanningWizard(props: Props) {
                       onChange={setDraft}
                       onDailyStartTimeChange={setDailyStartTime}
                       onLodgingGoogleMapsUrlChange={setLodgingGoogleMapsUrl}
+                      tripId={props.setup.trip.id}
                     />
                   )}
                   {stepIndex === 3 && (
+                    <TransitStopsStep
+                      currentArrivalPoint={props.setup.arrivalPoint}
+                      currentDeparturePoint={props.setup.departurePoint}
+                      onTransitDraftChange={setTransitDraft}
+                      transitDraft={transitDraft}
+                      transitHubs={props.setup.transitHubs}
+                      tripId={props.setup.trip.id}
+                    />
+                  )}
+                  {stepIndex === 4 && (
                     <MustSeeStep
                       candidates={props.setup.candidates}
                       draft={draft}
@@ -283,11 +336,28 @@ export function AiPlanningWizard(props: Props) {
                   )}
                   {isReviewStep && (
                     <ReviewStep
+                      arrivalPointName={props.setup.arrivalPoint?.name ?? null}
                       candidates={props.setup.candidates}
                       dailyStartTime={dailyStartTime}
                       days={days}
+                      departurePointName={
+                        props.setup.departurePoint?.name ?? null
+                      }
+                      arrivalCustomName={
+                        arrivalPreview.status === "resolved"
+                          ? arrivalPreview.name
+                          : null
+                      }
+                      departureCustomName={
+                        departurePreview.status === "resolved"
+                          ? departurePreview.name
+                          : null
+                      }
                       draft={draft}
+                      lodgingName={lodgingName}
                       onEditStep={setStepIndex}
+                      transitDraft={transitDraft}
+                      transitHubs={props.setup.transitHubs}
                     />
                   )}
                 </div>
@@ -350,77 +420,6 @@ function travelModeLabels(draft: AiPlanningPreferenceInput): string[] {
   return draft.preferred_travel_modes
     .map((mode) => map.get(mode))
     .filter(Boolean) as string[];
-}
-
-function AiGenerationScreen({
-  destination,
-  days,
-  paceRange,
-  modeLabels,
-}: {
-  destination: string;
-  days: number;
-  paceRange: string;
-  modeLabels: string[];
-}) {
-  const statusMessages = useMemo(
-    () => [
-      "Reading your preferences…",
-      `Mapping must-see spots across ${destination}…`,
-      `Balancing ${paceRange} stops a day…`,
-      `Optimizing ${
-        modeLabels.join(" & ").toLowerCase() || "your"
-      } routes…`,
-      `Assembling your ${days}-day itinerary…`,
-    ],
-    [destination, days, paceRange, modeLabels],
-  );
-  const [statusIndex, setStatusIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setStatusIndex((current) => (current + 1) % statusMessages.length);
-    }, STATUS_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [statusMessages.length]);
-
-  return (
-    <div
-      className="ai-generation-screen"
-      role="status"
-      aria-label="Creating itinerary"
-    >
-      <div className="ai-generation-icons" aria-hidden="true">
-        <svg className="ai-generation-icon" viewBox="0 0 32 32">
-          <path d="M16 28s9-7.4 9-16A9 9 0 0 0 7 12c0 8.6 9 16 9 16Z" />
-          <circle cx="16" cy="12" r="3.5" />
-        </svg>
-        <svg className="ai-generation-icon" viewBox="0 0 32 32">
-          <path d="M7 22c4.5-8 14-2 18-10" />
-          <circle cx="7" cy="22" r="2.5" />
-          <circle cx="25" cy="12" r="2.5" />
-        </svg>
-        <svg className="ai-generation-icon" viewBox="0 0 32 32">
-          <path d="M9 6v4" />
-          <path d="M23 6v4" />
-          <path d="M6 10h20v16H6z" />
-          <path d="M6 15h20" />
-          <path d="m12 21 3 3 6-7" />
-        </svg>
-      </div>
-      <div className="ai-generation-copy">
-        <h2 className="ai-generation-title">
-          Building your {destination} itinerary
-        </h2>
-        <p className="ai-generation-status-message">
-          {statusMessages[statusIndex]}
-        </p>
-      </div>
-      <div className="ai-generation-bar" aria-hidden="true">
-        <span className="ai-generation-bar-fill" />
-      </div>
-    </div>
-  );
 }
 
 function StepCheckIcon() {

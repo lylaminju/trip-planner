@@ -1,16 +1,14 @@
 import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
-import { isAiInterestTag } from "@/lib/ai-planning-preferences";
 import type {
   AiDestinationCandidate,
-  AiPlanningPreferenceInput,
   AiPlanningPreferences,
   AiPlanningSetup,
   PlannerSnapshot,
   Trip,
-  TripLodging,
 } from "@/lib/types";
 import { isValidIsoDate } from "@/app/api/_utils";
 
+import { promptContext } from "./ai-planner-prompt-context";
 import { validateAiItineraryPlan } from "./ai-plan-validation";
 import {
   parseAiPlanningGenerationInput,
@@ -35,14 +33,19 @@ import {
 import {
   getPlanningPreferences,
   getPrimaryLodging,
+  getTransitPoints,
   listDestinationCandidates,
+  listDestinationTransitHubs,
   upsertPrimaryLodgingFromGoogleMapsUrl,
   upsertPlanningPreferences,
 } from "./supabase-ai-planning-service";
 import {
+  resolveTransitPointForGeneration,
+  transitPointOfKind,
+} from "./ai-planning-transit-points";
+import {
   requestAiItineraryPlan,
   type AiItineraryPlan,
-  type AiPlannerPromptContext,
 } from "./openai-ai-planner";
 import { requireTripRole } from "./trip-access";
 import { getTripById } from "./trip-service";
@@ -66,21 +69,30 @@ export async function getAiPlanningSetupForRequest(
       isSupportedDestination: false,
       candidates: [],
       lodging: null,
+      arrivalPoint: null,
+      departurePoint: null,
+      transitHubs: [],
       preferences: null,
     };
   }
 
-  const [candidates, lodging, preferences] = await Promise.all([
-    listDestinationCandidates(trip.destination_slug),
-    getPrimaryLodging(tripId),
-    getPlanningPreferences(tripId),
-  ]);
+  const [candidates, lodging, transitPoints, transitHubs, preferences] =
+    await Promise.all([
+      listDestinationCandidates(trip.destination_slug),
+      getPrimaryLodging(tripId),
+      getTransitPoints(tripId),
+      listDestinationTransitHubs(trip.destination_slug),
+      getPlanningPreferences(tripId),
+    ]);
 
   return {
     trip,
     isSupportedDestination,
     candidates,
     lodging,
+    arrivalPoint: transitPointOfKind(transitPoints, "arrival"),
+    departurePoint: transitPointOfKind(transitPoints, "departure"),
+    transitHubs,
     preferences,
   };
 }
@@ -136,13 +148,18 @@ export async function generateAiItineraryForRequest(
   const trip = await getTripById(tripId);
   ensureSupportedDestination(trip);
   const tripDates = tripDateRange(trip);
-  const [candidates, existingLodging] = await Promise.all([
-    listDestinationCandidates(trip.destination_slug),
-    getPrimaryLodging(tripId),
-  ]);
+  const [candidates, existingLodging, existingTransitPoints, transitHubs] =
+    await Promise.all([
+      listDestinationCandidates(trip.destination_slug),
+      getPrimaryLodging(tripId),
+      getTransitPoints(tripId),
+      listDestinationTransitHubs(trip.destination_slug),
+    ]);
+  const hubById = new Map(transitHubs.map((hub) => [hub.id, hub]));
   const generationInput = parseAiPlanningGenerationInput(
     payload,
     candidateIdSet(candidates),
+    new Set(hubById.keys()),
   );
   const lodging = generationInput.lodging_google_maps_url
     ? await upsertPrimaryLodgingFromGoogleMapsUrl(
@@ -150,6 +167,30 @@ export async function generateAiItineraryForRequest(
         generationInput.lodging_google_maps_url,
       )
     : existingLodging;
+  const arrivalPoint = await resolveTransitPointForGeneration(
+    tripId,
+    "arrival",
+    {
+      hub: generationInput.arrival_hub_id
+        ? (hubById.get(generationInput.arrival_hub_id) ?? null)
+        : null,
+      googleMapsUrl: generationInput.arrival_google_maps_url,
+      eventTime: generationInput.arrival_time,
+    },
+    transitPointOfKind(existingTransitPoints, "arrival"),
+  );
+  const departurePoint = await resolveTransitPointForGeneration(
+    tripId,
+    "departure",
+    {
+      hub: generationInput.departure_hub_id
+        ? (hubById.get(generationInput.departure_hub_id) ?? null)
+        : null,
+      googleMapsUrl: generationInput.departure_google_maps_url,
+      eventTime: generationInput.departure_time,
+    },
+    transitPointOfKind(existingTransitPoints, "departure"),
+  );
   const savedPreferences = await upsertPlanningPreferences(
     tripId,
     generationInput.preferences,
@@ -169,6 +210,8 @@ export async function generateAiItineraryForRequest(
       context: promptContext({
         trip,
         lodging,
+        arrivalPoint,
+        departurePoint,
         candidates,
         preferences: savedPreferences,
         dailyStartTime: generationInput.daily_start_time,
@@ -183,6 +226,8 @@ export async function generateAiItineraryForRequest(
       visitsPerDayMax: savedPreferences.visits_per_day_max,
       mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
       earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
+      firstDayEarliestStartTime: arrivalPoint?.event_time ?? null,
+      lastDayLatestEndTime: departurePoint?.event_time ?? null,
     });
 
     let finalPlan = primary.plan;
@@ -200,6 +245,8 @@ export async function generateAiItineraryForRequest(
         context: promptContext({
           trip,
           lodging,
+          arrivalPoint,
+          departurePoint,
           candidates,
           preferences: savedPreferences,
           dailyStartTime: generationInput.daily_start_time,
@@ -214,6 +261,8 @@ export async function generateAiItineraryForRequest(
         visitsPerDayMax: savedPreferences.visits_per_day_max,
         mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
         earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
+        firstDayEarliestStartTime: arrivalPoint?.event_time ?? null,
+        lastDayLatestEndTime: departurePoint?.event_time ?? null,
       });
       repairValidationStatus = repairValidation.status;
       repairValidationErrors = repairValidation.errors;
@@ -262,6 +311,8 @@ export async function generateAiItineraryForRequest(
       lodging,
       generationInput.daily_start_time,
       userId,
+      arrivalPoint,
+      departurePoint,
     );
     await updateAiPlanGeneration(generation.id, {
       status: "completed",
@@ -333,46 +384,6 @@ function tripDateRange(trip: Pick<Trip, "start_date" | "end_date">): string[] {
   }
 
   return dates;
-}
-
-function promptContext(input: {
-  trip: Trip;
-  lodging: TripLodging | null;
-  candidates: AiDestinationCandidate[];
-  preferences: AiPlanningPreferenceInput;
-  dailyStartTime: string;
-  tripDates: string[];
-  validationErrors: string[];
-}): AiPlannerPromptContext {
-  return {
-    trip: {
-      destination: input.trip.destination,
-      start_date: input.trip.start_date,
-      end_date: input.trip.end_date,
-    },
-    preferences: input.preferences,
-    lodging: input.lodging
-      ? {
-          name: input.lodging.name,
-          address: input.lodging.address,
-          latitude: input.lodging.latitude,
-          longitude: input.lodging.longitude,
-        }
-      : null,
-    daily_start_time: input.dailyStartTime,
-    candidates: input.candidates.map((candidate) => ({
-      id: candidate.id,
-      name: candidate.name,
-      category: candidate.category,
-      tags: candidate.tags.filter(isAiInterestTag),
-      area: candidate.area,
-      region_distance_tier: candidate.region_distance_tier,
-      typical_duration_minutes: candidate.typical_duration_minutes,
-      planning_note: candidate.planning_note,
-    })),
-    tripDates: input.tripDates,
-    validationErrors: input.validationErrors,
-  };
 }
 
 function openAiPlannerConfig(): { apiKey: string; model: string } {

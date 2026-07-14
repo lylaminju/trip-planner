@@ -14,6 +14,8 @@ type ValidationContext = {
   visitsPerDayMax: number;
   mustSeeCandidateIds: readonly number[];
   earliestVisitStartTime?: string | null;
+  firstDayEarliestStartTime?: string | null;
+  lastDayLatestEndTime?: string | null;
 };
 
 export function validateAiItineraryPlan(
@@ -24,6 +26,8 @@ export function validateAiItineraryPlan(
   const tripDates = new Set(context.tripDates);
   const seenDates = new Set<string>();
   const seenCandidateIds = new Set<number>();
+  const firstTripDate = context.tripDates[0] ?? null;
+  const lastTripDate = context.tripDates[context.tripDates.length - 1] ?? null;
 
   for (const day of plan.days) {
     if (seenDates.has(day.date)) {
@@ -43,6 +47,12 @@ export function validateAiItineraryPlan(
     if (day.visits.length > context.visitsPerDayMax) {
       errors.push(`Day ${day.date} has more visits than requested.`);
     }
+    const dayEarliestStartTime =
+      day.date === firstTripDate && context.firstDayEarliestStartTime
+        ? context.firstDayEarliestStartTime
+        : context.earliestVisitStartTime;
+    const dayLatestEndTime =
+      day.date === lastTripDate ? context.lastDayLatestEndTime : null;
     let hasVisitBeforeStartTime = false;
 
     for (const visit of day.visits) {
@@ -59,7 +69,7 @@ export function validateAiItineraryPlan(
       if (!isValid24HourTime(visit.start_time)) {
         errors.push(`Visit time ${visit.start_time} must be HH:MM.`);
       }
-      if (startsBefore(visit.start_time, context.earliestVisitStartTime)) {
+      if (startsBefore(visit.start_time, dayEarliestStartTime)) {
         hasVisitBeforeStartTime = true;
       }
       if (
@@ -70,10 +80,18 @@ export function validateAiItineraryPlan(
           `Candidate ${visit.candidate_id} duration must be a positive integer.`,
         );
       }
+      if (
+        dayLatestEndTime &&
+        endsAfter(visit.start_time, visit.duration_minutes, dayLatestEndTime)
+      ) {
+        errors.push(
+          `Day ${day.date} has a visit ending after ${dayLatestEndTime}.`,
+        );
+      }
     }
-    if (hasVisitBeforeStartTime && context.earliestVisitStartTime) {
+    if (hasVisitBeforeStartTime && dayEarliestStartTime) {
       errors.push(
-        `Day ${day.date} has a visit before ${context.earliestVisitStartTime}.`,
+        `Day ${day.date} has a visit before ${dayEarliestStartTime}.`,
       );
     }
   }
@@ -107,4 +125,16 @@ function startsBefore(
     startMinutes !== null &&
     visitMinutes < startMinutes
   );
+}
+
+function endsAfter(
+  visitStartTime: string,
+  durationMinutes: number,
+  latestEndTime: string,
+): boolean {
+  const visitMinutes = parseVisitTime(visitStartTime);
+  const endMinutes = parseVisitTime(latestEndTime);
+  if (visitMinutes === null || endMinutes === null) return false;
+  if (!Number.isInteger(durationMinutes) || durationMinutes <= 0) return false;
+  return visitMinutes + durationMinutes > endMinutes;
 }

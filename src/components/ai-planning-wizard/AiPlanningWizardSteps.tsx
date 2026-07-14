@@ -7,9 +7,16 @@ import {
 } from "@/lib/ai-planning-preferences";
 import type {
   AiDestinationCandidate,
+  AiDestinationTransitHub,
   AiPlanningPreferenceInput,
-  TripLodging,
 } from "@/lib/types";
+
+import {
+  transitHubChipLabel,
+  type TransitStopChoice,
+  type TransitStopDraft,
+} from "./transit-stop-draft";
+import { toggleValue } from "./toggle-value";
 
 type StepProps = {
   draft: AiPlanningPreferenceInput;
@@ -146,99 +153,6 @@ export function InterestStep({ draft, onChange }: StepProps) {
   );
 }
 
-export function LogisticsStep({
-  currentLodging,
-  dailyStartTime,
-  draft,
-  lodgingGoogleMapsUrl,
-  onChange,
-  onDailyStartTimeChange,
-  onLodgingGoogleMapsUrlChange,
-}: StepProps & {
-  currentLodging: TripLodging | null;
-  dailyStartTime: string;
-  lodgingGoogleMapsUrl: string;
-  onDailyStartTimeChange: (value: string) => void;
-  onLodgingGoogleMapsUrlChange: (value: string) => void;
-}) {
-  const modesEmpty = draft.preferred_travel_modes.length === 0;
-
-  return (
-    <div className="ai-logistics-step">
-      <div className="ai-field-group">
-        <span className="ai-field-label">Travel modes</span>
-        <div className="ai-chip-grid">
-          {AI_TRAVEL_MODE_OPTIONS.map((option) => {
-            const isSelected = draft.preferred_travel_modes.includes(
-              option.value,
-            );
-            return (
-              <button
-                key={option.value}
-                type="button"
-                className={isSelected ? "ai-chip selected" : "ai-chip"}
-                aria-pressed={isSelected}
-                onClick={() =>
-                  onChange({
-                    ...draft,
-                    preferred_travel_modes: toggleValue(
-                      draft.preferred_travel_modes,
-                      option.value,
-                    ),
-                  })
-                }
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
-        {modesEmpty && (
-          <p className="ai-field-error" role="alert">
-            Pick at least one way to get around.
-          </p>
-        )}
-      </div>
-
-      <label className="ai-field-group">
-        <span className="ai-field-label">Daily start time</span>
-        <input
-          type="time"
-          value={dailyStartTime}
-          onChange={(event) =>
-            onDailyStartTimeChange(event.currentTarget.value)
-          }
-        />
-      </label>
-
-      <label className="ai-field-group">
-        <span className="ai-field-label">
-          Where your days begin
-          <span className="ai-field-optional"> — optional</span>
-        </span>
-        <input
-          type="url"
-          value={lodgingGoogleMapsUrl}
-          placeholder="Paste a Google Maps link to where you're staying"
-          onChange={(event) =>
-            onLodgingGoogleMapsUrlChange(event.currentTarget.value)
-          }
-        />
-        <span className="ai-field-hint">
-          We route each day out from here and back.
-        </span>
-      </label>
-
-      {currentLodging && (
-        <p className="ai-current-lodging">
-          Current start point: <strong>{currentLodging.name}</strong>
-          {currentLodging.address ? ` — ${currentLodging.address}` : ""}
-        </p>
-      )}
-    </div>
-  );
-}
-
 export function MustSeeStep({
   candidates,
   draft,
@@ -311,17 +225,31 @@ export function MustSeeStep({
 }
 
 export function ReviewStep({
+  arrivalCustomName,
+  arrivalPointName,
   draft,
   candidates,
   dailyStartTime,
   days,
+  departureCustomName,
+  departurePointName,
+  lodgingName,
   onEditStep,
+  transitDraft,
+  transitHubs,
 }: {
+  arrivalCustomName: string | null;
+  arrivalPointName: string | null;
   draft: AiPlanningPreferenceInput;
   candidates: AiDestinationCandidate[];
   dailyStartTime: string;
   days: number;
+  departureCustomName: string | null;
+  departurePointName: string | null;
+  lodgingName: string | null;
   onEditStep: (stepIndex: number) => void;
+  transitDraft: TransitStopDraft;
+  transitHubs: AiDestinationTransitHub[];
 }) {
   const stopsEstimate = estimateStopCount(
     draft.visits_per_day_min,
@@ -351,13 +279,45 @@ export function ReviewStep({
         : "Not set",
       step: 2,
     },
-    { label: "Daily start", value: dailyStartTime || "09:00", step: 2 },
+    {
+      label: "Daily start",
+      value: lodgingName
+        ? `${lodgingName} · ${dailyStartTime || "09:00"}`
+        : dailyStartTime || "09:00",
+      step: 2,
+    },
+    {
+      label: "Trip start",
+      value: transitStopSummary(
+        transitDraft.arrivalChoice,
+        transitDraft.arrivalUrl,
+        transitDraft.arrivalTime,
+        arrivalPointName,
+        arrivalCustomName,
+        transitHubs,
+      ),
+      step: 3,
+    },
+    {
+      label: "Trip end",
+      value: transitDraft.departureChoice === "same"
+        ? withTime("Same as arrival", transitDraft.departureTime)
+        : transitStopSummary(
+            transitDraft.departureChoice,
+            transitDraft.departureUrl,
+            transitDraft.departureTime,
+            departurePointName,
+            departureCustomName,
+            transitHubs,
+          ),
+      step: 3,
+    },
     {
       label: "Must-sees",
       value: draft.must_see_candidate_ids.length
         ? `${draft.must_see_candidate_ids.length} locked in`
         : "None — let AI choose",
-      step: 3,
+      step: 4,
     },
   ];
 
@@ -385,18 +345,38 @@ export function ReviewStep({
   );
 }
 
+function transitStopSummary(
+  choice: TransitStopChoice,
+  url: string,
+  time: string,
+  savedName: string | null,
+  customName: string | null,
+  transitHubs: AiDestinationTransitHub[],
+): string {
+  const selectedHub =
+    typeof choice === "number"
+      ? transitHubs.find((hub) => hub.id === choice)
+      : undefined;
+  const name = selectedHub
+    ? transitHubChipLabel(selectedHub)
+    : choice === "custom" && url.trim() !== ""
+      ? (customName ?? "From link")
+      : savedName;
+  if (!name) return "Not set";
+  return withTime(name, time);
+}
+
+function withTime(name: string, time: string): string {
+  const trimmedTime = time.trim();
+  return trimmedTime ? `${name} · ${trimmedTime}` : name;
+}
+
 function labelsFor<T extends string | number>(
   values: T[],
   options: readonly { value: T; label: string }[],
 ): string[] {
   const map = new Map(options.map((option) => [option.value, option.label]));
   return values.map((value) => map.get(value)).filter(Boolean) as string[];
-}
-
-function toggleValue<T>(values: T[], value: T): T[] {
-  return values.includes(value)
-    ? values.filter((entry) => entry !== value)
-    : [...values, value];
 }
 
 function formatCategory(category: string): string {

@@ -3,6 +3,7 @@ import type {
   AiPlanningPreferenceInput,
   PlannerSnapshot,
   TripLodging,
+  TripTransitPoint,
   TravelMode,
 } from "@/lib/types";
 import { AI_DEFAULT_DAILY_START_TIME } from "@/lib/ai-planning-preferences";
@@ -10,6 +11,7 @@ import { AI_DEFAULT_DAILY_START_TIME } from "@/lib/ai-planning-preferences";
 import {
   buildAiGeneratedPlaceRows,
   buildGeneratedScheduleEntries,
+  splitGeneratedPlaceIds,
   type Coordinates,
 } from "./ai-plan-batch-rows";
 import {
@@ -59,18 +61,25 @@ export async function replaceAiGeneratedBatch(
   lodging: TripLodging | null = null,
   lodgingStartTime = AI_DEFAULT_DAILY_START_TIME,
   userId?: string,
+  arrivalPoint: TripTransitPoint | null = null,
+  departurePoint: TripTransitPoint | null = null,
 ): Promise<PlannerSnapshot> {
   const candidateById = new Map(
     candidates.map((candidate) => [candidate.id, candidate]),
   );
-  const shouldMaterializeLodging = lodging !== null && plan.days.length > 0;
+  const hasDays = plan.days.length > 0;
+  const materializedLodging = hasDays ? lodging : null;
+  const materializedArrival = hasDays ? arrivalPoint : null;
+  const materializedDeparture = hasDays ? departurePoint : null;
 
   const placeRows = buildAiGeneratedPlaceRows({
     tripId,
     generationId,
     plan,
     candidateById,
-    lodging: shouldMaterializeLodging ? lodging : null,
+    lodging: materializedLodging,
+    arrivalPoint: materializedArrival,
+    departurePoint: materializedDeparture,
   });
 
   if (placeRows.length === 0) {
@@ -81,7 +90,8 @@ export async function replaceAiGeneratedBatch(
   const firstVisitRoutePlansByDate = await buildFirstVisitRoutePlansByDate({
     plan,
     candidateById,
-    lodging: shouldMaterializeLodging ? lodging : null,
+    lodging: materializedLodging,
+    arrivalPoint: materializedArrival,
     preferredModes: preferences.preferred_travel_modes,
     userId,
   });
@@ -94,15 +104,22 @@ export async function replaceAiGeneratedBatch(
   try {
     const places = await insertAiGeneratedPlaces(placeRows);
     const placeIds = places.map((place) => place.id);
+    const anchorPlaceIds = splitGeneratedPlaceIds(placeIds, {
+      hasArrival: materializedArrival !== null,
+      hasLodging: materializedLodging !== null,
+      hasDeparture: materializedDeparture !== null,
+    });
     const scheduleEntries = buildGeneratedScheduleEntries({
       plan,
       candidateById,
-      lodging: shouldMaterializeLodging ? lodging : null,
+      lodging: materializedLodging,
       lodgingStartTime,
-      lodgingPlaceId: shouldMaterializeLodging ? (placeIds[0] ?? null) : null,
-      candidatePlaceIds: shouldMaterializeLodging
-        ? placeIds.slice(1)
-        : placeIds,
+      lodgingPlaceId: anchorPlaceIds.lodgingPlaceId,
+      arrivalPoint: materializedArrival,
+      arrivalPlaceId: anchorPlaceIds.arrivalPlaceId,
+      departurePoint: materializedDeparture,
+      departurePlaceId: anchorPlaceIds.departurePlaceId,
+      candidatePlaceIds: anchorPlaceIds.candidatePlaceIds,
       firstVisitTravelDurationsByDate,
     });
     const itemRows = scheduleEntries.map((entry) => ({
@@ -160,15 +177,26 @@ async function buildFirstVisitRoutePlansByDate(input: {
   plan: AiItineraryPlan;
   candidateById: Map<number, AiDestinationCandidate>;
   lodging: TripLodging | null;
+  arrivalPoint?: TripTransitPoint | null;
   preferredModes: TravelMode[];
   userId?: string;
 }): Promise<Map<string, GeneratedRoutePlan>> {
   const plansByDate = new Map<string, GeneratedRoutePlan>();
-  if (!input.lodging) return plansByDate;
+  const arrivalPoint = input.arrivalPoint ?? null;
+  if (!input.lodging && !arrivalPoint) return plansByDate;
+
+  const firstDate = input.plan.days.reduce<string | null>(
+    (min, day) => (min === null || day.date < min ? day.date : min),
+    null,
+  );
 
   for (const day of input.plan.days) {
     const firstVisit = day.visits[0];
     if (!firstVisit) continue;
+
+    const origin =
+      day.date === firstDate && arrivalPoint ? arrivalPoint : input.lodging;
+    if (!origin) continue;
 
     const candidate = input.candidateById.get(firstVisit.candidate_id);
     if (!candidate) {
@@ -176,7 +204,7 @@ async function buildFirstVisitRoutePlansByDate(input: {
     }
 
     const routePlan = await resolveTravelPlan(
-      input.lodging,
+      origin,
       candidate,
       input.preferredModes,
       input.userId,

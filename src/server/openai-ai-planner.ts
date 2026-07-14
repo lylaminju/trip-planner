@@ -17,11 +17,20 @@ export type AiItineraryPlan = {
   }>;
 };
 
+export type AiPlannerTransitPointContext = {
+  name: string;
+  latitude: number;
+  longitude: number;
+  time: string | null;
+};
+
 export type AiPlannerPromptContext = {
   trip: Pick<Trip, "destination" | "start_date" | "end_date">;
   preferences: AiPlanningPreferenceInput;
   lodging: Pick<TripLodging, "name" | "address" | "latitude" | "longitude"> | null;
   daily_start_time: string;
+  trip_start_point: AiPlannerTransitPointContext | null;
+  trip_end_point: AiPlannerTransitPointContext | null;
   candidates: Array<
     Pick<
       AiDestinationCandidate,
@@ -61,6 +70,8 @@ const SYSTEM_PROMPT = [
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
   "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
   "Use the provided daily_start_time as the time each day starts from lodging; the first attraction should account for realistic travel time from lodging to the first attraction.",
+  "When trip_start_point is provided, the first trip day begins there instead of lodging, starting at its time when given (otherwise daily_start_time); plan the first day's attractions accounting for travel from that point and do not schedule it as an attraction.",
+  "When trip_end_point is provided, the last day's visits must finish with enough time to reach it, before its time when given; keep the last day's final attractions convenient to it and do not schedule it as an attraction.",
   "Use 10-minute increments for all visit start times, for example 09:00, 09:10, 09:20, 09:30, 09:40, or 09:50.",
   "Use candidate planning notes when relevant, for example booking recommendations.",
   "If validation errors are provided, repair only those issues.",
