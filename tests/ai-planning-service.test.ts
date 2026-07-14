@@ -292,12 +292,9 @@ describe("ai-planning-service request boundary", () => {
       id: 7,
       trip_id: 1,
       name: "Pod Times Square",
-      address: null,
       latitude: 40.758,
       longitude: -73.993,
       google_place_id: null,
-      check_in_date: null,
-      check_out_date: null,
       is_primary: true,
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
@@ -358,7 +355,6 @@ describe("ai-planning-service request boundary", () => {
         context: expect.objectContaining({
           lodging: {
             name: "Pod Times Square",
-            address: null,
             latitude: 40.758,
             longitude: -73.993,
           },

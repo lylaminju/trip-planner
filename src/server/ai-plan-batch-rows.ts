@@ -295,12 +295,12 @@ function anchorPlaceRow(
   anchor: Pick<
     TripLodging,
     "name" | "latitude" | "longitude" | "google_place_id"
-  > & { address?: string | null },
+  >,
 ) {
   return {
     trip_id: tripId,
     name: anchor.name,
-    address: anchor.address ?? null,
+    address: null,
     google_maps_url: googleMapsSearchUrl(anchor),
     place_id: anchor.google_place_id,
     google_place_token: null,

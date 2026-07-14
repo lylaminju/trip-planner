@@ -27,7 +27,7 @@ export type AiPlannerTransitPointContext = {
 export type AiPlannerPromptContext = {
   trip: Pick<Trip, "destination" | "start_date" | "end_date">;
   preferences: AiPlanningPreferenceInput;
-  lodging: Pick<TripLodging, "name" | "address" | "latitude" | "longitude"> | null;
+  lodging: Pick<TripLodging, "name" | "latitude" | "longitude"> | null;
   daily_start_time: string;
   trip_start_point: AiPlannerTransitPointContext | null;
   trip_end_point: AiPlannerTransitPointContext | null;

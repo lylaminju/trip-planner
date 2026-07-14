@@ -157,7 +157,7 @@ describe("supabase AI plan application service", () => {
       expect.objectContaining({
         trip_id: 1,
         name: "Pod Times Square",
-        address: "400 W 42nd St",
+        address: null,
         google_maps_url:
           "https://www.google.com/maps/search/?api=1&query=40.758%2C-73.993",
         latitude: 40.758,
@@ -599,12 +599,9 @@ function lodging(): TripLodging {
     id: 7,
     trip_id: 1,
     name: "Pod Times Square",
-    address: "400 W 42nd St",
     latitude: 40.758,
     longitude: -73.993,
     google_place_id: "google-pod",
-    check_in_date: null,
-    check_out_date: null,
     is_primary: true,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",

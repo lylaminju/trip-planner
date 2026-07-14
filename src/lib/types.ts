@@ -132,12 +132,9 @@ export type TripLodging = {
   id: number;
   trip_id: number;
   name: string;
-  address: string | null;
   latitude: number;
   longitude: number;
   google_place_id: string | null;
-  check_in_date: string | null;
-  check_out_date: string | null;
   is_primary: boolean;
   created_at: string;
   updated_at: string;

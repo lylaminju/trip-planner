@@ -31,7 +31,6 @@ export function promptContext(input: {
     lodging: input.lodging
       ? {
           name: input.lodging.name,
-          address: input.lodging.address,
           latitude: input.lodging.latitude,
           longitude: input.lodging.longitude,
         }

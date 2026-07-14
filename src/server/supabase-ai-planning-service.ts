@@ -15,7 +15,7 @@ import { getSupabaseClient } from "./supabase";
 const AI_DESTINATION_CANDIDATE_COLUMNS =
   "id, destination_slug, name, category, tags, area, region_distance_tier, sort_order, latitude, longitude, google_place_id, typical_duration_minutes, indoor_outdoor, planning_note, created_at, updated_at";
 const TRIP_LODGING_COLUMNS =
-  "id, trip_id, name, address, latitude, longitude, google_place_id, check_in_date, check_out_date, is_primary, created_at, updated_at";
+  "id, trip_id, name, latitude, longitude, google_place_id, is_primary, created_at, updated_at";
 const AI_PLANNING_PREFERENCES_COLUMNS =
   "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, preferred_travel_modes, must_see_candidate_ids, created_at, updated_at";
 const TRIP_TRANSIT_POINT_COLUMNS =
@@ -68,7 +68,6 @@ export async function upsertPrimaryLodgingFromGoogleMapsUrl(
 
   return upsertPrimaryLodging(tripId, {
     name: resolved.name?.trim() || "Lodging",
-    address: null,
     latitude: resolved.latitude,
     longitude: resolved.longitude,
     google_place_id: null,
@@ -210,7 +209,6 @@ async function upsertPrimaryLodging(
   tripId: number,
   input: {
     name: string;
-    address: string | null;
     latitude: number;
     longitude: number;
     google_place_id: string | null;
