@@ -116,6 +116,9 @@ Existing deployments that predate trip memberships need a one-time backfill for
 the default shared New York City trip. See
 `docs/trip-membership-migration.md`.
 
+To add or replace the thumbnail image and description shown for each must-see
+candidate, see `docs/must-see-images.md`.
+
 ## Hosting
 
 The recommended deployment path is Supabase Postgres for data and Vercel for the Next.js app.
