@@ -79,9 +79,13 @@ export function extractImageCredit(imageInfoJson) {
 // [ˈθjouð…]) is …". Drop parentheticals that are clearly such glosses (contain a
 // bracketed IPA span, a "Language:" colon, the word "pronunciation/pronounced",
 // or IPA stress marks) while keeping useful ones like "(553 m)".
+//
+// The inner group allows one level of nested parentheses so IPA transcriptions
+// that embed them — e.g. "[ˈskouː(ɣ)aˌfɔsː]" or "ˈistlan(t)s" — are matched and
+// removed whole rather than leaving a dangling "(t)s])" behind.
 export function stripPronunciationGlosses(text) {
   if (typeof text !== "string") return "";
-  return text.replace(/\s*\([^()]*\)/g, (match) =>
+  return text.replace(/\s*\([^()]*(?:\([^()]*\)[^()]*)*\)/g, (match) =>
     /[[\]:]|pronunc|ˈ|ˌ/i.test(match) ? "" : match,
   );
 }

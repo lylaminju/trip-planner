@@ -132,6 +132,15 @@ describe("Wikimedia response parsing", () => {
         "The National Museum of Iceland is a museum.",
       ],
       ["Gullfoss (Icelandic: [ˈkʏtlˌfɔsː]) is a waterfall.", "Gullfoss is a waterfall."],
+      // IPA transcriptions that embed parentheses must still be removed whole.
+      [
+        "Skógafoss (pronounced [ˈskouː(ɣ)aˌfɔsː] ) is a waterfall.",
+        "Skógafoss is a waterfall.",
+      ],
+      [
+        "The National Museum of Iceland (Icelandic: Þjóðminjasafn Íslands [ˈθjouðˌmɪnjaˌsapn ˈistlan(t)s]) is a museum.",
+        "The National Museum of Iceland is a museum.",
+      ],
       [
         "Hallgrímskirkja (Icelandic pronunciation: [ˈh?]) is a church.",
         "Hallgrímskirkja is a church.",
