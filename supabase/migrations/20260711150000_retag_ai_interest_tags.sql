@@ -17,7 +17,7 @@ where 'neighborhoods' = any(interest_tags);
 
 -- 3. Tag `food` candidates (markets and food-culture destinations).
 update public.ai_destination_candidates
-set tags = tags || 'food', updated_at = now()
+set tags = array_append(tags, 'food'), updated_at = now()
 where not ('food' = any(tags))
   and (
     (destination_slug = 'banff-national-park' and name in ('Banff Avenue'))
@@ -38,7 +38,7 @@ where not ('food' = any(tags))
 
 -- 4. Tag `kid-friendly` candidates (attractions especially good for families).
 update public.ai_destination_candidates
-set tags = tags || 'kid-friendly', updated_at = now()
+set tags = array_append(tags, 'kid-friendly'), updated_at = now()
 where not ('kid-friendly' = any(tags))
   and (
     (destination_slug = 'banff-national-park' and name in (

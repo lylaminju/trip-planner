@@ -67,7 +67,7 @@ do update set
 
 -- Mark a few family favorites (waterfalls, geysers, glacier lagoon) kid-friendly.
 update public.ai_destination_candidates
-set tags = tags || 'kid-friendly', updated_at = now()
+set tags = array_append(tags, 'kid-friendly'), updated_at = now()
 where destination_slug = 'iceland'
   and not ('kid-friendly' = any(tags))
   and name in (
