@@ -290,14 +290,16 @@
 }
 
 .ai-wizard-content {
+  align-items: flex-start;
   display: flex;
   justify-content: center;
   overflow: auto;
-  padding: 0 72px 40px;
+  padding: 0 72px;
 }
 
 .ai-wizard-content-inner {
   max-width: 920px;
+  padding-bottom: 40px;
   width: 100%;
 }
 
@@ -1077,7 +1079,11 @@
   }
 
   .ai-wizard-content {
-    padding: 0 20px 24px;
+    padding: 0 20px;
+  }
+
+  .ai-wizard-content-inner {
+    padding-bottom: 24px;
   }
 
   .ai-wizard-title {
