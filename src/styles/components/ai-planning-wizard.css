@@ -67,6 +67,11 @@
   min-height: 0;
 }
 
+/* Focused programmatically to route Enter into the wizard; no visible ring. */
+.ai-wizard:focus {
+  outline: none;
+}
+
 /* Left rail */
 .ai-wizard-rail {
   background: var(--surface-muted);

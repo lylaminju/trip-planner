@@ -1,5 +1,12 @@
 "use client";
-import { useEffect, useMemo, useState, type SubmitEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type SubmitEvent,
+} from "react";
 
 import { useResolvedPlaceName } from "@/hooks/useResolvedPlaceName";
 
@@ -100,6 +107,18 @@ export function AiPlanningWizard(props: Props) {
   );
   const [stepIndex, setStepIndex] = useState(0);
   const setup = props.setup;
+  const formRef = useRef<HTMLFormElement>(null);
+  const showStepForm =
+    !props.isLoading && !props.error && !!props.setup && !props.isGenerating;
+
+  // ModalShell doesn't trap focus, so on open focus sits on the body and
+  // Enter never reaches the form. Pull focus into the form once it's shown so
+  // Enter advances even before the user clicks a control.
+  useEffect(() => {
+    if (showStepForm) {
+      formRef.current?.focus();
+    }
+  }, [showStepForm]);
 
   useEffect(() => {
     setDraft(initialDraft);
@@ -135,9 +154,14 @@ export function AiPlanningWizard(props: Props) {
   const isReviewStep = stepIndex === LAST_STEP_INDEX;
   const currentStep = STEP_META[stepIndex];
   const isOptionalStep = "optional" in currentStep && currentStep.optional;
+  const requiresTravelModes =
+    currentStep.key === "logistics" || isReviewStep;
+  const submitBlocked = modesEmpty && requiresTravelModes;
 
-  function submit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function goNext() {
+    if (submitBlocked) {
+      return;
+    }
     if (!isReviewStep) {
       setStepIndex((current) => current + 1);
       return;
@@ -150,6 +174,38 @@ export function AiPlanningWizard(props: Props) {
       daily_start_time: dailyStartTime || AI_DEFAULT_DAILY_START_TIME,
       ...transitStopPayload(transitDraft),
     });
+  }
+
+  function submit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    goNext();
+  }
+
+  // Selection chips are buttons, so native Enter re-clicks the focused chip
+  // instead of submitting the form. Advance on Enter from anywhere except
+  // controls whose own Enter behavior (navigation, cancel, edit) must win.
+  function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
+    if (
+      event.key !== "Enter" ||
+      event.shiftKey ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (
+      target.closest(
+        "textarea, a[href], .ai-wizard-back, .ai-wizard-cancel, " +
+          ".ai-wizard-topbar-close, .ai-planning-close, .ai-wizard-step, " +
+          ".ai-review-edit",
+      )
+    ) {
+      return;
+    }
+    event.preventDefault();
+    goNext();
   }
 
   function summaryFor(key: (typeof STEP_META)[number]["key"]): string {
@@ -224,7 +280,13 @@ export function AiPlanningWizard(props: Props) {
               modeLabels={travelModeLabels(draft)}
             />
           ) : (
-            <form className="ai-wizard" onSubmit={submit}>
+            <form
+              ref={formRef}
+              tabIndex={-1}
+              className="ai-wizard"
+              onSubmit={submit}
+              onKeyDown={handleKeyDown}
+            >
               <aside className="ai-wizard-rail">
                 <div className="ai-wizard-brand">
                   <span className="ai-wizard-brand-icon" aria-hidden="true">
@@ -407,7 +469,7 @@ export function AiPlanningWizard(props: Props) {
                     <button
                       type="submit"
                       className="ai-wizard-primary"
-                      disabled={modesEmpty}
+                      disabled={submitBlocked}
                     >
                       {isReviewStep && (
                         <span
