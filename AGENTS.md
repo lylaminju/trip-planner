@@ -25,7 +25,7 @@ This file applies to the whole repository. Follow it when changing code here.
 - Target new or edited source files under 300 lines.
 - Files between 300 and 450 lines are acceptable only when they have a single clear responsibility.
 - Do not grow files beyond 450 lines without splitting a subcomponent, helper module, or hook first.
-- When touching an oversized file, leave it smaller or document why splitting would be riskier than the local edit.
+- When touching an oversized file, extract a focused hook, helper, or subcomponent so it ends up smaller, or document why splitting would be riskier than the local edit.
 
 ## Refactoring Rules
 
@@ -47,7 +47,6 @@ This file applies to the whole repository. Follow it when changing code here.
 - Do not commit scratch files or one-off probe files. Keep temporary experiments outside the repo, or convert them into real tests or documentation before committing.
 - Treat request-derived strings as untrusted input. Parsing helpers for cookies, URLs, headers, and form data should fail closed, and malformed-input regression tests are required when they affect auth, routing, or persistence.
 - Keep exported return types limited to the production contract. Do not expose fields used only by tests. If a preservation or detail field is an intentional API, production code should consume it or tests should clearly document the contract.
-- When touching files over the file-size guardrail, extract a focused hook, helper, or subcomponent as part of the change unless that would make the diff materially riskier.
 
 ## Documentation Guidelines
 
@@ -84,8 +83,7 @@ This file applies to the whole repository. Follow it when changing code here.
 - Avoid implementation-specific tests that assert raw CSS selectors, source text, or internal markup details unless that exact structure is a durable contract. Prefer behavior, accessibility, computed output, or user-visible affordances.
 - Do not add tests that only restate behavior already covered at the same layer; new tests should protect a new branch, regression risk, or integration contract.
 - Prefer the narrowest test that proves the behavior under change. Avoid duplicate coverage across utility, component, and integration layers unless each layer catches a distinct failure mode.
-- Avoid `not.toContain()` checks for removed marketing text, placeholder text, or helper copy unless the absence is a real product requirement or safety constraint.
-- Before adding `not.toContain()` or `not.toMatch()` in tests, state the product contract or safety constraint it protects. If the absence is not user-facing or safety-critical, use a positive assertion for the durable affordance instead.
+- Before adding `not.toContain()` or `not.toMatch()` in tests (for example checks for removed marketing, placeholder, or helper copy), state the product contract or safety constraint it protects. If the absence is not user-facing or safety-critical, use a positive assertion for the durable affordance instead.
 - When copy is expected to change during design iteration, assert the durable affordance instead, for example the CTA link target, form field name, route id, component class, or accessible landmark.
 - Keep CSS/source-text assertions coarse and intentional: assert a small invariant that would break a user-facing contract, not a full implementation recipe or every declaration in a rule.
 - When the same domain fixture or markup/CSS helper appears in several test files, move it to a typed test helper instead of growing copy-pasted builders.
