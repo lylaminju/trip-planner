@@ -210,8 +210,8 @@ export function MustSeeStep({
                     src={candidate.image_url}
                     alt=""
                     loading="lazy"
-                    width={96}
-                    height={84}
+                    width={104}
+                    height={92}
                   />
                 ) : (
                   <span
