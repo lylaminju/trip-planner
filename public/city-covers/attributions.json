@@ -437,6 +437,25 @@
     }
   },
   {
+    "slug": "iceland",
+    "label": "Iceland",
+    "sourcePage": "https://en.wikipedia.org/wiki/Iceland",
+    "commonsTitle": "File:Kirkjufell in Iceland.jpg",
+    "file": "/city-covers/iceland.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Kirkjufell_in_Iceland.jpg/1920px-Kirkjufell_in_Iceland.jpg",
+    "width": 1400,
+    "height": 935,
+    "attribution": {
+      "objectName": "Kirkjufell in Iceland",
+      "artist": "Anjali Kiggal",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 4.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Kirkjufell_in_Iceland.jpg"
+    }
+  },
+  {
     "slug": "istanbul",
     "label": "Istanbul",
     "sourcePage": "https://en.wikipedia.org/wiki/Istanbul",
@@ -795,25 +814,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
       "usageTerms": "Creative Commons Attribution 4.0",
       "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Quebec_City,_Canada.jpg"
-    }
-  },
-  {
-    "slug": "reykjavik",
-    "label": "Reykjavik",
-    "sourcePage": "https://en.wikipedia.org/wiki/Reykjavik",
-    "commonsTitle": "File:Reykjavik hallgrimskirkja (Unsplash).jpg",
-    "file": "/city-covers/reykjavik.webp",
-    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Reykjavik_hallgrimskirkja_%28Unsplash%29.jpg/1920px-Reykjavik_hallgrimskirkja_%28Unsplash%29.jpg",
-    "width": 1400,
-    "height": 934,
-    "attribution": {
-      "objectName": "Reykjavik hallgrimskirkja (Unsplash)",
-      "artist": "Tim Trad timtrad",
-      "credit": "https://unsplash.com/photos/B6nTLkA0psY Image at the Wayback Machine Gallery at the Wayback Machine",
-      "licenseShortName": "CC0",
-      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "usageTerms": "Creative Commons Zero, Public Domain Dedication",
-      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Reykjavik_hallgrimskirkja_(Unsplash).jpg"
     }
   },
   {

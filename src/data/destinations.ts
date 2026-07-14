@@ -193,6 +193,14 @@ export const DESTINATIONS: Destination[] = [
     zoom: 12,
   },
   {
+    slug: "iceland",
+    name: "Iceland",
+    countryCode: "IS",
+    latitude: 64.9631,
+    longitude: -19.0208,
+    zoom: 6,
+  },
+  {
     slug: "istanbul",
     name: "Istanbul",
     countryCode: "TR",
@@ -342,14 +350,6 @@ export const DESTINATIONS: Destination[] = [
     countryCode: "CA",
     latitude: 46.8139,
     longitude: -71.208,
-    zoom: 12,
-  },
-  {
-    slug: "reykjavik",
-    name: "Reykjavik",
-    countryCode: "IS",
-    latitude: 64.1466,
-    longitude: -21.9426,
     zoom: 12,
   },
   {
