@@ -99,7 +99,7 @@ export function TripEditForm(props: {
           className="trip-edit-submit"
           disabled={props.isSaving}
         >
-          Save changes
+          Save
         </button>
       </div>
     </form>
