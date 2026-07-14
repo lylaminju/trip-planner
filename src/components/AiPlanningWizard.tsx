@@ -45,7 +45,12 @@ type Props = {
 
 const STEP_META = [
   { key: "pace", label: "Pace", title: "How full should each day feel?" },
-  { key: "interests", label: "Interests", title: "What are you into?" },
+  {
+    key: "interests",
+    label: "Interests",
+    title: "What are you into?",
+    optional: true,
+  },
   {
     key: "logistics",
     label: "Getting around",
@@ -55,8 +60,14 @@ const STEP_META = [
     key: "startend",
     label: "Start & end",
     title: "Where does your trip start and end?",
+    optional: true,
   },
-  { key: "mustsee", label: "Must-sees", title: "Anything you can't miss?" },
+  {
+    key: "mustsee",
+    label: "Must-sees",
+    title: "Anything you can't miss?",
+    optional: true,
+  },
   { key: "review", label: "Review", title: "Review & generate" },
 ] as const;
 
@@ -122,6 +133,8 @@ export function AiPlanningWizard(props: Props) {
       : 0;
   const modesEmpty = draft.preferred_travel_modes.length === 0;
   const isReviewStep = stepIndex === LAST_STEP_INDEX;
+  const currentStep = STEP_META[stepIndex];
+  const isOptionalStep = "optional" in currentStep && currentStep.optional;
 
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -172,14 +185,19 @@ export function AiPlanningWizard(props: Props) {
         className="modal ai-planning-modal"
         role="dialog"
       >
-        <button
-          type="button"
-          className="ai-planning-close"
-          onClick={props.onCancel}
-          aria-label="Close"
-        >
-          <CloseIcon />
-        </button>
+        {(props.isLoading ||
+          props.error ||
+          props.isGenerating ||
+          !props.setup) && (
+          <button
+            type="button"
+            className="ai-planning-close"
+            onClick={props.onCancel}
+            aria-label="Close"
+          >
+            <CloseIcon />
+          </button>
+        )}
 
         {props.isLoading && (
           <div className="ai-planning-status" role="status">
@@ -212,27 +230,20 @@ export function AiPlanningWizard(props: Props) {
                   <span className="ai-wizard-brand-icon" aria-hidden="true">
                     <MagicWandIcon />
                   </span>
-                  <div>
+                  <div className="ai-wizard-brand-text">
                     <div id="ai-planning-title" className="ai-wizard-brand-title">
                       Plan with AI
                     </div>
-                  </div>
-                </div>
-
-                <div className="ai-wizard-trip-card">
-                  <div className="ai-wizard-trip-name">
-                    {props.setup.trip.destination}
-                  </div>
-                  {trip?.start_date && trip.end_date && (
-                    <div className="ai-wizard-trip-dates">
-                      {formatTripDateRangeShort(trip.start_date, trip.end_date)}
+                    <div className="ai-wizard-brand-sub">
+                      {props.setup.trip.destination}
+                      {trip?.start_date && trip.end_date
+                        ? ` · ${formatTripDateRangeShort(
+                            trip.start_date,
+                            trip.end_date,
+                          )}`
+                        : ""}
                     </div>
-                  )}
-                  {days > 0 && (
-                    <span className="ai-wizard-trip-badge">
-                      {days} {days === 1 ? "day" : "days"}
-                    </span>
-                  )}
+                  </div>
                 </div>
 
                 <ol className="ai-wizard-stepper">
@@ -288,15 +299,25 @@ export function AiPlanningWizard(props: Props) {
               </aside>
 
               <div className="ai-wizard-main">
+                <div className="ai-wizard-topbar">
+                  <button
+                    type="button"
+                    className="ai-wizard-topbar-close"
+                    onClick={props.onCancel}
+                    aria-label="Close"
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
                 <div className="ai-wizard-content">
+                  <div className="ai-wizard-content-inner">
                   <p className="ai-wizard-step-count">
                     Step {stepIndex + 1} of {STEP_META.length}
+                    {isOptionalStep ? " · Optional" : ""}
                   </p>
-                  <h2 className="ai-wizard-title">
-                    {STEP_META[stepIndex].title}
-                  </h2>
+                  <h2 className="ai-wizard-title">{currentStep.title}</h2>
                   <p className="ai-wizard-helper">
-                    {STEP_HELPERS[STEP_META[stepIndex].key]}
+                    {STEP_HELPERS[currentStep.key]}
                   </p>
 
                   {stepIndex === 0 && (
@@ -360,6 +381,7 @@ export function AiPlanningWizard(props: Props) {
                       transitHubs={props.setup.transitHubs}
                     />
                   )}
+                  </div>
                 </div>
 
                 <footer className="ai-wizard-footer">
@@ -397,6 +419,9 @@ export function AiPlanningWizard(props: Props) {
                       )}
                       {isReviewStep ? "Create itinerary" : "Next"}
                     </button>
+                    <span className="ai-wizard-enter-hint" aria-hidden="true">
+                      press <strong>Enter ↵</strong>
+                    </span>
                   </div>
                 </footer>
               </div>

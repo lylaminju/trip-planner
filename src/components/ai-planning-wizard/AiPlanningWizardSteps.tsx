@@ -17,6 +17,7 @@ import {
   type TransitStopDraft,
 } from "./transit-stop-draft";
 import { toggleValue } from "./toggle-value";
+import { MapPinIcon } from "../Icons";
 
 type StepProps = {
   draft: AiPlanningPreferenceInput;
@@ -201,6 +202,26 @@ export function MustSeeStep({
                 })
               }
             >
+              <span className="ai-candidate-thumb">
+                {candidate.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- remote Supabase Storage thumbnail; fixed 96×84 box, no next/image domain config needed
+                  <img
+                    className="ai-candidate-thumb-img"
+                    src={candidate.image_url}
+                    alt=""
+                    loading="lazy"
+                    width={96}
+                    height={84}
+                  />
+                ) : (
+                  <span
+                    className="ai-candidate-thumb-fallback"
+                    aria-hidden="true"
+                  >
+                    <MapPinIcon />
+                  </span>
+                )}
+              </span>
               <span className="ai-candidate-check" aria-hidden="true">
                 {isSelected && <CheckIcon />}
               </span>
@@ -210,6 +231,9 @@ export function MustSeeStep({
                   {formatCategory(candidate.category)}
                   {candidate.area ? ` · ${candidate.area}` : ""}
                 </span>
+                {candidate.blurb && (
+                  <span className="ai-candidate-blurb">{candidate.blurb}</span>
+                )}
                 {candidate.planning_note && (
                   <span className="ai-candidate-note">
                     {candidate.planning_note}
@@ -315,7 +339,7 @@ export function ReviewStep({
     {
       label: "Must-sees",
       value: draft.must_see_candidate_ids.length
-        ? `${draft.must_see_candidate_ids.length} locked in`
+        ? mustSeeNames(draft.must_see_candidate_ids, candidates)
         : "None — let AI choose",
       step: 4,
     },
@@ -381,4 +405,15 @@ function labelsFor<T extends string | number>(
 
 function formatCategory(category: string): string {
   return category.replaceAll("_", " ");
+}
+
+function mustSeeNames(
+  selectedIds: number[],
+  candidates: AiDestinationCandidate[],
+): string {
+  const nameById = new Map(candidates.map((c) => [c.id, c.name]));
+  return selectedIds
+    .map((id) => nameById.get(id))
+    .filter(Boolean)
+    .join(", ");
 }

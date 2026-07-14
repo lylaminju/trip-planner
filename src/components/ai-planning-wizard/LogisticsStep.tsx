@@ -100,7 +100,6 @@ export function LogisticsStep({
       {currentLodging && (
         <p className="ai-current-lodging">
           Current start point: <strong>{currentLodging.name}</strong>
-          {currentLodging.address ? ` — ${currentLodging.address}` : ""}
         </p>
       )}
     </div>

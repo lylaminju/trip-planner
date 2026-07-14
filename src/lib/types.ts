@@ -124,6 +124,9 @@ export type AiDestinationCandidate = {
   typical_duration_minutes: number;
   indoor_outdoor: AiIndoorOutdoor | null;
   planning_note: string | null;
+  blurb: string | null;
+  image_url: string | null;
+  image_credit: string | null;
   created_at: string;
   updated_at: string;
 };

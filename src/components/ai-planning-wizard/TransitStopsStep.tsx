@@ -114,7 +114,7 @@ function TransitStopField({
   onTimeChange: (time: string) => void;
 }) {
   return (
-    <>
+    <div className="ai-transit-panel">
       <div className="ai-field-row">
         <div className="ai-field-group">
           <div className="ai-field-label-row">
@@ -194,11 +194,11 @@ function TransitStopField({
       </div>
 
       {currentPoint && (
-        <p className="ai-current-lodging">
+        <p className="ai-transit-current">
           {currentLabel}: <strong>{currentPoint.name}</strong>
           {currentPoint.event_time ? ` — ${currentPoint.event_time}` : ""}
         </p>
       )}
-    </>
+    </div>
   );
 }

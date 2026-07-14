@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "import:google-list": "node scripts/import-google-list.mjs",
+    "backfill:candidate-images": "node scripts/backfill-candidate-images.mjs",
     "push:supabase": "node scripts/push-sqlite-to-supabase.mjs",
     "format": "prettier --write ."
   },
