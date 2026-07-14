@@ -226,7 +226,8 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('class="trip-row trip-row-editing"');
     expect(markup).toContain("/city-covers/toronto.webp");
     expect(markup).toContain('value="Toronto June"');
-    expect(markup).toContain('value="2026-06-01"');
+    expect(markup).toContain('class="trip-date-range-picker"');
+    expect(markup).toContain("Jun 1 - 2, 2026");
     expect(markup).toContain("Save changes");
     expect(markup).toContain("Cancel");
   });
