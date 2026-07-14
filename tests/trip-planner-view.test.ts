@@ -57,6 +57,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     addingVisitPlace: null,
     addPlaceVisitDate: null,
     editingTripForm: null,
+    editTripError: null,
     isSavingTrip: false,
     aiPlanningWizard: {
       isOpen: false,

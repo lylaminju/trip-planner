@@ -74,6 +74,7 @@ type Props = {
   addingVisitPlace: Place | null;
   addPlaceVisitDate: string | null;
   editingTripForm: TripFormState | null;
+  editTripError: string | null;
   isSavingTrip: boolean;
   aiPlanningWizard: AiPlanningWizardState;
   visitDateOptions: VisitDateOption[];
@@ -267,6 +268,7 @@ export function TripPlannerView(props: Props) {
       {props.editingTripForm && (
         <EditTripModal
           form={props.editingTripForm}
+          error={props.editTripError}
           isSaving={props.isSavingTrip}
           onChange={props.onSetEditingTripForm}
           onCancel={() => props.onSetEditingTripForm(null)}

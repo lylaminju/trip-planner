@@ -88,6 +88,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     useState<MobileSheetState>("half");
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editTripError, setEditTripError] = useState<string | null>(null);
   const [aiPlanningWizard, setAiPlanningWizard] =
     useState<AiPlanningWizardState>({
       isOpen: false,
@@ -154,7 +155,10 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     canEdit,
     canEditTripMetadata,
     trip,
-    clearError: () => setError(null),
+    clearError: () => {
+      setError(null);
+      setEditTripError(null);
+    },
   });
   const plannerMutations = useTripPlannerMutations({
     tripId,
@@ -196,7 +200,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     if (!editingTripForm || !canEditTripMetadata) return;
 
     setIsSavingTrip(true);
-    setError(null);
+    setEditTripError(null);
 
     try {
       const updatedTrip = await updateTrip(
@@ -205,9 +209,9 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       );
       setTrip(updatedTrip);
       setEditingTripForm(null);
-      setError(null);
+      setEditTripError(null);
     } catch (reason) {
-      setError(errorMessage(reason, "Failed to update trip."));
+      setEditTripError(errorMessage(reason, "Failed to update trip."));
     } finally {
       setIsSavingTrip(false);
     }
@@ -325,6 +329,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       addingVisitPlace={addingVisitPlace}
       addPlaceVisitDate={addPlaceVisitDate}
       editingTripForm={editingTripForm}
+      editTripError={editTripError}
       isSavingTrip={isSavingTrip}
       aiPlanningWizard={aiPlanningWizard}
       visitDateOptions={visitDateOptions}
