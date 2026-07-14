@@ -3,14 +3,16 @@
   border-radius: 16px;
   box-shadow: var(--shadow-floating-large);
   gap: 0;
-  /* Near-full-screen takeover: fill the viewport minus a small inset, keeping
-     rounded corners. dvh keeps it stable under mobile browser chrome. */
-  height: calc(100dvh - 32px);
-  max-width: none;
+  /* Bounded, roomy modal sized around the tall must-sees step (~5 card rows
+     visible before scrolling) rather than filling the whole viewport. Shrinks
+     to a small inset on smaller screens; dvh keeps height stable under mobile
+     browser chrome. */
+  height: min(820px, calc(100dvh - 48px));
+  max-width: min(1200px, calc(100vw - 48px));
   overflow: hidden;
   padding: 0;
   position: relative;
-  width: calc(100vw - 32px);
+  width: calc(100vw - 48px);
 }
 
 .ai-planning-close {
@@ -291,7 +293,7 @@
   display: flex;
   justify-content: center;
   overflow: auto;
-  padding: 16px 72px 40px;
+  padding: 0 72px 40px;
 }
 
 .ai-wizard-content-inner {
@@ -321,7 +323,7 @@
   font-size: 17px;
   line-height: 1.55;
   margin: 0 0 30px;
-  max-width: 62ch;
+  max-width: 75ch;
 }
 
 /* Shared check icon */
@@ -1041,7 +1043,9 @@
 /* Mobile: collapse to a single column */
 @media (max-width: 760px) {
   .ai-planning-modal {
-    height: calc(100dvh - 32px);
+    height: calc(100dvh - 24px);
+    max-width: none;
+    width: calc(100vw - 24px);
   }
 
   .ai-wizard {
@@ -1067,7 +1071,7 @@
   }
 
   .ai-wizard-content {
-    padding: 8px 20px 24px;
+    padding: 0 20px 24px;
   }
 
   .ai-wizard-title {
