@@ -145,6 +145,9 @@ export function InterestStep({ draft, onChange }: StepProps) {
                 })
               }
             >
+              <span className="ai-chip-emoji" aria-hidden="true">
+                {option.emoji}
+              </span>
               {option.label}
             </button>
           );

@@ -4,6 +4,8 @@ import type {
 } from "@/lib/types";
 
 import {
+  TRANSIT_CUSTOM_STOP_EMOJI,
+  transitHubChipEmoji,
   transitHubChipLabel,
   type TransitDepartureChoice,
   type TransitStopDraft,
@@ -154,6 +156,9 @@ function TransitStopField({
                     aria-pressed={isSelected}
                     onClick={() => onChoiceChange(isSelected ? null : hub.id)}
                   >
+                    <span className="ai-chip-emoji" aria-hidden="true">
+                      {transitHubChipEmoji(hub)}
+                    </span>
                     {transitHubChipLabel(hub)}
                   </button>
                 );
@@ -166,6 +171,9 @@ function TransitStopField({
                   onChoiceChange(choice === "custom" ? null : "custom")
                 }
               >
+                <span className="ai-chip-emoji" aria-hidden="true">
+                  {TRANSIT_CUSTOM_STOP_EMOJI}
+                </span>
                 Somewhere else
               </button>
             </div>

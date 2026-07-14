@@ -1,8 +1,18 @@
 import type {
   AiDestinationTransitHub,
   AiPlanningSetup,
+  AiTransitHubType,
   TripTransitPoint,
 } from "@/lib/types";
+
+const TRANSIT_HUB_EMOJI: Record<AiTransitHubType, string> = {
+  airport: "✈️",
+  train_station: "🚆",
+  bus_terminal: "🚌",
+  ferry_terminal: "⛴️",
+};
+
+export const TRANSIT_CUSTOM_STOP_EMOJI = "📍";
 
 export type TransitStopChoice = number | "custom" | null;
 
@@ -70,6 +80,10 @@ export function transitStopPayload(draft: TransitStopDraft): {
 
 export function transitHubChipLabel(hub: AiDestinationTransitHub): string {
   return hub.iata_code ? `${hub.iata_code} · ${hub.name}` : hub.name;
+}
+
+export function transitHubChipEmoji(hub: AiDestinationTransitHub): string {
+  return TRANSIT_HUB_EMOJI[hub.hub_type];
 }
 
 export function transitHubShortLabel(hub: AiDestinationTransitHub): string {

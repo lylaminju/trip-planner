@@ -5,13 +5,13 @@ import type {
 } from "./types";
 
 export const AI_INTEREST_TAG_OPTIONS = [
-  { value: "landmarks", label: "Landmarks" },
-  { value: "museums", label: "Museums" },
-  { value: "nature", label: "Nature" },
-  { value: "viewpoints", label: "Viewpoints" },
-  { value: "local-vibe", label: "Local vibe" },
-  { value: "food", label: "Food & markets" },
-  { value: "kid-friendly", label: "Kid-friendly" },
+  { value: "landmarks", label: "Landmarks", emoji: "📍" },
+  { value: "museums", label: "Museums", emoji: "🏛️" },
+  { value: "nature", label: "Nature", emoji: "🌿" },
+  { value: "viewpoints", label: "Viewpoints", emoji: "🏞️" },
+  { value: "local-vibe", label: "Local vibe", emoji: "🏘️" },
+  { value: "food", label: "Food & markets", emoji: "🍽️" },
+  { value: "kid-friendly", label: "Kid-friendly", emoji: "🧸" },
 ] as const;
 
 export const AI_TRAVEL_MODE_OPTIONS: {
