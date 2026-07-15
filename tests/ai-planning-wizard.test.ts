@@ -114,7 +114,7 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Pod Times Square");
   });
 
-  it("renders hub chips and saved stops on the trip start and end step", () => {
+  it("renders hub chips and hides the saved stop note the selected chip duplicates", () => {
     const markup = renderToStaticMarkup(
       createElement(TransitStopsStep, {
         currentArrivalPoint: {
@@ -164,9 +164,46 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("JFK · John F. Kennedy International Airport");
     expect(markup).toContain("Somewhere else");
     expect(markup).toContain("Same as arrival");
-    expect(markup).toContain("JFK Airport");
     expect(markup).toContain('value="15:30"');
+    // The selected chip already names the saved arrival stop, so the
+    // current-stop note must stay hidden rather than repeat it.
+    expect(markup).not.toContain("ai-transit-current");
     expect(markup).not.toContain("— optional");
+  });
+
+  it("shows the saved stop note when no hub chip is selected", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TransitStopsStep, {
+        currentArrivalPoint: {
+          id: 3,
+          trip_id: 1,
+          kind: "arrival",
+          name: "JFK Airport",
+          latitude: 40.641,
+          longitude: -73.778,
+          google_place_id: null,
+          event_time: "15:30",
+          created_at: "2026-01-01T00:00:00.000Z",
+          updated_at: "2026-01-01T00:00:00.000Z",
+        },
+        currentDeparturePoint: null,
+        transitDraft: {
+          arrivalChoice: null,
+          arrivalUrl: "",
+          arrivalTime: "",
+          departureChoice: "same",
+          departureUrl: "",
+          departureTime: "",
+        },
+        transitHubs: [],
+        tripId: 1,
+        onTransitDraftChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("ai-transit-current");
+    expect(markup).toContain("JFK Airport");
+    expect(markup).toContain("15:30");
   });
 
   it("shows candidate planning notes on the must-see step", () => {
@@ -209,6 +246,17 @@ describe("AiPlanningWizard", () => {
   });
 });
 
+/** Reads back the rendered value of a single review row by its label. */
+function reviewRowValue(markup: string, label: string): string {
+  const match = markup.match(
+    new RegExp(
+      `<span class="ai-review-label">${label}</span>` +
+        `<span class="ai-review-value">([^<]*)</span>`,
+    ),
+  );
+  return match?.[1] ?? "";
+}
+
 describe("ReviewStep", () => {
   it("shows the lodging name alongside the daily start time when set", () => {
     const markup = renderToStaticMarkup(
@@ -235,7 +283,9 @@ describe("ReviewStep", () => {
       }),
     );
 
-    expect(markup).toContain("Pod Times Square · 08:30");
+    const dailyStart = reviewRowValue(markup, "Daily start");
+    expect(dailyStart).toContain("Pod Times Square");
+    expect(dailyStart).toContain("08:30");
   });
 
   it("shows resolved names for custom trip start and end links", () => {
@@ -263,9 +313,11 @@ describe("ReviewStep", () => {
       }),
     );
 
-    expect(markup).toContain("Niagara Falls Terminal · 15:00");
+    const tripStart = reviewRowValue(markup, "Trip start");
+    expect(tripStart).toContain("Niagara Falls Terminal");
+    expect(tripStart).toContain("15:00");
     // Departure link not resolved yet: falls back to the generic label.
-    expect(markup).toContain("From link");
+    expect(reviewRowValue(markup, "Trip end")).toContain("From link");
   });
 });
 

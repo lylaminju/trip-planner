@@ -228,8 +228,8 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('value="Toronto June"');
     expect(markup).toContain('class="trip-date-range-picker"');
     expect(markup).toContain("Jun 1 - 2, 2026");
-    expect(markup).toContain("Save changes");
-    expect(markup).toContain("Cancel");
+    expect(markup).toContain('class="trip-edit-submit"');
+    expect(markup).toContain('class="trip-edit-cancel"');
   });
 
   it("sizes the destination dropdown to the input field", () => {
