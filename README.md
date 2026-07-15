@@ -25,114 +25,39 @@ A trip planning app for building dated itineraries from saved places, arranging 
 - **Responsive planner layout:** The planner supports desktop split view, expanded planner view, and mobile sheet states.
 - **Google Maps saved-list import:** A legacy script imports places from a known shared Google Maps saved-list endpoint into the retained SQLite migration database.
 
+## AI Itinerary Planning
+
+Trip owners can generate a complete dated itinerary from a short guided brief, on
+supported destinations with dates set. Generated visits land in the normal
+planner, where every stop stays editable.
+
+- **Plan validation:** A plan is rejected for out-of-range dates, visit counts outside the chosen pace, missing must-sees, or times that violate the daily start time and arrival/departure windows.
+- **Automatic repair pass:** If the first plan fails validation, the errors are fed back for one repair attempt. If that also fails, the generation is recorded as failed and nothing is written to the trip.
+- **Non-destructive regeneration:** Generating again replaces only visits from previous AI batches. Manually added places are kept.
+- **Route timing and modes:** Generated visits are saved with times and route segments, using the preferred travel modes and real route durations.
+
+### Wizard Steps
+
+The brief runs six steps.
+
+- **Step 1 — Pace:** Relaxed (1-2), Balanced (2-3), or Packed (3-5) visits per day, which set the min/max visit range the plan is validated against.
+- **Step 2 — Interests (optional):** Landmarks, museums & galleries, nature, local vibe, food & markets, shopping, and kid-friendly tags steer candidate selection.
+- **Step 3 — Getting around:** Pick one or more travel modes (walking, transit, bicycling, driving) and a daily start time, and optionally paste a Google Maps link for the lodging so days start and end near it.
+- **Step 4 — Start & end (optional):** Pick arrival and departure hubs from the destination's known airports, stations, and terminals, or paste a Google Maps link. Setting times plans the first and last day around them.
+- **Step 5 — Must-sees (optional):** Lock in specific candidates, shown with thumbnails and descriptions, and the plan is built around them.
+- **Step 6 — Review:** Check the assembled brief, jump back to any step to edit it, then generate.
+
 ## Tech Stack
 
 - Next.js App Router
 - React 19
 - TypeScript
-- Supabase Postgres
+- Supabase Postgres and Supabase Auth
 - Native CSS
 - Google Maps JavaScript API
 - Google Routes API, optional for real route polylines
+- OpenAI Responses API for AI itinerary generation
 - Vitest
-
-## Getting Started
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Create `.env.local`:
-
-```bash
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_google_maps_key
-GOOGLE_MAPS_ROUTES_API_KEY=your_server_google_routes_key
-OPENAI_API_KEY=your_server_openai_key
-OPENAI_AI_PLANNER_MODEL=your_chosen_planner_model
-```
-
-`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is used by the browser map. `GOOGLE_MAPS_ROUTES_API_KEY` is optional, but required for real route polylines. Without it, the map still renders markers and uses straight-line route fallbacks. `OPENAI_API_KEY` and `OPENAI_AI_PLANNER_MODEL` are required for AI itinerary generation.
-
-Run the dev server:
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:3000`.
-
-## Data Storage
-
-The app stores runtime data in Supabase Postgres. Create a Supabase project, then run the SQL in `supabase/schema.sql` in the Supabase SQL editor.
-
-Required environment variables:
-
-```bash
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_SECRET_KEY=your_server_only_secret_key
-# or, for legacy projects:
-SUPABASE_SERVICE_ROLE_KEY=your_legacy_service_role_key
-```
-
-Use a server-only Supabase secret key if available, or the legacy service-role key. Do not expose either key in browser code.
-
-The main tables are:
-
-- `trips`: trip records with name, destination, and dates.
-- `trip_memberships`: per-user trip access with `owner`, `editor`, or `viewer` roles.
-- `places`: canonical place records.
-- `itinerary_items`: scheduled visits that reference places.
-- `route_segments`: travel-mode choices between consecutive timed itinerary items.
-- `route_geometry_cache`: cached Google Routes API results.
-- `ai_destination_candidates`: curated attraction candidates for supported AI planning destinations.
-
-### AI Destination Candidate Counts
-
-AI itinerary generation is intentionally constrained to curated rows in
-`ai_destination_candidates`. The model receives candidate IDs and validation
-rejects generated visits outside that list, which keeps plans grounded and
-prevents arbitrary restaurants, duplicate attractions, or unsupported places
-from entering generated itineraries.
-
-Candidate counts should be sized from the largest itinerary the app is expected
-to generate, plus some choice buffer:
-
-```text
-estimated visits = trip days x max visits/day
-4 days x 5 visits/day = 20 visits
-```
-
-The current catalog targets about 30 candidates for large city destinations and
-about 25 for Banff-style park destinations. That is enough for typical 3-5 day
-trips at 2-5 visits per day while leaving alternatives for interests,
-must-see selections, weather, geography, and lodging location. If the product
-starts optimizing for longer trips, for example 7 days x 5 visits/day = 35
-visits, expand the relevant destination catalog before relying on generated
-plans for that trip length.
-
-Existing deployments that predate trip memberships need a one-time backfill for
-the default shared New York City trip. See
-`docs/trip-membership-migration.md`.
-
-To add or replace the thumbnail image and description shown for each must-see
-candidate, see `docs/must-see-images.md`.
-
-## Hosting
-
-The recommended deployment path is Supabase Postgres for data and Vercel for the Next.js app.
-
-Hosted environment variables:
-
-```bash
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_SECRET_KEY=your_server_only_secret_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_browser_google_maps_key
-GOOGLE_MAPS_ROUTES_API_KEY=your_server_google_routes_key
-OPENAI_API_KEY=your_server_openai_key
-OPENAI_AI_PLANNER_MODEL=your_chosen_planner_model
-```
 
 ## Importing A Google Maps Saved List
 
@@ -144,26 +69,6 @@ TRIP_PLANNER_DEFAULT_TRIP_ID=1 npm run push:supabase
 ```
 
 The importer reads the configured shared Google Maps saved-list endpoint in `scripts/import-google-list.mjs`, imports places into the legacy SQLite database, and keeps imported places unscheduled. Run `npm run push:supabase` afterward to move those imported rows into Supabase. See `docs/google-maps-saved-list-extraction.md` for details and caveats.
-
-## Verification
-
-Run tests:
-
-```bash
-npm test
-```
-
-Run a production build:
-
-```bash
-npm run build
-```
-
-Run TypeScript checking directly:
-
-```bash
-npx tsc --noEmit --pretty false
-```
 
 ## Notes
 
