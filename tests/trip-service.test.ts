@@ -61,6 +61,43 @@ describe("trip-service", () => {
     }
   });
 
+  it("moves scheduled visits with the trip when its dates change", async () => {
+    const recorded = { visitUpdates: [], rpcCalls: [] } as Recorded;
+    await withDateShiftClient(recorded, async (updateTripForRequest) => {
+      await updateTripForRequest(1, "user-1", {
+        start_date: "2027-08-01",
+        end_date: "2027-08-07",
+      });
+    });
+
+    expect(recorded.visitUpdates).toEqual([
+      { visit_date: "2027-08-01", ids: [1] },
+      { visit_date: "2027-08-07", ids: [2] },
+    ]);
+    // A whole-trip slide keeps each day intact, so routes need no reconciling.
+    expect(recorded.rpcCalls).toEqual([]);
+  });
+
+  it("unschedules visits left outside a shortened trip and reconciles routes", async () => {
+    const recorded = { visitUpdates: [], rpcCalls: [] } as Recorded;
+    await withDateShiftClient(recorded, async (updateTripForRequest) => {
+      await updateTripForRequest(1, "user-1", { end_date: "2027-07-16" });
+    });
+
+    expect(recorded.visitUpdates).toEqual([{ visit_date: null, ids: [2] }]);
+    expect(recorded.rpcCalls).toEqual(["reconcile_route_segments_for_trip"]);
+  });
+
+  it("leaves visits untouched when a trip only gains days at the end", async () => {
+    const recorded = { visitUpdates: [], rpcCalls: [] } as Recorded;
+    await withDateShiftClient(recorded, async (updateTripForRequest) => {
+      await updateTripForRequest(1, "user-1", { end_date: "2027-07-25" });
+    });
+
+    expect(recorded.visitUpdates).toEqual([]);
+    expect(recorded.rpcCalls).toEqual([]);
+  });
+
   it("soft-deletes trips instead of removing the row", async () => {
     const updates: Record<string, unknown>[] = [];
     let deleteCalled = false;
@@ -97,6 +134,119 @@ describe("trip-service", () => {
     }
   });
 });
+
+type Recorded = {
+  visitUpdates: Array<{ visit_date: string | null; ids: number[] }>;
+  rpcCalls: string[];
+};
+
+/**
+ * Drives updateTripForRequest against a fake Supabase so the real store and
+ * shift logic run, and records only what reaches the database.
+ */
+async function withDateShiftClient(
+  recorded: Recorded,
+  run: (
+    updateTripForRequest: typeof import("@/server/trip-service").updateTripForRequest,
+  ) => Promise<void>,
+) {
+  vi.resetModules();
+  vi.doMock("@/server/trip-access", () => ({
+    requireTripRole: vi.fn().mockResolvedValue({
+      trip_id: 1,
+      user_id: "user-1",
+      role: "owner",
+      created_at: "2026-01-01T00:00:00.000Z",
+    }),
+  }));
+  vi.doMock("@/server/supabase", () => ({
+    getSupabaseClient: () => dateShiftClient(recorded),
+  }));
+
+  try {
+    const { updateTripForRequest } = await import("@/server/trip-service");
+    await run(updateTripForRequest);
+  } finally {
+    vi.doUnmock("@/server/trip-access");
+    vi.doUnmock("@/server/supabase");
+    vi.restoreAllMocks();
+    vi.resetModules();
+  }
+}
+
+function dateShiftClient(recorded: Recorded) {
+  const storedTrip = {
+    id: 1,
+    created_by: "user-1",
+    name: "Iceland round tour",
+    destination: "Iceland",
+    destination_slug: "iceland",
+    start_date: "2027-07-12",
+    end_date: "2027-07-18",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+  const visits = [
+    { id: 1, visit_date: "2027-07-12" },
+    { id: 2, visit_date: "2027-07-18" },
+  ];
+
+  return {
+    from(table: string) {
+      if (table === "trips") {
+        return {
+          select: () => ({
+            eq: () => ({
+              is: () => ({
+                async single() {
+                  return { data: storedTrip, error: null };
+                },
+              }),
+            }),
+          }),
+          update: (input: Record<string, unknown>) => ({
+            eq: () => ({
+              select: () => ({
+                async single() {
+                  return { data: { ...storedTrip, ...input }, error: null };
+                },
+              }),
+            }),
+          }),
+        };
+      }
+
+      if (table === "itinerary_items") {
+        return {
+          select: () => ({
+            eq: () => ({
+              async not() {
+                return { data: visits, error: null };
+              },
+            }),
+          }),
+          update: (input: Record<string, unknown>) => ({
+            eq: () => ({
+              async in(_column: string, ids: number[]) {
+                recorded.visitUpdates.push({
+                  visit_date: input.visit_date as string | null,
+                  ids,
+                });
+                return { error: null };
+              },
+            }),
+          }),
+        };
+      }
+
+      throw new Error(`Unexpected table ${table}`);
+    },
+    async rpc(name: string) {
+      recorded.rpcCalls.push(name);
+      return { error: null };
+    },
+  };
+}
 
 function tripDeleteClient(
   updates: Record<string, unknown>[],

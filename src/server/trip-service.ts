@@ -1,7 +1,17 @@
+import {
+  applyTripDateShift,
+  planTripDateShift,
+  type TripDateRange,
+} from "@/lib/trip-date-shift";
 import type { Trip, TripMembership, TripSummary } from "@/lib/types";
 
 import { TripValidationError } from "./errors";
 import { getSupabaseClient } from "./supabase";
+import {
+  applyVisitDateChanges,
+  listScheduledVisits,
+  reconcileRoutesForTrip,
+} from "./supabase-place-store";
 import { requireTripRole } from "./trip-access";
 
 export type TripCreateInput = {
@@ -110,14 +120,15 @@ export async function updateTripForRequest(
 ): Promise<TripSummary> {
   const membership = await requireTripRole(tripId, userId, "owner");
   const currentTrip = await getTripById(tripId);
-  validateTripDateRange({
+  const nextDates: TripDateRange = {
     start_date:
       input.start_date !== undefined
         ? input.start_date
         : currentTrip.start_date,
     end_date:
       input.end_date !== undefined ? input.end_date : currentTrip.end_date,
-  });
+  };
+  validateTripDateRange(nextDates);
 
   const { data, error } = await getSupabaseClient()
     .from("trips")
@@ -127,7 +138,39 @@ export async function updateTripForRequest(
     .single();
 
   if (error) throwSupabaseError(error);
+
+  await realignScheduledVisits(tripId, currentTrip, nextDates);
+
   return { ...(data as Trip), role: membership.role };
+}
+
+/**
+ * Keeps a trip's scheduled visits on the days they were planned for when its
+ * dates move, so an existing itinerary follows the trip instead of stranding
+ * itself on the old calendar dates.
+ */
+async function realignScheduledVisits(
+  tripId: number,
+  previousDates: TripDateRange,
+  nextDates: TripDateRange,
+): Promise<void> {
+  const plan = planTripDateShift(previousDates, nextDates);
+  if (plan === null) {
+    return;
+  }
+
+  const changes = applyTripDateShift(await listScheduledVisits(tripId), plan);
+  if (changes.length === 0) {
+    return;
+  }
+
+  await applyVisitDateChanges(tripId, changes);
+
+  // Shifting every visit by one delta preserves each day's grouping and order,
+  // so only an unscheduled visit can leave a segment dangling.
+  if (changes.some((change) => change.visit_date === null)) {
+    await reconcileRoutesForTrip(tripId);
+  }
 }
 
 export async function deleteTripForRequest(
