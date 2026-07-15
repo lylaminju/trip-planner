@@ -77,6 +77,65 @@ describe("trip dashboard classification", () => {
     ]);
   });
 
+  it("sorts ongoing and upcoming trips by start date regardless of input order", () => {
+    const groups = groupTripsByTiming(
+      [
+        trip(1, "Later upcoming", "2027-06-01", "2027-06-02"),
+        trip(2, "Ongoing early", "2026-05-20", "2026-06-10"),
+        trip(3, "Sooner upcoming", "2026-06-01", "2026-06-02"),
+        trip(4, "Ongoing late", "2026-05-27", "2026-05-29"),
+      ],
+      new Date("2026-05-28T16:00:00.000Z"),
+    );
+
+    expect(groups.ongoing.map((entry) => entry.name)).toEqual([
+      "Ongoing early",
+      "Ongoing late",
+    ]);
+    expect(groups.upcoming.map((entry) => entry.name)).toEqual([
+      "Sooner upcoming",
+      "Later upcoming",
+    ]);
+  });
+
+  it("orders trips sharing a start date by creation time", () => {
+    const groups = groupTripsByTiming(
+      [
+        trip(1, "Created second", "2026-06-01", "2026-06-02", {
+          created_at: "2026-02-01T00:00:00.000Z",
+        }),
+        trip(2, "Created first", "2026-06-01", "2026-06-02", {
+          created_at: "2026-01-01T00:00:00.000Z",
+        }),
+      ],
+      new Date("2026-05-28T16:00:00.000Z"),
+    );
+
+    expect(groups.upcoming.map((entry) => entry.name)).toEqual([
+      "Created first",
+      "Created second",
+    ]);
+  });
+
+  it("orders undated trips by creation time", () => {
+    const groups = groupTripsByTiming(
+      [
+        trip(1, "Added later", null, null, {
+          created_at: "2026-02-01T00:00:00.000Z",
+        }),
+        trip(2, "Added earlier", null, null, {
+          created_at: "2026-01-01T00:00:00.000Z",
+        }),
+      ],
+      new Date("2026-05-28T16:00:00.000Z"),
+    );
+
+    expect(groups.needsDates.map((entry) => entry.name)).toEqual([
+      "Added earlier",
+      "Added later",
+    ]);
+  });
+
   it("detects the browser timezone and falls back when unavailable", () => {
     const resolvedOptions = vi
       .spyOn(Intl.DateTimeFormat.prototype, "resolvedOptions")

@@ -37,11 +37,25 @@ export function groupTripsByTiming(
     }
   }
 
+  groups.ongoing.sort(byStartDateThenCreatedAt);
+  groups.upcoming.sort(byStartDateThenCreatedAt);
+  groups.needsDates.sort(byCreatedAt);
   groups.past.sort((left, right) =>
     (right.end_date ?? "").localeCompare(left.end_date ?? ""),
   );
 
   return groups;
+}
+
+function byStartDateThenCreatedAt(left: TripSummary, right: TripSummary) {
+  const byStartDate = (left.start_date ?? "").localeCompare(
+    right.start_date ?? "",
+  );
+  return byStartDate !== 0 ? byStartDate : byCreatedAt(left, right);
+}
+
+function byCreatedAt(left: TripSummary, right: TripSummary) {
+  return left.created_at.localeCompare(right.created_at);
 }
 
 export function isTripOngoing(
