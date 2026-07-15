@@ -12,8 +12,10 @@ historic district, or iconic natural-setting images over generic street scenes.
 
 - Image files live at `public/city-covers/{slug}.webp`.
 - Attribution metadata lives in `public/city-covers/attributions.json`.
-- Available cover slugs live in `src/data/destination-cover-slugs.ts`.
 - Destination source data lives in `src/data/destinations.ts`.
+- Cover slugs are exactly the `DESTINATIONS` slugs. There is no separate cover
+  list; `destinationImagePath` in `src/lib/destination-options.ts` derives each
+  path from the slug.
 - Do not change destination matching behavior or reintroduce alias fields as
   part of image work.
 
@@ -122,7 +124,8 @@ file public/city-covers/{slug}.webp
 ## Attribution Entry Shape
 
 Keep one entry per cover image in `public/city-covers/attributions.json`.
-Entries should remain in the same order as `DESTINATION_COVER_SLUGS`.
+Entries must stay in the same order as `DESTINATIONS`, which is alphabetical by
+name. `tests/destination-options.test.ts` asserts the two orders are equal.
 
 ```json
 {
@@ -161,20 +164,19 @@ When replacing one existing cover:
 
 When adding covers for many destinations:
 
-1. Compare `DESTINATIONS` with `DESTINATION_COVER_SLUGS`.
+1. Compare `DESTINATIONS` with the files in `public/city-covers`.
 2. Pick and verify licensed sources for missing slugs.
 3. Generate WebP files.
-4. Update `DESTINATION_COVER_SLUGS` in destination order.
-5. Regenerate or update `attributions.json` in the same order.
-6. Run `npm test` and `npx tsc --noEmit`.
-7. Spot-check the visually riskiest covers.
-8. Delete temporary scripts, source images, and caches after commit.
+4. Regenerate or update `attributions.json` in `DESTINATIONS` order.
+5. Run `npm test` and `npx tsc --noEmit`.
+6. Spot-check the visually riskiest covers.
+7. Delete temporary scripts, source images, and caches after commit.
 
 ## Verification Checklist
 
 Before calling image work complete:
 
-- Every slug in `DESTINATION_COVER_SLUGS` has a matching WebP file.
+- Every slug in `DESTINATIONS` has a matching WebP file.
 - Every cover has an attribution entry.
 - `downloadedFrom` is an HTTP(S) URL.
 - `artist`, `licenseShortName`, and `usageTerms` are present.
