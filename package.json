@@ -10,14 +10,11 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "import:google-list": "node scripts/import-google-list.mjs",
     "backfill:candidate-images": "node scripts/backfill-candidate-images.mjs",
-    "push:supabase": "node scripts/push-sqlite-to-supabase.mjs",
     "format": "prettier --write ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
-    "better-sqlite3": "^12.10.0",
     "next": "^16.2.6",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
@@ -26,7 +23,6 @@
     "postcss": "8.5.15"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/google.maps": "^3.64.1",
     "@types/node": "^25.9.0",
     "@types/react": "^19.2.14",

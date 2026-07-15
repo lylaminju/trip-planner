@@ -4,8 +4,6 @@ next-env.d.ts
 out/
 dist/
 .env*.local
-data/*.sqlite-shm
-data/*.sqlite-wal
 .DS_Store
 
 supabase/.temp/
@@ -21,4 +19,3 @@ docs/business
 .omc/
 .superpowers/
 tsconfig.tsbuildinfo
-data/*.sqlite

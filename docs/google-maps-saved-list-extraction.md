@@ -1,5 +1,9 @@
 # Google Maps Saved List Extraction
 
+Historical research note. The importer script this describes was removed once
+places moved to Supabase; the endpoint findings below are kept as reference in
+case saved-list import is rebuilt.
+
 Source link:
 
 https://maps.app.goo.gl/qaVycWwrraarnLtQ6
@@ -46,7 +50,7 @@ https://maps.app.goo.gl/qaVycWwrraarnLtQ6
    parsed[0][17] = list emoji/icon
    ```
 
-7. Each place row is an array. The fields used by the importer are:
+7. Each place row is an array. The fields the importer used are:
 
    ```text
    row[2]       = place name
@@ -64,12 +68,4 @@ https://maps.app.goo.gl/qaVycWwrraarnLtQ6
 - This endpoint is undocumented and can change without notice.
 - The response does not consistently expose official Google Places API `place_id` values.
 - Some rows contain Google entity tokens (`/g/...` or `/m/...`) and internal IDs instead.
-- The importer preserves raw useful identifiers in SQLite rather than pretending they are official Places API IDs.
-
-## Import Command
-
-```bash
-npm run import:google-list
-```
-
-The importer replaces current destination rows with the extracted list data and leaves all imported places unscheduled (`visit_datetime = NULL`).
+- Any future importer should preserve these raw identifiers rather than pretending they are official Places API IDs.

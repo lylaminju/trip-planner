@@ -33,7 +33,7 @@ card, so partial coverage is fine.
    supabase db push        # applies 20260714100000_add_ai_candidate_media_columns.sql
    ```
 
-2. `.env.local` has service credentials (same ones `push:supabase` uses):
+2. `.env.local` has service credentials:
 
    ```sh
    SUPABASE_URL=...
