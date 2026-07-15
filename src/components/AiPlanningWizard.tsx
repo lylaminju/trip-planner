@@ -80,13 +80,13 @@ const STEP_META = [
 
 const STEP_HELPERS: Record<(typeof STEP_META)[number]["key"], string> = {
   pace: "Pick the rhythm that fits — we'll size each day to match.",
-  interests: "Optional. Pick a few and we'll weight your plan toward them.",
+  interests: "Pick a few and we'll weight your plan toward them.",
   logistics:
     "Choose at least one way to travel, then set when your days start and where they begin.",
   startend:
-    "Optional. Most trips begin and end at an airport, station, or terminal — pick yours and we'll plan around it.",
+    "Most trips begin and end at an airport, station, or terminal — pick yours and we'll plan around it.",
   mustsee:
-    "Optional. Lock in the places you know you want, and we'll build around them.",
+    "Lock in the places you know you want, and we'll build around them.",
   review: "Here's your plan brief. Edit anything, then let AI build it.",
 };
 

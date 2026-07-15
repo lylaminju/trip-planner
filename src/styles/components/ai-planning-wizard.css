@@ -1070,8 +1070,22 @@
   .ai-wizard-rail {
     border-bottom: 1px solid var(--border-map-control);
     border-right: 0;
-    gap: 14px;
-    padding: 18px 18px 16px;
+    gap: 12px;
+    /* Reserve right-side room for the pinned close button (see below). */
+    padding: 14px 52px 12px 16px;
+  }
+
+  .ai-wizard-brand-icon {
+    height: 30px;
+    width: 30px;
+  }
+
+  .ai-wizard-brand-title {
+    font-size: 15px;
+  }
+
+  .ai-wizard-brand-sub {
+    font-size: 12px;
   }
 
   .ai-wizard-stepper,
@@ -1079,51 +1093,177 @@
     display: none;
   }
 
+  /* Lift the close button out of its own row and pin it to the modal's
+     top-right, level with the "Plan with AI" title in the rail above. */
   .ai-wizard-topbar {
-    padding: 12px 16px 0;
+    padding: 0;
+  }
+
+  .ai-wizard-topbar-close {
+    height: 34px;
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    width: 34px;
+    z-index: 5;
   }
 
   .ai-wizard-content {
-    padding: 0 20px;
+    padding: 16px 16px 0;
   }
 
   .ai-wizard-content-inner {
-    padding-bottom: 24px;
+    padding-bottom: 20px;
+  }
+
+  .ai-wizard-step-count {
+    font-size: 12px;
   }
 
   .ai-wizard-title {
-    font-size: 26px;
+    font-size: 22px;
+    margin: 8px 0 8px;
   }
 
+  .ai-wizard-helper {
+    font-size: 14px;
+    margin: 0 0 20px;
+  }
+
+  /* Pace step */
   .ai-pace-grid {
+    gap: 10px;
     grid-template-columns: 1fr;
   }
 
-  .ai-candidate-list {
-    grid-template-columns: 1fr;
+  .ai-pace-card {
+    gap: 5px;
+    min-height: 0;
+    padding: 12px 13px 12px;
+  }
+
+  .ai-pace-label {
+    font-size: 16px;
+  }
+
+  .ai-pace-estimate {
+    font-size: 13px;
+    margin: 16px 0 0;
+  }
+
+  /* Chips (interests + travel modes) */
+  .ai-chip-grid {
+    gap: 8px;
+  }
+
+  .ai-chip {
+    font-size: 14px;
+    min-height: 40px;
+    padding: 9px 16px;
+  }
+
+  .ai-chip-emoji {
+    font-size: 16px;
+  }
+
+  .ai-choice-count,
+  .ai-choice-clear {
+    font-size: 14px;
+  }
+
+  /* Logistics step */
+  .ai-logistics-step {
+    gap: 16px;
+  }
+
+  .ai-field-label {
+    font-size: 12px;
+  }
+
+  /* Input font stays 16px to avoid iOS focus zoom; trim height/padding only. */
+  .ai-planning-modal input[type="time"],
+  .ai-planning-modal input[type="url"] {
+    min-height: 44px;
+    padding: 8px 12px;
   }
 
   .ai-transit-panel {
-    padding: 18px 16px;
+    gap: 14px;
+    padding: 14px 16px;
   }
 
-  .ai-wizard-enter-hint {
-    display: none;
+  .ai-transit-current {
+    font-size: 13px;
   }
 
   .ai-field-row {
     grid-template-columns: 1fr;
   }
 
-  .ai-pace-card {
-    min-height: 0;
+  /* Must-see candidate cards */
+  .ai-candidate-list {
+    gap: 12px;
+    grid-template-columns: 1fr;
   }
 
+  .ai-candidate-card {
+    gap: 12px;
+    grid-template-columns: 84px 1fr;
+    padding: 12px;
+  }
+
+  .ai-candidate-thumb {
+    height: 72px;
+    width: 84px;
+  }
+
+  .ai-candidate-name {
+    font-size: 15px;
+  }
+
+  .ai-candidate-meta {
+    font-size: 13px;
+  }
+
+  /* .ai-candidate-blurb (Must-see item description) intentionally keeps its
+     default font size for readability. */
+
+  /* Review step */
   .ai-review-row {
     grid-template-columns: 110px 1fr auto;
+    padding: 12px 14px;
+  }
+
+  .ai-review-value {
+    font-size: 14px;
+  }
+
+  .ai-review-note {
+    font-size: 12px;
+  }
+
+  .ai-wizard-enter-hint {
+    display: none;
+  }
+
+  /* Footer */
+  .ai-wizard-cancel {
+    font-size: 14px;
+  }
+
+  .ai-wizard-back {
+    font-size: 15px;
+    min-height: 44px;
+    padding: 10px 18px;
+  }
+
+  .ai-wizard-primary {
+    font-size: 15px;
+    min-height: 44px;
+    padding: 11px 18px;
   }
 
   .ai-wizard-footer {
-    padding: 13px 18px;
+    padding: 12px 16px;
   }
 }
