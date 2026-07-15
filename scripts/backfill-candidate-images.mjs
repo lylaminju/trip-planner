@@ -211,7 +211,9 @@ async function downloadWebpThumbnail(imageUrl) {
     throw new Error(`Image download failed: ${response.status} ${response.statusText}`);
   }
   const source = Buffer.from(await response.arrayBuffer());
-  return sharp(source)
+  // Some Commons uploads carry recoverable JPEG defects that sharp rejects by
+  // default; decode them anyway rather than lose an otherwise usable image.
+  return sharp(source, { failOn: "none" })
     .resize({ width: THUMBNAIL_WIDTH_PX, withoutEnlargement: true })
     .webp({ quality: WEBP_QUALITY })
     .toBuffer();

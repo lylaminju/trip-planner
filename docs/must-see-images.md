@@ -121,9 +121,13 @@ To add must-sees for a new destination (or new places in an existing one):
 
 Prefer Wikimedia Commons / Wikipedia images — license metadata is stable and the
 backfill captures it automatically. Allowed licenses: **Public domain, CC0,
-CC BY, CC BY-SA**. Do **not** use NC/ND, unknown/missing-license, watermarked, or
-commercial-site images. When adding an image manually, record the credit in
-`image_credit` as `Author (License), via Wikimedia Commons`.
+CC BY, CC BY-SA**, plus national open-government licenses that grant the same
+freedoms — attribution only, commercial use and derivatives permitted. **KOGL
+Type 1** (Korea Open Government License) qualifies and is used by several Seoul
+rows; KOGL Types 2-4 do not, as they add NC/ND terms. Do **not** use NC/ND,
+unknown/missing-license, watermarked, or commercial-site images. When adding an
+image manually, record the credit in `image_credit` as
+`Author (License), via Wikimedia Commons`.
 
 ## Verification
 
