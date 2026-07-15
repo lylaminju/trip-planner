@@ -317,6 +317,10 @@
   text-transform: uppercase;
 }
 
+.ai-wizard-step-count-optional::before {
+  content: " · ";
+}
+
 .ai-wizard-title {
   color: var(--text);
   font-size: 38px;
@@ -1071,8 +1075,13 @@
     border-bottom: 1px solid var(--border-map-control);
     border-right: 0;
     gap: 12px;
-    /* Reserve right-side room for the pinned close button (see below). */
-    padding: 14px 52px 12px 16px;
+    padding: 14px 16px 12px;
+  }
+
+  /* Reserve room for the pinned close button on the title row only, so the
+     compact stepper below can span the rail's full width. */
+  .ai-wizard-brand {
+    padding-right: 40px;
   }
 
   .ai-wizard-brand-icon {
@@ -1088,9 +1097,47 @@
     font-size: 12px;
   }
 
-  .ai-wizard-stepper,
   .ai-wizard-rail-note {
     display: none;
+  }
+
+  /* Compact clickable progress: a horizontal row of numbered dots joined by
+     connector lines, reusing the desktop stepper buttons (labels/summaries
+     hidden). */
+  .ai-wizard-stepper {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .ai-wizard-step-item {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    padding-bottom: 0;
+    position: relative;
+  }
+
+  .ai-wizard-step-text {
+    display: none;
+  }
+
+  /* Reorient the connector into a horizontal line running from this dot's
+     center to the next dot's center. */
+  .ai-wizard-connector {
+    bottom: auto;
+    height: 2px;
+    left: 50%;
+    top: 16px;
+    width: 100%;
+  }
+
+  .ai-wizard-step {
+    display: flex;
+    padding: 4px;
+    position: relative;
+    width: auto;
+    z-index: 1;
   }
 
   /* Lift the close button out of its own row and pin it to the modal's
@@ -1116,8 +1163,23 @@
     padding-bottom: 20px;
   }
 
+  /* The dot stepper already shows position, so drop "Step N of N" on mobile.
+     Keep only the Optional tag, and only on optional steps. */
   .ai-wizard-step-count {
+    display: none;
     font-size: 12px;
+  }
+
+  .ai-wizard-step-count.optional {
+    display: block;
+  }
+
+  .ai-wizard-step-count-index {
+    display: none;
+  }
+
+  .ai-wizard-step-count-optional::before {
+    content: none;
   }
 
   .ai-wizard-title {
@@ -1229,9 +1291,28 @@
      default font size for readability. */
 
   /* Review step */
+  /* Two-line layout: [label] [Edit] on top, value full-width below, so the
+     value isn't squeezed into a narrow middle column. */
   .ai-review-row {
-    grid-template-columns: 110px 1fr auto;
+    gap: 4px 12px;
+    grid-template-areas:
+      "label edit"
+      "value value";
+    grid-template-columns: 1fr auto;
     padding: 12px 14px;
+  }
+
+  .ai-review-label {
+    align-self: center;
+    grid-area: label;
+  }
+
+  .ai-review-value {
+    grid-area: value;
+  }
+
+  .ai-review-edit {
+    grid-area: edit;
   }
 
   .ai-review-value {

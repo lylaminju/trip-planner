@@ -356,7 +356,7 @@ export function AiPlanningWizard(props: Props) {
                 </ol>
 
                 <p className="ai-wizard-rail-note">
-                  Takes about 30 seconds. You can edit every stop afterward.
+                  You can edit every stop afterward.
                 </p>
               </aside>
 
@@ -373,9 +373,21 @@ export function AiPlanningWizard(props: Props) {
                 </div>
                 <div className="ai-wizard-content">
                   <div className="ai-wizard-content-inner">
-                  <p className="ai-wizard-step-count">
-                    Step {stepIndex + 1} of {STEP_META.length}
-                    {isOptionalStep ? " · Optional" : ""}
+                  <p
+                    className={
+                      isOptionalStep
+                        ? "ai-wizard-step-count optional"
+                        : "ai-wizard-step-count"
+                    }
+                  >
+                    <span className="ai-wizard-step-count-index">
+                      Step {stepIndex + 1} of {STEP_META.length}
+                    </span>
+                    {isOptionalStep && (
+                      <span className="ai-wizard-step-count-optional">
+                        Optional
+                      </span>
+                    )}
                   </p>
                   <h2 className="ai-wizard-title">{currentStep.title}</h2>
                   <p className="ai-wizard-helper">

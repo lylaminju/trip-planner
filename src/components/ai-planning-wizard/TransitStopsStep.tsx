@@ -201,7 +201,7 @@ function TransitStopField({
         </label>
       </div>
 
-      {currentPoint && (
+      {currentPoint && choice === null && (
         <p className="ai-transit-current">
           {currentLabel}: <strong>{currentPoint.name}</strong>
           {currentPoint.event_time ? ` — ${currentPoint.event_time}` : ""}

@@ -2,7 +2,6 @@ import {
   AI_INTEREST_TAG_OPTIONS,
   AI_PACE_PRESETS,
   AI_TRAVEL_MODE_OPTIONS,
-  describePace,
   estimateStopCount,
 } from "@/lib/ai-planning-preferences";
 import type {
@@ -283,10 +282,14 @@ export function ReviewStep({
     draft.visits_per_day_max,
     days,
   );
+  const pacePerDay =
+    draft.visits_per_day_min === draft.visits_per_day_max
+      ? `${draft.visits_per_day_max}`
+      : `${draft.visits_per_day_min}–${draft.visits_per_day_max}`;
   const rows = [
     {
       label: "Pace",
-      value: `${describePace(draft.visits_per_day_min, draft.visits_per_day_max)} · ~${stopsEstimate} stops total`,
+      value: `${pacePerDay} / day · ~${stopsEstimate} stops total`,
       step: 0,
     },
     {
@@ -309,7 +312,7 @@ export function ReviewStep({
     {
       label: "Daily start",
       value: lodgingName
-        ? `${lodgingName} · ${dailyStartTime || "09:00"}`
+        ? `${dailyStartTime || "09:00"} · ${lodgingName}`
         : dailyStartTime || "09:00",
       step: 2,
     },
@@ -328,7 +331,14 @@ export function ReviewStep({
     {
       label: "Trip end",
       value: transitDraft.departureChoice === "same"
-        ? withTime("Same as arrival", transitDraft.departureTime)
+        ? transitStopSummary(
+            transitDraft.arrivalChoice,
+            transitDraft.arrivalUrl,
+            transitDraft.departureTime,
+            arrivalPointName,
+            arrivalCustomName,
+            transitHubs,
+          )
         : transitStopSummary(
             transitDraft.departureChoice,
             transitDraft.departureUrl,
@@ -395,7 +405,8 @@ function transitStopSummary(
 
 function withTime(name: string, time: string): string {
   const trimmedTime = time.trim();
-  return trimmedTime ? `${name} · ${trimmedTime}` : name;
+  // Time first so a long place name can't push it out of view / crop it.
+  return trimmedTime ? `${trimmedTime} · ${name}` : name;
 }
 
 function labelsFor<T extends string | number>(
