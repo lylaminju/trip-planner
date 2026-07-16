@@ -114,6 +114,13 @@
   width: 30px;
 }
 
+.app-header-period-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
 .app-header-period {
   color: var(--muted);
   font-size: 13px;

@@ -36,6 +36,7 @@ export default async function TripsPage() {
 
   return (
     <TripsDashboard
+      userId={user.id}
       userName={userName}
       userEmail={user.email}
       profileColor={profileColor}

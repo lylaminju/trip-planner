@@ -20,8 +20,16 @@ export type TripMembership = {
   created_at: string;
 };
 
+export type TripMemberSummary = {
+  user_id: string;
+  role: TripRole;
+  username: string | null;
+  profile_color: string | null;
+};
+
 export type TripSummary = Trip & {
   role: TripRole;
+  members: TripMemberSummary[];
 };
 
 export type Place = {
@@ -105,6 +113,7 @@ export type PlannerSnapshot = {
 export type TripPlannerInitialData = {
   trip: Trip;
   role: TripRole;
+  members: TripMemberSummary[];
   plannerSnapshot: PlannerSnapshot;
 };
 

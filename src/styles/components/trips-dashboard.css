@@ -321,12 +321,20 @@
   gap: 8px;
 }
 
+.featured-trip-name-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  min-width: 0;
+}
+
 .featured-trip-name {
   color: var(--text);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.015em;
-  margin: 14px 0 0;
+  margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -488,6 +496,14 @@
 .trip-card-past .trip-card-content {
   gap: 3px;
   padding: 11px 14px 13px;
+}
+
+.trip-card-name-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .trip-card-name {

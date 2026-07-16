@@ -8,6 +8,9 @@ describe("trip-service", () => {
     vi.doMock("@/server/supabase", () => ({
       getSupabaseClient: () => tripCreateClient(insertedTrips, selectedFields),
     }));
+    vi.doMock("@/server/trip-members", () => ({
+      listTripMembers: vi.fn().mockResolvedValue(new Map()),
+    }));
 
     try {
       const { createTripForRequest } = await import("@/server/trip-service");
@@ -28,6 +31,7 @@ describe("trip-service", () => {
       expect(trip.destination_slug).toBe("toronto");
     } finally {
       vi.doUnmock("@/server/supabase");
+      vi.doUnmock("@/server/trip-members");
       vi.restoreAllMocks();
       vi.resetModules();
     }
@@ -162,6 +166,9 @@ async function withDateShiftClient(
   vi.doMock("@/server/supabase", () => ({
     getSupabaseClient: () => dateShiftClient(recorded),
   }));
+  vi.doMock("@/server/trip-members", () => ({
+    listTripMembers: vi.fn().mockResolvedValue(new Map()),
+  }));
 
   try {
     const { updateTripForRequest } = await import("@/server/trip-service");
@@ -169,6 +176,7 @@ async function withDateShiftClient(
   } finally {
     vi.doUnmock("@/server/trip-access");
     vi.doUnmock("@/server/supabase");
+    vi.doUnmock("@/server/trip-members");
     vi.restoreAllMocks();
     vi.resetModules();
   }

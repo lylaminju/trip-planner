@@ -9,6 +9,7 @@ import {
 
 const baseTrip: Omit<TripSummary, "id" | "name" | "role"> = {
   created_by: "user-1",
+  members: [],
   destination: "Toronto",
   destination_slug: "toronto",
   start_date: null,

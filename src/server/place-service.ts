@@ -13,6 +13,7 @@ import type {
 } from "./place-inputs";
 import * as supabasePlaceService from "./supabase-place-service";
 import { requireTripRole } from "./trip-access";
+import { listTripMembers } from "./trip-members";
 import { getTripById } from "./trip-service";
 
 export type ResolvedPlaceUrl = {
@@ -46,9 +47,11 @@ export async function getTripPlannerInitialDataForRequest(
   userId: string,
 ): Promise<TripPlannerInitialData> {
   const membership = await requireTripRole(tripId, userId, "viewer");
+  const membersByTripId = await listTripMembers([tripId]);
   return {
     trip: await getTripById(tripId),
     role: membership.role,
+    members: membersByTripId.get(tripId) ?? [],
     plannerSnapshot: await getPlannerSnapshot(tripId),
   };
 }

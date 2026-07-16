@@ -69,6 +69,8 @@ function plannerPanelProps(overrides: {
   return {
     title: "Tokyo Spring",
     tripPeriodLabel: "Apr 1 - 7, 2026",
+    members: [],
+    currentUserId: "user-1",
     itinerary: itinerary(),
     places: [],
     activePlaceId: null,

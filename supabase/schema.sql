@@ -140,6 +140,59 @@ where public.trips.destination_slug is null
     or lower(btrim(public.trips.destination)) = lower(curated_destinations.slug)
   );
 
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  username text,
+  profile_color text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create or replace function public.handle_auth_user_profile_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (user_id, username, profile_color)
+  values (
+    new.id,
+    coalesce(
+      new.raw_user_meta_data->>'username',
+      new.raw_user_meta_data->>'name',
+      new.raw_user_meta_data->>'full_name'
+    ),
+    new.raw_user_meta_data->>'profile_color'
+  )
+  on conflict (user_id) do update
+    set username = excluded.username,
+        profile_color = excluded.profile_color,
+        updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_profile_sync on auth.users;
+create trigger on_auth_user_profile_sync
+  after insert or update on auth.users
+  for each row execute function public.handle_auth_user_profile_sync();
+
+insert into public.profiles (user_id, username, profile_color)
+select
+  id,
+  coalesce(
+    raw_user_meta_data->>'username',
+    raw_user_meta_data->>'name',
+    raw_user_meta_data->>'full_name'
+  ),
+  raw_user_meta_data->>'profile_color'
+from auth.users
+on conflict (user_id) do update
+  set username = excluded.username,
+      profile_color = excluded.profile_color,
+      updated_at = now();
+
 create table if not exists public.trip_memberships (
   trip_id bigint not null references public.trips(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -391,3 +444,4 @@ alter table public.route_segments enable row level security;
 alter table public.route_geometry_cache enable row level security;
 alter table public.trips enable row level security;
 alter table public.trip_memberships enable row level security;
+alter table public.profiles enable row level security;

@@ -20,6 +20,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData(),
       }),
     );
@@ -32,6 +33,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData(),
       }),
     );
@@ -57,6 +59,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({ role: "viewer" }),
       }),
     );
@@ -68,6 +71,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           trip: buildTrip({
             destination: "New York City",
@@ -86,6 +90,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           trip: buildTrip({
             destination: "New York City",
@@ -106,6 +111,7 @@ describe("TripPlannerApp", () => {
     const withPlaces = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           trip: buildTrip({
             destination: "New York City",
@@ -127,12 +133,14 @@ describe("TripPlannerApp", () => {
     const unsupported = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData(),
       }),
     );
     const editor = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           role: "viewer",
           trip: buildTrip({
@@ -145,6 +153,7 @@ describe("TripPlannerApp", () => {
     const missingDates = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           trip: {
             ...buildTrip({
@@ -160,6 +169,7 @@ describe("TripPlannerApp", () => {
     const reversedDates = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           trip: buildTrip({
             destination: "New York City",
@@ -184,6 +194,7 @@ describe("TripPlannerApp", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData({
           trip: {
             ...buildTripPlannerInitialData().trip,

@@ -13,6 +13,7 @@ import type {
   Place,
   RouteGeometry,
   TravelMode,
+  TripMemberSummary,
 } from "@/lib/types";
 
 import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
@@ -24,10 +25,13 @@ import {
 } from "./Icons";
 import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
+import { TripMemberBadges } from "./TripMemberBadges";
 
 type Props = {
   title: string;
   tripPeriodLabel: string | null;
+  members: TripMemberSummary[];
+  currentUserId: string;
   itinerary: ItineraryView;
   places: Place[];
   activePlaceId: number | null;
@@ -195,8 +199,18 @@ export function PlannerPanel(props: Props) {
                   </button>
                 )}
               </div>
-              {props.tripPeriodLabel && (
-                <p className="app-header-period">{props.tripPeriodLabel}</p>
+              {(props.tripPeriodLabel || props.members.length > 1) && (
+                <div className="app-header-period-row">
+                  {props.tripPeriodLabel && (
+                    <p className="app-header-period">{props.tripPeriodLabel}</p>
+                  )}
+                  <TripMemberBadges
+                    members={props.members}
+                    currentUserId={props.currentUserId}
+                    size="sm"
+                    maxVisible={3}
+                  />
+                </div>
               )}
             </div>
             <div className="app-header-controls">

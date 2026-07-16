@@ -38,6 +38,7 @@ export default async function TripPlannerPage({ params }: Props) {
     return (
       <TripPlannerApp
         tripId={parsedTripId}
+        currentUserId={user.id}
         initialData={initialData}
       />
     );

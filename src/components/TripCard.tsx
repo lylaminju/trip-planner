@@ -10,12 +10,14 @@ import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import type { TripSummary } from "@/lib/types";
 import { DeleteLoadingSpinner } from "./DeleteLoadingSpinner";
 import { PencilIcon, TrashIcon } from "./Icons";
+import { TripMemberBadges } from "./TripMemberBadges";
 
 export type TripCardVariant = "upcoming" | "past";
 
 export function TripCard(props: {
   trip: TripSummary;
   variant: TripCardVariant;
+  currentUserId: string;
   canEdit: boolean;
   isDeleting?: boolean;
   onEdit: () => void;
@@ -51,7 +53,15 @@ export function TripCard(props: {
           style={{ backgroundImage: `url("${coverImage}")` }}
         />
         <span className="trip-card-content">
-          <strong className="trip-card-name">{trip.name}</strong>
+          <span className="trip-card-name-row">
+            <strong className="trip-card-name">{trip.name}</strong>
+            <TripMemberBadges
+              members={trip.members}
+              currentUserId={props.currentUserId}
+              size={variant === "past" ? "sm" : "md"}
+              maxVisible={2}
+            />
+          </span>
           <span className="trip-card-destination">{destinationLabel}</span>
           <span className="trip-card-footer">
             <span className="trip-card-dates">{dateLine}</span>

@@ -16,6 +16,7 @@ import type {
   PlannerSnapshot,
   RouteGeometry,
   TravelMode,
+  TripMemberSummary,
   VisitDateOption,
 } from "@/lib/types";
 
@@ -46,6 +47,8 @@ type Props = {
   isPlannerPanelExpanded: boolean;
   tripTitle: string;
   tripPeriodLabel: string | null;
+  members: TripMemberSummary[];
+  currentUserId: string;
   destinationFocus: DestinationFocus | null;
   itinerary: ItineraryView;
   plannerSnapshot: PlannerSnapshot;
@@ -139,6 +142,8 @@ export function TripPlannerView(props: Props) {
       <PlannerPanel
         title={props.tripTitle}
         tripPeriodLabel={props.tripPeriodLabel}
+        members={props.members}
+        currentUserId={props.currentUserId}
         itinerary={props.itinerary}
         places={props.plannerSnapshot.places}
         activePlaceId={props.activeItemId}

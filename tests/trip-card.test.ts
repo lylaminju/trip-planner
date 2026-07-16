@@ -11,6 +11,7 @@ function renderCard(props: Partial<Parameters<typeof TripCard>[0]> = {}) {
     createElement(TripCard, {
       trip: buildTripSummary(),
       variant: "upcoming",
+      currentUserId: "user-1",
       canEdit: true,
       onEdit: vi.fn(),
       onDelete: vi.fn(),

@@ -11,10 +11,12 @@ import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import type { TripSummary } from "@/lib/types";
 import { DeleteLoadingSpinner } from "./DeleteLoadingSpinner";
 import { MapPinIcon, PencilIcon, TrashIcon } from "./Icons";
+import { TripMemberBadges } from "./TripMemberBadges";
 
 export function FeaturedTripCard(props: {
   trip: TripSummary;
   isOngoing: boolean;
+  currentUserId: string;
   canEdit: boolean;
   isDeleting?: boolean;
   onEdit: () => void;
@@ -63,7 +65,15 @@ export function FeaturedTripCard(props: {
           )}
         </div>
 
-        <h2 className="featured-trip-name">{trip.name}</h2>
+        <div className="featured-trip-name-row">
+          <h2 className="featured-trip-name">{trip.name}</h2>
+          <TripMemberBadges
+            members={trip.members}
+            currentUserId={props.currentUserId}
+            size="lg"
+            maxVisible={3}
+          />
+        </div>
 
         <div className="featured-trip-destination">
           <span className="trip-destination-icon" aria-hidden="true">

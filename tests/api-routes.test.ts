@@ -77,6 +77,9 @@ async function withFreshTestEnv(
       updated_at: "2026-01-01T00:00:00.000Z",
     }),
   }));
+  vi.doMock("@/server/trip-members", () => ({
+    listTripMembers: vi.fn().mockResolvedValue(new Map()),
+  }));
 
   try {
     await run();
@@ -87,6 +90,7 @@ async function withFreshTestEnv(
     vi.doUnmock("@/server/supabase-place-service");
     vi.doUnmock("@/server/trip-access");
     vi.doUnmock("@/server/trip-service");
+    vi.doUnmock("@/server/trip-members");
     vi.restoreAllMocks();
     vi.resetModules();
   }

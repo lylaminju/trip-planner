@@ -12,6 +12,7 @@ export function TripSection(props: {
   title: string;
   variant: TripCardVariant;
   trips: TripSummary[];
+  currentUserId: string;
   isOpen?: boolean;
   editing: { tripId: number; form: TripFormState } | null;
   isSaving: boolean;
@@ -71,6 +72,7 @@ export function TripSection(props: {
                   key={trip.id}
                   trip={trip}
                   variant={props.variant}
+                  currentUserId={props.currentUserId}
                   canEdit={trip.role === "owner"}
                   isDeleting={props.deletingTripIds.has(trip.id)}
                   onEdit={() => props.onEditStart(trip)}

@@ -13,6 +13,7 @@ import {
   reconcileRoutesForTrip,
 } from "./supabase-place-store";
 import { requireTripRole } from "./trip-access";
+import { listTripMembers } from "./trip-members";
 
 export type TripCreateInput = {
   name: string;
@@ -71,9 +72,13 @@ export async function listTripsForRequest(
 
   if (tripError) throwSupabaseError(tripError);
 
-  return ((tripRows ?? []) as Trip[]).map((trip) => ({
+  const trips = (tripRows ?? []) as Trip[];
+  const membersByTripId = await listTripMembers(trips.map((trip) => trip.id));
+
+  return trips.map((trip) => ({
     ...trip,
     role: rolesByTripId.get(trip.id) ?? "viewer",
+    members: membersByTripId.get(trip.id) ?? [],
   }));
 }
 
@@ -110,7 +115,8 @@ export async function createTripForRequest(
     throwSupabaseError(membershipError);
   }
 
-  return { ...trip, role: "owner" };
+  const membersByTripId = await listTripMembers([trip.id]);
+  return { ...trip, role: "owner", members: membersByTripId.get(trip.id) ?? [] };
 }
 
 export async function updateTripForRequest(
@@ -141,7 +147,12 @@ export async function updateTripForRequest(
 
   await realignScheduledVisits(tripId, currentTrip, nextDates);
 
-  return { ...(data as Trip), role: membership.role };
+  const membersByTripId = await listTripMembers([tripId]);
+  return {
+    ...(data as Trip),
+    role: membership.role,
+    members: membersByTripId.get(tripId) ?? [],
+  };
 }
 
 /**

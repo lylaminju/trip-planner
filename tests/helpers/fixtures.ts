@@ -95,6 +95,7 @@ export function buildTripSummary(
       updated_at: STAMP,
     }),
     role: "owner",
+    members: [],
     ...overrides,
   };
 }
@@ -116,6 +117,7 @@ export function buildTripPlannerInitialData(
   return {
     trip: buildTrip(),
     role: "owner",
+    members: [],
     plannerSnapshot: buildPlannerSnapshot(),
     ...overrides,
   };

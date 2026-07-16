@@ -18,7 +18,9 @@ import { buildTripSummary } from "./helpers/fixtures";
 
 describe("TripsDashboard", () => {
   it("renders the shell with a nav rail, pinned profile, and header create action", () => {
-    const markup = renderToStaticMarkup(createElement(TripsDashboard));
+    const markup = renderToStaticMarkup(
+      createElement(TripsDashboard, { userId: "user-1" }),
+    );
 
     expect(markup).toContain('class="trips-dashboard-shell"');
     expect(markup).toContain("Hi, Traveler");
@@ -103,6 +105,7 @@ describe("TripsDashboard", () => {
         editing: null,
         isSaving: false,
         deletingTripIds: new Set<number>(),
+        currentUserId: "user-1",
         onEditStart: vi.fn(),
         onEditCancel: vi.fn(),
         onEditChange: vi.fn(),
@@ -138,6 +141,7 @@ describe("TripsDashboard", () => {
         editing: null,
         isSaving: false,
         deletingTripIds: new Set<number>(),
+        currentUserId: "user-1",
         onEditStart: vi.fn(),
         onEditCancel: vi.fn(),
         onEditChange: vi.fn(),
@@ -215,6 +219,7 @@ describe("TripsDashboard", () => {
         },
         isSaving: false,
         deletingTripIds: new Set<number>(),
+        currentUserId: "user-1",
         onEditStart: vi.fn(),
         onEditCancel: vi.fn(),
         onEditChange: vi.fn(),

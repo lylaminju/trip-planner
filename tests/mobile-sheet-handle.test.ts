@@ -11,6 +11,7 @@ describe("mobile sheet handle", () => {
     const markup = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
+        currentUserId: "user-1",
         initialData: buildTripPlannerInitialData(),
       }),
     );

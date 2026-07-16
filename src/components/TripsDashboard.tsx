@@ -43,6 +43,7 @@ export function defaultTripSectionOpenState(
 }
 
 export function TripsDashboard(props: {
+  userId: string;
   userName?: string | null;
   userEmail?: string | null;
   profileColor?: string;
@@ -273,6 +274,7 @@ export function TripsDashboard(props: {
                   <FeaturedTripCard
                     trip={featuredTrip}
                     isOngoing={isTripOngoing(featuredTrip)}
+                    currentUserId={props.userId}
                     canEdit={featuredTrip.role === "owner"}
                     isDeleting={deletingTripIds.has(featuredTrip.id)}
                     onEdit={() => setEditingFromTrip(featuredTrip)}
@@ -286,6 +288,7 @@ export function TripsDashboard(props: {
                   title="Upcoming"
                   variant="upcoming"
                   trips={upcomingTrips}
+                  currentUserId={props.userId}
                   isOpen={openTripSections.active}
                   editing={editing}
                   isSaving={isSaving}
@@ -309,6 +312,7 @@ export function TripsDashboard(props: {
                   title="Past trips"
                   variant="past"
                   trips={groups.past}
+                  currentUserId={props.userId}
                   isOpen={openTripSections.past}
                   editing={editing}
                   isSaving={isSaving}

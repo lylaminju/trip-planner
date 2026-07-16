@@ -1,0 +1,44 @@
+.trip-member-badges {
+  --member-badge-size: 22px;
+  --member-badge-overlap: -7px;
+  --member-badge-font-size: 10px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.trip-member-badges-lg {
+  --member-badge-size: 26px;
+  --member-badge-overlap: -8px;
+  --member-badge-font-size: 11px;
+}
+
+.trip-member-badges-sm {
+  --member-badge-size: 19px;
+  --member-badge-overlap: -6px;
+  --member-badge-font-size: 9px;
+}
+
+.trip-member-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--member-badge-size);
+  height: var(--member-badge-size);
+  border-radius: 999px;
+  border: 2px solid var(--surface-panel);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: var(--member-badge-font-size);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.trip-member-badge + .trip-member-badge {
+  margin-left: var(--member-badge-overlap);
+}
+
+.trip-member-badge-overflow {
+  background: var(--surface-subtle);
+  color: var(--text-tertiary);
+}

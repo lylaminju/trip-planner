@@ -39,6 +39,7 @@ import type {
   AiPlanningSetup,
   PlannerSnapshot,
   Trip,
+  TripMemberSummary,
   TripPlannerInitialData,
   TripRole,
 } from "@/lib/types";
@@ -66,15 +67,23 @@ type AiPlanningWizardState = {
 
 type TripPlannerAppProps = {
   tripId: number;
+  currentUserId: string;
   initialData?: TripPlannerInitialData;
 };
 
-export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
+export function TripPlannerApp({
+  tripId,
+  currentUserId,
+  initialData,
+}: TripPlannerAppProps) {
   const [trip, setTrip] = useState<Trip | null>(
     () => initialData?.trip ?? null,
   );
   const [role, setRole] = useState<TripRole>(
     () => initialData?.role ?? "viewer",
+  );
+  const [members, setMembers] = useState<TripMemberSummary[]>(
+    () => initialData?.members ?? [],
   );
   const [plannerSnapshot, setPlannerSnapshot] = useState<PlannerSnapshot>(
     () => initialData?.plannerSnapshot ?? EMPTY_SNAPSHOT,
@@ -188,6 +197,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     const next = await loadTripPlannerInitialData(tripId);
     setTrip(next.trip);
     setRole(next.role);
+    setMembers(next.members);
     setPlannerSnapshot(next.plannerSnapshot);
     setError(null);
   }, [tripId]);
@@ -306,6 +316,8 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       isPlannerPanelExpanded={isPlannerPanelExpanded}
       tripTitle={tripTitle}
       tripPeriodLabel={tripMetaLabel}
+      members={members}
+      currentUserId={currentUserId}
       destinationFocus={destinationFocus}
       itinerary={itinerary}
       plannerSnapshot={plannerSnapshot}

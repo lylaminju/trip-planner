@@ -29,6 +29,8 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     isPlannerPanelExpanded: false,
     tripTitle: "New York City",
     tripPeriodLabel: "May 27 - 28, 2026",
+    members: [],
+    currentUserId: "user-1",
     destinationFocus: null,
     itinerary: itinerary(),
     plannerSnapshot: plannerSnapshot(),

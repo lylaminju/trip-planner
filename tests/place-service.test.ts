@@ -81,6 +81,7 @@ describe("place-service request boundary", () => {
         ).resolves.toEqual({
           trip,
           role: "viewer",
+          members: [],
           plannerSnapshot,
         });
       },
@@ -122,6 +123,9 @@ async function withMockedPlaceService(
   vi.doMock("@/server/trip-service", () => ({
     getTripById: mocks.getTripById ?? vi.fn().mockResolvedValue(tripRecord()),
   }));
+  vi.doMock("@/server/trip-members", () => ({
+    listTripMembers: vi.fn().mockResolvedValue(new Map()),
+  }));
 
   try {
     const service = await import("@/server/place-service");
@@ -130,6 +134,7 @@ async function withMockedPlaceService(
     vi.doUnmock("@/server/supabase-place-service");
     vi.doUnmock("@/server/trip-access");
     vi.doUnmock("@/server/trip-service");
+    vi.doUnmock("@/server/trip-members");
     vi.restoreAllMocks();
     vi.resetModules();
   }
