@@ -16,7 +16,7 @@
 
 .trip-create-modal {
   border-radius: 18px;
-  box-shadow: 0 34px 80px -28px rgba(15, 23, 42, 0.62);
+  box-shadow: var(--shadow-modal-large);
   gap: 0;
   max-width: 540px;
   overflow: visible;
@@ -101,10 +101,10 @@
 .trip-create-hero-close {
   align-items: center;
   backdrop-filter: blur(4px);
-  background: rgba(15, 23, 42, 0.34);
+  background: var(--photo-chip-bg);
   border: 0;
   border-radius: 50%;
-  color: #fff;
+  color: var(--text-on-accent);
   cursor: pointer;
   display: flex;
   height: 32px;
@@ -116,7 +116,7 @@
 }
 
 .trip-create-hero-close:hover {
-  background: rgba(15, 23, 42, 0.52);
+  background: var(--photo-chip-bg-hover);
 }
 
 .trip-create-hero-close svg {
@@ -237,7 +237,7 @@
 .trip-create-footer .trip-form-submit {
   background: var(--accent);
   border: 0;
-  color: #fff;
+  color: var(--text-on-accent);
   font-weight: 800;
   padding: 0 20px;
 }

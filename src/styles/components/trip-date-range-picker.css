@@ -57,7 +57,7 @@
   background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 20px 40px -14px rgba(15, 23, 42, 0.34);
+  box-shadow: var(--shadow-calendar-popover);
   display: grid;
   gap: 12px;
   left: 50%;
@@ -266,7 +266,7 @@
 
 .trip-date-day-in-range,
 .trip-date-day-preview {
-  background: rgba(15, 118, 110, 0.13);
+  background: var(--accent-range-bg);
   border-radius: 0;
   color: var(--accent);
 }

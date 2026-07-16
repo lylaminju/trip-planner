@@ -160,7 +160,7 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
           y1={limitY}
           x2={CHART_WIDTH}
           y2={limitY}
-          stroke="#e53e3e"
+          stroke="var(--chart-limit-line)"
           strokeWidth="1"
           strokeDasharray="4 3"
           opacity="0.6"
@@ -169,7 +169,7 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
 
       {/* Axis scale hint: peak value on a data-fitted axis, or the cap when
           the axis is pinned to the limit. */}
-      <text x={0} y={8} fontSize="8" fill="#94a3b8">
+      <text x={0} y={8} fontSize="8" fill="var(--text-soft)">
         {nearLimit ? `cap ${limit}` : `peak ${dataMax}`}
       </text>
 
@@ -189,7 +189,7 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
               y={y}
               width={barWidth}
               height={barH}
-              fill={isHovered ? "#14b8a6" : "#0f766e"}
+              fill={isHovered ? "var(--chart-bar-hover)" : "var(--accent)"}
               opacity={isHovered || isToday ? 1 : 0.55}
               rx={1.5}
             />
@@ -199,7 +199,7 @@ function UsageChart({ data, limit }: { data: DailyCount[]; limit: number }) {
                 y={CHART_HEIGHT - 2}
                 textAnchor="middle"
                 fontSize="8"
-                fill="#64748b"
+                fill="var(--text-secondary)"
               >
                 {labelDate}
               </text>

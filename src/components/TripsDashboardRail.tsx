@@ -226,7 +226,7 @@ export function TripsDashboardRail(props: {
                 aria-hidden="true"
                 style={
                   props.profileColor
-                    ? { background: props.profileColor, borderColor: props.profileColor, color: "#fff" }
+                    ? { background: props.profileColor, borderColor: props.profileColor, color: "var(--text-on-accent)" }
                     : undefined
                 }
               >

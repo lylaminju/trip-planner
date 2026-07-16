@@ -447,7 +447,7 @@
 
 .trip-card:hover {
   border-color: var(--border-strong);
-  box-shadow: 0 10px 28px -18px rgba(15, 23, 42, 0.28);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .trip-card-past {
@@ -573,24 +573,24 @@
 
 .trip-card-actions .icon-button {
   backdrop-filter: blur(6px);
-  background: rgba(15, 23, 42, 0.36);
+  background: var(--photo-chip-bg);
   border: 0;
   border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.24);
-  color: #fff;
+  box-shadow: var(--shadow-photo-chip);
+  color: var(--text-on-accent);
 }
 
 .trip-card-actions .icon-button:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.54);
+  background: var(--photo-chip-bg-hover);
 }
 
 .trip-card-actions .icon-button:disabled:hover {
-  background: rgba(15, 23, 42, 0.36);
+  background: var(--photo-chip-bg);
 }
 
 .trip-card-actions .danger-button:hover:not(:disabled) {
-  background: rgba(180, 35, 24, 0.72);
-  color: #fff;
+  background: var(--photo-chip-danger-bg);
+  color: var(--text-on-accent);
 }
 
 @media (hover: hover) and (pointer: fine) {

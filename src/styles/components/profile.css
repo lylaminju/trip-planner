@@ -23,7 +23,7 @@
 .profile-preview-avatar {
   align-items: center;
   border-radius: 999px;
-  color: #fff;
+  color: var(--text-on-accent);
   display: inline-flex;
   font-size: 20px;
   font-weight: 800;
