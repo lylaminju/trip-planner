@@ -235,6 +235,15 @@ describe("PlaceRows", () => {
     );
 
     expect(markup).not.toContain("visit-row-actions");
+    expect(markup).toContain('class="place-row-actions"');
+  });
+
+  it("stacks row action buttons vertically on mobile layouts", () => {
+    const css = readFileSync("src/styles/mobile.css", "utf8");
+
+    expect(css).toContain(
+      ".place-row-actions,\n  .visit-row-actions {\n    flex-direction: column;",
+    );
   });
 
   it("reveals visit row actions only on hover-capable desktop layouts", () => {

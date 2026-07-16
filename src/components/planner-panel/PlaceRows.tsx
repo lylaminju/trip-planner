@@ -200,25 +200,27 @@ export function PlaceListRow(props: {
           >
             <CalendarPlusIcon />
           </button>
-          <button
-            type="button"
-            className="icon-button"
-            aria-label={editLabel}
-            title={editLabel}
-            onClick={props.onEdit}
-          >
-            <PencilIcon />
-          </button>
-          <button
-            type="button"
-            className="icon-button danger-button"
-            aria-label={deleteButtonLabel}
-            title={deleteButtonLabel}
-            disabled={props.isDeleting}
-            onClick={props.onDelete}
-          >
-            {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
-          </button>
+          <span className="place-row-actions">
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={editLabel}
+              title={editLabel}
+              onClick={props.onEdit}
+            >
+              <PencilIcon />
+            </button>
+            <button
+              type="button"
+              className="icon-button danger-button"
+              aria-label={deleteButtonLabel}
+              title={deleteButtonLabel}
+              disabled={props.isDeleting}
+              onClick={props.onDelete}
+            >
+              {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
+            </button>
+          </span>
         </>
       )}
     </div>

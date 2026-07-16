@@ -300,6 +300,17 @@
     width: 34px;
   }
 
+  .place-row-actions,
+  .visit-row-actions {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .place-row-actions .icon-button,
+  .visit-row-actions .icon-button {
+    flex-basis: auto;
+  }
+
   .segment-row {
     align-items: center;
     flex-wrap: wrap;
