@@ -263,6 +263,11 @@
   z-index: 7;
 }
 
+.places-tray-backdrop:hover {
+  background: var(--overlay-backdrop);
+  border: 0;
+}
+
 .places-tray {
   background: var(--panel);
   border-top: 1px solid var(--line);
