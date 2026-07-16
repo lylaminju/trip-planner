@@ -126,7 +126,7 @@ describe("LandingPage", () => {
   it("shows the AI draft as an editable dated itinerary", () => {
     const markup = renderToStaticMarkup(createElement(LandingAiDemo));
 
-    expect(markup).toContain("04-03 Fri");
+    expect(markup).toContain("Fri, Apr 3");
     expect(markup).toContain("09:00 Central Park");
     expect(markup).toContain("11:30 Museum of Modern Art");
     expect(markup).toContain("15:00 The High Line");
@@ -331,7 +331,7 @@ describe("LandingPage", () => {
     expect(offMarkup).toContain('class="route-segment-toggle"');
     expect(offMarkup).toContain('role="switch"');
     expect(offMarkup).toContain('aria-checked="false"');
-    expect(offMarkup).toContain("Route details");
+    expect(offMarkup).toContain("Route legs");
     expect(offMarkup).toContain("route-segment-switch-track");
 
     expect(onMarkup).toContain('class="route-segment-toggle active"');

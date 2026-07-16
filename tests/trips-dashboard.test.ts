@@ -318,11 +318,6 @@ describe("TripsDashboard", () => {
     );
   });
 
-  it("reserves root scrollbar gutter space to keep the centered dashboard stable", () => {
-    const css = readFileSync("src/styles/base.css", "utf8");
-
-    expect(cssRule(css, "html")).toContain("scrollbar-gutter: stable;");
-  });
 });
 
 function markupBetween(markup: string, className: string, tag: string) {

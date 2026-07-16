@@ -148,7 +148,7 @@ describe("placeInitial", () => {
 
 describe("formatItineraryDateHeading", () => {
   it("adds the weekday next to a month-day itinerary date", () => {
-    expect(formatItineraryDateHeading("2026-06-01")).toBe("06-01 Mon");
+    expect(formatItineraryDateHeading("2026-06-01")).toBe("Mon, Jun 1");
   });
 });
 

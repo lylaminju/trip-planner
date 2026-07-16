@@ -63,7 +63,7 @@ describe("generateScheduledItineraryMarkdown", () => {
     expect(generateScheduledItineraryMarkdown("New York City", itinerary))
       .toBe(`# New York City Itinerary
 
-## 06-01 Mon
+## Mon, Jun 1
 
 ### 09:00 Metropolitan Museum of Art
 
