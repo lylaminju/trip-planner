@@ -361,6 +361,10 @@
   overflow-wrap: anywhere;
 }
 
+.place-main > .visit-row-title-line {
+  color: inherit;
+}
+
 .place-main .place-note {
   color: var(--muted);
   font-size: 12px;
