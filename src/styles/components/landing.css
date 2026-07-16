@@ -332,8 +332,7 @@ body:has(.sign-in-page-shell) {
   margin: 0;
 }
 
-.landing-feature-card p,
-.landing-final-cta p {
+.landing-feature-card p {
   color: var(--text-tertiary);
   font-size: 14px;
   line-height: 1.55;
@@ -361,10 +360,6 @@ body:has(.sign-in-page-shell) {
 .landing-final-cta h2 {
   color: var(--text);
   max-width: 620px;
-}
-
-.landing-final-cta p {
-  max-width: 480px;
 }
 
 .landing-footer {
