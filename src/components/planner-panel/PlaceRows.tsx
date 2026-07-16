@@ -97,30 +97,30 @@ export function ItineraryItemRow(props: {
         )}
       </span>
       <span className="visit-row-content">
-        <span className="visit-row-title-line">
-          {props.markerLabel && (
-            <span
-              className="place-marker-label"
-              style={{ backgroundColor: props.markerColor }}
-              aria-label={`Visit order ${props.markerLabel}`}
-            >
-              {props.markerLabel}
-            </span>
-          )}
-          <button
-            type="button"
-            className="place-main visit-place-main"
-            data-planner-select
-            onClick={props.onSelect}
-          >
+        <button
+          type="button"
+          className="place-main visit-place-main"
+          data-planner-select
+          onClick={props.onSelect}
+        >
+          <span className="visit-row-title-line">
+            {props.markerLabel && (
+              <span
+                className="place-marker-label"
+                style={{ backgroundColor: props.markerColor }}
+                aria-label={`Visit order ${props.markerLabel}`}
+              >
+                {props.markerLabel}
+              </span>
+            )}
             <strong className="place-title">
               <span className="place-title-text">
                 <span className="place-name">{display.title}</span>
               </span>
             </strong>
-            {note && <span className="place-note">{note}</span>}
-          </button>
-        </span>
+          </span>
+          {note && <span className="place-note">{note}</span>}
+        </button>
       </span>
       {props.canEdit && (
         <span className="visit-row-actions">

@@ -125,7 +125,7 @@
 .visit-row-title-line .place-marker-label {
   display: none;
   flex: 0 0 18px;
-  margin-right: 6px;
+  margin-right: 3px;
 }
 
 @media (min-width: 901px) {
