@@ -60,7 +60,9 @@ export function ItineraryDayBlock(props: Props) {
 
   return (
     <div
-      className={`day-block ${props.activeDate === props.day.date ? "active" : ""}`}
+      className={`day-block ${props.collapsed ? "collapsed" : ""} ${
+        props.activeDate === props.day.date ? "active" : ""
+      }`}
       onDragEnter={
         props.canEdit
           ? (event) => props.activateDropTarget(event, props.day.date)

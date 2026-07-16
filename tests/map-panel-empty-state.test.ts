@@ -36,6 +36,9 @@ describe("MapPanel empty state", () => {
         onAddPlace: vi.fn(),
         onSelectPlace: vi.fn(),
         onSelectSegment: vi.fn(),
+        onEditItem: vi.fn(),
+        onEditPlace: vi.fn(),
+        onClearSelection: vi.fn(),
       }),
     );
 
@@ -73,6 +76,9 @@ describe("MapPanel empty state", () => {
         onPlanWithAi: vi.fn(),
         onSelectPlace: vi.fn(),
         onSelectSegment: vi.fn(),
+        onEditItem: vi.fn(),
+        onEditPlace: vi.fn(),
+        onClearSelection: vi.fn(),
       }),
     );
     const actions = markupBetween(markup, "map-empty-state-actions", "div");

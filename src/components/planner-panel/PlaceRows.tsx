@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPlaceRow, formatSchedule } from "@/lib/place-display";
+import { formatPlaceRow, formatSchedule, placeInitial } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
@@ -65,6 +65,26 @@ export function ItineraryItemRow(props: {
       ) : (
         <span className="drag-handle-placeholder" aria-hidden="true" />
       )}
+      <VisitTimeSlot
+        placeName={props.item.place.name}
+        visitTime={props.item.visit_time}
+        displayTimePrefix={display.timePrefix ?? null}
+        canEdit={props.canEdit}
+        onTimeChange={props.onTimeChange}
+      />
+      <span className="visit-thumb" aria-hidden="true">
+        {props.item.place.image_url ? (
+          <img
+            className="visit-thumb-image"
+            src={props.item.place.image_url}
+            alt=""
+            title={props.item.place.image_credit ?? undefined}
+            loading="lazy"
+          />
+        ) : (
+          placeInitial(props.item.place.name)
+        )}
+      </span>
       <span className="visit-row-content">
         <span className="visit-row-title-line">
           {props.markerLabel && (
@@ -76,13 +96,6 @@ export function ItineraryItemRow(props: {
               {props.markerLabel}
             </span>
           )}
-          <VisitTimeSlot
-            placeName={props.item.place.name}
-            visitTime={props.item.visit_time}
-            displayTimePrefix={display.timePrefix ?? null}
-            canEdit={props.canEdit}
-            onTimeChange={props.onTimeChange}
-          />
           <button
             type="button"
             className="place-main visit-place-main"

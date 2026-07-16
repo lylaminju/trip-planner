@@ -88,7 +88,7 @@ type PickerState = {
 export function PlannerPanel(props: Props) {
   const [isItinerariesOpen, setIsItinerariesOpen] = useState(true);
   const [isUnscheduledOpen, setIsUnscheduledOpen] = useState(false);
-  const [isPlacesOpen, setIsPlacesOpen] = useState(true);
+  const [isPlacesOpen, setIsPlacesOpen] = useState(false);
   const [showRouteSegments, setShowRouteSegments] = useState(true);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
   const [picker, setPicker] = useState<PickerState | null>(null);
@@ -179,7 +179,7 @@ export function PlannerPanel(props: Props) {
             <div className="app-header-title-stack">
               <Link className="app-header-dashboard-link" href="/trips">
                 <ChevronLeftIcon />
-                <span>Trips dashboard</span>
+                <span>Trips</span>
               </Link>
               <div className="app-header-name-row">
                 <h1>{props.title}</h1>
@@ -237,48 +237,52 @@ export function PlannerPanel(props: Props) {
 
         {props.error && <p className="error-text">{props.error}</p>}
 
-        <ItinerarySection
-          itinerary={props.itinerary}
-          activePlaceId={props.activePlaceId}
-          activeCanonicalPlaceId={props.activeCanonicalPlaceId}
-          activeSegmentId={props.activeSegmentId}
-          activeDate={props.activeDate}
-          collapsedDates={props.collapsedDates}
-          routeGeometries={props.routeGeometries}
-          markerLabels={markerLabels}
-          canEdit={props.canEdit}
-          canAddVisits={props.canAddVisits}
-          deletingPlaceIds={props.deletingPlaceIds}
-          deletingItineraryItemIds={props.deletingItineraryItemIds}
-          isExpanded={props.isExpanded}
-          isOpen={isItinerariesOpen}
-          isUnscheduledOpen={isUnscheduledOpen}
-          showRouteSegments={showRouteSegments}
-          dropTargetKey={dropTargetKey}
-          exportFeedback={props.exportFeedback}
-          onDropTargetChange={setDropTargetKey}
-          onToggleOpen={() => setIsItinerariesOpen((value) => !value)}
-          onToggleUnscheduledOpen={() =>
-            setIsUnscheduledOpen((value) => !value)
-          }
-          onToggleRouteSegments={() => setShowRouteSegments((value) => !value)}
-          onCopyExport={props.onCopyExport}
-          onDownloadExport={props.onDownloadExport}
-          onToggleDatePlacePicker={toggleDatePlacePicker}
-          onSelectPlace={props.onSelectPlace}
-          onSelectCanonicalPlace={props.onSelectCanonicalPlace}
-          onSelectSegment={props.onSelectSegment}
-          onToggleDateCollapsed={props.onToggleDateCollapsed}
-          onSelectDate={props.onSelectDate}
-          onAddVisit={props.onAddVisit}
-          onEdit={props.onEdit}
-          onEditItem={props.onEditItem}
-          onDelete={props.onDelete}
-          onDeleteItem={props.onDeleteItem}
-          onScheduleItem={props.onScheduleItem}
-          onModeChange={props.onModeChange}
-          onConfirmDeletion={confirmDeletion}
-        />
+        <div className="planner-scroll">
+          <ItinerarySection
+            itinerary={props.itinerary}
+            activePlaceId={props.activePlaceId}
+            activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+            activeSegmentId={props.activeSegmentId}
+            activeDate={props.activeDate}
+            collapsedDates={props.collapsedDates}
+            routeGeometries={props.routeGeometries}
+            markerLabels={markerLabels}
+            canEdit={props.canEdit}
+            canAddVisits={props.canAddVisits}
+            deletingPlaceIds={props.deletingPlaceIds}
+            deletingItineraryItemIds={props.deletingItineraryItemIds}
+            isExpanded={props.isExpanded}
+            isOpen={isItinerariesOpen}
+            isUnscheduledOpen={isUnscheduledOpen}
+            showRouteSegments={showRouteSegments}
+            dropTargetKey={dropTargetKey}
+            exportFeedback={props.exportFeedback}
+            onDropTargetChange={setDropTargetKey}
+            onToggleOpen={() => setIsItinerariesOpen((value) => !value)}
+            onToggleUnscheduledOpen={() =>
+              setIsUnscheduledOpen((value) => !value)
+            }
+            onToggleRouteSegments={() =>
+              setShowRouteSegments((value) => !value)
+            }
+            onCopyExport={props.onCopyExport}
+            onDownloadExport={props.onDownloadExport}
+            onToggleDatePlacePicker={toggleDatePlacePicker}
+            onSelectPlace={props.onSelectPlace}
+            onSelectCanonicalPlace={props.onSelectCanonicalPlace}
+            onSelectSegment={props.onSelectSegment}
+            onToggleDateCollapsed={props.onToggleDateCollapsed}
+            onSelectDate={props.onSelectDate}
+            onAddVisit={props.onAddVisit}
+            onEdit={props.onEdit}
+            onEditItem={props.onEditItem}
+            onDelete={props.onDelete}
+            onDeleteItem={props.onDeleteItem}
+            onScheduleItem={props.onScheduleItem}
+            onModeChange={props.onModeChange}
+            onConfirmDeletion={confirmDeletion}
+          />
+        </div>
 
         <PlacesSection
           places={props.places}

@@ -46,7 +46,7 @@ describe("TripPlannerApp", () => {
     expect(markup).not.toContain('class="app-header-action-row"');
     expect(markup).not.toContain('class="app-logout-footer"');
     expect(markup).not.toContain('class="app-logout-button"');
-    expect(markup).toContain("Trips dashboard");
+    expect(markup).toContain('href="/trips"');
     expect(markup).toContain("Apr 1 - 7, 2026");
     expect(markup).toContain("Add Place");
     expect(markup).toContain("Edit trip details");

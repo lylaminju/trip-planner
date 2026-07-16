@@ -70,6 +70,8 @@ function buildPlace(id: number): Place {
     longitude: -74,
     notes: null,
     links: [],
+    image_url: null,
+    image_credit: null,
     created_at: stamp,
     updated_at: stamp,
   };

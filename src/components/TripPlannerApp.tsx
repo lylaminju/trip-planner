@@ -31,6 +31,7 @@ import {
 } from "@/lib/planner-api";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
+import { tripDurationDays } from "@/lib/trip-day-metrics";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import { updateTrip } from "@/lib/trips-api";
 import type {
@@ -126,6 +127,15 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     hasAiPlanningDateRange(trip);
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
+  const tripDays = trip ? tripDurationDays(trip) : null;
+  const tripMetaLabel =
+    [
+      tripPeriodLabel,
+      tripDays ? `${tripDays} ${tripDays === 1 ? "day" : "days"}` : null,
+      trip?.destination?.trim() || null,
+    ]
+      .filter(Boolean)
+      .join(" · ") || null;
   const { exportFeedback, copyMarkdownExport, downloadMarkdownExport } =
     useItineraryExport(tripTitle, itinerary);
   const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
@@ -262,9 +272,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
     }));
   }
 
-  async function createAiItineraryFromWizard(
-    input: AiPlanningGenerationInput,
-  ) {
+  async function createAiItineraryFromWizard(input: AiPlanningGenerationInput) {
     setAiPlanningWizard((current) => ({
       ...current,
       isGenerating: true,
@@ -287,10 +295,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       setAiPlanningWizard((current) => ({
         ...current,
         isGenerating: false,
-        error: errorMessage(
-          reason,
-          "Failed to generate AI itinerary.",
-        ),
+        error: errorMessage(reason, "Failed to generate AI itinerary."),
       }));
     }
   }
@@ -300,7 +305,7 @@ export function TripPlannerApp({ tripId, initialData }: TripPlannerAppProps) {
       mobileSheetState={mobileSheetState}
       isPlannerPanelExpanded={isPlannerPanelExpanded}
       tripTitle={tripTitle}
-      tripPeriodLabel={tripPeriodLabel}
+      tripPeriodLabel={tripMetaLabel}
       destinationFocus={destinationFocus}
       itinerary={itinerary}
       plannerSnapshot={plannerSnapshot}

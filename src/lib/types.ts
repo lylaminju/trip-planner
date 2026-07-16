@@ -38,6 +38,8 @@ export type Place = {
   longitude: number;
   notes: string | null;
   links: string[];
+  image_url: string | null;
+  image_credit: string | null;
   created_at: string;
   updated_at: string;
 };

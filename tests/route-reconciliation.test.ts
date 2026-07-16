@@ -24,6 +24,8 @@ function place(
     longitude: -73 - id,
     notes: null,
     links: [],
+    image_url: null,
+    image_credit: null,
     created_at: stamp,
     updated_at: stamp,
   };

@@ -1,12 +1,14 @@
 /* Route detail toggle, route segment rows, and travel-mode picker. */
 .route-duration {
-  color: var(--muted);
+  color: var(--text-soft);
   flex: 0 0 10ch;
-  font-size: 12px;
+  font-size: 11px;
   font-feature-settings: "tnum";
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
   text-align: left;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -70,8 +72,8 @@
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  margin-left: 8px;
-  padding: 5px 6px 5px 16px;
+  margin-left: 0;
+  padding: 3px 6px 3px 66px;
   position: relative;
   transition:
     background-color 120ms ease,
@@ -79,13 +81,12 @@
 }
 
 .segment-row::before {
-  background: var(--line);
-  bottom: 4px;
+  border-top: 1px dashed var(--border-muted);
   content: "";
-  left: 4px;
+  left: 44px;
   position: absolute;
-  top: 4px;
-  width: 2px;
+  top: 50%;
+  width: 16px;
 }
 
 .segment-row:hover {
@@ -94,7 +95,7 @@
 }
 
 .segment-row.active::before {
-  background: var(--accent-selected-border);
+  border-top-color: var(--accent-selected-border);
 }
 
 .segment-row .small-button {
@@ -139,10 +140,20 @@
 
 .route-mode-trigger {
   background: var(--surface-panel);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
   gap: 4px;
-  height: 30px;
-  padding: 0;
-  width: 42px;
+  height: 24px;
+  letter-spacing: 0.05em;
+  padding: 0 9px;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.route-mode-label {
+  line-height: 1;
 }
 
 .route-mode-trigger svg,

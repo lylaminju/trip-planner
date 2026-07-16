@@ -284,6 +284,8 @@ function candidatePlaceRow(
     longitude: candidate.longitude,
     notes,
     links: [],
+    image_url: candidate.image_url,
+    image_credit: candidate.image_credit,
     created_by_source: "ai",
     ai_generation_id: generationId,
   };
@@ -310,6 +312,8 @@ function anchorPlaceRow(
     longitude: anchor.longitude,
     notes: null,
     links: [],
+    image_url: null,
+    image_credit: null,
     created_by_source: "ai",
     ai_generation_id: generationId,
   };

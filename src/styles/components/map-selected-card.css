@@ -1,0 +1,154 @@
+/* Docked selected-place card overlaid on the map panel. */
+.map-selected-card {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  bottom: 20px;
+  box-shadow: var(--shadow-floating-large);
+  left: 16px;
+  max-width: min(380px, calc(100% - 32px));
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+  z-index: 3;
+}
+
+.panel-map.map-current-location-available .map-selected-card {
+  left: 64px;
+  max-width: min(380px, calc(100% - 80px));
+}
+
+.map-selected-card-body {
+  display: flex;
+  gap: 12px;
+  padding: 12px 12px 0;
+}
+
+.map-selected-card-thumb {
+  align-items: center;
+  background: var(--surface-subtle);
+  border-radius: 8px;
+  color: var(--text-soft);
+  display: inline-flex;
+  flex: 0 0 96px;
+  font-family: var(--font-serif-stack);
+  font-size: 36px;
+  font-weight: 600;
+  height: 96px;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  width: 96px;
+}
+
+.map-selected-card-thumb-image {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.map-selected-card-info {
+  align-content: start;
+  display: grid;
+  flex: 1;
+  gap: 5px;
+  min-width: 0;
+}
+
+.map-selected-card-name {
+  font-family: var(--font-serif-stack);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  padding-right: 28px;
+}
+
+.map-selected-card-context {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.map-selected-card-notes {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: var(--muted);
+  display: -webkit-box;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+.map-selected-card-close {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text-soft);
+  cursor: pointer;
+  height: 26px;
+  padding: 0;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 26px;
+}
+
+.map-selected-card-close:hover {
+  background: var(--surface-subtle);
+  color: var(--ink);
+}
+
+.map-selected-card-close:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.map-selected-card-close svg {
+  fill: none;
+  height: 14px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 14px;
+}
+
+.map-selected-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+
+.map-selected-card-action {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 5px;
+  padding: 6px 10px;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.map-selected-card-action:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.map-selected-card-maps-link {
+  color: var(--accent);
+}
+
+.map-selected-card-maps-link svg {
+  height: 13px;
+  width: 13px;
+}

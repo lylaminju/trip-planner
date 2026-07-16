@@ -52,7 +52,7 @@
   align-items: center;
   background: var(--surface-panel);
   border: 1px solid var(--border-map-control);
-  border-radius: 999px;
+  border-radius: 10px;
   bottom: 28px;
   box-shadow: var(--shadow-map-control);
   color: var(--text-control);

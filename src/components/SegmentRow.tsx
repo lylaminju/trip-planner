@@ -15,12 +15,28 @@ import {
 const MODE_OPTIONS: Array<{
   value: TravelMode;
   label: string;
+  shortLabel: string;
   Icon: typeof WalkingIcon;
 }> = [
-  { value: "walking", label: "Walking", Icon: WalkingIcon },
-  { value: "transit", label: "Transit", Icon: TransitIcon },
-  { value: "bicycling", label: "Bicycling", Icon: BicyclingIcon },
-  { value: "driving", label: "Driving", Icon: DrivingIcon },
+  { value: "walking", label: "Walking", shortLabel: "Walk", Icon: WalkingIcon },
+  {
+    value: "transit",
+    label: "Transit",
+    shortLabel: "Transit",
+    Icon: TransitIcon,
+  },
+  {
+    value: "bicycling",
+    label: "Bicycling",
+    shortLabel: "Bike",
+    Icon: BicyclingIcon,
+  },
+  {
+    value: "driving",
+    label: "Driving",
+    shortLabel: "Drive",
+    Icon: DrivingIcon,
+  },
 ];
 
 type Props = {
@@ -103,6 +119,9 @@ export function SegmentRow({
           }}
         >
           <selectedMode.Icon />
+          <span className="route-mode-label" aria-hidden="true">
+            {selectedMode.shortLabel}
+          </span>
           <span className="route-mode-chevron" aria-hidden="true" />
         </button>
         {modeMenuOpen && (
@@ -170,7 +189,9 @@ export function SegmentRow({
 }
 
 function getModeOption(mode: TravelMode) {
-  return MODE_OPTIONS.find((option) => option.value === mode) ?? MODE_OPTIONS[0];
+  return (
+    MODE_OPTIONS.find((option) => option.value === mode) ?? MODE_OPTIONS[0]
+  );
 }
 
 function formatRouteDuration(seconds: number): string {

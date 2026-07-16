@@ -227,6 +227,9 @@ export function TripPlannerView(props: Props) {
         onPlanWithAi={props.onPlanWithAi}
         onSelectPlace={props.onSelectItem}
         onSelectSegment={props.onToggleSegmentSelection}
+        onEditItem={props.onOpenEditItemModal}
+        onEditPlace={props.onOpenEditModal}
+        onClearSelection={props.onClearSelection}
       />
       {props.aiGenerationToast && (
         <div className="ai-generation-toast" role="status">

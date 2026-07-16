@@ -26,6 +26,7 @@ describe("mobile sheet handle", () => {
 
   it("reserves a 40px mobile rail and keeps planner content scrollable below it", () => {
     const css = readFileSync("src/styles/mobile.css", "utf8");
+    const layoutCss = readFileSync("src/styles/layout.css", "utf8");
 
     expect(cssRule(css, ".mobile-sheet-handle-rail")).toContain(
       "height: 40px;",
@@ -34,7 +35,7 @@ describe("mobile sheet handle", () => {
       "height: calc(40px + env(safe-area-inset-bottom));",
     );
     expect(cssRule(css, ".planner-panel")).toContain("overflow: hidden;");
-    expect(cssRule(css, ".mobile-sheet-content")).toContain(
+    expect(topLevelCssRule(layoutCss, ".planner-scroll")).toContain(
       "overflow-y: auto;",
     );
   });
@@ -47,4 +48,13 @@ function cssRule(css: string, selector: string) {
   expect(end).toBeGreaterThanOrEqual(0);
 
   return css.slice(start, end + 4);
+}
+
+function topLevelCssRule(css: string, selector: string) {
+  const start = css.indexOf(`${selector} {`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const end = css.indexOf("\n}", start);
+  expect(end).toBeGreaterThanOrEqual(0);
+
+  return css.slice(start, end + 2);
 }

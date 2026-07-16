@@ -27,6 +27,8 @@ export function buildPlace(overrides: Partial<Place> = {}): Place {
     longitude: overrides.longitude ?? -74,
     notes: overrides.notes ?? null,
     links: overrides.links ?? [],
+    image_url: overrides.image_url ?? null,
+    image_credit: overrides.image_credit ?? null,
     created_at: overrides.created_at ?? STAMP,
     updated_at: overrides.updated_at ?? STAMP,
   };

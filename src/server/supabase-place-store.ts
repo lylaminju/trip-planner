@@ -26,7 +26,7 @@ type SupabaseItineraryItemRow = Omit<ItineraryItem, "place"> & {
 };
 
 const PLACE_COLUMNS =
-  "id, trip_id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, created_at, updated_at";
+  "id, trip_id, name, address, google_maps_url, place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, image_url, image_credit, created_at, updated_at";
 const ITINERARY_ITEM_COLUMNS = `id, trip_id, place_id, visit_date, visit_time, notes, created_at, updated_at, place:places (${PLACE_COLUMNS})`;
 const ROUTE_SEGMENT_COLUMNS =
   "id, trip_id, from_item_id, to_item_id, mode, created_at, updated_at";

@@ -14,6 +14,8 @@ const basePlace = {
   longitude: -73,
   notes: null,
   links: [],
+  image_url: null,
+  image_credit: null,
   created_at: "2026-05-19 00:00:00",
   updated_at: "2026-05-19 00:00:00",
 };

@@ -1,14 +1,22 @@
 /* Day columns, itinerary insertion zones, and empty itinerary buckets. */
 .day-block {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  margin: 12px 0;
-  padding: 8px;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  margin: 0;
+  padding: 6px 0 10px;
   position: relative;
   transition:
     background-color 120ms ease,
     border-color 120ms ease,
     box-shadow 120ms ease;
+}
+
+.itinerary-board:not(.expanded) > .day-block:first-child {
+  border-top: 0;
+}
+
+.day-block.collapsed {
+  padding-bottom: 6px;
 }
 
 .day-block.active {
@@ -61,6 +69,18 @@
   flex: 0 0 auto;
   font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.day-heading-text {
+  font-family: var(--font-serif-stack);
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .day-collapse-button {
@@ -104,10 +124,10 @@
 
 .day-add-place-button {
   align-items: center;
-  background: var(--surface-panel);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--active-line);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted);
   cursor: pointer;
   display: inline-flex;
   flex: 0 0 28px;
@@ -119,7 +139,12 @@
 
 .day-add-place-button:hover {
   background: var(--surface-subtle);
-  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.day-add-place-button:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 
 .day-add-place-button svg {
@@ -140,11 +165,12 @@
 }
 
 .unscheduled-block {
-  background: var(--surface-muted);
-  border: 1px dashed var(--border-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-top: 1px solid var(--line);
   border-radius: 8px;
-  margin: 12px 0;
-  padding: 10px;
+  margin: 0;
+  padding: 6px 0 10px;
 }
 
 .unscheduled-block h3 {
@@ -168,8 +194,15 @@
 
 .itinerary-board.expanded > .day-block,
 .itinerary-board.expanded > .unscheduled-block {
+  border: 1px solid var(--line);
+  border-radius: 8px;
   flex: 0 0 var(--board-column-width);
   margin: 12px 0;
+  padding: 8px;
+}
+
+.itinerary-board.expanded > .unscheduled-block {
+  border-style: dashed;
 }
 
 .itinerary-divider {

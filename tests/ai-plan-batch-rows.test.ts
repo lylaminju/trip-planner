@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildAiGeneratedPlaceRows,
   buildGeneratedScheduleEntries,
   splitGeneratedPlaceIds,
 } from "@/server/ai-plan-batch-rows";
@@ -12,6 +13,51 @@ import type {
 } from "@/lib/types";
 
 describe("AI plan batch rows", () => {
+  it("copies candidate imagery onto generated place rows and keeps anchors bare", () => {
+    const rows = buildAiGeneratedPlaceRows({
+      tripId: 1,
+      generationId: 5,
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([
+        [
+          10,
+          {
+            ...candidate(10),
+            image_url: "https://images.example/candidate-10.webp",
+            image_credit: "Photo: Example Author",
+          },
+        ],
+      ]),
+      lodging: lodging(),
+    });
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      name: "Pod Times Square",
+      image_url: null,
+      image_credit: null,
+    });
+    expect(rows[1]).toMatchObject({
+      name: "Candidate 10",
+      image_url: "https://images.example/candidate-10.webp",
+      image_credit: "Photo: Example Author",
+    });
+  });
+
   it("moves the first attraction after the lodging travel duration on the 10-minute grid", () => {
     const entries = buildGeneratedScheduleEntries({
       plan: {

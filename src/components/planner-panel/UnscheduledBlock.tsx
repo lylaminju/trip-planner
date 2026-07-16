@@ -61,13 +61,20 @@ export function UnscheduledBlock(props: Props) {
         }
       }}
     >
-      <SectionToggle
-        title="Unscheduled"
-        count={props.itinerary.unscheduled.length}
-        open={props.isOpen}
-        onToggle={props.onToggleOpen}
-        headingLevel="h3"
-      />
+      <div className="unscheduled-heading-row">
+        <SectionToggle
+          title="Unscheduled"
+          count={props.itinerary.unscheduled.length}
+          open={props.isOpen}
+          onToggle={props.onToggleOpen}
+          headingLevel="h3"
+        />
+        {!props.isOpen && props.itinerary.unscheduled.length > 0 && (
+          <span className="unscheduled-preview">
+            {props.itinerary.unscheduled.map((place) => place.name).join(" · ")}
+          </span>
+        )}
+      </div>
       {props.isOpen &&
         props.itinerary.unscheduled.map((place) => (
           <PlaceListRow

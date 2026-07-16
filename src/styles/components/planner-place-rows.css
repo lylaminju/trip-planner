@@ -7,19 +7,22 @@
 }
 
 .place-row {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  margin: 6px 0;
-  padding: 6px;
+  border-top: 1px solid var(--surface-subtle);
+  border-radius: 0;
+  margin: 0;
+  padding: 7px 0;
   transition:
     background-color 120ms ease,
     border-color 120ms ease,
     box-shadow 120ms ease;
 }
 
+.place-row:first-child {
+  border-top-color: transparent;
+}
+
 .place-row:hover {
   background: var(--surface-muted);
-  border-color: var(--border-muted);
 }
 
 .places-board.expanded {
@@ -29,13 +32,20 @@
 }
 
 .places-board.expanded > .place-row {
+  border: 1px solid var(--line);
+  border-radius: 8px;
   flex: 0 0 var(--board-column-width);
   margin: 0;
+  padding: 6px;
 }
 
 .place-row.active,
 .segment-row.active {
   background: var(--accent-selected-bg);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.places-board.expanded > .place-row.active {
   border-color: var(--accent-selected-border);
   box-shadow: var(--selected-ring);
 }
@@ -268,10 +278,45 @@
 
 .place-main .place-name {
   color: inherit;
+  font-family: var(--font-serif-stack);
+  font-size: 15px;
+  font-weight: 600;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.visit-thumb {
+  align-items: center;
+  background: var(--surface-subtle);
+  border-radius: 6px;
+  color: var(--text-soft);
+  display: inline-flex;
+  flex: 0 0 40px;
+  font-family: var(--font-serif-stack);
+  font-size: 17px;
+  font-weight: 600;
+  height: 40px;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  width: 40px;
+}
+
+.visit-thumb-image {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+@media (min-width: 901px) {
+  .visit-thumb {
+    flex: 0 0 48px;
+    font-size: 20px;
+    height: 48px;
+    width: 48px;
+  }
 }
 
 .place-main.visit-place-main {
@@ -445,28 +490,4 @@
   .visit-row-actions {
     transition: none;
   }
-}
-
-.place-drag-preview {
-  background: var(--surface-panel);
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  box-shadow: var(--shadow-drag-preview);
-  color: var(--text);
-  display: grid;
-  gap: 2px;
-  left: -9999px;
-  max-width: 320px;
-  padding: 8px 10px;
-  pointer-events: none;
-  position: fixed;
-  top: -9999px;
-  width: max-content;
-  z-index: 9999;
-}
-
-.place-drag-preview span {
-  color: var(--muted);
-  font-size: 12px;
-  overflow-wrap: anywhere;
 }

@@ -182,6 +182,8 @@ function place(overrides: Partial<Place>): Place {
     longitude: -74,
     notes: null,
     links: [],
+    image_url: null,
+    image_credit: null,
     created_at: "2026-05-20 00:00:00",
     updated_at: "2026-05-20 00:00:00",
     ...overrides,

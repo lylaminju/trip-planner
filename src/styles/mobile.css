@@ -15,10 +15,11 @@
   }
 
   .day-block {
-    padding: 6px;
+    padding: 4px 0 8px;
   }
 
   .planner-panel {
+    --panel-inline-pad: 14px;
     border: 1px solid var(--line);
     border-bottom: 0;
     border-radius: 18px 18px 0 0;
@@ -98,12 +99,24 @@
   }
 
   .mobile-sheet-content {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
+  }
+
+  .planner-scroll {
     overscroll-behavior: contain;
-    padding: 0 14px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .places-dock {
+    height: calc(var(--places-dock-height) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .places-tray {
+    bottom: calc(var(--places-dock-height) + env(safe-area-inset-bottom));
+  }
+
+  .map-selected-card {
+    display: none;
   }
 
   .planner-panel.mobile-sheet-collapsed .mobile-sheet-content {
@@ -175,11 +188,23 @@
 
   .app-header {
     gap: 10px;
+    padding-top: 0;
   }
 
   .app-header-title-row {
     gap: 10px;
     padding-bottom: 10px;
+    position: relative;
+  }
+
+  .app-header-controls {
+    position: absolute;
+    right: var(--panel-inline-pad);
+    top: 0;
+  }
+
+  .app-header-title-row:has(.ai-plan-button) .app-header-dashboard-link {
+    min-height: 34px;
   }
 
   .app-header h1 {
@@ -220,8 +245,8 @@
 
   .place-row {
     gap: 4px;
-    margin: 2px 0;
-    padding: 4px;
+    margin: 0;
+    padding: 5px 0;
   }
 
   .place-main {
@@ -258,8 +283,8 @@
   }
 
   .route-mode-trigger {
-    height: 28px;
-    width: 40px;
+    height: 26px;
+    width: auto;
   }
 
   .segment-row .small-button {

@@ -11,7 +11,13 @@ import {
   getSelectedPlacePosition,
   getSelectedSegmentPositions,
 } from "@/lib/map-viewport";
-import type { ItineraryView, RouteGeometry, RouteSegment } from "@/lib/types";
+import type {
+  ItineraryItem,
+  ItineraryView,
+  Place,
+  RouteGeometry,
+  RouteSegment,
+} from "@/lib/types";
 
 import { CoordinateFallback } from "./map-panel/CoordinateFallback";
 import { focusMapOnDestination } from "./map-panel/map-destination";
@@ -29,6 +35,10 @@ import {
   type PolylineRecord,
 } from "./map-panel/map-overlays";
 import { updateMarkerSizes } from "./map-panel/map-marker-dom";
+import {
+  findSelectedMapTarget,
+  SelectedPlaceCard,
+} from "./map-panel/SelectedPlaceCard";
 import {
   buildItineraryItemsSignature,
   buildPlacesSignature,
@@ -58,6 +68,9 @@ type Props = {
   onPlanWithAi?: () => void;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
+  onEditItem: (item: ItineraryItem) => void;
+  onEditPlace: (place: Place) => void;
+  onClearSelection: () => void;
 };
 
 export function MapPanel(props: Props) {
@@ -100,6 +113,15 @@ export function MapPanel(props: Props) {
   );
   const hasPlaces =
     itineraryItems.length > 0 || props.itinerary.unscheduled.length > 0;
+  const selectedTarget = useMemo(
+    () =>
+      findSelectedMapTarget(
+        props.itinerary,
+        props.activePlaceId,
+        props.activeCanonicalPlaceId,
+      ),
+    [props.itinerary, props.activePlaceId, props.activeCanonicalPlaceId],
+  );
 
   useEffect(() => {
     if (!apiKey || !mapRef.current) {
@@ -457,6 +479,15 @@ export function MapPanel(props: Props) {
       aria-hidden={props.hidden}
     >
       <div className="map-canvas" ref={mapRef} />
+      {selectedTarget && !props.hidden && (
+        <SelectedPlaceCard
+          target={selectedTarget}
+          canEdit={props.canEdit}
+          onEditVisit={props.onEditItem}
+          onEditPlace={props.onEditPlace}
+          onClose={props.onClearSelection}
+        />
+      )}
       <MapPanelChrome
         hasPlaces={hasPlaces}
         routeGeometryError={props.routeGeometryError}
