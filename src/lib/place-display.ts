@@ -50,14 +50,12 @@ export function formatSchedule(item: ItineraryItem): string {
 
 export function formatItineraryDateHeading(date: string): string {
   const parsedDate = new Date(`${date}T00:00:00Z`);
-  const weekday = new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
     weekday: "short",
+    month: "short",
+    day: "numeric",
   }).format(parsedDate);
-  const [, month, day] = date.split("-");
-  const shortDate = month && day ? `${month}-${day}` : date;
-
-  return `${shortDate} ${weekday}`;
 }
 
 function hasNestedPlace(source: PlaceRowSource): source is ItineraryItem {
