@@ -173,8 +173,8 @@
 .visit-time-chip,
 .visit-time-segments,
 .visit-time-editor-display {
-  background: var(--surface-panel);
-  border: 1px solid var(--border-muted);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 6px;
   box-sizing: border-box;
   color: var(--active-line);
@@ -221,7 +221,6 @@
 
 .visit-time-chip:hover {
   background: var(--surface-muted);
-  border-color: var(--border-strong);
   box-shadow: none;
 }
 
@@ -232,19 +231,16 @@
 }
 
 .visit-time-chip:focus-visible {
-  border-color: var(--accent);
   box-shadow: var(--focus-ring-soft);
   outline: none;
 }
 
 .visit-time-segments:hover {
   background: var(--surface-muted);
-  border-color: var(--border-strong);
 }
 
 .visit-time-segments:focus-within,
 .visit-time-editor-display:focus-within {
-  border-color: var(--accent);
   box-shadow: var(--focus-ring-soft);
 }
 

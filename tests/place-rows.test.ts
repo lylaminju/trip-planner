@@ -340,8 +340,8 @@ describe("PlaceRows", () => {
     expect(visitPlaceTitleRule).toContain("min-height: 24px;");
     expect(timeTextRule).toContain("font-size: 14px;");
     expect(timeTextRule).toContain("font-variant-numeric: tabular-nums;");
-    expect(timeControlRule).toContain("background: var(--surface-panel);");
-    expect(timeControlRule).toContain("border: 1px solid var(--border-muted);");
+    expect(timeControlRule).toContain("background: transparent;");
+    expect(timeControlRule).toContain("border: 1px solid transparent;");
     expect(timeControlRule).toContain("border-radius: 6px;");
     expect(timeControlRule).toContain("min-height: 28px;");
     expect(segmentRule).toContain("box-sizing: border-box;");
@@ -350,12 +350,8 @@ describe("PlaceRows", () => {
     expect(segmentRule).toContain("flex: 1 1 0;");
     expect(chipRule).toContain("justify-content: center;");
     expect(chipHoverRule).toContain("background: var(--surface-muted);");
-    expect(chipHoverRule).toContain("border-color: var(--border-strong);");
     expect(segmentsHoverRule).toContain("background: var(--surface-muted);");
-    expect(segmentsHoverRule).toContain("border-color: var(--border-strong);");
-    expect(chipFocusRule).toContain("border-color: var(--accent);");
     expect(chipFocusRule).toContain("box-shadow: var(--focus-ring-soft);");
-    expect(segmentsFocusRule).toContain("border-color: var(--accent);");
     expect(segmentsFocusRule).toContain("box-shadow: var(--focus-ring-soft);");
     expect(segmentHoverRule).toContain("background: var(--surface-subtle);");
     expect(emptyChipRule).toContain("background: var(--surface-muted);");
