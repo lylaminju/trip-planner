@@ -139,7 +139,7 @@
 }
 
 .visit-time-slot {
-  --visit-time-slot-width: 74px;
+  --visit-time-slot-width: 60px;
   align-items: center;
   display: inline-flex;
   flex: 0 0 var(--visit-time-slot-width);

@@ -279,6 +279,14 @@
     font-size: 14px;
   }
 
+  .visit-time-segment {
+    font-size: 12px;
+  }
+
+  .place-main .place-note {
+    margin-top: 0;
+  }
+
   .icon-button {
     flex-basis: 40px;
     height: 30px;

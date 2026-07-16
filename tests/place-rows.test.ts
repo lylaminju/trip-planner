@@ -318,7 +318,7 @@ describe("PlaceRows", () => {
       ".visit-time-menu.hour-menu::-webkit-scrollbar",
     );
 
-    expect(slotRule).toContain("--visit-time-slot-width: 74px;");
+    expect(slotRule).toContain("--visit-time-slot-width: 60px;");
     expect(slotRule).toContain("flex: 0 0 var(--visit-time-slot-width);");
     expect(slotRule).toContain("margin-right: 4px;");
     expect(slotRule).toContain("width: var(--visit-time-slot-width);");
