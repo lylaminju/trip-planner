@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { LandingPage } from "@/components/LandingPage";
 import { SignInPage } from "@/components/SignInPage";
+import { LandingAiDemo } from "@/components/landing/LandingAiDemo";
 import {
   LandingRouteDetailsToggle,
   LandingRouteSegment,
@@ -16,6 +17,12 @@ import {
   LandingWorkflowPlanByDayVisual,
   LandingWorkflowRouteTimeVisual,
 } from "@/components/landing/LandingWorkflowShowcase";
+import {
+  AI_CREATE_ITINERARY_LABEL,
+  AI_INTEREST_TAG_OPTIONS,
+  AI_PACE_PRESETS,
+  AI_TRAVEL_MODE_OPTIONS,
+} from "@/lib/ai-planning-preferences";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 
 describe("LandingPage", () => {
@@ -80,6 +87,52 @@ describe("LandingPage", () => {
     expect(markup).toContain("22 min");
     expect(markup).toContain('aria-label="Edit Brunch cafe"');
     expect(markup).toContain('aria-label="Delete Brunch cafe"');
+  });
+
+  it("places the AI planner demo between the planner preview and the showcase", () => {
+    const markup = renderToStaticMarkup(createElement(LandingPage));
+
+    const previewIndex = markup.indexOf('id="planner-preview"');
+    const aiDemoIndex = markup.indexOf('id="ai-planner"');
+    const showcaseIndex = markup.indexOf('id="showcase"');
+
+    expect(aiDemoIndex).toBeGreaterThan(previewIndex);
+    expect(aiDemoIndex).toBeLessThan(showcaseIndex);
+  });
+
+  it("offers every real planning option in the AI planner demo", () => {
+    const markup = decodeEntities(
+      renderToStaticMarkup(createElement(LandingAiDemo)),
+    );
+
+    for (const preset of AI_PACE_PRESETS) {
+      expect(markup).toContain(preset.label);
+    }
+    for (const option of AI_INTEREST_TAG_OPTIONS) {
+      expect(markup).toContain(option.label);
+    }
+    for (const option of AI_TRAVEL_MODE_OPTIONS) {
+      expect(markup).toContain(option.label);
+    }
+
+    const balanced = AI_PACE_PRESETS.find(
+      (preset) => preset.label === "Balanced",
+    );
+    expect(markup).toContain(balanced?.descriptor);
+    expect(markup).toContain("2-3 visits/day");
+    expect(markup).toContain(AI_CREATE_ITINERARY_LABEL);
+  });
+
+  it("shows the AI draft as an editable dated itinerary", () => {
+    const markup = renderToStaticMarkup(createElement(LandingAiDemo));
+
+    expect(markup).toContain("04-03 Fri");
+    expect(markup).toContain("09:00 Central Park");
+    expect(markup).toContain("11:30 Museum of Modern Art");
+    expect(markup).toContain("15:00 The High Line");
+    expect(markup).toContain('aria-label="Edit The High Line"');
+    expect(markup).toContain('aria-label="Delete The High Line"');
+    expect(markup).toContain('aria-label="Travel mode: Transit"');
   });
 
   it("restores the workflow showcase between the preview and feature proof", () => {
@@ -331,6 +384,10 @@ function markupBetween(markup: string, className: string, tag: string) {
 
 function linkCount(markup: string) {
   return markup.match(/<a\b/g)?.length ?? 0;
+}
+
+function decodeEntities(markup: string) {
+  return markup.replaceAll("&amp;", "&").replaceAll("&#x27;", "'");
 }
 
 function cssMediaBlock(css: string, mediaQuery: string) {

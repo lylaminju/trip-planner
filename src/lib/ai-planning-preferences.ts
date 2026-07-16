@@ -27,6 +27,8 @@ export const AI_TRAVEL_MODE_OPTIONS: {
 export const AI_VISITS_PER_DAY_MIN = 1;
 export const AI_VISITS_PER_DAY_MAX = 5;
 
+export const AI_CREATE_ITINERARY_LABEL = "Create itinerary";
+
 export const AI_PACE_PRESETS = [
   {
     label: "Relaxed",

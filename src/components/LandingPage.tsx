@@ -1,3 +1,4 @@
+import { LandingAiDemo } from "./landing/LandingAiDemo";
 import { LandingFooter } from "./landing/LandingFooter";
 import { LandingFeatureProof } from "./landing/LandingFeatureProof";
 import { LandingHero } from "./landing/LandingHero";
@@ -9,6 +10,7 @@ export function LandingPage() {
     <main className="landing-shell">
       <LandingHero />
       <SampleTripPreview />
+      <LandingAiDemo />
       <LandingWorkflowShowcase />
       <LandingFeatureProof />
       <LandingFooter />

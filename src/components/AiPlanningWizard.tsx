@@ -11,6 +11,7 @@ import {
 import { useResolvedPlaceName } from "@/hooks/useResolvedPlaceName";
 
 import {
+  AI_CREATE_ITINERARY_LABEL,
   AI_DEFAULT_DAILY_START_TIME,
   AI_TRAVEL_MODE_OPTIONS,
   buildAiPlanningPreferenceDraft,
@@ -491,7 +492,7 @@ export function AiPlanningWizard(props: Props) {
                           <MagicWandIcon />
                         </span>
                       )}
-                      {isReviewStep ? "Create itinerary" : "Next"}
+                      {isReviewStep ? AI_CREATE_ITINERARY_LABEL : "Next"}
                     </button>
                     <span className="ai-wizard-enter-hint" aria-hidden="true">
                       press <strong>Enter ↵</strong>

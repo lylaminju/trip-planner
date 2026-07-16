@@ -1,0 +1,212 @@
+/* Landing AI planner demo: setup card -> generated draft card. */
+.landing-ai-demo-section {
+  margin: 96px auto 0;
+  max-width: 1160px;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.landing-ai-demo-heading {
+  display: grid;
+  gap: 12px;
+  margin: 0 auto;
+  max-width: 640px;
+  text-align: center;
+}
+
+.landing-ai-demo-heading h2 {
+  color: var(--landing-text);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.landing-ai-demo-flow {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr auto 1fr;
+  margin-top: 40px;
+}
+
+.landing-ai-demo-arrow {
+  color: var(--accent);
+  display: block;
+}
+
+.landing-ai-demo-arrow svg {
+  display: block;
+  fill: none;
+  height: 12px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  width: 24px;
+}
+
+/* Setup card */
+.landing-ai-setup-card {
+  background: var(--landing-surface-warm);
+  border: 1px solid var(--landing-border);
+  border-radius: 18px;
+  display: grid;
+  gap: 18px;
+  padding: clamp(20px, 2.4vw, 28px);
+}
+
+.landing-ai-setup-head {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.landing-ai-setup-destination {
+  color: var(--landing-text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.landing-ai-setup-dates {
+  color: var(--landing-text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.landing-ai-setup-field {
+  display: grid;
+  gap: 10px;
+}
+
+.landing-ai-setup-legend {
+  color: var(--landing-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.landing-ai-pace-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.landing-ai-pace-option {
+  background: var(--surface-panel);
+  border: 1px solid var(--landing-secondary-border);
+  border-radius: 10px;
+  color: var(--landing-text-control);
+  font-size: 14px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.landing-ai-pace-option.is-selected {
+  background: var(--landing-accent-selected-bg);
+  border-color: var(--landing-accent-selected-border);
+  color: var(--landing-accent);
+  font-weight: 600;
+}
+
+.landing-ai-pace-descriptor {
+  color: var(--landing-text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.landing-ai-pace-range {
+  color: var(--landing-text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.landing-ai-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.landing-ai-chip {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--landing-secondary-border);
+  border-radius: 999px;
+  color: var(--landing-text-control);
+  display: inline-flex;
+  font-size: 13.5px;
+  gap: 6px;
+  padding: 7px 13px;
+}
+
+.landing-ai-chip.is-selected {
+  background: var(--landing-accent-selected-bg);
+  border-color: var(--landing-accent-selected-border);
+  color: var(--landing-accent);
+  font-weight: 600;
+}
+
+.landing-ai-chip-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.landing-ai-generate-button {
+  align-items: center;
+  background: var(--accent);
+  border-radius: 11px;
+  box-shadow: 0 8px 22px -10px var(--accent);
+  color: var(--text-on-accent);
+  display: flex;
+  font-size: 15px;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 22px;
+}
+
+.landing-ai-generate-button svg {
+  height: 16px;
+  width: 16px;
+}
+
+/* Draft card. Pairs with .landing-workflow-product-frame, which supplies the
+   static-preview treatment for the planner rows it borrows. */
+.landing-ai-draft-card {
+  background: var(--surface-panel);
+  border: 1px solid var(--landing-accent-selected-border);
+  border-radius: 18px;
+  display: grid;
+  padding: clamp(16px, 2vw, 22px);
+}
+
+@media (max-width: 900px) {
+  .landing-ai-demo-flow {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .landing-ai-demo-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-ai-demo-section {
+    margin-top: 72px;
+    padding-inline: 16px;
+  }
+
+  .landing-ai-setup-card,
+  .landing-ai-draft-card {
+    border-radius: 16px;
+  }
+}
