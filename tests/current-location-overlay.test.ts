@@ -33,7 +33,7 @@ describe("renderCurrentLocationMarker", () => {
     };
 
     renderCurrentLocationMarker({
-      map,
+      map: map as unknown as google.maps.Map,
       position: { lat: 40.7128, lng: -74.006, accuracy: 10 },
       markerRecordRef,
     });
@@ -45,7 +45,7 @@ describe("renderCurrentLocationMarker", () => {
     expect(map.panTo).not.toHaveBeenCalled();
 
     renderCurrentLocationMarker({
-      map,
+      map: map as unknown as google.maps.Map,
       position: null,
       markerRecordRef,
     });

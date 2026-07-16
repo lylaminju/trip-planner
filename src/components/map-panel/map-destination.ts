@@ -5,7 +5,7 @@ import { shouldOffsetFocusForHalfSheet } from "./map-overlays";
 
 // Frame the whole destination city/region using its catalog coordinates.
 export function focusMapOnDestination(
-  map: any,
+  map: google.maps.Map,
   focus: DestinationFocus,
   mobileSheetState: MobileSheetState,
 ): void {

@@ -1,3 +1,5 @@
+/// <reference types="google.maps" />
+
 const GOOGLE_MAPS_CALLBACK = "__tripPlannerGoogleMapsReady";
 let googleMapsLoadPromise: Promise<void> | null = null;
 
@@ -70,7 +72,7 @@ function isGoogleMapsReady(): boolean {
 
 declare global {
   interface Window {
-    google?: any;
+    google?: typeof google;
     __tripPlannerGoogleMapsReady?: () => void;
   }
 }

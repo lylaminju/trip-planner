@@ -75,7 +75,7 @@ type Props = {
 
 export function MapPanel(props: Props) {
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markerRecordsRef = useRef<Map<string, MarkerRecord>>(new Map());
   const polylinesRef = useRef<Map<number, PolylineRecord>>(new Map());
   const currentLocationMarkerRef = useRef<CurrentLocationMarkerRecord | null>(
@@ -83,7 +83,7 @@ export function MapPanel(props: Props) {
   );
   const boundsSignatureRef = useRef<string>("");
   const focusedDestinationRef = useRef<string | null>(null);
-  const infoWindowRef = useRef<any>(null);
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;

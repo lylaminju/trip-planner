@@ -52,8 +52,10 @@ export function currentLocationMarkerContent(): HTMLElement {
   return element;
 }
 
-export function getInfoWindow(infoWindowRef: { current: any }): any {
-  const googleMaps = window.google;
+export function getInfoWindow(infoWindowRef: {
+  current: google.maps.InfoWindow | null;
+}): google.maps.InfoWindow {
+  const googleMaps = window.google!;
 
   if (!infoWindowRef.current) {
     infoWindowRef.current = new googleMaps.maps.InfoWindow();
@@ -63,9 +65,9 @@ export function getInfoWindow(infoWindowRef: { current: any }): any {
 }
 
 export function openPlaceInfoWindow(
-  map: any,
-  marker: any,
-  infoWindow: any,
+  map: google.maps.Map,
+  marker: google.maps.marker.AdvancedMarkerElement,
+  infoWindow: google.maps.InfoWindow,
   place: Place,
 ): void {
   infoWindow.setContent(placeInfoWindowContent(place));

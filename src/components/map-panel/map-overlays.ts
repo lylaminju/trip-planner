@@ -26,20 +26,20 @@ import {
 const SINGLE_MARKER_INITIAL_ZOOM = 14;
 
 export type MarkerRecord = {
-  marker: any;
+  marker: google.maps.marker.AdvancedMarkerElement;
   element: HTMLElement;
   signature: string;
   date: string | null;
 };
 
 export type PolylineRecord = {
-  polyline: any;
+  polyline: google.maps.Polyline;
   signature: string;
   date: string | null;
 };
 
 export type CurrentLocationMarkerRecord = {
-  marker: any;
+  marker: google.maps.marker.AdvancedMarkerElement;
   signature: string;
 };
 
@@ -59,8 +59,8 @@ export function createMap(
   container: HTMLElement,
   items: ItineraryItem[],
   unscheduledPlaces: Place[],
-): any {
-  const googleMaps = window.google;
+): google.maps.Map {
+  const googleMaps = window.google!;
   const isMobile = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
   const firstPlace = items[0]?.place ?? unscheduledPlaces[0] ?? null;
   const center = firstPlace
@@ -76,7 +76,7 @@ export function createMap(
 }
 
 export function renderOverlays(input: {
-  map: any;
+  map: google.maps.Map;
   items: ItineraryItem[];
   unscheduledPlaces: Place[];
   mobileSheetState: MobileSheetState;
@@ -87,7 +87,7 @@ export function renderOverlays(input: {
   markerRecords: Map<string, MarkerRecord>;
   polylines: Map<number, PolylineRecord>;
   boundsSignatureRef: { current: string };
-  infoWindowRef: { current: any };
+  infoWindowRef: { current: google.maps.InfoWindow | null };
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
 }): void {
@@ -254,7 +254,7 @@ export function renderOverlays(input: {
 }
 
 export function renderCurrentLocationMarker(input: {
-  map: any;
+  map: google.maps.Map;
   position: CurrentLocationPosition | null;
   markerRecordRef: { current: CurrentLocationMarkerRecord | null };
 }): void {

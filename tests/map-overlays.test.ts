@@ -66,7 +66,7 @@ describe("renderOverlays", () => {
     };
 
     renderOverlays({
-      map,
+      map: map as unknown as google.maps.Map,
       items: [],
       unscheduledPlaces: [place({ latitude: 35.6812, longitude: 139.7671 })],
       mobileSheetState: "half",
