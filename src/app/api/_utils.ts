@@ -70,7 +70,34 @@ export function withRefreshedSession(
   return setAuthCookies(response, refreshedSession);
 }
 
+const SERVER_FAULT_ERROR_TYPES = [
+  AiPlannerConfigError,
+  GoogleRoutesConfigError,
+  GoogleRoutesUpstreamError,
+  GoogleMapsUrlUpstreamError,
+];
+
+const RATE_LIMIT_ERROR_TYPES = [
+  AiGenerationRateLimitError,
+  GoogleRoutesRateLimitError,
+];
+
+// Handled errors never reach the Next.js error boundary, so they are invisible
+// in production logs unless reported here.
+function logRouteError(error: unknown): void {
+  if (SERVER_FAULT_ERROR_TYPES.some((type) => error instanceof type)) {
+    console.error(error);
+    return;
+  }
+
+  if (RATE_LIMIT_ERROR_TYPES.some((type) => error instanceof type)) {
+    console.warn(error);
+  }
+}
+
 export function mapRouteError(error: unknown): NextResponse | null {
+  logRouteError(error);
+
   if (
     error instanceof PlaceNotFoundError ||
     error instanceof RouteSegmentNotFoundError ||
