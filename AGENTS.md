@@ -106,4 +106,5 @@ This file applies to the whole repository. Follow it when changing code here.
 - Use a short conventional subject, for example `feat: add scheduled itinerary export`.
 - When useful, add a short body with a few concise bullet points.
 - The current Codex/OMX guard may require one Lore-style trailer when the agent runs `git commit`; use the least noisy trailer that satisfies the guard.
+- Do not add session-link trailers such as `Claude-Session:` unless the user explicitly requests them.
 - Do not include `Tested:` unless the user explicitly asks for verification details in the commit message.
