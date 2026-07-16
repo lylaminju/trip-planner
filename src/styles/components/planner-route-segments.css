@@ -91,7 +91,6 @@
 
 .segment-row:hover {
   background: var(--surface-muted);
-  border-color: var(--border-strong);
 }
 
 .segment-row.active::before {

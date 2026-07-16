@@ -39,10 +39,13 @@
   padding: 6px;
 }
 
-.place-row.active,
-.segment-row.active {
+.place-row.active {
   background: var(--accent-selected-bg);
   box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.segment-row.active {
+  background: var(--accent-selected-bg);
 }
 
 .places-board.expanded > .place-row.active {
