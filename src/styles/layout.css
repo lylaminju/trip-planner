@@ -105,6 +105,8 @@
 }
 
 .app-header-edit-trip-button {
+  background: transparent;
+  border: none;
   color: var(--muted);
   flex: 0 0 30px;
   height: 30px;
