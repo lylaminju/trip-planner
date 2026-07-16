@@ -96,6 +96,11 @@ This file applies to the whole repository. Follow it when changing code here.
 - Standard checks after code changes: `npm test` and `npx tsc --noEmit`.
 - Run `npm run build` when changes affect Next.js routing, server/client boundaries, environment-variable behavior, or production bundling.
 
+## Branching
+
+- Commit directly to the default `main` branch. Do not create a new branch before committing unless the user explicitly requests one.
+- This overrides the general agent default of "branch first when on the default branch" for this project.
+
 ## Commit Messages
 
 - Use a short conventional subject, for example `feat: add scheduled itinerary export`.
