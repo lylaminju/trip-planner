@@ -115,12 +115,6 @@ export function isAiInterestTag(value: string): boolean {
   return INTEREST_TAG_VALUES.has(value);
 }
 
-export function describePace(minVisits: number, maxVisits: number): string {
-  if (maxVisits <= 2) return "Relaxed";
-  if (minVisits >= 3) return "Packed";
-  return "Balanced";
-}
-
 export function estimateStopCount(
   minVisits: number,
   maxVisits: number,

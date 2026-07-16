@@ -81,21 +81,3 @@ export function splitVisitTime(value: string | null): [string, string] {
 
   return [match[1], match[2]];
 }
-
-export function composeVisitTime(
-  hour: string | null | undefined,
-  minute: string | null | undefined,
-): string | null {
-  const trimmedHour = hour?.trim() ?? "";
-  const trimmedMinute = minute?.trim() ?? "";
-
-  if (!trimmedHour && !trimmedMinute) {
-    return null;
-  }
-
-  if (!trimmedHour || !trimmedMinute) {
-    return null;
-  }
-
-  return `${trimmedHour}:${trimmedMinute}`;
-}
