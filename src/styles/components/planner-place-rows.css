@@ -383,16 +383,29 @@
 }
 
 .place-row .icon-button {
+  background: transparent;
+  border-color: transparent;
   flex-basis: 30px;
   min-width: 30px;
   width: 30px;
+}
+
+.place-row .icon-button:hover {
+  background: var(--surface-subtle);
+  border-color: transparent;
+}
+
+.place-row .danger-button:hover {
+  background: var(--danger-bg);
+  border-color: transparent;
+  color: var(--danger-strong);
 }
 
 .visit-row-actions {
   align-items: center;
   display: inline-flex;
   flex: 0 0 auto;
-  gap: inherit;
+  gap: 2px;
 }
 
 .visit-time-inline-editor {
