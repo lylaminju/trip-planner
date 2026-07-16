@@ -212,7 +212,7 @@ describe("LandingPage", () => {
     expect(markerRule).toContain("width: 18px;");
   });
 
-  it("shows feature proof and steps below the workflow showcase", () => {
+  it("shows feature proof below the workflow showcase", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain(
@@ -229,10 +229,6 @@ describe("LandingPage", () => {
     expect(markup).toContain("Trip dashboard");
     expect(markup).toContain("Plan with AI");
     expect(markup).toContain("generate a dated draft you can edit on the map");
-    expect(markup).toContain("Three steps");
-    expect(markup).toContain("Save your places");
-    expect(markup).toContain("Arrange by day");
-    expect(markup).toContain("Follow the map");
     expect(markup).toContain("Ready to plan your next trip?");
   });
 

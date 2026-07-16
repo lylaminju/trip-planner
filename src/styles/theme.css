@@ -53,7 +53,6 @@
   --landing-border-muted: #e9e6df;
   --landing-chrome-line: #f0eee8;
   --landing-chrome-dot: #e6e2da;
-  --landing-text-inverse: #f5f4f1;
   --landing-text-inverse-muted: #b8b2a8;
   --landing-text: #1a1a1a;
   --landing-text-muted: #57534e;
@@ -63,8 +62,6 @@
   --landing-secondary-hover: #f6f4ef;
   --landing-secondary-hover-border: #d6d2c9;
   --landing-feature-hover-border: #ddd9d1;
-  --landing-steps-bg: #1c1917;
-  --landing-steps-dot: #3a342f;
   --landing-route-icon: #d97706;
   --landing-route-icon-bg: rgba(217, 119, 6, 0.08);
   --landing-maps-icon: #2563eb;

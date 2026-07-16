@@ -47,21 +47,6 @@ const FEATURE_CARDS = [
   tone: string;
 }>;
 
-const STEPS = [
-  {
-    title: "Save your places",
-    body: "Drop in a name, address, or Google Maps link. Build a library of everywhere you want to go.",
-  },
-  {
-    title: "Arrange by day",
-    body: "Drag places onto dates, set times, and let each day sort itself.",
-  },
-  {
-    title: "Follow the map",
-    body: "Every stop becomes a numbered marker with travel time. Export the plan when it is ready.",
-  },
-] satisfies Array<{ title: string; body: string }>;
-
 export function LandingFeatureProof() {
   return (
     <>
@@ -92,32 +77,6 @@ export function LandingFeatureProof() {
               <p>{feature.body}</p>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section
-        className="landing-steps-section"
-        aria-labelledby="landing-steps-title"
-      >
-        <div className="landing-steps-panel">
-          <div className="landing-section-heading">
-            <p className="landing-section-label">Three steps</p>
-            <h2 id="landing-steps-title">
-              You're a few drags away from a finished itinerary.
-            </h2>
-          </div>
-          <div className="landing-step-grid">
-            {STEPS.map((step, index) => (
-              <article className="landing-step-card" key={step.title}>
-                <div className="landing-step-index-row">
-                  <span>{index + 1}</span>
-                  <div />
-                </div>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
 
