@@ -6,6 +6,7 @@ export function SectionToggle(props: {
   title: string;
   open: boolean;
   onToggle: () => void;
+  count?: number;
   headingLevel?: "h2" | "h3";
   compact?: boolean;
 }) {
@@ -20,7 +21,12 @@ export function SectionToggle(props: {
         open={props.open}
         onToggle={props.onToggle}
       />
-      <HeadingTag>{props.title}</HeadingTag>
+      <HeadingTag>
+        {props.title}
+        {props.count !== undefined && (
+          <span className="section-toggle-count">({props.count})</span>
+        )}
+      </HeadingTag>
     </div>
   );
 }

@@ -55,6 +55,13 @@
   margin: 0;
 }
 
+.section-toggle-count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  margin-left: 6px;
+}
+
 .section-toggle-button {
   align-items: center;
   background: transparent;

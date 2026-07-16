@@ -63,6 +63,7 @@ export function UnscheduledBlock(props: Props) {
     >
       <SectionToggle
         title="Unscheduled"
+        count={props.itinerary.unscheduled.length}
         open={props.isOpen}
         onToggle={props.onToggleOpen}
         headingLevel="h3"
