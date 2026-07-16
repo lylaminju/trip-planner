@@ -153,7 +153,7 @@ export function LandingRouteDetailsToggle({ active }: { active: boolean }) {
       title={`${active ? "Hide" : "Show"} route segments`}
       type="button"
     >
-      <span>Route details</span>
+      <span>Route legs</span>
       <span className="route-segment-switch-track" aria-hidden="true">
         <span className="route-segment-switch-knob" />
       </span>
