@@ -276,7 +276,14 @@ describe("PlaceRows", () => {
     const visitRowRule = cssRule(css, ".visit-row");
     const slotRule = cssRule(css, ".visit-time-slot");
     const titleLineRule = cssRule(css, ".visit-row-title-line");
-    const markerRule = cssRule(css, ".visit-row-content .place-marker-label");
+    const markerOverlayRule = cssRule(
+      css,
+      ".visit-thumb-frame .place-marker-label",
+    );
+    const markerInlineRule = cssRule(
+      css,
+      ".visit-row-title-line .place-marker-label",
+    );
     const visitPlaceMainRule = cssRule(css, ".place-main.visit-place-main");
     const visitPlaceTitleRule = cssRule(
       css,
@@ -318,7 +325,8 @@ describe("PlaceRows", () => {
     expect(visitRowRule).toContain("align-items: center;");
     expect(titleLineRule).toContain("align-items: center;");
     expect(titleLineRule).toContain("gap: 4px;");
-    expect(markerRule).toContain("margin-top: 0;");
+    expect(markerOverlayRule).toContain("position: absolute;");
+    expect(markerInlineRule).toContain("flex: 0 0 18px;");
     expect(visitPlaceMainRule).toContain("padding: 0 4px 0 0;");
     expect(visitPlaceTitleRule).toContain("min-height: 24px;");
     expect(timeTextRule).toContain("font-size: 14px;");

@@ -145,7 +145,8 @@
   }
 
   .panel-expand-toggle,
-  .drag-handle {
+  .drag-handle,
+  .drag-handle-placeholder {
     display: none;
   }
 

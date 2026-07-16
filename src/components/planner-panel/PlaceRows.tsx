@@ -72,17 +72,28 @@ export function ItineraryItemRow(props: {
         canEdit={props.canEdit}
         onTimeChange={props.onTimeChange}
       />
-      <span className="visit-thumb" aria-hidden="true">
-        {props.item.place.image_url ? (
-          <img
-            className="visit-thumb-image"
-            src={props.item.place.image_url}
-            alt=""
-            title={props.item.place.image_credit ?? undefined}
-            loading="lazy"
-          />
-        ) : (
-          placeInitial(props.item.place.name)
+      <span className="visit-thumb-frame">
+        <span className="visit-thumb" aria-hidden="true">
+          {props.item.place.image_url ? (
+            <img
+              className="visit-thumb-image"
+              src={props.item.place.image_url}
+              alt=""
+              title={props.item.place.image_credit ?? undefined}
+              loading="lazy"
+            />
+          ) : (
+            placeInitial(props.item.place.name)
+          )}
+        </span>
+        {props.markerLabel && (
+          <span
+            className="place-marker-label"
+            style={{ backgroundColor: props.markerColor }}
+            aria-label={`Visit order ${props.markerLabel}`}
+          >
+            {props.markerLabel}
+          </span>
         )}
       </span>
       <span className="visit-row-content">
