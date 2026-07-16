@@ -5,9 +5,9 @@ import { useRef, useState } from "react";
 import { buildGoogleMapsDirectionsUrl } from "@/lib/maps-url";
 import type { Place, RouteSegment, TravelMode } from "@/lib/types";
 import {
+  ArrowUpRightIcon,
   BicyclingIcon,
   DrivingIcon,
-  ExternalLinkIcon,
   TransitIcon,
   WalkingIcon,
 } from "./Icons";
@@ -172,7 +172,7 @@ export function SegmentRow({
       </span>
       <span className="route-segment-actions">
         <a
-          className="small-button route-segment-map-link"
+          className="route-segment-map-link"
           href={url}
           target="_blank"
           rel="noopener noreferrer"
@@ -180,8 +180,8 @@ export function SegmentRow({
           aria-label="Open in Google Maps"
           title="Open in Google Maps"
         >
-          <ExternalLinkIcon />
-          <span className="route-segment-map-label">Open in Google Maps</span>
+          <span className="route-segment-map-label">Maps</span>
+          <ArrowUpRightIcon />
         </a>
       </span>
     </div>

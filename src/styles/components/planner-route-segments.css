@@ -109,11 +109,27 @@
 }
 
 .route-segment-map-link {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  display: inline-flex;
+  font-size: 12px;
+  gap: 3px;
+  padding: 0;
+  text-decoration: none;
   white-space: nowrap;
 }
 
-.route-segment-map-label {
-  display: none;
+.route-segment-map-link svg {
+  height: 13px;
+  width: 13px;
+}
+
+.route-segment-map-link:hover .route-segment-map-label,
+.route-segment-map-link:focus-visible .route-segment-map-label {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .route-mode-picker {
@@ -233,14 +249,6 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 120ms ease;
-  }
-
-  .route-segment-map-label {
-    display: inline;
-  }
-
-  .route-segment-map-link svg {
-    display: none;
   }
 
   .segment-row:hover .route-segment-actions,

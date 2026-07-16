@@ -232,6 +232,27 @@
   outline: none;
 }
 
+.places-dock-chevron {
+  color: var(--muted);
+  display: inline-flex;
+}
+
+.places-dock-chevron svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transform: rotate(0deg);
+  transition: transform 120ms ease;
+  width: 15px;
+}
+
+.places-dock-toggle[aria-expanded="true"] .places-dock-chevron svg {
+  transform: rotate(-90deg);
+}
+
 .places-tray-backdrop {
   background: var(--overlay-backdrop);
   border: 0;

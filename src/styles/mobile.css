@@ -99,20 +99,37 @@
   }
 
   .mobile-sheet-content {
-    overflow: hidden;
-  }
-
-  .planner-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
-  }
-
-  .places-dock {
-    height: calc(var(--places-dock-height) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  .planner-scroll {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
+
+  .planner-scroll .section-heading-row {
+    position: static;
+  }
+
   .places-tray {
-    bottom: calc(var(--places-dock-height) + env(safe-area-inset-bottom));
+    bottom: auto;
+    box-shadow: none;
+    left: auto;
+    overflow-y: visible;
+    position: static;
+    right: auto;
+    top: auto;
+  }
+
+  .places-tray-backdrop {
+    display: none;
+  }
+
+  .places-dock-toggle[aria-expanded="true"] .places-dock-chevron svg {
+    transform: rotate(90deg);
   }
 
   .map-selected-card {
@@ -225,6 +242,10 @@
     margin-top: 14px;
   }
 
+  .planner-scroll .section-block:first-child {
+    margin-top: 0;
+  }
+
   .section-block + .section-block {
     padding-top: 14px;
   }
@@ -298,6 +319,10 @@
 
   .route-duration {
     line-height: 1;
+  }
+
+  .route-segment-map-link {
+    min-height: 26px;
   }
 
   .date-place-picker {

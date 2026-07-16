@@ -1,9 +1,11 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 
+import { MOBILE_MEDIA_QUERY } from "@/lib/breakpoints";
 import type { ItineraryView, Place } from "@/lib/types";
 
+import { ChevronRightIcon } from "../Icons";
 import { PlaceListRow } from "./PlaceRows";
 import { getFirstItemIdForPlace } from "./drag-schedule";
 
@@ -29,6 +31,15 @@ export function PlacesSection(props: {
 }) {
   const trayId = "places-tray";
   const toggleTitle = `${props.isOpen ? "Hide" : "Show"} places list`;
+  const trayRef = useRef<HTMLDivElement>(null);
+
+  // On mobile the list expands inline below the dock, so reveal it when opened.
+  useEffect(() => {
+    if (!props.isOpen || typeof window === "undefined") return;
+    if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+
+    trayRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [props.isOpen]);
 
   function handleDockClick(event: MouseEvent<HTMLElement>) {
     if ((event.target as HTMLElement).closest("button")) {
@@ -40,6 +51,31 @@ export function PlacesSection(props: {
 
   return (
     <>
+      <section className="places-dock" onClick={handleDockClick}>
+        <button
+          type="button"
+          className="places-dock-toggle"
+          aria-expanded={props.isOpen}
+          aria-controls={trayId}
+          title={toggleTitle}
+          onClick={props.onToggleOpen}
+        >
+          <span className="places-dock-chevron" aria-hidden="true">
+            <ChevronRightIcon />
+          </span>
+          Places
+          <span className="section-toggle-count">({props.places.length})</span>
+        </button>
+        {props.canEdit && (
+          <button
+            type="button"
+            className="section-primary-action"
+            onClick={props.onAddPlace}
+          >
+            Add Place
+          </button>
+        )}
+      </section>
       {props.isOpen && (
         <button
           type="button"
@@ -49,7 +85,7 @@ export function PlacesSection(props: {
         />
       )}
       {props.isOpen && (
-        <div className="places-tray" id={trayId}>
+        <div className="places-tray" id={trayId} ref={trayRef}>
           <div className={`places-board ${props.isExpanded ? "expanded" : ""}`}>
             {props.places.length === 0 && (
               <p className="places-tray-empty-text">No places saved yet.</p>
@@ -102,28 +138,6 @@ export function PlacesSection(props: {
           </div>
         </div>
       )}
-      <section className="places-dock" onClick={handleDockClick}>
-        <button
-          type="button"
-          className="places-dock-toggle"
-          aria-expanded={props.isOpen}
-          aria-controls={trayId}
-          title={toggleTitle}
-          onClick={props.onToggleOpen}
-        >
-          Places
-          <span className="section-toggle-count">({props.places.length})</span>
-        </button>
-        {props.canEdit && (
-          <button
-            type="button"
-            className="section-primary-action"
-            onClick={props.onAddPlace}
-          >
-            Add Place
-          </button>
-        )}
-      </section>
     </>
   );
 }

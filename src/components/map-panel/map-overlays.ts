@@ -1,3 +1,4 @@
+import { MOBILE_MEDIA_QUERY } from "@/lib/breakpoints";
 import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
@@ -60,7 +61,7 @@ export function createMap(
   unscheduledPlaces: Place[],
 ): any {
   const googleMaps = window.google;
-  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  const isMobile = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
   const firstPlace = items[0]?.place ?? unscheduledPlaces[0] ?? null;
   const center = firstPlace
     ? { lat: firstPlace.latitude, lng: firstPlace.longitude }
@@ -333,6 +334,6 @@ export function shouldOffsetFocusForHalfSheet(
   return (
     state === "half" &&
     typeof window !== "undefined" &&
-    window.matchMedia("(max-width: 900px)").matches
+    window.matchMedia(MOBILE_MEDIA_QUERY).matches
   );
 }

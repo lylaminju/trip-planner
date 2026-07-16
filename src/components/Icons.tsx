@@ -257,6 +257,24 @@ export function ExternalLinkIcon() {
   );
 }
 
+export function ArrowUpRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      stroke="currentColor"
+      fill="none"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="7" y1="17" x2="17" y2="7" />
+      <polyline points="7 7 17 7 17 17" />
+    </svg>
+  );
+}
+
 export function BicyclingIcon() {
   return (
     <svg
