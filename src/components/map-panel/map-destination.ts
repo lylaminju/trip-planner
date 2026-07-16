@@ -1,7 +1,10 @@
 import type { DestinationFocus } from "@/lib/destination-options";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 
-import { shouldOffsetFocusForHalfSheet } from "./map-overlays";
+import {
+  panByHalfSheetOffset,
+  shouldOffsetFocusForHalfSheet,
+} from "./map-focus";
 
 // Frame the whole destination city/region using its catalog coordinates.
 export function focusMapOnDestination(
@@ -14,7 +17,7 @@ export function focusMapOnDestination(
 
   if (shouldOffsetFocusForHalfSheet(mobileSheetState)) {
     window.google?.maps?.event?.addListenerOnce?.(map, "idle", () => {
-      map.panBy(0, Math.round(window.innerHeight * 0.32));
+      panByHalfSheetOffset(map);
     });
   }
 }

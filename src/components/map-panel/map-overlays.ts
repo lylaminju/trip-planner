@@ -10,6 +10,10 @@ import type {
 } from "@/lib/types";
 
 import {
+  panByHalfSheetOffset,
+  shouldOffsetFocusForHalfSheet,
+} from "./map-focus";
+import {
   currentLocationMarkerContent,
   getInfoWindow,
   markerContent,
@@ -239,7 +243,7 @@ export function renderOverlays(input: {
       input.map.panTo(markerPositions[0]);
       input.map.setZoom?.(SINGLE_MARKER_INITIAL_ZOOM);
       if (shouldOffsetFocusForHalfSheet(input.mobileSheetState)) {
-        input.map.panBy(0, Math.round(window.innerHeight * 0.32));
+        panByHalfSheetOffset(input.map);
       }
       return;
     }
@@ -247,7 +251,7 @@ export function renderOverlays(input: {
     input.map.fitBounds(bounds, 48);
     if (shouldOffsetFocusForHalfSheet(input.mobileSheetState)) {
       window.google?.maps?.event?.addListenerOnce?.(input.map, "idle", () => {
-        input.map.panBy(0, Math.round(window.innerHeight * 0.32));
+        panByHalfSheetOffset(input.map);
       });
     }
   }
@@ -326,14 +330,4 @@ export function updateOverlaySelection(
       zIndex: active ? 3 : dateSelected ? 2 : 1,
     });
   }
-}
-
-export function shouldOffsetFocusForHalfSheet(
-  state: MobileSheetState,
-): boolean {
-  return (
-    state === "half" &&
-    typeof window !== "undefined" &&
-    window.matchMedia(MOBILE_MEDIA_QUERY).matches
-  );
 }
