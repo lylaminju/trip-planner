@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatItineraryDateHeading,
   formatPlaceRow,
+  placeInitial,
 } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
@@ -78,6 +79,8 @@ describe("formatPlaceRow", () => {
       longitude: -74,
       notes: null,
       links: [],
+      image_url: null,
+      image_credit: null,
       created_at: "2026-05-20 00:00:00",
       updated_at: "2026-05-20 00:00:00",
       visit_date: "2026-06-01",
@@ -106,6 +109,8 @@ describe("formatPlaceRow", () => {
       longitude: -74,
       notes: "Lawn and fountain",
       links: [],
+      image_url: null,
+      image_credit: null,
       created_at: "2026-05-20 00:00:00",
       updated_at: "2026-05-20 00:00:00",
     } as Place;
@@ -115,6 +120,29 @@ describe("formatPlaceRow", () => {
       detail: null,
       timePrefix: null,
     });
+  });
+});
+
+describe("placeInitial", () => {
+  it("uppercases the first letter", () => {
+    expect(placeInitial("bryant park")).toBe("B");
+  });
+
+  it("trims leading whitespace before taking the initial", () => {
+    expect(placeInitial("  central park")).toBe("C");
+  });
+
+  it("returns empty string for a blank name", () => {
+    expect(placeInitial("   ")).toBe("");
+  });
+
+  // Regression: charAt(0) split a leading emoji into a lone surrogate, which
+  // serializes to U+FFFD on the server but not the client, breaking hydration.
+  it("keeps a leading emoji whole instead of a lone surrogate", () => {
+    const initial = placeInitial("🚌 Flixbus New York Midtown");
+    expect(initial).toBe("🚌");
+    expect([...initial]).toHaveLength(1);
+    expect(initial.codePointAt(0)).toBe(0x1f68c);
   });
 });
 
@@ -142,6 +170,8 @@ function place(
     longitude: overrides.longitude ?? -74,
     notes: overrides.notes ?? null,
     links: overrides.links ?? [],
+    image_url: overrides.image_url ?? null,
+    image_credit: overrides.image_credit ?? null,
     created_at: overrides.created_at ?? "2026-05-20 00:00:00",
     updated_at: overrides.updated_at ?? "2026-05-20 00:00:00",
   };

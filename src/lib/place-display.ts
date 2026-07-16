@@ -31,6 +31,16 @@ export function formatPlaceRow(
   };
 }
 
+// First character used as the thumbnail fallback monogram. Destructuring a
+// string iterates by code point, so a leading emoji (a surrogate pair) stays
+// whole instead of being sliced into a lone surrogate — a lone surrogate
+// serializes to U+FFFD on the server but survives on the client, breaking
+// hydration.
+export function placeInitial(name: string): string {
+  const [first] = name.trim();
+  return (first ?? "").toUpperCase();
+}
+
 export function formatSchedule(item: ItineraryItem): string {
   if (item.visit_date && item.visit_time)
     return `${item.visit_date} ${item.visit_time}`;
