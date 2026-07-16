@@ -59,9 +59,9 @@
 }
 
 .app-header h1 {
-  font-family: var(--font-serif-stack);
   font-size: 25px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.15;
   margin: 0;
   min-width: 0;

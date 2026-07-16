@@ -278,7 +278,6 @@
 
 .place-main .place-name {
   color: inherit;
-  font-family: var(--font-serif-stack);
   font-size: 15px;
   font-weight: 600;
   min-width: 0;
@@ -294,7 +293,6 @@
   color: var(--text-soft);
   display: inline-flex;
   flex: 0 0 40px;
-  font-family: var(--font-serif-stack);
   font-size: 17px;
   font-weight: 600;
   height: 40px;

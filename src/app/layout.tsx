@@ -1,17 +1,11 @@
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import type { Metadata } from "next";
-import { Karla, Lora } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const karla = Karla({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-serif",
   display: "swap",
 });
 
@@ -26,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${karla.variable} ${lora.variable}`}>
+    <html lang="en" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

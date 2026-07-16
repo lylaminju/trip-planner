@@ -31,7 +31,6 @@
   color: var(--text-soft);
   display: inline-flex;
   flex: 0 0 96px;
-  font-family: var(--font-serif-stack);
   font-size: 36px;
   font-weight: 600;
   height: 96px;
@@ -56,7 +55,6 @@
 }
 
 .map-selected-card-name {
-  font-family: var(--font-serif-stack);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.25;

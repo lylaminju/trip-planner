@@ -74,7 +74,6 @@
 }
 
 .day-heading-text {
-  font-family: var(--font-serif-stack);
   font-size: 15px;
   font-weight: 600;
   min-width: 0;
