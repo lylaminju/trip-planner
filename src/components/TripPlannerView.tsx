@@ -110,6 +110,7 @@ type Props = {
     visitTime: string | null,
   ) => Promise<void>;
   onDeleteItineraryItem: (id: number) => Promise<void>;
+  onDeleteAllItineraryItems: () => Promise<void>;
   onUpdateSegmentMode: (id: number, mode: TravelMode) => Promise<void>;
   onToggleCurrentLocation: () => void;
   onCloseModal: () => void;
@@ -202,6 +203,13 @@ export function TripPlannerView(props: Props) {
           props.onDeleteItineraryItem(id).catch((reason) => {
             props.onSetError(
               errorMessage(reason, "Failed to delete itinerary item."),
+            );
+          })
+        }
+        onDeleteAllItems={() =>
+          props.onDeleteAllItineraryItems().catch((reason) => {
+            props.onSetError(
+              errorMessage(reason, "Failed to delete itinerary items."),
             );
           })
         }

@@ -108,6 +108,7 @@ function plannerPanelProps(overrides: {
     onScheduleItem: vi.fn(),
     onModeChange: vi.fn(),
     onDeleteItem: vi.fn(),
+    onDeleteAllItems: vi.fn(),
   };
 }
 

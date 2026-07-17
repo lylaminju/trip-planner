@@ -222,6 +222,15 @@ export async function deleteItineraryItem(
   if (count === 0) throw new ItineraryItemNotFoundError(id);
 }
 
+export async function deleteAllItineraryItems(tripId: number): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("itinerary_items")
+    .delete()
+    .eq("trip_id", tripId);
+
+  if (error) throwSupabaseError(error);
+}
+
 export async function updateRouteSegmentMode(
   tripId: number,
   id: number,

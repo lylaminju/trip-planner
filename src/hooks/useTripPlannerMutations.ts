@@ -3,6 +3,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { errorMessage } from "@/lib/error-message";
 import {
   createItineraryItemRequest,
+  deleteAllItineraryItemsRequest,
   deleteItineraryItemRequest,
   deletePlaceRequest,
   resolvePlaceRequest,
@@ -35,6 +36,7 @@ type TripPlannerMutationOptions = {
     itineraryItems: readonly ItineraryItem[],
   ) => void;
   clearDeletedItineraryItemSelection: (itemId: number) => void;
+  clearSelection: () => void;
 };
 
 export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
@@ -44,6 +46,8 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
   const [deletingItineraryItemIds, setDeletingItineraryItemIds] = useState<
     Set<number>
   >(() => new Set());
+  const [isDeletingAllItineraryItems, setIsDeletingAllItineraryItems] =
+    useState(false);
 
   async function resolvePlace(googleMapsUrl: string): Promise<ResolvedPlace> {
     return resolvePlaceRequest(options.tripId, googleMapsUrl);
@@ -171,6 +175,22 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     }
   }
 
+  async function deleteAllItineraryItems() {
+    if (!options.canEdit) return;
+    if (isDeletingAllItineraryItems) return;
+
+    setIsDeletingAllItineraryItems(true);
+    try {
+      options.setPlannerSnapshot(
+        await deleteAllItineraryItemsRequest(options.tripId),
+      );
+      options.clearSelection();
+      options.setError(null);
+    } finally {
+      setIsDeletingAllItineraryItems(false);
+    }
+  }
+
   async function updateSegmentMode(id: number, mode: TravelMode) {
     if (!options.canEdit) return;
     options.setPlannerSnapshot(
@@ -182,6 +202,7 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
   return {
     deletingPlaceIds,
     deletingItineraryItemIds,
+    isDeletingAllItineraryItems,
     resolvePlace,
     savePlace,
     saveItineraryItem,
@@ -190,6 +211,7 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     createItineraryItem,
     scheduleItineraryItem,
     deleteItineraryItem,
+    deleteAllItineraryItems,
     updateSegmentMode,
   };
 }

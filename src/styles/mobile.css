@@ -114,6 +114,10 @@
     position: static;
   }
 
+  .itineraries-clear-button {
+    opacity: 1;
+  }
+
   .places-tray {
     bottom: auto;
     box-shadow: none;

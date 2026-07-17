@@ -209,6 +209,15 @@ export function deleteItineraryItemRequest(
   );
 }
 
+export function deleteAllItineraryItemsRequest(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return plannerSnapshotRequest(`${tripApiBase(tripId)}/itinerary-items`, {
+    method: "DELETE",
+    fallbackError: "Failed to delete itinerary items.",
+  });
+}
+
 export function updateSegmentModeRequest(
   tripId: number,
   id: number,

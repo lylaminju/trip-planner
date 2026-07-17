@@ -10,6 +10,7 @@ import type {
   TravelMode,
 } from "@/lib/types";
 
+import { TrashIcon } from "../Icons";
 import { ItineraryDayBlock } from "./ItineraryDayBlock";
 import { SectionToggle } from "./SectionToggle";
 import { UnscheduledBlock } from "./UnscheduledBlock";
@@ -58,13 +59,14 @@ type Props = {
   onEditItem: (item: ItineraryItem) => void;
   onDelete: (id: number) => void;
   onDeleteItem: (id: number) => void;
+  onDeleteAllItems: () => void;
   onScheduleItem: (
     id: number,
     visitDate: string | null,
     visitTime: string | null,
   ) => void;
   onModeChange: (id: number, mode: TravelMode) => void;
-  onConfirmDeletion: (targetLabel: string) => boolean;
+  onConfirmDeletion: (targetLabel: string, note?: string) => boolean;
 };
 
 export function ItinerarySection(props: Props) {
@@ -82,6 +84,22 @@ export function ItinerarySection(props: Props) {
     }
   }
 
+  function deleteAllItems() {
+    if (
+      !props.onConfirmDeletion(
+        "all itinerary items",
+        "Your place list stays intact.",
+      )
+    ) {
+      return;
+    }
+    props.onDeleteAllItems();
+  }
+
+  const hasScheduledItems = props.itinerary.days.some(
+    (day) => day.items.length > 0,
+  );
+
   return (
     <section className="section-block">
       <div className="section-heading-row">
@@ -90,6 +108,19 @@ export function ItinerarySection(props: Props) {
           open={props.isOpen}
           onToggle={props.onToggleOpen}
           compact
+          titleAction={
+            props.canEdit && hasScheduledItems ? (
+              <button
+                type="button"
+                className="itineraries-clear-button"
+                aria-label="Delete all itinerary items"
+                title="Delete all itinerary items"
+                onClick={deleteAllItems}
+              >
+                <TrashIcon />
+              </button>
+            ) : undefined
+          }
         />
         <div className="section-heading-actions">
           <details className="export-menu">

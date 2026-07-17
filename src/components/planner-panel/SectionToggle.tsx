@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { CollapseToggleButton } from "../CollapseToggleButton";
 
 export function SectionToggle(props: {
@@ -9,6 +11,7 @@ export function SectionToggle(props: {
   count?: number;
   headingLevel?: "h2" | "h3";
   compact?: boolean;
+  titleAction?: ReactNode;
 }) {
   const HeadingTag = props.headingLevel ?? "h2";
 
@@ -27,6 +30,7 @@ export function SectionToggle(props: {
           <span className="section-toggle-count">({props.count})</span>
         )}
       </HeadingTag>
+      {props.titleAction}
     </div>
   );
 }

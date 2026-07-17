@@ -83,6 +83,7 @@ type Props = {
   ) => void;
   onModeChange: (id: number, mode: TravelMode) => void;
   onDeleteItem: (id: number) => void;
+  onDeleteAllItems: () => void;
 };
 
 type PickerState = {
@@ -142,9 +143,10 @@ export function PlannerPanel(props: Props) {
     props.onClearSelection();
   }
 
-  function confirmDeletion(targetLabel: string): boolean {
+  function confirmDeletion(targetLabel: string, note?: string): boolean {
+    const detail = note ? `${note}\n\n` : "";
     return window.confirm(
-      `Delete ${targetLabel}?\n\nThis action cannot be restored.`,
+      `Delete ${targetLabel}?\n\n${detail}This action cannot be restored.`,
     );
   }
 
@@ -307,6 +309,7 @@ export function PlannerPanel(props: Props) {
             onEditItem={props.onEditItem}
             onDelete={props.onDelete}
             onDeleteItem={props.onDeleteItem}
+            onDeleteAllItems={props.onDeleteAllItems}
             onScheduleItem={props.onScheduleItem}
             onModeChange={props.onModeChange}
             onConfirmDeletion={confirmDeletion}

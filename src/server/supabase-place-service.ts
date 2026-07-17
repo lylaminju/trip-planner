@@ -12,6 +12,7 @@ import type {
   PlaceUpdate,
 } from "@/server/place-inputs";
 import {
+  deleteAllItineraryItems,
   deleteItineraryItem,
   deletePlace,
   getPlaceById as getStoredPlaceById,
@@ -130,6 +131,12 @@ export async function removeItineraryItem(
   id: number,
 ): Promise<PlannerSnapshot> {
   return runPlannerMutation(tripId, () => deleteItineraryItem(tripId, id));
+}
+
+export async function removeAllItineraryItems(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return runPlannerMutation(tripId, () => deleteAllItineraryItems(tripId));
 }
 
 export async function setRouteSegmentMode(

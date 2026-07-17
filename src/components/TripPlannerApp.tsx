@@ -194,6 +194,7 @@ export function TripPlannerApp({
     clearDeletedPlaceSelection: selection.clearDeletedPlaceSelection,
     clearDeletedItineraryItemSelection:
       selection.clearDeletedItineraryItemSelection,
+    clearSelection: selection.clearSelection,
   });
   const reload = useCallback(async () => {
     const next = await loadTripPlannerInitialData(tripId);
@@ -390,6 +391,7 @@ export function TripPlannerApp({
         onSchedulePlace={plannerMutations.schedulePlace}
         onScheduleItineraryItem={plannerMutations.scheduleItineraryItem}
         onDeleteItineraryItem={plannerMutations.deleteItineraryItem}
+        onDeleteAllItineraryItems={plannerMutations.deleteAllItineraryItems}
         onUpdateSegmentMode={plannerMutations.updateSegmentMode}
         onToggleCurrentLocation={toggleCurrentLocation}
         onCloseModal={closeModal}

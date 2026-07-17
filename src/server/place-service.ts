@@ -202,6 +202,20 @@ export async function removeItineraryItemForRequest(
   return removeItineraryItem(tripId, id);
 }
 
+export async function removeAllItineraryItems(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.removeAllItineraryItems(tripId);
+}
+
+export async function removeAllItineraryItemsForRequest(
+  tripId: number,
+  userId: string,
+): Promise<PlannerSnapshot> {
+  await requireTripRole(tripId, userId, "owner");
+  return removeAllItineraryItems(tripId);
+}
+
 export async function setRouteSegmentMode(
   tripId: number,
   id: number,

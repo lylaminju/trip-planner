@@ -164,6 +164,7 @@ function itinerarySectionMarkup(
       onEditItem: vi.fn(),
       onDelete: vi.fn(),
       onDeleteItem: vi.fn(),
+      onDeleteAllItems: vi.fn(),
       onScheduleItem: vi.fn(),
       onModeChange: vi.fn(),
       onConfirmDeletion: vi.fn(),
