@@ -169,9 +169,6 @@ export function TripMembersModal(props: Props) {
               onRoleChange={setRole}
             />
           </form>
-          <p className="trip-members-role-hint">
-            Owners can edit the trip. Viewers can only browse it.
-          </p>
         </div>
 
         <footer className="modal-actions trip-form-actions trip-create-footer">

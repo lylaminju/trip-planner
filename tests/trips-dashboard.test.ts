@@ -93,9 +93,8 @@ describe("TripsDashboard", () => {
     expect(markup).not.toContain('type="date"');
     expect(markup).toContain("Invite by email (optional)");
     expect(markup).toContain('name="email"');
-    expect(markup).toContain('name="role"');
-    expect(markup).toContain('value="viewer"');
-    expect(markup).toContain('value="owner"');
+    // Role picker stays hidden until the email resolves to an account.
+    expect(markup).not.toContain('name="role"');
     expect(markup).toContain("Cancel");
     expect(markup.indexOf("Cancel")).toBeLessThan(
       markup.lastIndexOf("Create trip"),

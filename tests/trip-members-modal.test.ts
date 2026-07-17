@@ -37,15 +37,20 @@ function renderModal(
 }
 
 describe("TripMembersModal", () => {
-  it("renders an invite form with email field, role choices, and submit", () => {
+  it("renders an invite form with an email field and submit", () => {
     const markup = renderModal();
 
     expect(markup).toContain('name="email"');
     expect(markup).toContain('type="email"');
-    expect(markup).toContain('name="role"');
-    expect(markup).toContain('value="viewer"');
-    expect(markup).toContain('value="owner"');
     expect(markup).toContain('type="submit"');
+  });
+
+  it("hides the role picker until an account is confirmed", () => {
+    // The role radiogroup only renders once the email resolves to an account,
+    // so the initial (unresolved) render must not expose it.
+    const markup = renderModal();
+
+    expect(markup).not.toContain('name="role"');
   });
 
   it("lists every member with a remove action only for other members", () => {

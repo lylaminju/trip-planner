@@ -33,6 +33,8 @@ type Props = {
 
 export function TripInviteFields(props: Props) {
   const lookup = useMemberEmailLookup(props.email);
+  // Only ask for a role once we have a confirmed account to assign it to.
+  const showRole = lookup.status === "found";
 
   return (
     <>
@@ -54,32 +56,39 @@ export function TripInviteFields(props: Props) {
           {lookupHintText(lookup)}
         </span>
       </label>
-      <div
-        aria-labelledby="trip-members-role-label"
-        className="trip-create-field trip-members-invite-role"
-        role="radiogroup"
-      >
-        <span
-          className="trip-create-field-label"
-          id="trip-members-role-label"
+      {showRole && (
+        <div
+          aria-labelledby="trip-members-role-label"
+          className="trip-create-field trip-members-invite-role"
+          role="radiogroup"
         >
-          Role
-        </span>
-        <div className="trip-members-role-options">
-          {ROLE_OPTIONS.map((option) => (
-            <label key={option.value} className="trip-members-role-option">
-              <input
-                type="radio"
-                name="role"
-                value={option.value}
-                checked={props.role === option.value}
-                onChange={() => props.onRoleChange(option.value)}
-              />
-              <span>{option.label}</span>
-            </label>
-          ))}
+          <span
+            className="trip-create-field-label"
+            id="trip-members-role-label"
+          >
+            Role
+          </span>
+          <div className="trip-members-role-options">
+            {ROLE_OPTIONS.map((option) => (
+              <label key={option.value} className="trip-members-role-option">
+                <input
+                  type="radio"
+                  name="role"
+                  value={option.value}
+                  checked={props.role === option.value}
+                  onChange={() => props.onRoleChange(option.value)}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+      {showRole && (
+        <p className="trip-members-role-hint">
+          Owners can edit the trip. Viewers can only browse it.
+        </p>
+      )}
     </>
   );
 }
