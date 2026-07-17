@@ -106,6 +106,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onSetError: vi.fn(),
     onCloseAiPlanningWizard: vi.fn(),
     onCreateAiItinerary: vi.fn().mockResolvedValue(undefined),
+    onRetryAiPlanningLoad: vi.fn(),
     ...overrides,
   };
 }

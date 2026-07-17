@@ -49,6 +49,7 @@ type Props = {
   isGenerating: boolean;
   onCancel: () => void;
   onCreateItinerary: (draft: AiPlanningGenerationInput) => void | Promise<void>;
+  onRetryLoad: () => void;
 };
 
 const STEP_META = [
@@ -110,7 +111,7 @@ export function AiPlanningWizard(props: Props) {
   const setup = props.setup;
   const formRef = useRef<HTMLFormElement>(null);
   const showStepForm =
-    !props.isLoading && !props.error && !!props.setup && !props.isGenerating;
+    !props.isLoading && !!props.setup && !props.isGenerating;
 
   // ModalShell doesn't trap focus, so on open focus sits on the body and
   // Enter never reaches the form. Pull focus into the form once it's shown so
@@ -242,10 +243,7 @@ export function AiPlanningWizard(props: Props) {
         className="modal ai-planning-modal"
         role="dialog"
       >
-        {(props.isLoading ||
-          props.error ||
-          props.isGenerating ||
-          !props.setup) && (
+        {(props.isLoading || props.isGenerating || !props.setup) && (
           <button
             type="button"
             className="ai-planning-close"
@@ -262,16 +260,22 @@ export function AiPlanningWizard(props: Props) {
           </div>
         )}
 
-        {!props.isLoading && props.error && (
+        {!props.isLoading && props.error && !props.setup && (
           <div className="ai-planning-status ai-planning-status-error">
             <p className="error-text" role="alert">
               {props.error}
             </p>
+            <button
+              type="button"
+              className="ai-wizard-primary"
+              onClick={props.onRetryLoad}
+            >
+              Try again
+            </button>
           </div>
         )}
 
         {!props.isLoading &&
-          !props.error &&
           props.setup &&
           (props.isGenerating ? (
             <AiGenerationScreen
@@ -459,6 +463,12 @@ export function AiPlanningWizard(props: Props) {
                   </div>
                 </div>
 
+                {isReviewStep && props.error && (
+                  <p className="ai-wizard-error" role="alert">
+                    {props.error}
+                  </p>
+                )}
+
                 <footer className="ai-wizard-footer">
                   <button
                     type="button"
@@ -492,7 +502,11 @@ export function AiPlanningWizard(props: Props) {
                           <MagicWandIcon />
                         </span>
                       )}
-                      {isReviewStep ? AI_CREATE_ITINERARY_LABEL : "Next"}
+                      {isReviewStep
+                        ? props.error
+                          ? "Try again"
+                          : AI_CREATE_ITINERARY_LABEL
+                        : "Next"}
                     </button>
                     <span className="ai-wizard-enter-hint" aria-hidden="true">
                       press <strong>Enter ↵</strong>

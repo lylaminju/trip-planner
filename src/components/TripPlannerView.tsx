@@ -128,6 +128,7 @@ type Props = {
   onSetError: (message: string | null) => void;
   onCloseAiPlanningWizard: () => void;
   onCreateAiItinerary: (input: AiPlanningGenerationInput) => Promise<void>;
+  onRetryAiPlanningLoad: () => void;
 };
 
 export function TripPlannerView(props: Props) {
@@ -293,6 +294,7 @@ export function TripPlannerView(props: Props) {
           isGenerating={props.aiPlanningWizard.isGenerating}
           onCancel={props.onCloseAiPlanningWizard}
           onCreateItinerary={props.onCreateAiItinerary}
+          onRetryLoad={props.onRetryAiPlanningLoad}
         />
       )}
     </main>

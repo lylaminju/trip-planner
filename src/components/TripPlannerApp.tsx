@@ -401,6 +401,7 @@ export function TripPlannerApp({
         onSubmitEditTrip={submitEditTrip}
         onSetError={setError}
         onCloseAiPlanningWizard={closeAiPlanningWizard}
+        onRetryAiPlanningLoad={openAiPlanningSetup}
         onCreateAiItinerary={createAiItineraryFromWizard}
       />
     </>

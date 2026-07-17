@@ -23,6 +23,7 @@ describe("AiPlanningWizard", () => {
         isGenerating: false,
         onCancel: vi.fn(),
         onCreateItinerary: vi.fn(),
+        onRetryLoad: vi.fn(),
       }),
     );
 
@@ -40,6 +41,7 @@ describe("AiPlanningWizard", () => {
         isGenerating: false,
         onCancel: vi.fn(),
         onCreateItinerary: vi.fn(),
+        onRetryLoad: vi.fn(),
       }),
     );
 
@@ -69,6 +71,7 @@ describe("AiPlanningWizard", () => {
         isGenerating: true,
         onCancel: vi.fn(),
         onCreateItinerary: vi.fn(),
+        onRetryLoad: vi.fn(),
       }),
     );
 
@@ -79,6 +82,42 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Building your New York City itinerary");
     expect(markup).not.toContain("Step 1 of 6");
     expect(markup).not.toContain("How full should each day feel?");
+  });
+
+  it("keeps the wizard form usable when generation fails so preferences are preserved", () => {
+    const markup = renderToStaticMarkup(
+      createElement(AiPlanningWizard, {
+        setup: setup(),
+        isLoading: false,
+        error: "The AI planner couldn't create an itinerary.",
+        isGenerating: false,
+        onCancel: vi.fn(),
+        onCreateItinerary: vi.fn(),
+        onRetryLoad: vi.fn(),
+      }),
+    );
+
+    // Form stays mounted (not a dead-end error screen) so the draft survives.
+    expect(markup).toContain("Step 1 of 6");
+    expect(markup).toContain("How full should each day feel?");
+    expect(markup).not.toContain("ai-planning-status-error");
+  });
+
+  it("offers a retry action when setup fails to load", () => {
+    const markup = renderToStaticMarkup(
+      createElement(AiPlanningWizard, {
+        setup: null,
+        isLoading: false,
+        error: "Failed to load AI planning setup.",
+        isGenerating: false,
+        onCancel: vi.fn(),
+        onCreateItinerary: vi.fn(),
+        onRetryLoad: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("Failed to load AI planning setup.");
+    expect(markup).toContain("Try again");
   });
 
   it("renders an optional lodging Google Maps URL on the logistics step", () => {
