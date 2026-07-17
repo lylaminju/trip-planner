@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildBlurb,
+  buildSearchQuery,
   extractImageCredit,
   extractPageSummary,
-  pickSearchTitle,
+  pickMatchingSearchTitle,
+  slugToPlaceName,
   stripHtml,
   stripPronunciationGlosses,
+  titleMatchesCandidate,
 } from "../scripts/backfill-candidate-images.mjs";
 
 describe("Wikimedia response parsing", () => {
@@ -85,12 +88,27 @@ describe("Wikimedia response parsing", () => {
     expect(extractImageCredit(null)).toBeNull();
   });
 
-  it("picks the top search title and handles empty results", () => {
+  it("picks the first search result that plausibly names the candidate", () => {
+    // Skips an unrelated higher-ranked hit and takes the matching one below it.
     expect(
-      pickSearchTitle({ query: { search: [{ title: "Þingvellir" }, { title: "x" }] } }),
-    ).toBe("Þingvellir");
-    expect(pickSearchTitle({ query: { search: [] } })).toBeNull();
-    expect(pickSearchTitle({})).toBeNull();
+      pickMatchingSearchTitle(
+        {
+          query: {
+            search: [{ title: "Banff Sunshine Village" }, { title: "Mount Norquay" }],
+          },
+        },
+        "Mount Norquay Lookout",
+      ),
+    ).toBe("Mount Norquay");
+    // No result matches: fail closed rather than grab the top hit.
+    expect(
+      pickMatchingSearchTitle(
+        { query: { search: [{ title: "Dragon Fli Empire" }] } },
+        "Banff Avenue",
+      ),
+    ).toBeNull();
+    expect(pickMatchingSearchTitle({ query: { search: [] } }, "x")).toBeNull();
+    expect(pickMatchingSearchTitle({}, "x")).toBeNull();
   });
 
   it("keeps short blurbs whole and truncates long ones at a sentence boundary", () => {
@@ -154,6 +172,104 @@ describe("Wikimedia response parsing", () => {
       );
     }
     expect(stripPronunciationGlosses(null)).toBe("");
+  });
+
+  it("anchors the search query with the destination place name", () => {
+    expect(buildSearchQuery("Banff Avenue", "banff-national-park")).toBe(
+      "Banff Avenue Banff National Park",
+    );
+    expect(buildSearchQuery("Gullfoss", "iceland")).toBe("Gullfoss Iceland");
+    // No slug context: fall back to the bare name.
+    expect(buildSearchQuery("Gullfoss", null)).toBe("Gullfoss");
+    expect(buildSearchQuery("Gullfoss", "")).toBe("Gullfoss");
+  });
+
+  it("humanizes a destination slug into a place name", () => {
+    expect(slugToPlaceName("banff-national-park")).toBe("Banff National Park");
+    expect(slugToPlaceName("iceland")).toBe("Iceland");
+    expect(slugToPlaceName("")).toBe("");
+    expect(slugToPlaceName(null)).toBe("");
+  });
+
+  it("accepts a resolved title that shares the candidate's distinctive words", () => {
+    expect(titleMatchesCandidate("Banff Avenue", "Banff Avenue")).toBe(true);
+    // Partial but clearly the same subject.
+    expect(
+      titleMatchesCandidate("Banff Gondola and Sulphur Mountain", "Sulphur Mountain"),
+    ).toBe(true);
+    expect(titleMatchesCandidate("Peyto Lake Viewpoint", "Peyto Lake")).toBe(true);
+  });
+
+  it("rejects an unrelated top hit for a generically named candidate", () => {
+    // Real regressions seen in the Banff data set: the top search hit was a
+    // different subject that happened to rank first.
+    expect(
+      titleMatchesCandidate("Banff Avenue", "Dragon Fli Empire"),
+    ).toBe(false);
+    expect(
+      titleMatchesCandidate("Hoodoos Viewpoint", "Red Rock Coulee"),
+    ).toBe(false);
+    expect(
+      titleMatchesCandidate("Mount Norquay Lookout", "Banff Sunshine Village"),
+    ).toBe(false);
+    // Sharing only a generic geography word ("Tunnel") is not enough.
+    expect(
+      titleMatchesCandidate("Tunnel Mountain Trail", "Sideling Hill Tunnel"),
+    ).toBe(false);
+  });
+
+  it("does not match on a shared generic type word alone", () => {
+    // Same-type confusions must be rejected: only "Mount"/"Lake" is shared.
+    expect(titleMatchesCandidate("Mount Norquay Lookout", "Mount Kerkeslin")).toBe(
+      false,
+    );
+    expect(titleMatchesCandidate("Two Jack Lake", "Lake Minnewanka")).toBe(false);
+    // ...but the real distinctive word ("Norquay") is accepted.
+    expect(titleMatchesCandidate("Mount Norquay Lookout", "Mount Norquay")).toBe(
+      true,
+    );
+  });
+
+  it("treats the destination's own name as non-distinctive", () => {
+    // Within Banff, "Banff" is not distinguishing, so the broad park article
+    // must not win over the actual subject ("Sulphur Mountain").
+    expect(
+      titleMatchesCandidate(
+        "Banff Gondola and Sulphur Mountain",
+        "Banff National Park",
+        "banff-national-park",
+      ),
+    ).toBe(false);
+    expect(
+      titleMatchesCandidate(
+        "Banff Gondola and Sulphur Mountain",
+        "Sulphur Mountain",
+        "banff-national-park",
+      ),
+    ).toBe(true);
+    // A name anchored only by the destination word still resolves via overlap.
+    expect(
+      titleMatchesCandidate("Banff Avenue", "Banff", "banff-national-park"),
+    ).toBe(true);
+  });
+
+  it("falls back to word overlap when the name has no distinctive word", () => {
+    // Every token is a generic place word, so overlap is the only signal.
+    expect(
+      titleMatchesCandidate(
+        "Cave and Basin National Historic Site",
+        "Cave and Basin National Historic Site",
+      ),
+    ).toBe(true);
+    expect(
+      titleMatchesCandidate("Cave and Basin National Historic Site", "Mount Aberdeen"),
+    ).toBe(false);
+  });
+
+  it("fails closed on empty or non-string titles", () => {
+    expect(titleMatchesCandidate("Banff Avenue", "")).toBe(false);
+    expect(titleMatchesCandidate("", "Banff Avenue")).toBe(false);
+    expect(titleMatchesCandidate("Banff Avenue", null)).toBe(false);
   });
 
   it("buildBlurb applies gloss stripping before truncation", () => {
