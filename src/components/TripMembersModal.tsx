@@ -12,14 +12,9 @@ import { DeleteLoadingSpinner } from "./DeleteLoadingSpinner";
 import { CloseIcon, TrashIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { memberDisplayName } from "./TripMemberBadges";
+import { DEFAULT_INVITE_ROLE, TripInviteFields } from "./TripInviteFields";
 
-const DEFAULT_INVITE_ROLE: TripRole = "viewer";
 const INVITE_FORM_ID = "trip-members-invite-form";
-
-const ROLE_OPTIONS: { value: TripRole; label: string }[] = [
-  { value: "viewer", label: "Viewer" },
-  { value: "owner", label: "Owner" },
-];
 
 type Props = {
   tripId: number;
@@ -165,44 +160,14 @@ export function TripMembersModal(props: Props) {
             id={INVITE_FORM_ID}
             onSubmit={submitInvite}
           >
-            <label className="trip-create-field trip-members-invite-email">
-              <span className="trip-create-field-label">Invite by email</span>
-              <input
-                autoComplete="off"
-                name="email"
-                type="email"
-                placeholder="friend@example.com"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.currentTarget.value)}
-              />
-            </label>
-            <div
-              aria-labelledby="trip-members-role-label"
-              className="trip-create-field trip-members-invite-role"
-              role="radiogroup"
-            >
-              <span
-                className="trip-create-field-label"
-                id="trip-members-role-label"
-              >
-                Role
-              </span>
-              <div className="trip-members-role-options">
-                {ROLE_OPTIONS.map((option) => (
-                  <label key={option.value} className="trip-members-role-option">
-                    <input
-                      type="radio"
-                      name="role"
-                      value={option.value}
-                      checked={role === option.value}
-                      onChange={() => setRole(option.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            <TripInviteFields
+              email={email}
+              role={role}
+              emailLabel="Invite by email"
+              emailRequired
+              onEmailChange={setEmail}
+              onRoleChange={setRole}
+            />
           </form>
           <p className="trip-members-role-hint">
             Owners can edit the trip. Viewers can only browse it.

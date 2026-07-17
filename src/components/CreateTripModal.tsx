@@ -4,10 +4,13 @@ import type { SubmitEvent } from "react";
 
 import { countryLabelForDestination } from "@/lib/destination-options";
 
+import type { TripRole } from "@/lib/types";
+
 import { DestinationCombobox } from "./DestinationCombobox";
 import { CloseIcon, MapPinIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { TripDateRangePicker } from "./TripDateRangePicker";
+import { TripInviteFields, type TripInviteDraft } from "./TripInviteFields";
 import {
   tripDestinationFormChange,
   updateTripFormField,
@@ -18,9 +21,11 @@ type Props = {
   coverImage: string;
   error: string | null;
   form: TripFormState;
+  invite: TripInviteDraft;
   isSaving: boolean;
   onCancel: () => void;
   onChange: (form: TripFormState) => void;
+  onInviteChange: (invite: TripInviteDraft) => void;
   onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 };
 
@@ -133,6 +138,24 @@ export function CreateTripModal(props: Props) {
               }
             />
           </div>
+
+          <div className="trip-members-invite-fields">
+            <TripInviteFields
+              email={props.invite.email}
+              role={props.invite.role}
+              emailLabel="Invite by email (optional)"
+              emailRequired={false}
+              onEmailChange={(email) =>
+                props.onInviteChange({ ...props.invite, email })
+              }
+              onRoleChange={(role: TripRole) =>
+                props.onInviteChange({ ...props.invite, role })
+              }
+            />
+          </div>
+          <p className="trip-members-role-hint">
+            Owners can edit the trip. Viewers can only browse it.
+          </p>
         </div>
 
         <footer className="modal-actions trip-form-actions trip-create-footer">

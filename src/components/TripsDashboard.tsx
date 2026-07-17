@@ -8,9 +8,11 @@ import { logoutRequest } from "@/lib/planner-api";
 import { groupTripsByTiming } from "@/lib/trip-classification";
 import { errorMessage } from "@/lib/error-message";
 import { isTripOngoing } from "@/lib/trip-classification";
+import { addTripMember } from "@/lib/trip-members-api";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
 import { CreateTripModal } from "./CreateTripModal";
+import { emptyTripInvite, type TripInviteDraft } from "./TripInviteFields";
 import { FeaturedTripCard } from "./FeaturedTripCard";
 import { FoldedMapIcon } from "./Icons";
 import { TripEditForm } from "./TripEditForm";
@@ -53,6 +55,7 @@ export function TripsDashboard(props: {
   const router = useRouter();
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [form, setForm] = useState<TripFormState>(() => emptyTripForm());
+  const [invite, setInvite] = useState<TripInviteDraft>(() => emptyTripInvite());
   const [editing, setEditing] = useState<{
     tripId: number;
     form: TripFormState;
@@ -115,10 +118,31 @@ export function TripsDashboard(props: {
 
     try {
       const trip = await createTrip(tripMetadataPayloadFromForm(form));
-      setTrips((current) => [...current, trip]);
+      const inviteEmail = invite.email.trim();
+      let created = trip;
+      let inviteError: string | null = null;
+      if (inviteEmail) {
+        try {
+          created = {
+            ...trip,
+            members: await addTripMember(trip.id, inviteEmail, invite.role),
+          };
+        } catch (reason) {
+          inviteError = errorMessage(
+            reason,
+            "Trip created, but we couldn't invite that member.",
+          );
+        }
+      }
+
+      setTrips((current) => [...current, created]);
       resetCreateForm();
       setIsCreateModalOpen(false);
-      router.push(`/trips/${trip.id}`);
+      if (inviteError) {
+        setError(inviteError);
+      } else {
+        router.push(`/trips/${trip.id}`);
+      }
     } catch (reason) {
       setError(errorMessage(reason, "Failed to create trip."));
     } finally {
@@ -371,9 +395,11 @@ export function TripsDashboard(props: {
           coverImage={createCoverImage}
           error={error}
           form={form}
+          invite={invite}
           isSaving={isSaving}
           onCancel={closeCreateModal}
           onChange={setForm}
+          onInviteChange={setInvite}
           onSubmit={submitCreate}
         />
       )}
@@ -389,6 +415,7 @@ export function TripsDashboard(props: {
 
   function resetCreateForm() {
     setForm(emptyTripForm());
+    setInvite(emptyTripInvite());
   }
 }
 

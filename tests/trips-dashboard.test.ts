@@ -65,11 +65,13 @@ describe("TripsDashboard", () => {
           startDate: "",
           endDate: "",
         },
+        invite: { email: "", role: "viewer" },
         coverImage: "/city-covers/toronto.webp",
         error: null,
         isSaving: false,
         onCancel: vi.fn(),
         onChange: vi.fn(),
+        onInviteChange: vi.fn(),
         onSubmit: vi.fn(),
       }),
     );
@@ -89,6 +91,11 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('class="trip-date-range-picker"');
     expect(markup).toContain("Add your dates");
     expect(markup).not.toContain('type="date"');
+    expect(markup).toContain("Invite by email (optional)");
+    expect(markup).toContain('name="email"');
+    expect(markup).toContain('name="role"');
+    expect(markup).toContain('value="viewer"');
+    expect(markup).toContain('value="owner"');
     expect(markup).toContain("Cancel");
     expect(markup.indexOf("Cancel")).toBeLessThan(
       markup.lastIndexOf("Create trip"),
