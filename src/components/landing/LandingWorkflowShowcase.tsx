@@ -3,10 +3,10 @@
 import { useState, type ReactNode } from "react";
 
 import {
+  ArrowUpRightIcon,
   BicyclingIcon,
   ChevronRightIcon,
   DrivingIcon,
-  ExternalLinkIcon,
   TransitIcon,
   WalkingIcon,
 } from "@/components/Icons";
@@ -314,6 +314,9 @@ export function LandingWorkflowRouteTimeVisual() {
             title="Travel mode: Walking"
           >
             <WalkingIcon />
+            <span className="route-mode-label" aria-hidden="true">
+              Walk
+            </span>
             <span className="route-mode-chevron" aria-hidden="true" />
           </span>
           <div className="route-mode-menu landing-workflow-route-mode-menu">
@@ -324,12 +327,15 @@ export function LandingWorkflowRouteTimeVisual() {
           </div>
         </div>
         <span className="route-duration">12 min</span>
-        <span
-          className="small-button landing-workflow-google-route-link"
-          aria-label="Open route in Google Maps"
-          title="Open route in Google Maps"
-        >
-          <ExternalLinkIcon />
+        <span className="route-segment-actions">
+          <span
+            className="route-segment-map-link"
+            aria-label="Open route in Google Maps"
+            title="Open route in Google Maps"
+          >
+            <span className="route-segment-map-label">Maps</span>
+            <ArrowUpRightIcon />
+          </span>
         </span>
       </div>
       <LandingItineraryStop

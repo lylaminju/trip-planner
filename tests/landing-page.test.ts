@@ -237,7 +237,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("Bicycling");
     expect(markup).toContain("Driving");
     expect(markup).toContain("12 min");
-    expect(markup).toContain("landing-workflow-google-route-link");
+    expect(markup).toContain("route-segment-map-link");
     expect(markup).toContain("Open route in Google Maps");
     expect(markup).toContain("Lunch spot");
 
@@ -316,8 +316,10 @@ describe("LandingPage", () => {
     expect(markup).toContain("route-duration");
     expect(markup).toContain('aria-label="Travel mode: Walking"');
     expect(markup).toContain(
-      'class="small-button landing-route-map-link" aria-label="Open route in Google Maps"',
+      'class="route-segment-map-link" aria-label="Open route in Google Maps"',
     );
+    expect(markup).toContain("route-segment-actions");
+    expect(markup).toContain("route-segment-map-label");
   });
 
   it("renders route details toggle states with the product switch structure", () => {

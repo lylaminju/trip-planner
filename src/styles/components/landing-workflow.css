@@ -320,12 +320,6 @@
   z-index: 3;
 }
 
-.landing-workflow-google-route-link {
-  flex: 0 0 auto;
-  height: 30px;
-  padding-inline: 7px;
-}
-
 @media (max-width: 900px) {
   .landing-workflow-card {
     grid-template-columns: 1fr;

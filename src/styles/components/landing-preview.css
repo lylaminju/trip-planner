@@ -125,12 +125,10 @@
   cursor: default;
 }
 
-.landing-route-map-link {
-  flex: 0 0 30px;
-  height: 28px;
-  min-width: 30px;
-  padding: 0;
-  width: 30px;
+.landing-product-frame .route-segment-actions,
+.landing-workflow-product-frame .route-segment-actions {
+  opacity: 1;
+  pointer-events: none;
 }
 
 .landing-product-frame .route-segment-toggle,
@@ -152,10 +150,8 @@
 
 .landing-product-frame .icon-button,
 .landing-product-frame .small-button,
-.landing-product-frame .route-mode-trigger,
 .landing-workflow-product-frame .icon-button,
-.landing-workflow-product-frame .small-button,
-.landing-workflow-product-frame .route-mode-trigger {
+.landing-workflow-product-frame .small-button {
   background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -195,20 +191,6 @@
 .landing-product-frame .small-button,
 .landing-workflow-product-frame .small-button {
   align-items: center;
-}
-
-.landing-product-frame .route-mode-trigger,
-.landing-workflow-product-frame .route-mode-trigger {
-  height: 28px;
-  min-height: 28px;
-  padding: 0;
-  width: 40px;
-}
-
-.landing-product-frame .route-mode-trigger svg,
-.landing-workflow-product-frame .route-mode-trigger svg {
-  height: 15px;
-  width: 15px;
 }
 
 .landing-product-frame .place-row .icon-button,

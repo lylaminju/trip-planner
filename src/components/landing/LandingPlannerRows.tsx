@@ -1,8 +1,8 @@
 import {
+  ArrowUpRightIcon,
   BicyclingIcon,
   CalendarPlusIcon,
   DrivingIcon,
-  ExternalLinkIcon,
   PencilIcon,
   TransitIcon,
   TrashIcon,
@@ -125,16 +125,22 @@ export function LandingRouteSegment({
           title={`Travel mode: ${modeOption.label}`}
         >
           <modeOption.Icon />
+          <span className="route-mode-label" aria-hidden="true">
+            {modeOption.shortLabel}
+          </span>
           <span className="route-mode-chevron" aria-hidden="true" />
         </span>
       </div>
       <span className="route-duration">{duration}</span>
-      <span
-        className="small-button landing-route-map-link"
-        aria-label="Open route in Google Maps"
-        title="Open route in Google Maps"
-      >
-        <ExternalLinkIcon />
+      <span className="route-segment-actions">
+        <span
+          className="route-segment-map-link"
+          aria-label="Open route in Google Maps"
+          title="Open route in Google Maps"
+        >
+          <span className="route-segment-map-label">Maps</span>
+          <ArrowUpRightIcon />
+        </span>
       </span>
     </div>
   );
@@ -164,13 +170,13 @@ export function LandingRouteDetailsToggle({ active }: { active: boolean }) {
 function getRouteModeOption(mode: TravelMode) {
   switch (mode) {
     case "bicycling":
-      return { label: "Bicycling", Icon: BicyclingIcon };
+      return { label: "Bicycling", shortLabel: "Bike", Icon: BicyclingIcon };
     case "driving":
-      return { label: "Driving", Icon: DrivingIcon };
+      return { label: "Driving", shortLabel: "Drive", Icon: DrivingIcon };
     case "transit":
-      return { label: "Transit", Icon: TransitIcon };
+      return { label: "Transit", shortLabel: "Transit", Icon: TransitIcon };
     case "walking":
     default:
-      return { label: "Walking", Icon: WalkingIcon };
+      return { label: "Walking", shortLabel: "Walk", Icon: WalkingIcon };
   }
 }
