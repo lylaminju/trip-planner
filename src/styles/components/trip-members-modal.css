@@ -103,6 +103,7 @@
 }
 
 .trip-members-invite-fields {
+  align-items: flex-start;
   display: flex;
   gap: 10px;
 }
@@ -121,6 +122,23 @@
   border-width: 1.5px;
   font-size: 14px;
   min-height: 44px;
+}
+
+/* Always rendered so the resolved-account line does not shift the row. */
+.trip-members-invite-hint {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: -2px;
+  min-height: 15px;
+}
+
+.trip-members-invite-hint-found {
+  color: var(--accent);
+}
+
+.trip-members-invite-hint-empty {
+  color: var(--muted);
 }
 
 .trip-members-role-options {

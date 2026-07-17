@@ -9,12 +9,12 @@ import {
   requireAuthenticatedRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
+import { isValidEmail, normalizeEmail } from "@/lib/email";
 import type { TripRole } from "@/lib/types";
 import { addTripMemberByEmail } from "@/server/trip-members";
 import { requireTripRole } from "@/server/trip-access";
 
 const TRIP_ROLES: TripRole[] = ["owner", "viewer"];
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(
   request: Request,
@@ -36,9 +36,8 @@ export async function POST(
   }
 
   const body = asObject(parsedBody.body);
-  const email =
-    typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  if (!EMAIL_PATTERN.test(email)) {
+  const email = typeof body.email === "string" ? normalizeEmail(body.email) : "";
+  if (!isValidEmail(email)) {
     return jsonError("A valid email is required.", 400);
   }
 

@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  useMemberEmailLookup,
+  type MemberEmailLookup,
+} from "@/hooks/useMemberEmailLookup";
 import type { TripRole } from "@/lib/types";
 
 export const DEFAULT_INVITE_ROLE: TripRole = "viewer";
@@ -28,6 +32,8 @@ type Props = {
 };
 
 export function TripInviteFields(props: Props) {
+  const lookup = useMemberEmailLookup(props.email);
+
   return (
     <>
       <label className="trip-create-field trip-members-invite-email">
@@ -41,6 +47,12 @@ export function TripInviteFields(props: Props) {
           value={props.email}
           onChange={(event) => props.onEmailChange(event.currentTarget.value)}
         />
+        <span
+          className={lookupHintClassName(lookup)}
+          aria-live="polite"
+        >
+          {lookupHintText(lookup)}
+        </span>
       </label>
       <div
         aria-labelledby="trip-members-role-label"
@@ -70,4 +82,27 @@ export function TripInviteFields(props: Props) {
       </div>
     </>
   );
+}
+
+function lookupHintText(lookup: MemberEmailLookup): string {
+  switch (lookup.status) {
+    case "loading":
+      return "Checking…";
+    case "found":
+      return `✓ ${lookup.username ?? "Account found."}`;
+    case "not-found":
+      return "No account found for that email.";
+    default:
+      return "";
+  }
+}
+
+function lookupHintClassName(lookup: MemberEmailLookup): string {
+  const modifier =
+    lookup.status === "found"
+      ? " trip-members-invite-hint-found"
+      : lookup.status === "not-found"
+        ? " trip-members-invite-hint-empty"
+        : "";
+  return `trip-members-invite-hint${modifier}`;
 }
