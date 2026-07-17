@@ -5,6 +5,7 @@ export const AI_SUPPORTED_DESTINATION_SLUGS = [
   "toronto",
   "iceland",
   "seoul",
+  "bali",
 ] as const;
 
 export const AI_OPENING_HOURS_WARNING =

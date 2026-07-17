@@ -38,6 +38,25 @@
     }
   },
   {
+    "slug": "bali",
+    "label": "Bali",
+    "sourcePage": "https://en.wikipedia.org/wiki/Bali",
+    "commonsTitle": "File:Tanah-Lot Bali Indonesia Pura-Tanah-Lot-01.jpg",
+    "file": "/city-covers/bali.webp",
+    "downloadedFrom": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Tanah-Lot_Bali_Indonesia_Pura-Tanah-Lot-01.jpg/1920px-Tanah-Lot_Bali_Indonesia_Pura-Tanah-Lot-01.jpg",
+    "width": 1400,
+    "height": 934,
+    "attribution": {
+      "objectName": "Tanah-Lot Bali Indonesia Pura-Tanah-Lot-01",
+      "artist": "CEphoto, Uwe Aranas",
+      "credit": "Own work",
+      "licenseShortName": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "usageTerms": "Creative Commons Attribution-Share Alike 3.0",
+      "descriptionUrl": "https://commons.wikimedia.org/wiki/File:Tanah-Lot_Bali_Indonesia_Pura-Tanah-Lot-01.jpg"
+    }
+  },
+  {
     "slug": "banff-national-park",
     "label": "Banff National Park",
     "sourcePage": "https://en.wikipedia.org/wiki/Banff_National_Park",

@@ -25,6 +25,14 @@ export const DESTINATIONS: Destination[] = [
     zoom: 12,
   },
   {
+    slug: "bali",
+    name: "Bali",
+    countryCode: "ID",
+    latitude: -8.4095,
+    longitude: 115.1889,
+    zoom: 10,
+  },
+  {
     slug: "banff-national-park",
     name: "Banff National Park",
     countryCode: "CA",
