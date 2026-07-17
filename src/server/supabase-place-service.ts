@@ -13,6 +13,7 @@ import type {
 } from "@/server/place-inputs";
 import {
   deleteAllItineraryItems,
+  deleteAllPlaces,
   deleteItineraryItem,
   deletePlace,
   getPlaceById as getStoredPlaceById,
@@ -76,6 +77,12 @@ export async function removePlace(
   id: number,
 ): Promise<PlannerSnapshot> {
   return runPlannerMutation(tripId, () => deletePlace(tripId, id));
+}
+
+export async function removeAllPlaces(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return runPlannerMutation(tripId, () => deleteAllPlaces(tripId));
 }
 
 export async function schedulePlace(

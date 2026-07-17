@@ -80,6 +80,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onOpenEditModal: vi.fn(),
     onOpenEditItemModal: vi.fn(),
     onDeletePlace: vi.fn().mockResolvedValue(undefined),
+    onDeleteAllPlaces: vi.fn().mockResolvedValue(undefined),
     onSelectItem: vi.fn(),
     onSelectCanonicalPlace: vi.fn(),
     onToggleSegmentSelection: vi.fn(),

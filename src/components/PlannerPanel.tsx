@@ -65,6 +65,7 @@ type Props = {
   onEdit: (place: Place) => void;
   onEditItem: (item: ItineraryItem) => void;
   onDelete: (id: number) => void;
+  onDeleteAllPlaces: () => void;
   onSelectPlace: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
@@ -334,6 +335,7 @@ export function PlannerPanel(props: Props) {
           onAddVisit={props.onAddVisit}
           onEdit={props.onEdit}
           onDelete={props.onDelete}
+          onDeleteAll={props.onDeleteAllPlaces}
           onConfirmDeletion={confirmDeletion}
         />
 

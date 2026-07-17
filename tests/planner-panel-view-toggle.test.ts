@@ -98,6 +98,7 @@ function plannerPanelProps(overrides: {
     onEdit: vi.fn(),
     onEditItem: vi.fn(),
     onDelete: vi.fn(),
+    onDeleteAllPlaces: vi.fn(),
     onSelectPlace: vi.fn(),
     onSelectCanonicalPlace: vi.fn(),
     onSelectSegment: vi.fn(),

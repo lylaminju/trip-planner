@@ -106,6 +106,20 @@ export async function removePlace(
   return supabasePlaceService.removePlace(tripId, id);
 }
 
+export async function removeAllPlaces(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return supabasePlaceService.removeAllPlaces(tripId);
+}
+
+export async function removeAllPlacesForRequest(
+  tripId: number,
+  userId: string,
+): Promise<PlannerSnapshot> {
+  await requireTripRole(tripId, userId, "owner");
+  return removeAllPlaces(tripId);
+}
+
 export async function removePlaceForRequest(
   tripId: number,
   userId: string,

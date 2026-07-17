@@ -112,7 +112,7 @@ export function ItinerarySection(props: Props) {
             props.canEdit && hasScheduledItems ? (
               <button
                 type="button"
-                className="itineraries-clear-button"
+                className="section-clear-button"
                 aria-label="Delete all itinerary items"
                 title="Delete all itinerary items"
                 onClick={deleteAllItems}

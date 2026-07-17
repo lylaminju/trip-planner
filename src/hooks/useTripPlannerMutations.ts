@@ -4,6 +4,7 @@ import { errorMessage } from "@/lib/error-message";
 import {
   createItineraryItemRequest,
   deleteAllItineraryItemsRequest,
+  deleteAllPlacesRequest,
   deleteItineraryItemRequest,
   deletePlaceRequest,
   resolvePlaceRequest,
@@ -48,6 +49,7 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
   >(() => new Set());
   const [isDeletingAllItineraryItems, setIsDeletingAllItineraryItems] =
     useState(false);
+  const [isDeletingAllPlaces, setIsDeletingAllPlaces] = useState(false);
 
   async function resolvePlace(googleMapsUrl: string): Promise<ResolvedPlace> {
     return resolvePlaceRequest(options.tripId, googleMapsUrl);
@@ -191,6 +193,20 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     }
   }
 
+  async function deleteAllPlaces() {
+    if (!options.canEdit) return;
+    if (isDeletingAllPlaces) return;
+
+    setIsDeletingAllPlaces(true);
+    try {
+      options.setPlannerSnapshot(await deleteAllPlacesRequest(options.tripId));
+      options.clearSelection();
+      options.setError(null);
+    } finally {
+      setIsDeletingAllPlaces(false);
+    }
+  }
+
   async function updateSegmentMode(id: number, mode: TravelMode) {
     if (!options.canEdit) return;
     options.setPlannerSnapshot(
@@ -203,10 +219,12 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     deletingPlaceIds,
     deletingItineraryItemIds,
     isDeletingAllItineraryItems,
+    isDeletingAllPlaces,
     resolvePlace,
     savePlace,
     saveItineraryItem,
     deletePlace,
+    deleteAllPlaces,
     schedulePlace,
     createItineraryItem,
     scheduleItineraryItem,

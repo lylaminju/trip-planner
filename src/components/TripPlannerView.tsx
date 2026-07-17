@@ -93,6 +93,7 @@ type Props = {
   onOpenEditModal: (place: Place) => void;
   onOpenEditItemModal: (item: ItineraryItem) => void;
   onDeletePlace: (id: number) => Promise<void>;
+  onDeleteAllPlaces: () => Promise<void>;
   onSelectItem: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
   onToggleSegmentSelection: (id: number | null) => void;
@@ -179,6 +180,11 @@ export function TripPlannerView(props: Props) {
         onDelete={(id) =>
           props.onDeletePlace(id).catch((reason) => {
             props.onSetError(errorMessage(reason, "Failed to delete place."));
+          })
+        }
+        onDeleteAllPlaces={() =>
+          props.onDeleteAllPlaces().catch((reason) => {
+            props.onSetError(errorMessage(reason, "Failed to delete places."));
           })
         }
         onSelectPlace={props.onSelectItem}

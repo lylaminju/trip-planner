@@ -382,6 +382,7 @@ export function TripPlannerApp({
         onOpenEditModal={openEditModal}
         onOpenEditItemModal={openEditItemModal}
         onDeletePlace={plannerMutations.deletePlace}
+        onDeleteAllPlaces={plannerMutations.deleteAllPlaces}
         onSelectItem={selection.selectItem}
         onSelectCanonicalPlace={selection.selectCanonicalPlace}
         onToggleSegmentSelection={selection.toggleSegmentSelection}

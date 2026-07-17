@@ -218,6 +218,15 @@ export function deleteAllItineraryItemsRequest(
   });
 }
 
+export function deleteAllPlacesRequest(
+  tripId: number,
+): Promise<PlannerSnapshot> {
+  return plannerSnapshotRequest(`${tripApiBase(tripId)}/places`, {
+    method: "DELETE",
+    fallbackError: "Failed to delete places.",
+  });
+}
+
 export function updateSegmentModeRequest(
   tripId: number,
   id: number,

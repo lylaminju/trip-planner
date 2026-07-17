@@ -5,7 +5,7 @@ import { useEffect, useRef, type MouseEvent } from "react";
 import { MOBILE_MEDIA_QUERY } from "@/lib/breakpoints";
 import type { ItineraryView, Place } from "@/lib/types";
 
-import { ChevronRightIcon } from "../Icons";
+import { ChevronRightIcon, TrashIcon } from "../Icons";
 import { PlaceListRow } from "./PlaceRows";
 import { getFirstItemIdForPlace } from "./drag-schedule";
 
@@ -27,7 +27,8 @@ export function PlacesSection(props: {
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
   onDelete: (id: number) => void;
-  onConfirmDeletion: (targetLabel: string) => boolean;
+  onDeleteAll: () => void;
+  onConfirmDeletion: (targetLabel: string, note?: string) => boolean;
 }) {
   const trayId = "places-tray";
   const toggleTitle = `${props.isOpen ? "Hide" : "Show"} places list`;
@@ -49,23 +50,53 @@ export function PlacesSection(props: {
     props.onToggleOpen();
   }
 
+  function deleteAllPlaces() {
+    if (
+      !props.onConfirmDeletion(
+        "all places",
+        "This also removes every itinerary item.",
+      )
+    ) {
+      return;
+    }
+    props.onSelectPlace(null);
+    props.onSelectCanonicalPlace(null);
+    props.onSelectSegment(null);
+    props.onDeleteAll();
+  }
+
   return (
     <>
       <section className="places-dock" onClick={handleDockClick}>
-        <button
-          type="button"
-          className="places-dock-toggle"
-          aria-expanded={props.isOpen}
-          aria-controls={trayId}
-          title={toggleTitle}
-          onClick={props.onToggleOpen}
-        >
-          <span className="places-dock-chevron" aria-hidden="true">
-            <ChevronRightIcon />
-          </span>
-          Places
-          <span className="section-toggle-count">({props.places.length})</span>
-        </button>
+        <div className="places-dock-title-group">
+          <button
+            type="button"
+            className="places-dock-toggle"
+            aria-expanded={props.isOpen}
+            aria-controls={trayId}
+            title={toggleTitle}
+            onClick={props.onToggleOpen}
+          >
+            <span className="places-dock-chevron" aria-hidden="true">
+              <ChevronRightIcon />
+            </span>
+            Places
+            <span className="section-toggle-count">
+              ({props.places.length})
+            </span>
+          </button>
+          {props.canEdit && props.places.length > 0 && (
+            <button
+              type="button"
+              className="section-clear-button"
+              aria-label="Delete all places"
+              title="Delete all places"
+              onClick={deleteAllPlaces}
+            >
+              <TrashIcon />
+            </button>
+          )}
+        </div>
         {props.canEdit && (
           <button
             type="button"

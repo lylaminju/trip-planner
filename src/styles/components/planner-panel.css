@@ -128,7 +128,7 @@
   display: inline-flex;
 }
 
-.itineraries-clear-button {
+.section-clear-button {
   align-items: center;
   background: transparent;
   border: 0;
@@ -147,7 +147,7 @@
   width: 26px;
 }
 
-.itineraries-clear-button svg {
+.section-clear-button svg {
   fill: none;
   height: 15px;
   stroke: currentColor;
@@ -157,20 +157,29 @@
   width: 15px;
 }
 
-.section-toggle:hover .itineraries-clear-button,
-.section-toggle:focus-within .itineraries-clear-button {
+.section-toggle:hover .section-clear-button,
+.section-toggle:focus-within .section-clear-button,
+.places-dock:hover .section-clear-button,
+.places-dock:focus-within .section-clear-button {
   opacity: 1;
 }
 
-.itineraries-clear-button:hover {
+.section-clear-button:hover {
   background: var(--danger-bg);
   color: var(--danger-strong);
 }
 
-.itineraries-clear-button:focus-visible {
+.section-clear-button:focus-visible {
   box-shadow: var(--focus-ring);
   opacity: 1;
   outline: none;
+}
+
+.places-dock-title-group {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+  min-width: 0;
 }
 
 .export-menu {

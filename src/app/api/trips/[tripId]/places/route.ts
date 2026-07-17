@@ -10,7 +10,11 @@ import {
   requireAuthenticatedRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
-import { createPlaceForRequest, resolvePlaceUrl } from "@/server/place-service";
+import {
+  createPlaceForRequest,
+  removeAllPlacesForRequest,
+  resolvePlaceUrl,
+} from "@/server/place-service";
 import { requireTripRole } from "@/server/trip-access";
 
 import { readTripIdParam, type TripParams } from "../_utils";
@@ -88,6 +92,31 @@ export async function POST(request: Request, { params }: TripParams) {
           visit_date: visitDate,
           visit_time: visitTime,
         }),
+      ),
+      auth.refreshedSession,
+    );
+  } catch (error) {
+    const response = mapRouteError(error);
+    if (response) return response;
+    throw error;
+  }
+}
+
+export async function DELETE(request: Request, { params }: TripParams) {
+  const auth = await requireAuthenticatedRequest(request);
+  if (!auth.ok) {
+    return auth.response;
+  }
+
+  const tripId = await readTripIdParam(params);
+  if (tripId instanceof Response) {
+    return tripId;
+  }
+
+  try {
+    return withRefreshedSession(
+      NextResponse.json(
+        await removeAllPlacesForRequest(tripId, auth.user.id),
       ),
       auth.refreshedSession,
     );

@@ -63,6 +63,26 @@ describe("place-service request boundary", () => {
     expect(createPlace).toHaveBeenCalledWith(1, baseInput);
   });
 
+  it("requires owner access before deleting all places for a request", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    const removeAllPlaces = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedPlaceService(
+      {
+        requireTripRole,
+        supabasePlaceService: { removeAllPlaces },
+      },
+      async ({ service }) => {
+        await expect(
+          service.removeAllPlacesForRequest(1, "user-1"),
+        ).resolves.toBe(plannerSnapshot);
+      },
+    );
+
+    expect(requireTripRole).toHaveBeenCalledWith(1, "user-1", "owner");
+    expect(removeAllPlaces).toHaveBeenCalledWith(1);
+  });
+
   it("requires owner access before deleting all itinerary items for a request", async () => {
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const removeAllItineraryItems = vi.fn().mockResolvedValue(plannerSnapshot);
@@ -129,6 +149,7 @@ async function withMockedPlaceService(
     createPlace: vi.fn().mockResolvedValue(plannerSnapshot),
     editPlace: vi.fn().mockResolvedValue(plannerSnapshot),
     removePlace: vi.fn().mockResolvedValue(plannerSnapshot),
+    removeAllPlaces: vi.fn().mockResolvedValue(plannerSnapshot),
     schedulePlace: vi.fn().mockResolvedValue(plannerSnapshot),
     scheduleItineraryItem: vi.fn().mockResolvedValue(plannerSnapshot),
     editItineraryItem: vi.fn().mockResolvedValue(plannerSnapshot),
