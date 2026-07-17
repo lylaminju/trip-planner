@@ -9,7 +9,7 @@ import {
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import type { TripSummary } from "@/lib/types";
 import { DeleteLoadingSpinner } from "./DeleteLoadingSpinner";
-import { PencilIcon, TrashIcon } from "./Icons";
+import { PencilIcon, TrashIcon, UserPlusIcon } from "./Icons";
 import { TripMemberBadges } from "./TripMemberBadges";
 
 export type TripCardVariant = "upcoming" | "past";
@@ -22,6 +22,7 @@ export function TripCard(props: {
   isDeleting?: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onManageMembers?: () => void;
 }) {
   const { trip, variant } = props;
   const coverImage = getTripCoverImage({
@@ -40,6 +41,7 @@ export function TripCard(props: {
     : "No dates yet";
   const countdown = variant === "upcoming" ? daysUntilStart(trip) : null;
   const editLabel = `Edit trip ${trip.name}`;
+  const membersLabel = `Invite members to trip ${trip.name}`;
   const deleteLabel = props.isDeleting
     ? `Deleting trip ${trip.name}`
     : `Delete trip ${trip.name}`;
@@ -86,6 +88,17 @@ export function TripCard(props: {
 
       {props.canEdit && (
         <div className="trip-card-actions">
+          {props.onManageMembers && (
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={membersLabel}
+              title={membersLabel}
+              onClick={props.onManageMembers}
+            >
+              <UserPlusIcon />
+            </button>
+          )}
           <button
             type="button"
             className="icon-button"

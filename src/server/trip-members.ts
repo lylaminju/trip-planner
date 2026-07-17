@@ -1,4 +1,5 @@
-import type { TripMembership, TripMemberSummary } from "@/lib/types";
+import type { TripMembership, TripMemberSummary, TripRole } from "@/lib/types";
+import { TripValidationError } from "@/server/errors";
 import { getSupabaseClient } from "@/server/supabase";
 
 type ProfileRow = {
@@ -67,6 +68,66 @@ export function sortMembershipsForDisplay(
   return [...memberships].sort(
     (a, b) => Number(b.role === "owner") - Number(a.role === "owner"),
   );
+}
+
+export async function addTripMemberByEmail(
+  tripId: number,
+  email: string,
+  role: TripRole,
+): Promise<TripMemberSummary[]> {
+  const { data: profileRow, error: profileError } = await getSupabaseClient()
+    .from("profiles")
+    .select("user_id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (profileError) throwSupabaseError(profileError);
+  if (!profileRow) {
+    throw new TripValidationError("No account found for that email.");
+  }
+
+  const userId = (profileRow as { user_id: string }).user_id;
+  const { data: existingRow, error: existingError } = await getSupabaseClient()
+    .from("trip_memberships")
+    .select("user_id")
+    .eq("trip_id", tripId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingError) throwSupabaseError(existingError);
+  if (existingRow) {
+    throw new TripValidationError("That user is already a member of this trip.");
+  }
+
+  const { error: insertError } = await getSupabaseClient()
+    .from("trip_memberships")
+    .insert({ trip_id: tripId, user_id: userId, role });
+
+  if (insertError) throwSupabaseError(insertError);
+
+  return listMembersForTrip(tripId);
+}
+
+export async function removeTripMember(
+  tripId: number,
+  userId: string,
+): Promise<TripMemberSummary[]> {
+  const { error } = await getSupabaseClient()
+    .from("trip_memberships")
+    .delete()
+    .eq("trip_id", tripId)
+    .eq("user_id", userId);
+
+  if (error) throwSupabaseError(error);
+
+  return listMembersForTrip(tripId);
+}
+
+async function listMembersForTrip(
+  tripId: number,
+): Promise<TripMemberSummary[]> {
+  const membersByTripId = await listTripMembers([tripId]);
+  return membersByTripId.get(tripId) ?? [];
 }
 
 function throwSupabaseError(error: { message: string }): never {

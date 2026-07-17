@@ -121,6 +121,16 @@
   min-width: 0;
 }
 
+.app-header-members-button {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  flex: 0 0 24px;
+  height: 24px;
+  min-width: 24px;
+  width: 24px;
+}
+
 .app-header-period {
   color: var(--muted);
   font-size: 13px;

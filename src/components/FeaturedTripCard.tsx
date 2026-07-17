@@ -10,7 +10,7 @@ import {
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import type { TripSummary } from "@/lib/types";
 import { DeleteLoadingSpinner } from "./DeleteLoadingSpinner";
-import { MapPinIcon, PencilIcon, TrashIcon } from "./Icons";
+import { MapPinIcon, PencilIcon, TrashIcon, UserPlusIcon } from "./Icons";
 import { TripMemberBadges } from "./TripMemberBadges";
 
 export function FeaturedTripCard(props: {
@@ -21,6 +21,7 @@ export function FeaturedTripCard(props: {
   isDeleting?: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onManageMembers?: () => void;
 }) {
   const { trip } = props;
   const coverImage = getTripCoverImage({
@@ -37,6 +38,7 @@ export function FeaturedTripCard(props: {
     : null;
   const dateLine = [periodLabel, durationLabel].filter(Boolean).join(" · ");
   const editLabel = `Edit trip ${trip.name}`;
+  const membersLabel = `Invite members to trip ${trip.name}`;
   const deleteLabel = props.isDeleting
     ? `Deleting trip ${trip.name}`
     : `Delete trip ${trip.name}`;
@@ -90,6 +92,17 @@ export function FeaturedTripCard(props: {
           </Link>
           {props.canEdit && (
             <div className="featured-trip-icon-actions">
+              {props.onManageMembers && (
+                <button
+                  type="button"
+                  className="icon-button featured-trip-members"
+                  aria-label={membersLabel}
+                  title={membersLabel}
+                  onClick={props.onManageMembers}
+                >
+                  <UserPlusIcon />
+                </button>
+              )}
               <button
                 type="button"
                 className="icon-button featured-trip-edit"

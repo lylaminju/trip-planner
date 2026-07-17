@@ -22,6 +22,7 @@ import {
   ChevronRightIcon,
   MagicWandIcon,
   PencilIcon,
+  UserPlusIcon,
 } from "./Icons";
 import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
@@ -57,6 +58,7 @@ type Props = {
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onAdd: (visitDate?: string | null) => void;
   onEditTrip?: () => void;
+  onManageMembers?: () => void;
   onCopyExport: () => void;
   onDownloadExport: () => void;
   onAddVisit: (place: Place) => void;
@@ -199,7 +201,9 @@ export function PlannerPanel(props: Props) {
                   </button>
                 )}
               </div>
-              {(props.tripPeriodLabel || props.members.length > 1) && (
+              {(props.tripPeriodLabel ||
+                props.members.length > 1 ||
+                props.onManageMembers) && (
                 <div className="app-header-period-row">
                   {props.tripPeriodLabel && (
                     <p className="app-header-period">{props.tripPeriodLabel}</p>
@@ -210,6 +214,17 @@ export function PlannerPanel(props: Props) {
                     size="sm"
                     maxVisible={3}
                   />
+                  {props.onManageMembers && (
+                    <button
+                      type="button"
+                      className="icon-button app-header-members-button"
+                      aria-label="Invite trip members"
+                      title="Invite trip members"
+                      onClick={props.onManageMembers}
+                    >
+                      <UserPlusIcon />
+                    </button>
+                  )}
                 </div>
               )}
             </div>

@@ -22,6 +22,7 @@ export function TripSection(props: {
   onEditChange: (form: TripFormState) => void;
   onEditSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
   onDelete: (trip: TripSummary) => void;
+  onManageMembers?: (trip: TripSummary) => void;
   onToggleOpen?: () => void;
 }) {
   const isOpen = props.isOpen ?? true;
@@ -77,6 +78,11 @@ export function TripSection(props: {
                   isDeleting={props.deletingTripIds.has(trip.id)}
                   onEdit={() => props.onEditStart(trip)}
                   onDelete={() => props.onDelete(trip)}
+                  onManageMembers={
+                    props.onManageMembers
+                      ? () => props.onManageMembers?.(trip)
+                      : undefined
+                  }
                 />
               ),
             )}

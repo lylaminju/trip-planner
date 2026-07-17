@@ -144,9 +144,13 @@ create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   username text,
   profile_color text,
+  email text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.profiles
+  add column if not exists email text;
 
 create or replace function public.handle_auth_user_profile_sync()
 returns trigger
@@ -155,7 +159,7 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (user_id, username, profile_color)
+  insert into public.profiles (user_id, username, profile_color, email)
   values (
     new.id,
     coalesce(
@@ -163,11 +167,13 @@ begin
       new.raw_user_meta_data->>'name',
       new.raw_user_meta_data->>'full_name'
     ),
-    new.raw_user_meta_data->>'profile_color'
+    new.raw_user_meta_data->>'profile_color',
+    new.email
   )
   on conflict (user_id) do update
     set username = excluded.username,
         profile_color = excluded.profile_color,
+        email = excluded.email,
         updated_at = now();
   return new;
 end;
@@ -178,7 +184,7 @@ create trigger on_auth_user_profile_sync
   after insert or update on auth.users
   for each row execute function public.handle_auth_user_profile_sync();
 
-insert into public.profiles (user_id, username, profile_color)
+insert into public.profiles (user_id, username, profile_color, email)
 select
   id,
   coalesce(
@@ -186,11 +192,13 @@ select
     raw_user_meta_data->>'name',
     raw_user_meta_data->>'full_name'
   ),
-  raw_user_meta_data->>'profile_color'
+  raw_user_meta_data->>'profile_color',
+  email
 from auth.users
 on conflict (user_id) do update
   set username = excluded.username,
       profile_color = excluded.profile_color,
+      email = excluded.email,
       updated_at = now();
 
 create table if not exists public.trip_memberships (

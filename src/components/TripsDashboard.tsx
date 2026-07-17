@@ -14,6 +14,7 @@ import { CreateTripModal } from "./CreateTripModal";
 import { FeaturedTripCard } from "./FeaturedTripCard";
 import { FoldedMapIcon } from "./Icons";
 import { TripEditForm } from "./TripEditForm";
+import { TripMembersModal } from "./TripMembersModal";
 import { TripsDashboardRail } from "./TripsDashboardRail";
 import { TripSection } from "./TripSection";
 import { tripMetadataPayloadFromForm } from "./trip-form-state";
@@ -62,6 +63,9 @@ export function TripsDashboard(props: {
     () => new Set(),
   );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [managingMembersTripId, setManagingMembersTripId] = useState<
+    number | null
+  >(null);
   const [openTripSections, setOpenTripSections] =
     useState<TripSectionOpenState>({
       active: true,
@@ -80,6 +84,8 @@ export function TripsDashboard(props: {
   );
   const isEditingFeatured =
     !!featuredTrip && editing?.tripId === featuredTrip.id;
+  const managingMembersTrip =
+    trips.find((trip) => trip.id === managingMembersTripId) ?? null;
   const isEmptyState = !isLoading && trips.length === 0;
   const displayName = props.userName?.trim() || "Traveler";
   const userEmail = props.userEmail?.trim();
@@ -279,6 +285,9 @@ export function TripsDashboard(props: {
                     isDeleting={deletingTripIds.has(featuredTrip.id)}
                     onEdit={() => setEditingFromTrip(featuredTrip)}
                     onDelete={() => removeTrip(featuredTrip)}
+                    onManageMembers={() =>
+                      setManagingMembersTripId(featuredTrip.id)
+                    }
                   />
                 ))}
 
@@ -302,6 +311,7 @@ export function TripsDashboard(props: {
                   }
                   onEditSubmit={submitEdit}
                   onDelete={removeTrip}
+                  onManageMembers={(trip) => setManagingMembersTripId(trip.id)}
                   onToggleOpen={() => toggleTripSection("active")}
                 />
               )}
@@ -326,6 +336,7 @@ export function TripsDashboard(props: {
                   }
                   onEditSubmit={submitEdit}
                   onDelete={removeTrip}
+                  onManageMembers={(trip) => setManagingMembersTripId(trip.id)}
                   onToggleOpen={() => toggleTripSection("past")}
                 />
               )}
@@ -333,6 +344,27 @@ export function TripsDashboard(props: {
           )}
         </section>
       </section>
+
+      {managingMembersTrip && (
+        <TripMembersModal
+          tripId={managingMembersTrip.id}
+          tripName={managingMembersTrip.name}
+          destination={managingMembersTrip.destination}
+          destinationSlug={managingMembersTrip.destination_slug}
+          members={managingMembersTrip.members}
+          currentUserId={props.userId}
+          onClose={() => setManagingMembersTripId(null)}
+          onMembersChange={(members) =>
+            setTrips((current) =>
+              current.map((entry) =>
+                entry.id === managingMembersTrip.id
+                  ? { ...entry, members }
+                  : entry,
+              ),
+            )
+          }
+        />
+      )}
 
       {isCreateModalOpen && (
         <CreateTripModal

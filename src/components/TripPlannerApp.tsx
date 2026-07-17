@@ -49,6 +49,7 @@ import {
   formPayload,
   toTripDateRange,
 } from "./trip-planner-app-utils";
+import { TripMembersModal } from "./TripMembersModal";
 import { TripPlannerView } from "./TripPlannerView";
 
 const EMPTY_SNAPSHOT: PlannerSnapshot = {
@@ -97,6 +98,7 @@ export function TripPlannerApp({
   const [mobileSheetState, setMobileSheetState] =
     useState<MobileSheetState>("half");
   const [isSavingTrip, setIsSavingTrip] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editTripError, setEditTripError] = useState<string | null>(null);
   const [aiPlanningWizard, setAiPlanningWizard] =
@@ -311,80 +313,97 @@ export function TripPlannerApp({
   }
 
   return (
-    <TripPlannerView
-      mobileSheetState={mobileSheetState}
-      isPlannerPanelExpanded={isPlannerPanelExpanded}
-      tripTitle={tripTitle}
-      tripPeriodLabel={tripMetaLabel}
-      members={members}
-      currentUserId={currentUserId}
-      destinationFocus={destinationFocus}
-      itinerary={itinerary}
-      plannerSnapshot={plannerSnapshot}
-      activeItemId={selection.activeItemId}
-      activeCanonicalPlaceId={selection.activeCanonicalPlaceId}
-      activeSegmentId={selection.activeSegmentId}
-      activeDate={selection.activeDate}
-      collapsedDates={collapsedDates}
-      routeGeometries={routeGeometries}
-      routeGeometryError={routeGeometryError}
-      error={error}
-      aiGenerationToast={aiGenerationToast}
-      exportFeedback={exportFeedback}
-      canEdit={canEdit}
-      canEditTripMetadata={canEditTripMetadata}
-      canAddVisits={canAddVisits}
-      deletingPlaceIds={plannerMutations.deletingPlaceIds}
-      deletingItineraryItemIds={plannerMutations.deletingItineraryItemIds}
-      currentLocationPosition={currentLocationPosition}
-      currentLocationToast={currentLocationToast}
-      canShowCurrentLocation={canShowCurrentLocation}
-      isCurrentLocationEnabled={isCurrentLocationEnabled}
-      isAdding={isAdding}
-      editingPlace={editingPlace}
-      editingItem={editingItem}
-      addingVisitPlace={addingVisitPlace}
-      addPlaceVisitDate={addPlaceVisitDate}
-      editingTripForm={editingTripForm}
-      editTripError={editTripError}
-      isSavingTrip={isSavingTrip}
-      aiPlanningWizard={aiPlanningWizard}
-      visitDateOptions={visitDateOptions}
-      onTogglePlannerExpanded={() =>
+    <>
+      {isMembersModalOpen && trip && (
+        <TripMembersModal
+          tripId={tripId}
+          tripName={tripTitle}
+          destination={trip.destination}
+          destinationSlug={trip.destination_slug}
+          members={members}
+          currentUserId={currentUserId}
+          onClose={() => setIsMembersModalOpen(false)}
+          onMembersChange={setMembers}
+        />
+      )}
+      <TripPlannerView
+        mobileSheetState={mobileSheetState}
+        isPlannerPanelExpanded={isPlannerPanelExpanded}
+        tripTitle={tripTitle}
+        tripPeriodLabel={tripMetaLabel}
+        members={members}
+        currentUserId={currentUserId}
+        destinationFocus={destinationFocus}
+        itinerary={itinerary}
+        plannerSnapshot={plannerSnapshot}
+        activeItemId={selection.activeItemId}
+        activeCanonicalPlaceId={selection.activeCanonicalPlaceId}
+        activeSegmentId={selection.activeSegmentId}
+        activeDate={selection.activeDate}
+        collapsedDates={collapsedDates}
+        routeGeometries={routeGeometries}
+        routeGeometryError={routeGeometryError}
+        error={error}
+        aiGenerationToast={aiGenerationToast}
+        exportFeedback={exportFeedback}
+        canEdit={canEdit}
+        canEditTripMetadata={canEditTripMetadata}
+        canAddVisits={canAddVisits}
+        deletingPlaceIds={plannerMutations.deletingPlaceIds}
+        deletingItineraryItemIds={plannerMutations.deletingItineraryItemIds}
+        currentLocationPosition={currentLocationPosition}
+        currentLocationToast={currentLocationToast}
+        canShowCurrentLocation={canShowCurrentLocation}
+        isCurrentLocationEnabled={isCurrentLocationEnabled}
+        isAdding={isAdding}
+        editingPlace={editingPlace}
+        editingItem={editingItem}
+        addingVisitPlace={addingVisitPlace}
+        addPlaceVisitDate={addPlaceVisitDate}
+        editingTripForm={editingTripForm}
+        editTripError={editTripError}
+        isSavingTrip={isSavingTrip}
+        aiPlanningWizard={aiPlanningWizard}
+        visitDateOptions={visitDateOptions}
+        onTogglePlannerExpanded={() =>
         setIsPlannerPanelExpanded((value) => !value)
-      }
-      onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
-      onMobileSheetStateChange={setMobileSheetState}
-      onOpenAddModal={openAddModal}
-      onOpenEditTripModal={openEditTripModal}
-      onCopyMarkdownExport={copyMarkdownExport}
-      onDownloadMarkdownExport={downloadMarkdownExport}
-      onOpenAddVisitModal={openAddVisitModal}
-      onOpenEditModal={openEditModal}
-      onOpenEditItemModal={openEditItemModal}
-      onDeletePlace={plannerMutations.deletePlace}
-      onSelectItem={selection.selectItem}
-      onSelectCanonicalPlace={selection.selectCanonicalPlace}
-      onToggleSegmentSelection={selection.toggleSegmentSelection}
-      onToggleDateCollapsed={toggleDateCollapsed}
-      onSelectDate={selection.selectDate}
-      onClearSelection={selection.clearSelection}
-      onSchedulePlace={plannerMutations.schedulePlace}
-      onScheduleItineraryItem={plannerMutations.scheduleItineraryItem}
-      onDeleteItineraryItem={plannerMutations.deleteItineraryItem}
-      onUpdateSegmentMode={plannerMutations.updateSegmentMode}
-      onToggleCurrentLocation={toggleCurrentLocation}
-      onCloseModal={closeModal}
-      onResolvePlaceUrl={plannerMutations.resolvePlace}
-      onSavePlace={plannerMutations.savePlace}
-      onSaveItineraryItem={plannerMutations.saveItineraryItem}
-      onCreateItineraryItem={plannerMutations.createItineraryItem}
-      onSetEditingTripForm={setEditingTripForm}
-      onSubmitEditTrip={submitEditTrip}
-      onSetError={setError}
-      onCloseAiPlanningWizard={closeAiPlanningWizard}
-      onCreateAiItinerary={createAiItineraryFromWizard}
-    />
+        }
+        onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
+        onMobileSheetStateChange={setMobileSheetState}
+        onOpenAddModal={openAddModal}
+        onOpenEditTripModal={openEditTripModal}
+        onManageMembers={
+          canEditTripMetadata ? () => setIsMembersModalOpen(true) : undefined
+        }
+        onCopyMarkdownExport={copyMarkdownExport}
+        onDownloadMarkdownExport={downloadMarkdownExport}
+        onOpenAddVisitModal={openAddVisitModal}
+        onOpenEditModal={openEditModal}
+        onOpenEditItemModal={openEditItemModal}
+        onDeletePlace={plannerMutations.deletePlace}
+        onSelectItem={selection.selectItem}
+        onSelectCanonicalPlace={selection.selectCanonicalPlace}
+        onToggleSegmentSelection={selection.toggleSegmentSelection}
+        onToggleDateCollapsed={toggleDateCollapsed}
+        onSelectDate={selection.selectDate}
+        onClearSelection={selection.clearSelection}
+        onSchedulePlace={plannerMutations.schedulePlace}
+        onScheduleItineraryItem={plannerMutations.scheduleItineraryItem}
+        onDeleteItineraryItem={plannerMutations.deleteItineraryItem}
+        onUpdateSegmentMode={plannerMutations.updateSegmentMode}
+        onToggleCurrentLocation={toggleCurrentLocation}
+        onCloseModal={closeModal}
+        onResolvePlaceUrl={plannerMutations.resolvePlace}
+        onSavePlace={plannerMutations.savePlace}
+        onSaveItineraryItem={plannerMutations.saveItineraryItem}
+        onCreateItineraryItem={plannerMutations.createItineraryItem}
+        onSetEditingTripForm={setEditingTripForm}
+        onSubmitEditTrip={submitEditTrip}
+        onSetError={setError}
+        onCloseAiPlanningWizard={closeAiPlanningWizard}
+        onCreateAiItinerary={createAiItineraryFromWizard}
+      />
+    </>
   );
 }
 

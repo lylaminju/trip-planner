@@ -1,0 +1,170 @@
+/* Trip members modal: shares the trip modal shell and footer, adds a compact
+   header plus the traveler roster and invite form. */
+.trip-members-modal {
+  max-width: 480px;
+}
+
+.trip-members-header {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 18px 18px 14px 22px;
+}
+
+.trip-members-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.trip-members-header-destination {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 2px 0 0;
+}
+
+.trip-members-body {
+  padding-bottom: 0;
+}
+
+.trip-members-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trip-members-row {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  display: flex;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 8px 6px 10px;
+}
+
+.trip-members-row-badge {
+  align-items: center;
+  border-radius: 50%;
+  color: var(--text-on-accent);
+  display: inline-flex;
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.trip-members-row-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trip-members-row-you {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.trip-members-role-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  text-transform: capitalize;
+}
+
+.trip-members-role-chip-owner {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Keeps rows aligned when the current user's row has no remove button. */
+.trip-members-row-action {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  min-width: 30px;
+}
+
+.trip-members-invite-fields {
+  display: flex;
+  gap: 10px;
+}
+
+.trip-members-invite-email {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.trip-members-invite-role {
+  flex: 0 0 auto;
+}
+
+.trip-members-modal .trip-members-invite-email input {
+  border-radius: 11px;
+  border-width: 1.5px;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.trip-members-role-options {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.trip-members-modal .trip-members-role-option input {
+  height: 1px;
+  margin: 0;
+  min-height: 0;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.trip-members-role-option span {
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+}
+
+.trip-members-role-option:hover input:not(:checked) + span {
+  border-color: var(--border-strong);
+}
+
+.trip-members-role-option input:checked + span {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.trip-members-role-option input:focus-visible + span {
+  box-shadow: var(--focus-ring);
+}
+
+.trip-members-role-hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin: -8px 0 0;
+}

@@ -83,6 +83,6 @@ function sharedWithLabel(
   return `Shared with ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-function memberDisplayName(member: TripMemberSummary): string {
+export function memberDisplayName(member: TripMemberSummary): string {
   return member.username?.trim() || FALLBACK_MEMBER_NAME;
 }

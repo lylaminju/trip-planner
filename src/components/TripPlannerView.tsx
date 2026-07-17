@@ -86,6 +86,7 @@ type Props = {
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onOpenAddModal: (visitDate?: string | null) => void;
   onOpenEditTripModal: () => void;
+  onManageMembers?: () => void;
   onCopyMarkdownExport: () => void;
   onDownloadMarkdownExport: () => void;
   onOpenAddVisitModal: (place: Place) => void;
@@ -167,6 +168,7 @@ export function TripPlannerView(props: Props) {
         onEditTrip={
           props.canEditTripMetadata ? props.onOpenEditTripModal : undefined
         }
+        onManageMembers={props.onManageMembers}
         onCopyExport={props.onCopyMarkdownExport}
         onDownloadExport={props.onDownloadMarkdownExport}
         onAddVisit={props.onOpenAddVisitModal}
