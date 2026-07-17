@@ -19,14 +19,13 @@ export function TripMemberBadges(props: {
   }
 
   const visibleMembers = otherMembers.slice(0, props.maxVisible);
-  const overflowCount = otherMembers.length - visibleMembers.length;
+  const hiddenMembers = otherMembers.slice(props.maxVisible);
   const label = sharedWithLabel(otherMembers, props.maxVisible);
 
   return (
     <span
       className={`trip-member-badges trip-member-badges-${props.size}`}
       role="img"
-      title={label}
       aria-label={label}
     >
       {visibleMembers.map((member) => (
@@ -39,14 +38,30 @@ export function TripMemberBadges(props: {
           }}
         >
           {memberDisplayName(member).slice(0, 1).toUpperCase()}
+          <span className="trip-member-badge-tooltip">
+            <strong className="trip-member-badge-tooltip-name">
+              {memberDisplayName(member)}
+            </strong>
+            <span className="trip-member-badge-tooltip-role">
+              {member.role}
+            </span>
+          </span>
         </span>
       ))}
-      {overflowCount > 0 && (
+      {hiddenMembers.length > 0 && (
         <span
           className="trip-member-badge trip-member-badge-overflow"
           aria-hidden="true"
         >
-          +{overflowCount}
+          +{hiddenMembers.length}
+          <span className="trip-member-badge-tooltip">
+            <strong className="trip-member-badge-tooltip-name">
+              {hiddenMembers.length} more
+            </strong>
+            <span className="trip-member-badge-tooltip-role">
+              {hiddenMembers.map(memberDisplayName).join(", ")}
+            </span>
+          </span>
         </span>
       )}
     </span>

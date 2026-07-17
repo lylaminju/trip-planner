@@ -23,6 +23,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   width: var(--member-badge-size);
   height: var(--member-badge-size);
   border-radius: 999px;
@@ -41,4 +42,53 @@
 .trip-member-badge-overflow {
   background: var(--surface-subtle);
   color: var(--text-tertiary);
+}
+
+/* Tooltip opens upward and hangs off the badge's right edge so it stays
+   inside overflow-hidden trip cards, whose badges sit near the right edge. */
+.trip-member-badge-tooltip {
+  position: absolute;
+  right: -6px;
+  bottom: calc(100% + 6px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--surface-inverse);
+  box-shadow: var(--shadow-popover);
+  color: var(--text-on-accent);
+  line-height: 1.3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+  white-space: nowrap;
+  z-index: 12;
+}
+
+/* Speech-bubble arrow, centered over the badge the tooltip belongs to. */
+.trip-member-badge-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: calc(var(--member-badge-size) / 2 + 1px);
+  border: 5px solid transparent;
+  border-top-color: var(--surface-inverse);
+  border-bottom-width: 0;
+}
+
+.trip-member-badge:hover .trip-member-badge-tooltip {
+  opacity: 1;
+}
+
+.trip-member-badge-tooltip-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trip-member-badge-tooltip-role {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.75;
+  text-transform: capitalize;
 }

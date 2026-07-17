@@ -70,6 +70,34 @@ describe("TripMemberBadges", () => {
     expect(markup).toContain('aria-label="Shared with Mina, Jun and 2 more"');
   });
 
+  it("gives each badge a tooltip with the username and role", () => {
+    const markup = renderBadges([
+      member({ user_id: "user-2", username: "Mina", role: "viewer" }),
+    ]);
+
+    const tooltip = markup.slice(markup.indexOf("trip-member-badge-tooltip"));
+    expect(tooltip).toContain(">Mina<");
+    expect(tooltip).toContain(">viewer<");
+  });
+
+  it("lists the hidden members in the overflow chip tooltip", () => {
+    const markup = renderBadges(
+      [
+        member({ user_id: "user-2", username: "Mina" }),
+        member({ user_id: "user-3", username: "Jun" }),
+        member({ user_id: "user-4", username: "Sora" }),
+        member({ user_id: "user-5", username: "Dana" }),
+      ],
+      { maxVisible: 2 },
+    );
+
+    const overflow = markup.slice(
+      markup.indexOf("trip-member-badge-overflow"),
+    );
+    expect(overflow).toContain(">2 more<");
+    expect(overflow).toContain(">Sora, Dana<");
+  });
+
   it("falls back to a Traveler identity when a member has no username", () => {
     const markup = renderBadges([member({ username: null })]);
 
