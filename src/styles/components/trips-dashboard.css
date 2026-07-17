@@ -235,11 +235,16 @@
 
 .trip-section-heading h2 {
   color: var(--muted);
+  cursor: pointer;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
   margin: 0;
   text-transform: uppercase;
+}
+
+.trip-section-heading h2:hover {
+  color: var(--ink);
 }
 
 .trip-section-heading > span {

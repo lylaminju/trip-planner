@@ -26,6 +26,7 @@ export function TripSection(props: {
   onToggleOpen?: () => void;
 }) {
   const isOpen = props.isOpen ?? true;
+  const onToggleOpen = props.onToggleOpen ?? noop;
   const sectionId = props.sectionId ?? tripSectionId(props.title);
   const sectionPanelId = `${sectionId}-panel`;
   const gridClassName = `trip-card-grid trip-card-grid-${props.variant}`;
@@ -39,9 +40,11 @@ export function TripSection(props: {
             controlsId={sectionPanelId}
             label={props.title}
             open={isOpen}
-            onToggle={props.onToggleOpen ?? noop}
+            onToggle={onToggleOpen}
           />
-          <h2>{props.title}</h2>
+          <h2 className="trip-section-title" onClick={onToggleOpen}>
+            {props.title}
+          </h2>
         </div>
         <span>{props.trips.length}</span>
       </div>

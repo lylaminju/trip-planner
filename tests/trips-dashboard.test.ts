@@ -119,8 +119,9 @@ describe("TripsDashboard", () => {
     expect(markup).toContain('aria-controls="past-trips-panel"');
     expect(markup).toContain('aria-label="Collapse Past Trips"');
     expect(markup.indexOf('class="trip-section-collapse-button"')).toBeLessThan(
-      markup.indexOf("<h2>Past Trips</h2>"),
+      markup.indexOf('class="trip-section-title"'),
     );
+    expect(markup).toContain(">Past Trips</h2>");
     expect(
       markupBetween(markup, "trip-section-collapse-button", "button"),
     ).toContain("<svg");
