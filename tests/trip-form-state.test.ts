@@ -13,6 +13,8 @@ describe("updateTripFormField", () => {
       name: "Old name",
       destination: "",
       destinationSlug: null,
+      destinationLatitude: null,
+      destinationLongitude: null,
       startDate: "2026-06-01",
       endDate: "2026-06-02",
     };
@@ -34,6 +36,8 @@ describe("updateTripFormField", () => {
         name: "Draft trip",
         destination: "Toronto",
         destinationSlug: "toronto",
+        destinationLatitude: null,
+        destinationLongitude: null,
         startDate: "2026-06-01",
         endDate: "",
       }),
@@ -41,6 +45,8 @@ describe("updateTripFormField", () => {
       name: "Draft trip",
       destination: "Toronto",
       destination_slug: "toronto",
+      destination_latitude: null,
+      destination_longitude: null,
       start_date: "2026-06-01",
       end_date: null,
     });
@@ -52,6 +58,8 @@ describe("updateTripFormField", () => {
         name: "Rockies loop",
         destination: "Calgary + Banff",
         destinationSlug: null,
+        destinationLatitude: null,
+        destinationLongitude: null,
         startDate: "",
         endDate: "",
       }),
@@ -59,6 +67,8 @@ describe("updateTripFormField", () => {
       name: "Rockies loop",
       destination: "Calgary + Banff",
       destination_slug: null,
+      destination_latitude: null,
+      destination_longitude: null,
       start_date: null,
       end_date: null,
     });
@@ -69,6 +79,8 @@ describe("updateTripFormField", () => {
       name: "Draft trip",
       destination: "",
       destinationSlug: null,
+      destinationLatitude: null,
+      destinationLongitude: null,
       startDate: "",
       endDate: "",
     };

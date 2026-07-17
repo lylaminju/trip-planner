@@ -4,6 +4,8 @@ export type TripMetadataPayload = {
   name: string;
   destination: string;
   destination_slug: string | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
   start_date: string | null;
   end_date: string | null;
 };

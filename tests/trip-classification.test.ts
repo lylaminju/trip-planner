@@ -12,6 +12,8 @@ const baseTrip: Omit<TripSummary, "id" | "name" | "role"> = {
   members: [],
   destination: "Toronto",
   destination_slug: "toronto",
+  destination_latitude: null,
+  destination_longitude: null,
   start_date: null,
   end_date: null,
   created_at: "2026-01-01T00:00:00.000Z",

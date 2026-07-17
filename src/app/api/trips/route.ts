@@ -96,6 +96,24 @@ function parseTripCreateInput(
     return destinationSlug;
   }
 
+  const latitude = nullableCoordinate(
+    body.destination_latitude,
+    MAX_LATITUDE,
+    "Trip destination latitude",
+  );
+  if (latitude instanceof Response) {
+    return latitude;
+  }
+
+  const longitude = nullableCoordinate(
+    body.destination_longitude,
+    MAX_LONGITUDE,
+    "Trip destination longitude",
+  );
+  if (longitude instanceof Response) {
+    return longitude;
+  }
+
   if (startDate && endDate && startDate > endDate) {
     return jsonError(
       "Trip start date must be before or equal to end date.",
@@ -107,9 +125,34 @@ function parseTripCreateInput(
     name,
     destination,
     destination_slug: destinationSlug,
+    destination_latitude: latitude,
+    destination_longitude: longitude,
     start_date: startDate,
     end_date: endDate,
   };
+}
+
+const MAX_LATITUDE = 90;
+const MAX_LONGITUDE = 180;
+
+function nullableCoordinate(
+  value: unknown,
+  maxAbsolute: number,
+  label: string,
+): number | NextResponse | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    Math.abs(value) > maxAbsolute
+  ) {
+    return jsonError(`${label} is invalid.`, 400);
+  }
+
+  return value;
 }
 
 function stringOrNull(value: unknown): string | null {

@@ -4,6 +4,9 @@ import type { Session, User } from "@supabase/supabase-js";
 import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
+  GooglePlacesConfigError,
+  GooglePlacesRateLimitError,
+  GooglePlacesUpstreamError,
   GoogleRoutesConfigError,
   GoogleRoutesRateLimitError,
   GoogleRoutesUpstreamError,
@@ -75,11 +78,14 @@ const SERVER_FAULT_ERROR_TYPES = [
   GoogleRoutesConfigError,
   GoogleRoutesUpstreamError,
   GoogleMapsUrlUpstreamError,
+  GooglePlacesConfigError,
+  GooglePlacesUpstreamError,
 ];
 
 const RATE_LIMIT_ERROR_TYPES = [
   AiGenerationRateLimitError,
   GoogleRoutesRateLimitError,
+  GooglePlacesRateLimitError,
 ];
 
 // Handled errors never reach the Next.js error boundary, so they are invisible
@@ -139,6 +145,18 @@ export function mapRouteError(error: unknown): NextResponse | null {
   }
 
   if (error instanceof GoogleRoutesUpstreamError) {
+    return jsonError(error.message, error.status);
+  }
+
+  if (error instanceof GooglePlacesRateLimitError) {
+    return jsonError(error.message, 429);
+  }
+
+  if (error instanceof GooglePlacesConfigError) {
+    return jsonError(error.message, 503);
+  }
+
+  if (error instanceof GooglePlacesUpstreamError) {
     return jsonError(error.message, error.status);
   }
 

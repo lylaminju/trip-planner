@@ -6,13 +6,14 @@ import { countryLabelForDestination } from "@/lib/destination-options";
 
 import type { TripRole } from "@/lib/types";
 
-import { DestinationCombobox } from "./DestinationCombobox";
+import { DestinationSearch } from "./DestinationSearch";
 import { CloseIcon, MapPinIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { TripDateRangePicker } from "./TripDateRangePicker";
 import { TripInviteFields, type TripInviteDraft } from "./TripInviteFields";
 import {
   tripDestinationFormChange,
+  tripGoogleDestinationChange,
   updateTripFormField,
 } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
@@ -113,13 +114,18 @@ export function CreateTripModal(props: Props) {
 
           <div className="trip-create-field">
             <span className="trip-create-field-label">Destination</span>
-            <DestinationCombobox
+            <DestinationSearch
               value={props.form.destination}
               leadingIcon={<MapPinIcon />}
               showPreview
               onChange={(destination) =>
                 props.onChange(
                   tripDestinationFormChange(props.form, destination),
+                )
+              }
+              onSelectGoogle={(selection) =>
+                props.onChange(
+                  tripGoogleDestinationChange(props.form, selection),
                 )
               }
             />

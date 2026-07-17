@@ -424,6 +424,8 @@ function formFromTrip(trip: TripSummary): TripFormState {
     name: trip.name,
     destination: trip.destination,
     destinationSlug: trip.destination_slug,
+    destinationLatitude: trip.destination_latitude,
+    destinationLongitude: trip.destination_longitude,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
   };
@@ -434,6 +436,8 @@ function emptyTripForm(): TripFormState {
     name: "",
     destination: "",
     destinationSlug: null,
+    destinationLatitude: null,
+    destinationLongitude: null,
     startDate: "",
     endDate: "",
   };

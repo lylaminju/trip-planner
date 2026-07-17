@@ -62,6 +62,8 @@ describe("TripsDashboard", () => {
           name: "",
           destination: "",
           destinationSlug: null,
+          destinationLatitude: null,
+          destinationLongitude: null,
           startDate: "",
           endDate: "",
         },
@@ -84,7 +86,7 @@ describe("TripsDashboard", () => {
     expect(markup).toContain(
       'class="destination-combobox destination-combobox-has-icon"',
     );
-    expect(markup).toContain('placeholder="Search or type destination"');
+    expect(markup).toContain('role="combobox"');
     expect(markup).toContain('aria-label="AI-planning available"');
     expect(markup).toContain('class="trip-create-hero"');
     expect(markup).toContain("Pick a destination to see it come alive");
@@ -220,6 +222,8 @@ describe("TripsDashboard", () => {
             name: trip.name,
             destination: trip.destination ?? "",
             destinationSlug: trip.destination_slug,
+            destinationLatitude: trip.destination_latitude,
+            destinationLongitude: trip.destination_longitude,
             startDate: trip.start_date ?? "",
             endDate: trip.end_date ?? "",
           },

@@ -34,6 +34,8 @@ export function formPayload(form: TripFormState): TripMetadataPayload {
     name: form.name,
     destination: form.destination,
     destination_slug: form.destinationSlug,
+    destination_latitude: form.destinationLatitude,
+    destination_longitude: form.destinationLongitude,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
   };
@@ -44,6 +46,8 @@ export function formFromTrip(trip: Trip): TripFormState {
     name: trip.name,
     destination: trip.destination,
     destinationSlug: trip.destination_slug,
+    destinationLatitude: trip.destination_latitude,
+    destinationLongitude: trip.destination_longitude,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
   };

@@ -162,6 +162,12 @@
   padding: 8px;
 }
 
+.destination-combobox-note {
+  color: var(--text-tertiary);
+  margin: 0;
+  padding: 8px;
+}
+
 .trip-empty-text {
   color: var(--muted);
   margin: 4px 0 0;

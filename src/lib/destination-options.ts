@@ -17,6 +17,10 @@ export type DestinationFocus = {
   zoom: number;
 };
 
+// City-level zoom used when a trip has custom Google Maps coordinates but no
+// curated destination preset to supply a tailored zoom.
+export const DEFAULT_DESTINATION_ZOOM = 11;
+
 export const DESTINATION_OPTIONS: DestinationOption[] = DESTINATIONS.map(
   (destination) => ({
     ...destination,

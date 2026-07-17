@@ -21,6 +21,8 @@ export function tripMetadataPayloadFromForm(
     name: form.name,
     destination: form.destination,
     destination_slug: form.destinationSlug,
+    destination_latitude: form.destinationLatitude,
+    destination_longitude: form.destinationLongitude,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
   };
@@ -34,5 +36,20 @@ export function tripDestinationFormChange(
     ...form,
     destination,
     destinationSlug: findDestinationOption(destination)?.slug ?? null,
+    destinationLatitude: null,
+    destinationLongitude: null,
+  };
+}
+
+export function tripGoogleDestinationChange(
+  form: TripFormState,
+  selection: { destination: string; latitude: number; longitude: number },
+): TripFormState {
+  return {
+    ...form,
+    destination: selection.destination,
+    destinationSlug: null,
+    destinationLatitude: selection.latitude,
+    destinationLongitude: selection.longitude,
   };
 }

@@ -87,3 +87,27 @@ export class GoogleRoutesRateLimitError extends Error {
     this.name = "GoogleRoutesRateLimitError";
   }
 }
+
+export class GooglePlacesConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GooglePlacesConfigError";
+  }
+}
+
+export class GooglePlacesUpstreamError extends Error {
+  readonly status: 502 | 504;
+
+  constructor(message: string, status: 502 | 504) {
+    super(message);
+    this.name = "GooglePlacesUpstreamError";
+    this.status = status;
+  }
+}
+
+export class GooglePlacesRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GooglePlacesRateLimitError";
+  }
+}

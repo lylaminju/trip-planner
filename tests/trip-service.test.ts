@@ -19,6 +19,8 @@ describe("trip-service", () => {
         name: "Toronto June",
         destination: "Toronto",
         destination_slug: "toronto",
+        destination_latitude: null,
+        destination_longitude: null,
         start_date: "2026-06-01",
         end_date: "2026-06-02",
       });
