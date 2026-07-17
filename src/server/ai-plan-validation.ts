@@ -54,6 +54,8 @@ export function validateAiItineraryPlan(
     const dayLatestEndTime =
       day.date === lastTripDate ? context.lastDayLatestEndTime : null;
     let hasVisitBeforeStartTime = false;
+    let hasVisitOutOfOrder = false;
+    let previousVisitStartMinutes: number | null = null;
 
     for (const visit of day.visits) {
       if (!context.candidateIds.has(visit.candidate_id)) {
@@ -71,6 +73,17 @@ export function validateAiItineraryPlan(
       }
       if (startsBefore(visit.start_time, dayEarliestStartTime)) {
         hasVisitBeforeStartTime = true;
+      }
+      const visitStartMinutes = parseVisitTime(visit.start_time);
+      if (
+        visitStartMinutes !== null &&
+        previousVisitStartMinutes !== null &&
+        visitStartMinutes <= previousVisitStartMinutes
+      ) {
+        hasVisitOutOfOrder = true;
+      }
+      if (visitStartMinutes !== null) {
+        previousVisitStartMinutes = visitStartMinutes;
       }
       if (
         !Number.isInteger(visit.duration_minutes) ||
@@ -92,6 +105,11 @@ export function validateAiItineraryPlan(
     if (hasVisitBeforeStartTime && dayEarliestStartTime) {
       errors.push(
         `Day ${day.date} has a visit before ${dayEarliestStartTime}.`,
+      );
+    }
+    if (hasVisitOutOfOrder) {
+      errors.push(
+        `Day ${day.date} has visits that are not in increasing start-time order.`,
       );
     }
   }

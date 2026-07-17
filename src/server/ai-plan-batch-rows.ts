@@ -5,6 +5,7 @@ import type {
 } from "@/lib/types";
 import {
   formatVisitTime,
+  nextVisitGridMinuteAfter,
   parseVisitTime,
   roundVisitMinutesUpToGrid,
 } from "@/lib/visit-time";
@@ -131,6 +132,9 @@ export function buildGeneratedScheduleEntries(input: {
       ? (arrivalPoint.event_time ?? input.lodgingStartTime)
       : input.lodgingStartTime;
     let lastVisitEndTime: string | null = null;
+    // Running start time of the last item placed on this day, so each following
+    // item can be forced onto a later grid slot and no two items share a time.
+    let previousStartMinutes: number | null = null;
 
     if (dayStartsAtArrival && arrivalPlaceId !== null) {
       entries.push({
@@ -141,6 +145,7 @@ export function buildGeneratedScheduleEntries(input: {
         location: arrivalPoint,
         order,
       });
+      previousStartMinutes = parseVisitTime(dayAnchorStartTime);
       order += 1;
     } else if (input.lodging && input.lodgingPlaceId !== null) {
       entries.push({
@@ -151,6 +156,7 @@ export function buildGeneratedScheduleEntries(input: {
         location: input.lodging,
         order,
       });
+      previousStartMinutes = parseVisitTime(input.lodgingStartTime);
       order += 1;
     }
     const hasDayAnchor =
@@ -166,13 +172,25 @@ export function buildGeneratedScheduleEntries(input: {
         throw new Error("Inserted candidate place was not returned.");
       }
 
-      const startTime = scheduleAfterAnchorTravel(
+      let startTime = scheduleAfterAnchorTravel(
         visit.start_time,
         hasDayAnchor ? dayAnchorStartTime : null,
         visitIndex === 0
           ? (input.firstVisitTravelDurationsByDate?.get(day.date) ?? null)
           : null,
       );
+      let startMinutes = parseVisitTime(startTime);
+      if (
+        startMinutes !== null &&
+        previousStartMinutes !== null &&
+        startMinutes <= previousStartMinutes
+      ) {
+        startMinutes = nextVisitGridMinuteAfter(previousStartMinutes);
+        startTime = formatVisitTime(startMinutes);
+      }
+      if (startMinutes !== null) {
+        previousStartMinutes = startMinutes;
+      }
       entries.push({
         date: day.date,
         startTime,

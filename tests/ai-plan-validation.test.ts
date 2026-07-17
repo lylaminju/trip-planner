@@ -257,6 +257,44 @@ describe("AI itinerary plan validation", () => {
       "Day 2026-05-27 has a visit ending after 10:30.",
     );
   });
+
+  it("rejects days whose visits share or repeat a start time", () => {
+    const result = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+              {
+                candidate_id: 11,
+                start_time: "09:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10, 11]),
+        tripDates: ["2026-05-27"],
+        visitsPerDayMin: 1,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+      },
+    );
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Day 2026-05-27 has visits that are not in increasing start-time order.",
+    );
+  });
 });
 
 function plan(): AiItineraryPlan {

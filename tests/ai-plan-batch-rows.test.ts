@@ -94,6 +94,53 @@ describe("AI plan batch rows", () => {
     ]);
   });
 
+  it("spaces items onto later grid slots when times would collide", () => {
+    const entries = buildGeneratedScheduleEntries({
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+              {
+                candidate_id: 11,
+                start_time: "09:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([
+        [10, candidate(10)],
+        [11, candidate(11)],
+      ]),
+      lodging: lodging(),
+      lodgingStartTime: "09:00",
+      lodgingPlaceId: 101,
+      candidatePlaceIds: [102, 103],
+      // No travel duration resolved, so the raw 09:00 model times would all
+      // collide with the lodging anchor and each other without spacing.
+    });
+
+    expect(
+      entries.map((entry) => ({
+        placeId: entry.placeId,
+        startTime: entry.startTime,
+      })),
+    ).toEqual([
+      { placeId: 101, startTime: "09:00" },
+      { placeId: 102, startTime: "09:10" },
+      { placeId: 103, startTime: "09:20" },
+    ]);
+  });
+
   it("rounds generated attraction times up to the 10-minute grid", () => {
     const entries = buildGeneratedScheduleEntries({
       plan: {

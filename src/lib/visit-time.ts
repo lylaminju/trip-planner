@@ -69,6 +69,16 @@ export function roundVisitMinutesUpToGrid(minutes: number): number {
   );
 }
 
+// The first grid slot strictly after `minutes`, capped at the last slot of the
+// day. Used to space itinerary items that would otherwise share a start time.
+export function nextVisitGridMinuteAfter(minutes: number): number {
+  if (!Number.isFinite(minutes)) {
+    return minutes;
+  }
+
+  return roundVisitMinutesUpToGrid(minutes + 1);
+}
+
 export function splitVisitTime(value: string | null): [string, string] {
   if (!value) {
     return ["", ""];
