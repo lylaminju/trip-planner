@@ -68,6 +68,14 @@ This file applies to the whole repository. Follow it when changing code here.
 - If a selector crosses more than one component ownership boundary, first consider moving the variant values to the owning component and keeping state selectors close to the reusable control.
 - Prefer preview-owned classes when a static preview should not inherit live app spacing, interaction, or layout behavior.
 
+## Modern CSS Scope
+
+- We hand-author global component CSS and manage the cascade through selector discipline and import order, not cascade layers. Do not introduce `@layer`, native nesting, or container queries without agreeing the tradeoff first; they change how the whole cascade is reasoned about.
+- Modern selectors and functions are welcome where they reduce complexity. Prefer them over JS-driven layout or deep descendant chains:
+  - `:has()` for structural conditions, such as reserving space on a row only when an optional control is present.
+  - `clamp()`, `min()`, and `max()` for fluid sizing.
+  - Logical properties such as `padding-inline` and `margin-block`.
+
 ## CSS Design Tokens
 
 - Define color, shadow, overlay, focus-ring, and map/SVG paint values in `src/styles/theme.css`.

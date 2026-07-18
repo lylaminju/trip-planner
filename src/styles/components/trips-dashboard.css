@@ -959,6 +959,15 @@
     padding: 9px 2px;
   }
 
+  /* Compact past rows overlay the action buttons on the right edge, and the
+     overlay stays visible on touch, so reserve room for it (3 x 30px buttons +
+     6px gaps + 8px offset) to keep the member badges and date text from sitting
+     underneath the buttons. Scoped with :has() so non-editable rows without the
+     overlay keep their full width. */
+  .trip-card-past:has(.trip-card-actions) .trip-card-main {
+    padding-right: 116px;
+  }
+
   .trip-card-past .trip-card-cover {
     border-radius: 10px;
     flex: 0 0 46px;
