@@ -5,6 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { DailyCount, UserUsageStats } from "@/server/supabase-admin-usage-store";
 
 const GOOGLE_ROUTES_CHART_LIMIT = 200;
+// Mirrors PLACES_PER_USER_DAILY_LIMIT (the per-user daily cap in the places
+// usage store); kept as a local literal so this client file avoids importing
+// the server-only store module.
+const GOOGLE_PLACES_CHART_LIMIT = 200;
 const AI_GENERATIONS_CHART_LIMIT = 30;
 
 // Render the last sign-in timestamp in the viewer's local timezone, including
@@ -74,6 +78,12 @@ export function AdminDashboard() {
                 Google Routes <span>/ {GOOGLE_ROUTES_CHART_LIMIT} per day</span>
               </p>
               <UsageChart data={user.googleRoutesByDay} limit={GOOGLE_ROUTES_CHART_LIMIT} />
+            </div>
+            <div className="admin-chart-block">
+              <p className="admin-chart-label">
+                Google Places <span>/ {GOOGLE_PLACES_CHART_LIMIT} per day</span>
+              </p>
+              <UsageChart data={user.googlePlacesByDay} limit={GOOGLE_PLACES_CHART_LIMIT} />
             </div>
             <div className="admin-chart-block">
               <p className="admin-chart-label">

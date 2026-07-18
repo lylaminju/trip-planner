@@ -9,6 +9,7 @@ export type UserUsageStats = {
   email: string;
   lastSignInAt: string | null;
   googleRoutesByDay: DailyCount[];
+  googlePlacesByDay: DailyCount[];
   aiGenerationsByDay: DailyCount[];
 };
 
@@ -18,10 +19,14 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
   startDate.setUTCHours(0, 0, 0, 0);
   const start = startDate.toISOString();
 
-  const [usersResult, routesResult, genResult] = await Promise.all([
+  const [usersResult, routesResult, placesResult, genResult] = await Promise.all([
     getSupabaseClient().auth.admin.listUsers({ perPage: 1000 }),
     getSupabaseClient()
       .from("google_routes_api_calls")
+      .select("user_id, called_at")
+      .gte("called_at", start),
+    getSupabaseClient()
+      .from("google_places_api_calls")
       .select("user_id, called_at")
       .gte("called_at", start),
     getSupabaseClient()
@@ -32,6 +37,7 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
 
   if (usersResult.error) throw new Error(`Failed to list users: ${usersResult.error.message}`);
   if (routesResult.error) throw new Error(`Failed to load routes usage: ${routesResult.error.message}`);
+  if (placesResult.error) throw new Error(`Failed to load places usage: ${placesResult.error.message}`);
   if (genResult.error) throw new Error(`Failed to load generation usage: ${genResult.error.message}`);
 
   const dates = generateDateRange(startDate, USAGE_HISTORY_DAYS);
@@ -42,6 +48,10 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
     lastSignInAt: u.last_sign_in_at ?? null,
     googleRoutesByDay: aggregateByDay(
       (routesResult.data ?? []).filter((r) => r.user_id === u.id).map((r) => r.called_at as string),
+      dates,
+    ),
+    googlePlacesByDay: aggregateByDay(
+      (placesResult.data ?? []).filter((p) => p.user_id === u.id).map((p) => p.called_at as string),
       dates,
     ),
     aiGenerationsByDay: aggregateByDay(

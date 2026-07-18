@@ -110,7 +110,7 @@
 .admin-charts-row {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (max-width: 640px) {
@@ -130,6 +130,34 @@
   .admin-charts-row {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+}
+
+/* Desktop-only: larger type and wider chart columns. Mobile keeps the compact
+   base sizes above. */
+@media (min-width: 641px) {
+  .admin-page-header,
+  .admin-page-content {
+    max-width: 1200px;
+  }
+
+  .admin-page-header h1 {
+    font-size: 26px;
+  }
+
+  .admin-page-back,
+  .admin-refresh-button,
+  .admin-user-email {
+    font-size: 15px;
+  }
+
+  .admin-user-last-login,
+  .admin-chart-label {
+    font-size: 14px;
+  }
+
+  .admin-usage-tooltip {
+    font-size: 13px;
   }
 }
 
