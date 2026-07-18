@@ -75,6 +75,7 @@ export function TripsDashboard(props: {
       past: true,
     });
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const groups = useMemo(() => groupTripsByTiming(trips), [trips]);
   const featuredTrip = groups.ongoing[0] ?? groups.upcoming[0] ?? null;
   const upcomingTrips = useMemo(
@@ -106,7 +107,7 @@ export function TripsDashboard(props: {
         setError(null);
       })
       .catch((reason) => {
-        setError(errorMessage(reason, "Failed to load trips."));
+        setLoadError(errorMessage(reason, "Failed to load trips."));
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -257,6 +258,12 @@ export function TripsDashboard(props: {
           {error && !isCreateModalOpen && <p className="error-text">{error}</p>}
           {isLoading ? (
             <p className="trip-empty-text">Loading trips...</p>
+          ) : loadError ? (
+            <div className="trips-empty-state">
+              <p className="error-text trips-load-error" role="alert">
+                {loadError}
+              </p>
+            </div>
           ) : isEmptyState ? (
             <div className="trips-empty-state">
               <div className="trips-empty-state-card">

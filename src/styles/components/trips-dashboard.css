@@ -775,6 +775,11 @@
   padding: 24px 0;
 }
 
+.trips-load-error {
+  margin: 0;
+  text-align: center;
+}
+
 .trips-empty-state-card {
   align-items: center;
   display: flex;
