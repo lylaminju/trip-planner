@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./supabase";
+import { PLACES_SKU } from "./supabase-google-places-usage-store";
 
 const USAGE_HISTORY_DAYS = 14;
 
@@ -9,7 +10,8 @@ export type UserUsageStats = {
   email: string;
   lastSignInAt: string | null;
   googleRoutesByDay: DailyCount[];
-  googlePlacesByDay: DailyCount[];
+  placesAutocompleteByDay: DailyCount[];
+  placesDetailsByDay: DailyCount[];
   aiGenerationsByDay: DailyCount[];
 };
 
@@ -27,7 +29,7 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
       .gte("called_at", start),
     getSupabaseClient()
       .from("google_places_api_calls")
-      .select("user_id, called_at")
+      .select("user_id, sku, called_at")
       .gte("called_at", start),
     getSupabaseClient()
       .from("ai_plan_generations")
@@ -50,8 +52,16 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
       (routesResult.data ?? []).filter((r) => r.user_id === u.id).map((r) => r.called_at as string),
       dates,
     ),
-    googlePlacesByDay: aggregateByDay(
-      (placesResult.data ?? []).filter((p) => p.user_id === u.id).map((p) => p.called_at as string),
+    placesAutocompleteByDay: aggregateByDay(
+      (placesResult.data ?? [])
+        .filter((p) => p.user_id === u.id && p.sku === PLACES_SKU.AUTOCOMPLETE)
+        .map((p) => p.called_at as string),
+      dates,
+    ),
+    placesDetailsByDay: aggregateByDay(
+      (placesResult.data ?? [])
+        .filter((p) => p.user_id === u.id && p.sku === PLACES_SKU.DETAILS)
+        .map((p) => p.called_at as string),
       dates,
     ),
     aiGenerationsByDay: aggregateByDay(
