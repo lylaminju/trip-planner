@@ -25,7 +25,7 @@ import {
 import { DestinationOptionRow } from "./DestinationOptionRow";
 
 const MIN_QUERY_LENGTH = 3;
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 400;
 
 export type GoogleDestinationSelection = {
   destination: string;
@@ -55,12 +55,19 @@ export function DestinationSearch(props: {
 
   const sessionTokenRef = useRef<string>(crypto.randomUUID());
   const requestIdRef = useRef(0);
+  // Set when a selection rewrites the input value, so the resulting value
+  // change does not fire a wasted autocomplete for the place just chosen.
+  const skipNextSearchRef = useRef(false);
 
   const trimmedValue = props.value.trim();
   const isSearching =
     trimmedValue.length >= MIN_QUERY_LENGTH && unavailableMessage === null;
 
   useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
     if (!isSearching) {
       setSuggestions([]);
       setIsLoading(false);
@@ -96,6 +103,7 @@ export function DestinationSearch(props: {
   function resetSession() {
     sessionTokenRef.current = crypto.randomUUID();
     requestIdRef.current += 1;
+    skipNextSearchRef.current = true;
   }
 
   function closeOnBlur(event: FocusEvent<HTMLDivElement>) {
