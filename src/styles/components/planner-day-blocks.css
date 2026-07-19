@@ -21,8 +21,6 @@
 
 .day-block.active {
   background: var(--accent-selected-bg);
-  border-color: var(--accent-selected-border);
-  box-shadow: var(--selected-ring);
 }
 
 .day-heading {
