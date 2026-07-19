@@ -197,7 +197,7 @@ export function AddPlaceSearchStep({
         </div>
         <p className="place-paste-title">Search for a place</p>
         <p className="place-paste-hint">
-          Find any spot on Google Maps by name, or paste a Google Maps link.
+          You can also paste a Google Maps link.
         </p>
       </div>
       <div className="place-search-combobox" onBlur={closeOnBlur}>
@@ -210,7 +210,7 @@ export function AddPlaceSearchStep({
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="e.g. Louvre Museum, or https://maps.app.goo.gl/…"
+          placeholder="Search Google Maps"
           autoFocus
           autoComplete="off"
           role="combobox"
