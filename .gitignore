@@ -13,6 +13,7 @@ docs/business
 
 .agents/
 .claude/
+.codex/
 .gemini/
 .kiro/
 .omx/
