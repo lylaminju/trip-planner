@@ -29,7 +29,10 @@
   background-repeat: no-repeat;
   background-size: cover;
   border-radius: 18px 18px 0 0;
-  min-height: 236px;
+  /* ~1.8:1 at the 540px modal width — taller than before so destination photos
+     crop less. Kept a touch wider than the cards because this modal can't
+     scroll (overflow stays visible for the autocomplete popover). */
+  min-height: 300px;
   position: relative;
 }
 

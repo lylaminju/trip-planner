@@ -92,6 +92,7 @@ export async function fetchPlacePhoto(input: {
   apiKey: string;
   photoName: string;
   maxWidthPx: number;
+  maxHeightPx: number;
 }): Promise<{ bytes: ArrayBuffer; contentType: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -100,7 +101,7 @@ export async function fetchPlacePhoto(input: {
     // photoName already has "places/.../photos/..." form; its slashes are path
     // separators, so do not URL-encode them.
     const response = await fetch(
-      `${PLACES_MEDIA_BASE}/${input.photoName}/media?maxWidthPx=${input.maxWidthPx}`,
+      `${PLACES_MEDIA_BASE}/${input.photoName}/media?maxWidthPx=${input.maxWidthPx}&maxHeightPx=${input.maxHeightPx}`,
       {
         method: "GET",
         headers: { "X-Goog-Api-Key": input.apiKey },

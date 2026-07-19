@@ -314,7 +314,9 @@
   box-shadow: var(--shadow-control);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-  min-height: 240px;
+  /* Taller card so the cover (which fills the 420px column) sits near 3:2 and
+     crops the destination photo less. */
+  min-height: 280px;
   overflow: hidden;
 }
 
@@ -483,16 +485,18 @@
 }
 
 .trip-card-cover {
+  /* 3:2 matches typical Google place photos, so covers crop little regardless
+     of column width. Mobile overrides below use explicit width/height, which
+     take precedence over this ratio. */
+  aspect-ratio: 3 / 2;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  height: 168px;
   width: 100%;
 }
 
 .trip-card-past .trip-card-cover {
   filter: saturate(0.85);
-  height: 118px;
 }
 
 .trip-card-content {
@@ -863,7 +867,8 @@
   }
 
   .featured-trip-cover {
-    height: 150px;
+    aspect-ratio: 3 / 2;
+    height: auto;
     min-height: 0;
     order: -1;
   }
@@ -927,6 +932,9 @@
 
   .trip-card-grid-upcoming .trip-card-cover {
     align-self: stretch;
+    /* Reset the 3:2 base ratio: this side thumbnail stretches to the row
+       height instead. */
+    aspect-ratio: auto;
     flex: 0 0 104px;
     height: auto;
     min-height: 96px;

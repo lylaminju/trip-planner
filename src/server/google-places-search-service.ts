@@ -22,8 +22,11 @@ import {
 export const MIN_DESTINATION_QUERY_LENGTH = 3;
 
 // A cover-sized preview is plenty for the trip card; the same bytes are reused
-// as the stored cover, so there is never a second, larger fetch.
+// as the stored cover, so there is never a second, larger fetch. Capping height
+// too keeps tall/portrait sources from downloading oversized only to be cropped
+// away by the landscape covers.
 const PHOTO_PREVIEW_MAX_WIDTH_PX = 800;
+const PHOTO_PREVIEW_MAX_HEIGHT_PX = 800;
 
 // Fail closed on anything that is not a Place Photo resource name, so a
 // request-supplied value can never drive an arbitrary upstream fetch.
@@ -87,6 +90,7 @@ export async function getDestinationPhoto(
     apiKey: requirePlacesApiKey(),
     photoName,
     maxWidthPx: PHOTO_PREVIEW_MAX_WIDTH_PX,
+    maxHeightPx: PHOTO_PREVIEW_MAX_HEIGHT_PX,
   });
   await recordPlacesCall(userId, PLACES_SKU.PHOTO);
 
