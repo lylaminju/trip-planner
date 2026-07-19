@@ -23,13 +23,22 @@ export class DestinationSearchUnavailableError extends Error {
   }
 }
 
+export type PlaceSearchBias = {
+  latitude: number;
+  longitude: number;
+};
+
 export async function fetchDestinationSuggestions(
   query: string,
   sessionToken: string,
+  bias?: PlaceSearchBias | null,
 ): Promise<DestinationSuggestion[]> {
   const data = await postPlaces("/api/places/autocomplete", {
     query,
     session_token: sessionToken,
+    ...(bias
+      ? { bias_latitude: bias.latitude, bias_longitude: bias.longitude }
+      : {}),
   });
   return Array.isArray(data.suggestions)
     ? (data.suggestions as DestinationSuggestion[])
@@ -60,7 +69,7 @@ export async function fetchDestinationPhoto(
 
 async function postPlaces(
   path: string,
-  body: Record<string, string>,
+  body: Record<string, string | number>,
 ): Promise<Record<string, unknown>> {
   const response = await fetch(path, {
     method: "POST",

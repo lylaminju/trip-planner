@@ -4,6 +4,8 @@ import {
   asObject,
   isValid24HourTime,
   isValidIsoDate,
+  isValidLatitude,
+  isValidLongitude,
   jsonError,
   mapRouteError,
   readJsonBody,
@@ -60,7 +62,16 @@ export async function POST(request: Request, { params }: TripParams) {
   }
 
   try {
-    const resolved = await resolvePlaceUrl(googleMapsUrl);
+    const coordinates = readClientCoordinates(body);
+    if (coordinates instanceof NextResponse) {
+      return coordinates;
+    }
+
+    // A search-selected place already carries verified coordinates from Place
+    // Details, so the URL-resolution step is skipped entirely.
+    const resolved = coordinates
+      ? { google_maps_url: googleMapsUrl, name: null, ...coordinates }
+      : await resolvePlaceUrl(googleMapsUrl);
     const name = stringOrNull(body.name) ?? resolved.name;
     if (!name) {
       return jsonError(
@@ -82,7 +93,7 @@ export async function POST(request: Request, { params }: TripParams) {
           address: stringOrNull(body.address),
           notes: stringOrNull(body.notes),
           google_maps_url: resolved.google_maps_url,
-          place_id: null,
+          place_id: coordinates ? stringOrNull(body.place_id) : null,
           google_place_token: null,
           google_internal_ids: null,
           source_list_url: null,
@@ -129,6 +140,24 @@ export async function DELETE(request: Request, { params }: TripParams) {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+// Coordinates are optional (URL-only bodies resolve them server-side), but if
+// either is present both must be valid numbers in range.
+function readClientCoordinates(
+  body: Record<string, unknown>,
+): { latitude: number; longitude: number } | NextResponse | null {
+  const latitude = body.latitude;
+  const longitude = body.longitude;
+  if (latitude === undefined && longitude === undefined) {
+    return null;
+  }
+
+  if (!isValidLatitude(latitude) || !isValidLongitude(longitude)) {
+    return jsonError("Place coordinates are invalid.", 400);
+  }
+
+  return { latitude, longitude };
 }
 
 function stringArray(value: unknown): string[] {

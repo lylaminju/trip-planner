@@ -26,12 +26,12 @@ function renderAddModal(overrides: Record<string, unknown> = {}) {
 }
 
 describe("add / edit place modal", () => {
-  it("opens the add flow on the paste step", () => {
+  it("opens the add flow on the search step", () => {
     const markup = renderAddModal();
 
-    expect(markup).toContain("Paste a Google Maps link");
-    expect(markup).toContain("Continue");
-    // Scheduling (day tiles / date select) only appears after the link resolves.
+    expect(markup).toContain('role="combobox"');
+    expect(markup).toContain("Search Google Maps");
+    // Scheduling (day tiles / date select) only appears after a place is chosen.
     expect(markup).not.toContain("Which day?");
     expect(markup).not.toContain('name="visit_date"');
     expect(markup).not.toContain('type="date"');

@@ -263,6 +263,14 @@ export function TripPlannerView(props: Props) {
           place={props.editingPlace}
           visitDateOptions={props.visitDateOptions}
           defaultVisitDate={props.editingPlace ? null : props.addPlaceVisitDate}
+          destinationBias={
+            props.destinationFocus
+              ? {
+                  latitude: props.destinationFocus.latitude,
+                  longitude: props.destinationFocus.longitude,
+                }
+              : null
+          }
           onCancel={props.onCloseModal}
           onResolveUrl={props.onResolvePlaceUrl}
           onSave={(payload) =>

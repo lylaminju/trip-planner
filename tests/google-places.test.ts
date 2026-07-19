@@ -1,6 +1,58 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { parseDetails, parseSuggestions } from "@/server/google-places";
+import {
+  fetchDestinationSuggestions,
+  parseDetails,
+  parseSuggestions,
+} from "@/server/google-places";
+
+describe("fetchDestinationSuggestions", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function stubFetch() {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ suggestions: [] }), { status: 200 }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  it("sends a circle location bias when one is provided", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchDestinationSuggestions({
+      apiKey: "key",
+      query: "louvre",
+      sessionToken: "session-1",
+      locationBias: { latitude: 48.8566, longitude: 2.3522 },
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.locationBias).toEqual({
+      circle: {
+        center: { latitude: 48.8566, longitude: 2.3522 },
+        radius: 50_000,
+      },
+    });
+  });
+
+  it("omits the location bias when none is provided", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchDestinationSuggestions({
+      apiKey: "key",
+      query: "louvre",
+      sessionToken: "session-1",
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body).not.toHaveProperty("locationBias");
+  });
+});
 
 describe("parseSuggestions", () => {
   it("maps place predictions to suggestions and drops incomplete rows", () => {

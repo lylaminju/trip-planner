@@ -291,6 +291,116 @@
   text-align: center;
 }
 
+/* Step 1 — Google place search. */
+.place-search {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 0 8px;
+}
+
+/* The modal is a scroll container, which would clip the floating popover at
+   the modal edge. Step 1 content is short, so releasing overflow while the
+   popover is open never hides modal content. */
+.place-modal:has(.place-search-popover:not([hidden])) {
+  overflow: visible;
+}
+
+.place-search-combobox {
+  position: relative;
+}
+
+.place-search-combobox .place-paste-input {
+  text-align: left;
+  width: 100%;
+}
+
+.place-search-popover {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-popover);
+  left: 0;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 12;
+}
+
+.place-search-popover[hidden] {
+  display: none;
+}
+
+.place-search-list {
+  display: grid;
+  gap: 4px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.place-search-option {
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 9px;
+  text-align: left;
+  width: 100%;
+}
+
+.place-search-option:hover:not(:disabled),
+.place-search-option:focus-visible {
+  background: var(--surface-subtle);
+  outline: none;
+}
+
+.place-search-option:disabled {
+  cursor: default;
+}
+
+.place-search-option-name {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-search-option-detail {
+  color: var(--muted);
+  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-search-link-option {
+  align-items: center;
+  color: var(--accent);
+  flex-direction: row;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: center;
+}
+
+.place-search-empty,
+.place-search-note {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  padding: 8px 9px;
+  text-align: center;
+}
+
 /* Step 2 / edit — details. */
 .place-details {
   display: flex;

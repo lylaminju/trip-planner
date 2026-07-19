@@ -29,6 +29,25 @@ export type JsonObject = Record<string, unknown>;
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_24_HOUR_PATTERN = /^(\d{2}):(\d{2})$/;
 
+const MAX_ABS_LATITUDE = 90;
+const MAX_ABS_LONGITUDE = 180;
+
+export function isValidLatitude(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Math.abs(value) <= MAX_ABS_LATITUDE
+  );
+}
+
+export function isValidLongitude(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Math.abs(value) <= MAX_ABS_LONGITUDE
+  );
+}
+
 export async function readJsonBody(
   request: Request,
 ): Promise<

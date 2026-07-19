@@ -9,6 +9,11 @@ export type DestinationSuggestion = {
   secondary_text: string | null;
 };
 
+export type AutocompleteLocationBias = {
+  latitude: number;
+  longitude: number;
+};
+
 export type DestinationDetails = {
   place_id: string;
   name: string;
@@ -26,6 +31,10 @@ const AUTOCOMPLETE_ENDPOINT =
 const DETAILS_ENDPOINT = "https://places.googleapis.com/v1/places";
 const PLACES_MEDIA_BASE = "https://places.googleapis.com/v1";
 const REQUEST_TIMEOUT_MS = 8_000;
+
+// Largest circle radius the Places autocomplete locationBias accepts. We bias
+// (not restrict) to the trip destination, so distant explicit queries still match.
+const AUTOCOMPLETE_BIAS_RADIUS_METERS = 50_000;
 
 const AUTOCOMPLETE_FIELD_MASK =
   "suggestions.placePrediction.placeId,suggestions.placePrediction.structuredFormat";
@@ -47,6 +56,7 @@ export async function fetchDestinationSuggestions(input: {
   apiKey: string;
   query: string;
   sessionToken: string;
+  locationBias?: AutocompleteLocationBias | null;
 }): Promise<DestinationSuggestion[]> {
   const payload = await placesFetch({
     url: AUTOCOMPLETE_ENDPOINT,
@@ -56,6 +66,19 @@ export async function fetchDestinationSuggestions(input: {
     body: {
       input: input.query,
       sessionToken: input.sessionToken,
+      ...(input.locationBias
+        ? {
+            locationBias: {
+              circle: {
+                center: {
+                  latitude: input.locationBias.latitude,
+                  longitude: input.locationBias.longitude,
+                },
+                radius: AUTOCOMPLETE_BIAS_RADIUS_METERS,
+              },
+            },
+          }
+        : {}),
     },
   });
 

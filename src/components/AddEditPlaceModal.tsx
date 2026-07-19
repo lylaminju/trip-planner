@@ -2,9 +2,14 @@
 
 import { useState, type SubmitEvent } from "react";
 
+import type { PlaceSearchBias } from "@/lib/places-api";
 import type { ResolvedPlace } from "@/lib/planner-api";
 import type { Place, VisitDateOption } from "@/lib/types";
 
+import {
+  AddPlaceSearchStep,
+  type PlaceSearchSelection,
+} from "./AddPlaceSearchStep";
 import { TrashIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { VisitScheduleFields } from "./VisitScheduleFields";
@@ -13,6 +18,7 @@ type Props = {
   place: Place | null;
   visitDateOptions: VisitDateOption[];
   defaultVisitDate?: string | null;
+  destinationBias?: PlaceSearchBias | null;
   onCancel: () => void;
   onResolveUrl: (googleMapsUrl: string) => Promise<ResolvedPlace>;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
@@ -22,6 +28,7 @@ export function AddEditPlaceModal({
   place,
   visitDateOptions,
   defaultVisitDate,
+  destinationBias,
   onCancel,
   onResolveUrl,
   onSave,
@@ -42,33 +49,40 @@ export function AddEditPlaceModal({
   const [links, setLinks] = useState<string[]>(
     place?.links?.length ? place.links : [""],
   );
-  const [isResolving, setIsResolving] = useState(false);
+  const [searchPlace, setSearchPlace] = useState<PlaceSearchSelection | null>(
+    null,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleResolve(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = url.trim();
-    if (!trimmed) {
-      setError("Paste a Google Maps link first.");
-      return;
-    }
-
-    setIsResolving(true);
+  // Errors surface inside the search step; rejections propagate back to it.
+  async function handleResolveUrl(googleMapsUrl: string) {
+    const resolved = await onResolveUrl(googleMapsUrl);
+    setSearchPlace(null);
+    setUrl(googleMapsUrl);
+    setCanonicalUrl(resolved.google_maps_url);
+    setName(resolved.name ?? "");
+    setHasResolvedName(resolved.name !== null);
     setError(null);
-    try {
-      const resolved = await onResolveUrl(trimmed);
-      setCanonicalUrl(resolved.google_maps_url);
-      setName(resolved.name ?? "");
-      setHasResolvedName(resolved.name !== null);
-      setStep(2);
-    } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Failed to resolve link.",
-      );
-    } finally {
-      setIsResolving(false);
-    }
+    setStep(2);
+  }
+
+  function handleSelectSearchPlace(selection: PlaceSearchSelection) {
+    setSearchPlace(selection);
+    setUrl(selection.google_maps_url);
+    setCanonicalUrl(selection.google_maps_url);
+    setName(selection.name);
+    setHasResolvedName(true);
+    setError(null);
+    setStep(2);
+  }
+
+  // Whatever reaches step 2 next (search pick or resolved link) rewrites the
+  // coordinates, so stale search coordinates must not survive going back.
+  function backToSearchStep() {
+    setStep(1);
+    setSearchPlace(null);
+    setError(null);
   }
 
   async function handleSave(event: SubmitEvent<HTMLFormElement>) {
@@ -98,6 +112,13 @@ export function AddEditPlaceModal({
           links: trimmedLinks,
           visit_date: selectedDate,
           visit_time: selectedDate ? visitTime : null,
+          ...(searchPlace
+            ? {
+                place_id: searchPlace.place_id,
+                latitude: searchPlace.latitude,
+                longitude: searchPlace.longitude,
+              }
+            : {}),
         };
 
     setIsSaving(true);
@@ -124,10 +145,7 @@ export function AddEditPlaceModal({
                 type="button"
                 className="place-modal-back"
                 aria-label="Back"
-                onClick={() => {
-                  setStep(1);
-                  setError(null);
-                }}
+                onClick={backToSearchStep}
               >
                 ←
               </button>
@@ -159,35 +177,11 @@ export function AddEditPlaceModal({
         </header>
 
         {!isEditing && step === 1 ? (
-          <form className="place-paste" onSubmit={handleResolve}>
-            <div className="place-paste-intro">
-              <div className="place-paste-icon" aria-hidden="true">
-                🔗
-              </div>
-              <p className="place-paste-title">Paste a Google Maps link</p>
-              <p className="place-paste-hint">
-                Share a place from Google Maps and we&apos;ll pull in its name
-                and pin automatically.
-              </p>
-            </div>
-            <input
-              className="place-paste-input"
-              value={url}
-              onChange={(event) => setUrl(event.currentTarget.value)}
-              placeholder="https://maps.app.goo.gl/…"
-              autoFocus
-              aria-label="Google Maps link"
-            />
-            {error && <p className="error-text">{error}</p>}
-            <button
-              type="submit"
-              className="place-primary-button"
-              disabled={isResolving}
-            >
-              {isResolving && <span className="place-spinner" />}
-              Continue
-            </button>
-          </form>
+          <AddPlaceSearchStep
+            destinationBias={destinationBias ?? null}
+            onSelectPlace={handleSelectSearchPlace}
+            onResolveUrl={handleResolveUrl}
+          />
         ) : (
           <form className="place-details" onSubmit={handleSave}>
             <div className="place-resolved">
@@ -315,14 +309,7 @@ export function AddEditPlaceModal({
               <button
                 type="button"
                 className="place-secondary-button"
-                onClick={
-                  isEditing
-                    ? onCancel
-                    : () => {
-                        setStep(1);
-                        setError(null);
-                      }
-                }
+                onClick={isEditing ? onCancel : backToSearchStep}
               >
                 {isEditing ? "Cancel" : "Back"}
               </button>

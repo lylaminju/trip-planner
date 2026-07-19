@@ -4,6 +4,7 @@ import {
   fetchDestinationSuggestions,
   fetchPlacePhoto,
   requirePlacesApiKey,
+  type AutocompleteLocationBias,
   type DestinationDetails,
   type DestinationSuggestion,
 } from "@/server/google-places";
@@ -40,6 +41,7 @@ export async function searchDestinations(
   userId: string,
   query: string,
   sessionToken: string,
+  locationBias: AutocompleteLocationBias | null = null,
 ): Promise<DestinationSuggestion[]> {
   const trimmed = query.trim();
   if (trimmed.length < MIN_DESTINATION_QUERY_LENGTH) {
@@ -52,6 +54,7 @@ export async function searchDestinations(
     apiKey: requirePlacesApiKey(),
     query: trimmed,
     sessionToken,
+    locationBias,
   });
 
   await recordPlacesCall(userId, PLACES_SKU.AUTOCOMPLETE);

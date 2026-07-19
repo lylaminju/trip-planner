@@ -5,6 +5,13 @@ type Coordinate = {
   longitude: number;
 };
 
+// Documented lookup URL for a place by its Google place id, used when Place
+// Details returns no googleMapsUri.
+export function buildGoogleMapsPlaceIdUrl(placeId: string): string {
+  const params = new URLSearchParams({ q: `place_id:${placeId}` });
+  return `https://www.google.com/maps/place/?${params.toString()}`;
+}
+
 export function buildGoogleMapsDirectionsUrl(input: {
   origin: Coordinate;
   destination: Coordinate;

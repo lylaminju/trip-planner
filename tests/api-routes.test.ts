@@ -86,6 +86,7 @@ async function withFreshTestEnv(
   } finally {
     vi.doUnmock("@/server/auth-session");
     vi.doUnmock("@/server/ai-planning-service");
+    vi.doUnmock("@/server/google-places-search-service");
     vi.doUnmock("@/server/place-service");
     vi.doUnmock("@/server/supabase-place-service");
     vi.doUnmock("@/server/trip-access");
@@ -674,6 +675,127 @@ describe("API routes transport behavior", () => {
       await expect(response.json()).resolves.toEqual({
         error: "Google Maps upstream failed",
       });
+    });
+  });
+
+  it("creates a place from search-supplied coordinates without URL resolution", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/place-service", async () => {
+        const actual = await vi.importActual<
+          typeof import("@/server/place-service")
+        >("@/server/place-service");
+
+        return { ...actual, resolvePlaceUrl: vi.fn() };
+      });
+
+      const { POST } = await import("@/app/api/trips/[tripId]/places/route");
+      const service = await import("@/server/place-service");
+      const response = await POST(
+        jsonRequest("POST", {
+          name: "Louvre Museum",
+          google_maps_url: "https://maps.google.com/?cid=42",
+          place_id: "google-place-1",
+          latitude: 48.8606,
+          longitude: 2.3376,
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        places: [
+          expect.objectContaining({
+            name: "Louvre Museum",
+            google_maps_url: "https://maps.google.com/?cid=42",
+            place_id: "google-place-1",
+            latitude: 48.8606,
+            longitude: 2.3376,
+          }),
+        ],
+      });
+      expect(service.resolvePlaceUrl).not.toHaveBeenCalled();
+    });
+  });
+
+  it.each([
+    { latitude: 91, longitude: 2.3376 },
+    { latitude: 48.8606, longitude: 181 },
+    { latitude: "48.8606", longitude: 2.3376 },
+    { latitude: 48.8606 },
+  ])(
+    "rejects malformed place coordinates instead of resolving them %#",
+    async (coordinates) => {
+      await withFreshTestEnv(async () => {
+        const { POST } = await import("@/app/api/trips/[tripId]/places/route");
+        const response = await POST(
+          jsonRequest("POST", {
+            name: "Louvre Museum",
+            google_maps_url: "https://maps.google.com/?cid=42",
+            ...coordinates,
+          }),
+          tripParams(),
+        );
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+          error: "Place coordinates are invalid.",
+        });
+      });
+    },
+  );
+
+  it("forwards a valid autocomplete location bias to destination search", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        searchDestinations: vi.fn().mockResolvedValue([]),
+      }));
+
+      const { POST } = await import("@/app/api/places/autocomplete/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(
+        jsonRequest("POST", {
+          query: "louvre",
+          session_token: "session-1",
+          bias_latitude: 48.8566,
+          bias_longitude: 2.3522,
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(service.searchDestinations).toHaveBeenCalledWith(
+        "user-1",
+        "louvre",
+        "session-1",
+        { latitude: 48.8566, longitude: 2.3522 },
+      );
+    });
+  });
+
+  it.each([
+    { bias_latitude: 91, bias_longitude: 2.3522 },
+    { bias_latitude: "48.8566", bias_longitude: 2.3522 },
+    { bias_latitude: 48.8566 },
+  ])("rejects malformed autocomplete location bias %#", async (bias) => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        searchDestinations: vi.fn().mockResolvedValue([]),
+      }));
+
+      const { POST } = await import("@/app/api/places/autocomplete/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(
+        jsonRequest("POST", {
+          query: "louvre",
+          session_token: "session-1",
+          ...bias,
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: "Location bias coordinates are invalid.",
+      });
+      expect(service.searchDestinations).not.toHaveBeenCalled();
     });
   });
 
