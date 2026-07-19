@@ -940,6 +940,11 @@
     min-height: 96px;
   }
 
+  /* Tighter padding in the compact horizontal row next to the thumbnail. */
+  .trip-card-grid-upcoming .trip-card-content {
+    padding: 10px 12px;
+  }
+
   /* Past trips collapse into a compact thumbnail list on phones. */
   .trip-card-grid-past {
     display: flex;
