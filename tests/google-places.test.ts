@@ -76,7 +76,42 @@ describe("parseDetails", () => {
       latitude: 35.01,
       longitude: 135.76,
       google_maps_url: "https://maps.google.com/?cid=1",
+      photo_name: null,
+      photo_attribution: null,
     });
+  });
+
+  it("extracts the first photo reference and its author attribution", () => {
+    const payload = {
+      id: "place-1",
+      displayName: { text: "Kyoto" },
+      location: { latitude: 35.01, longitude: 135.76 },
+      photos: [
+        {
+          name: "places/place-1/photos/ref-1",
+          authorAttributions: [{ displayName: "Jane Doe" }],
+        },
+        { name: "places/place-1/photos/ref-2" },
+      ],
+    };
+
+    expect(parseDetails(payload)).toMatchObject({
+      photo_name: "places/place-1/photos/ref-1",
+      photo_attribution: "Jane Doe",
+    });
+  });
+
+  it("keeps the photo reference but nulls attribution when none is given", () => {
+    const payload = {
+      id: "place-1",
+      displayName: { text: "Kyoto" },
+      location: { latitude: 35.01, longitude: 135.76 },
+      photos: [{ name: "places/place-1/photos/ref-1" }],
+    };
+
+    const details = parseDetails(payload);
+    expect(details?.photo_name).toBe("places/place-1/photos/ref-1");
+    expect(details?.photo_attribution).toBeNull();
   });
 
   it("returns null google_maps_url when the uri is missing", () => {

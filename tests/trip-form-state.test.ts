@@ -7,6 +7,8 @@ import {
 } from "@/components/trip-form-state";
 import type { TripFormState } from "@/components/trip-form-types";
 
+const SAMPLE_PHOTO_DATA_URL = "data:image/jpeg;base64,AAAA";
+
 describe("updateTripFormField", () => {
   it("updates a field from a captured value without reading a deferred event", () => {
     const form: TripFormState = {
@@ -15,6 +17,8 @@ describe("updateTripFormField", () => {
       destinationSlug: null,
       destinationLatitude: null,
       destinationLongitude: null,
+      destinationPhotoData: null,
+      destinationPhotoAttribution: null,
       startDate: "2026-06-01",
       endDate: "2026-06-02",
     };
@@ -38,6 +42,8 @@ describe("updateTripFormField", () => {
         destinationSlug: "toronto",
         destinationLatitude: null,
         destinationLongitude: null,
+        destinationPhotoData: null,
+        destinationPhotoAttribution: null,
         startDate: "2026-06-01",
         endDate: "",
       }),
@@ -47,8 +53,29 @@ describe("updateTripFormField", () => {
       destination_slug: "toronto",
       destination_latitude: null,
       destination_longitude: null,
+      destination_photo_data: null,
+      destination_photo_attribution: null,
       start_date: "2026-06-01",
       end_date: null,
+    });
+  });
+
+  it("carries the fetched cover image and attribution into the create payload", () => {
+    expect(
+      tripMetadataPayloadFromForm({
+        name: "Yakushima getaway",
+        destination: "Yakushima",
+        destinationSlug: null,
+        destinationLatitude: 30.3,
+        destinationLongitude: 130.5,
+        destinationPhotoData: SAMPLE_PHOTO_DATA_URL,
+        destinationPhotoAttribution: "Jane Doe",
+        startDate: "",
+        endDate: "",
+      }),
+    ).toMatchObject({
+      destination_photo_data: SAMPLE_PHOTO_DATA_URL,
+      destination_photo_attribution: "Jane Doe",
     });
   });
 
@@ -60,6 +87,8 @@ describe("updateTripFormField", () => {
         destinationSlug: null,
         destinationLatitude: null,
         destinationLongitude: null,
+        destinationPhotoData: null,
+        destinationPhotoAttribution: null,
         startDate: "",
         endDate: "",
       }),
@@ -69,6 +98,8 @@ describe("updateTripFormField", () => {
       destination_slug: null,
       destination_latitude: null,
       destination_longitude: null,
+      destination_photo_data: null,
+      destination_photo_attribution: null,
       start_date: null,
       end_date: null,
     });
@@ -81,6 +112,8 @@ describe("updateTripFormField", () => {
       destinationSlug: null,
       destinationLatitude: null,
       destinationLongitude: null,
+      destinationPhotoData: null,
+      destinationPhotoAttribution: null,
       startDate: "",
       endDate: "",
     };
@@ -95,6 +128,27 @@ describe("updateTripFormField", () => {
       ...form,
       destination: "Calgary + Banff",
       destinationSlug: null,
+    });
+  });
+
+  it("clears a stale cover image when the destination is typed by hand", () => {
+    const form: TripFormState = {
+      name: "Draft trip",
+      destination: "Yakushima",
+      destinationSlug: null,
+      destinationLatitude: 30.3,
+      destinationLongitude: 130.5,
+      destinationPhotoData: SAMPLE_PHOTO_DATA_URL,
+      destinationPhotoAttribution: "Jane Doe",
+      startDate: "",
+      endDate: "",
+    };
+
+    expect(tripDestinationFormChange(form, "Yakushima Island")).toMatchObject({
+      destinationLatitude: null,
+      destinationLongitude: null,
+      destinationPhotoData: null,
+      destinationPhotoAttribution: null,
     });
   });
 });

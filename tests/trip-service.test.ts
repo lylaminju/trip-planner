@@ -21,6 +21,8 @@ describe("trip-service", () => {
         destination_slug: "toronto",
         destination_latitude: null,
         destination_longitude: null,
+        destination_photo_data: null,
+        destination_photo_attribution: null,
         start_date: "2026-06-01",
         end_date: "2026-06-02",
       });

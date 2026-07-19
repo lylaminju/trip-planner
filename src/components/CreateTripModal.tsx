@@ -6,14 +6,16 @@ import { countryLabelForDestination } from "@/lib/destination-options";
 
 import type { TripRole } from "@/lib/types";
 
-import { DestinationSearch } from "./DestinationSearch";
+import {
+  DestinationSearch,
+  type GoogleDestinationSelection,
+} from "./DestinationSearch";
 import { CloseIcon, MapPinIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { TripDateRangePicker } from "./TripDateRangePicker";
 import { TripInviteFields, type TripInviteDraft } from "./TripInviteFields";
 import {
   tripDestinationFormChange,
-  tripGoogleDestinationChange,
   updateTripFormField,
 } from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
@@ -26,6 +28,7 @@ type Props = {
   isSaving: boolean;
   onCancel: () => void;
   onChange: (form: TripFormState) => void;
+  onSelectGoogleDestination: (selection: GoogleDestinationSelection) => void;
   onInviteChange: (invite: TripInviteDraft) => void;
   onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 };
@@ -123,11 +126,7 @@ export function CreateTripModal(props: Props) {
                   tripDestinationFormChange(props.form, destination),
                 )
               }
-              onSelectGoogle={(selection) =>
-                props.onChange(
-                  tripGoogleDestinationChange(props.form, selection),
-                )
-              }
+              onSelectGoogle={props.onSelectGoogleDestination}
             />
           </div>
 

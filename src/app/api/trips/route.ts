@@ -127,6 +127,10 @@ function parseTripCreateInput(
     destination_slug: destinationSlug,
     destination_latitude: latitude,
     destination_longitude: longitude,
+    destination_photo_data: nullablePhotoData(body.destination_photo_data),
+    destination_photo_attribution: nullablePhotoAttribution(
+      body.destination_photo_attribution,
+    ),
     start_date: startDate,
     end_date: endDate,
   };
@@ -134,6 +138,34 @@ function parseTripCreateInput(
 
 const MAX_LATITUDE = 90;
 const MAX_LONGITUDE = 180;
+const MAX_PHOTO_ATTRIBUTION_LENGTH = 200;
+// Generous ceiling for a base64 cover image (~5MB decoded) so oversized bodies
+// are rejected early; the image bytes are validated again before storage.
+const MAX_PHOTO_DATA_LENGTH = 8_000_000;
+
+// Photos are an optional enhancement, so malformed values fail closed to null
+// rather than rejecting the trip. The bytes are validated again in the photo
+// service before storage.
+function nullablePhotoData(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  if (
+    value.length > MAX_PHOTO_DATA_LENGTH ||
+    !value.startsWith("data:image/")
+  ) {
+    return null;
+  }
+  return value;
+}
+
+function nullablePhotoAttribution(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, MAX_PHOTO_ATTRIBUTION_LENGTH) : null;
+}
 
 function nullableCoordinate(
   value: unknown,

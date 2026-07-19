@@ -9,6 +9,8 @@ export type Trip = {
   destination_slug: string | null;
   destination_latitude: number | null;
   destination_longitude: number | null;
+  destination_photo_url: string | null;
+  destination_photo_attribution: string | null;
   start_date: string | null;
   end_date: string | null;
   created_at: string;

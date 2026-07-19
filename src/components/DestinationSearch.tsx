@@ -31,6 +31,8 @@ export type GoogleDestinationSelection = {
   destination: string;
   latitude: number;
   longitude: number;
+  photoName: string | null;
+  photoAttribution: string | null;
 };
 
 export function DestinationSearch(props: {
@@ -142,6 +144,8 @@ export function DestinationSearch(props: {
         destination: details.name,
         latitude: details.latitude,
         longitude: details.longitude,
+        photoName: details.photo_name,
+        photoAttribution: details.photo_attribution,
       });
     } catch (reason) {
       if (reason instanceof DestinationSearchUnavailableError) {

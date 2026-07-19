@@ -15,18 +15,25 @@ export type DestinationDetails = {
   latitude: number;
   longitude: number;
   google_maps_url: string | null;
+  // Photo resource name (e.g. "places/ID/photos/REF") and its required author
+  // attribution. The actual image is only fetched later, once per created trip.
+  photo_name: string | null;
+  photo_attribution: string | null;
 };
 
 const AUTOCOMPLETE_ENDPOINT =
   "https://places.googleapis.com/v1/places:autocomplete";
 const DETAILS_ENDPOINT = "https://places.googleapis.com/v1/places";
+const PLACES_MEDIA_BASE = "https://places.googleapis.com/v1";
 const REQUEST_TIMEOUT_MS = 8_000;
 
 const AUTOCOMPLETE_FIELD_MASK =
   "suggestions.placePrediction.placeId,suggestions.placePrediction.structuredFormat";
 // Keep the details field mask inside Place Details Pro so a lookup never
-// escalates into the pricier Enterprise/Atmosphere tiers.
-const DETAILS_FIELD_MASK = "id,displayName,location,googleMapsUri";
+// escalates into the pricier Enterprise/Atmosphere tiers. `photos` is an
+// Essentials IDs-Only field, so it returns the photo reference for free without
+// bumping the tier — the image itself is a separate Place Photo request.
+const DETAILS_FIELD_MASK = "id,displayName,location,googleMapsUri,photos";
 
 export function requirePlacesApiKey(): string {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
@@ -79,6 +86,53 @@ export async function fetchDestinationDetails(input: {
     );
   }
   return details;
+}
+
+export async function fetchPlacePhoto(input: {
+  apiKey: string;
+  photoName: string;
+  maxWidthPx: number;
+}): Promise<{ bytes: ArrayBuffer; contentType: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    // photoName already has "places/.../photos/..." form; its slashes are path
+    // separators, so do not URL-encode them.
+    const response = await fetch(
+      `${PLACES_MEDIA_BASE}/${input.photoName}/media?maxWidthPx=${input.maxWidthPx}`,
+      {
+        method: "GET",
+        headers: { "X-Goog-Api-Key": input.apiKey },
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      throw new GooglePlacesUpstreamError(
+        "Google Places photo request failed.",
+        response.status === 504 ? 504 : 502,
+      );
+    }
+
+    return {
+      bytes: await response.arrayBuffer(),
+      contentType: response.headers.get("content-type") ?? "image/jpeg",
+    };
+  } catch (error) {
+    if (error instanceof GooglePlacesUpstreamError) {
+      throw error;
+    }
+
+    const status =
+      error instanceof Error && error.name === "AbortError" ? 504 : 502;
+    throw new GooglePlacesUpstreamError(
+      "Google Places photo request failed.",
+      status,
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function placesFetch(input: {
@@ -165,13 +219,37 @@ export function parseDetails(payload: unknown): DestinationDetails | null {
     return null;
   }
 
+  const photoName = parseFirstPhotoName(record.photos);
+
   return {
     place_id: placeId,
     name,
     latitude,
     longitude,
     google_maps_url: asString(record.googleMapsUri),
+    photo_name: photoName,
+    photo_attribution: photoName
+      ? parseFirstPhotoAttribution(record.photos)
+      : null,
   };
+}
+
+function parseFirstPhotoName(photos: unknown): string | null {
+  if (!Array.isArray(photos)) {
+    return null;
+  }
+  return asString(asRecord(photos[0]).name);
+}
+
+function parseFirstPhotoAttribution(photos: unknown): string | null {
+  if (!Array.isArray(photos)) {
+    return null;
+  }
+  const attributions = asRecord(photos[0]).authorAttributions;
+  if (!Array.isArray(attributions)) {
+    return null;
+  }
+  return asString(asRecord(attributions[0]).displayName);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

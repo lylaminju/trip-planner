@@ -5,6 +5,7 @@ import {
 } from "@/lib/trip-date-shift";
 import type { Trip, TripMembership, TripSummary } from "@/lib/types";
 
+import { storeDestinationPhoto } from "./destination-photo-service";
 import { TripValidationError } from "./errors";
 import { getSupabaseClient } from "./supabase";
 import {
@@ -21,6 +22,10 @@ export type TripCreateInput = {
   destination_slug: string | null;
   destination_latitude: number | null;
   destination_longitude: number | null;
+  // Already-fetched cover image (data URL) and its attribution. The image is
+  // stored as-is; it is not re-fetched from Google here.
+  destination_photo_data: string | null;
+  destination_photo_attribution: string | null;
   start_date: string | null;
   end_date: string | null;
 };
@@ -28,7 +33,7 @@ export type TripCreateInput = {
 export type TripUpdateInput = Partial<TripCreateInput>;
 
 const TRIP_SELECT_FIELDS =
-  "id, created_by, name, destination, destination_slug, destination_latitude, destination_longitude, start_date, end_date, created_at, updated_at";
+  "id, created_by, name, destination, destination_slug, destination_latitude, destination_longitude, destination_photo_url, destination_photo_attribution, start_date, end_date, created_at, updated_at";
 
 export async function getTripById(tripId: number): Promise<Trip> {
   const { data, error } = await getSupabaseClient()
@@ -88,6 +93,12 @@ export async function createTripForRequest(
   userId: string,
   input: TripCreateInput,
 ): Promise<TripSummary> {
+  // Store the already-fetched cover image. Fails soft to a null URL so a
+  // malformed image or upload error never blocks the trip.
+  const destinationPhotoUrl = input.destination_photo_data
+    ? await storeDestinationPhoto(userId, input.destination_photo_data)
+    : null;
+
   const { data: tripRow, error: tripError } = await getSupabaseClient()
     .from("trips")
     .insert({
@@ -97,6 +108,10 @@ export async function createTripForRequest(
       destination_slug: input.destination_slug,
       destination_latitude: input.destination_latitude,
       destination_longitude: input.destination_longitude,
+      destination_photo_url: destinationPhotoUrl,
+      destination_photo_attribution: destinationPhotoUrl
+        ? input.destination_photo_attribution
+        : null,
       start_date: input.start_date,
       end_date: input.end_date,
     })

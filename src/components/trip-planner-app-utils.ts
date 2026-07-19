@@ -48,6 +48,10 @@ export function formFromTrip(trip: Trip): TripFormState {
     destinationSlug: trip.destination_slug,
     destinationLatitude: trip.destination_latitude,
     destinationLongitude: trip.destination_longitude,
+    // Editing never re-fetches a photo, so the form carries no cover image;
+    // the stored cover on the trip is left untouched by updates.
+    destinationPhotoData: null,
+    destinationPhotoAttribution: null,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
   };

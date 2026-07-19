@@ -1,6 +1,7 @@
 import type { TripMetadataPayload } from "@/lib/trips-api";
 import { findDestinationOption } from "@/lib/destination-options";
 
+import type { GoogleDestinationSelection } from "./DestinationSearch";
 import type { TripFormState } from "./trip-form-types";
 
 export function updateTripFormField<K extends keyof TripFormState>(
@@ -23,6 +24,8 @@ export function tripMetadataPayloadFromForm(
     destination_slug: form.destinationSlug,
     destination_latitude: form.destinationLatitude,
     destination_longitude: form.destinationLongitude,
+    destination_photo_data: form.destinationPhotoData,
+    destination_photo_attribution: form.destinationPhotoAttribution,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
   };
@@ -38,12 +41,14 @@ export function tripDestinationFormChange(
     destinationSlug: findDestinationOption(destination)?.slug ?? null,
     destinationLatitude: null,
     destinationLongitude: null,
+    destinationPhotoData: null,
+    destinationPhotoAttribution: null,
   };
 }
 
 export function tripGoogleDestinationChange(
   form: TripFormState,
-  selection: { destination: string; latitude: number; longitude: number },
+  selection: GoogleDestinationSelection,
 ): TripFormState {
   return {
     ...form,
@@ -51,5 +56,9 @@ export function tripGoogleDestinationChange(
     destinationSlug: null,
     destinationLatitude: selection.latitude,
     destinationLongitude: selection.longitude,
+    // The cover image is loaded asynchronously after selection; keep it null
+    // until those bytes arrive so a stale cover never lingers.
+    destinationPhotoData: null,
+    destinationPhotoAttribution: selection.photoAttribution,
   };
 }

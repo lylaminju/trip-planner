@@ -429,6 +429,8 @@ function setup(): AiPlanningSetup {
       destination_slug: "new-york-city",
       destination_latitude: null,
       destination_longitude: null,
+      destination_photo_url: null,
+      destination_photo_attribution: null,
       start_date: "2026-05-27",
       end_date: "2026-05-29",
       created_at: "2026-01-01T00:00:00.000Z",

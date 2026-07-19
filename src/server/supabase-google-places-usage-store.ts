@@ -3,6 +3,7 @@ import { getSupabaseClient } from "./supabase";
 export const PLACES_SKU = {
   AUTOCOMPLETE: "autocomplete",
   DETAILS: "details",
+  PHOTO: "photo",
 } as const;
 
 export type PlacesSku = (typeof PLACES_SKU)[keyof typeof PLACES_SKU];
@@ -12,6 +13,9 @@ export type PlacesSku = (typeof PLACES_SKU)[keyof typeof PLACES_SKU];
 // burst near the boundary can never spill into paid usage.
 export const PLACES_DETAILS_MONTHLY_LIMIT = 4500;
 export const PLACES_AUTOCOMPLETE_MONTHLY_LIMIT = 9000;
+// Place Photo has a much smaller (~1,000/month) free allotment than the other
+// SKUs, so keep the internal ceiling well under it.
+export const PLACES_PHOTO_MONTHLY_LIMIT = 900;
 
 // Per-user daily soft cap so one user cannot drain the shared monthly budget.
 export const PLACES_PER_USER_DAILY_LIMIT = 200;
@@ -19,6 +23,7 @@ export const PLACES_PER_USER_DAILY_LIMIT = 200;
 const MONTHLY_LIMIT_BY_SKU: Record<PlacesSku, number> = {
   [PLACES_SKU.AUTOCOMPLETE]: PLACES_AUTOCOMPLETE_MONTHLY_LIMIT,
   [PLACES_SKU.DETAILS]: PLACES_DETAILS_MONTHLY_LIMIT,
+  [PLACES_SKU.PHOTO]: PLACES_PHOTO_MONTHLY_LIMIT,
 };
 
 export function monthlyLimitForSku(sku: PlacesSku): number {

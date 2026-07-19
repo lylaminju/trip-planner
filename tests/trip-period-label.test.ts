@@ -39,6 +39,8 @@ function buildTrip(startDate: string | null, endDate: string | null): Trip {
     destination_slug: "toronto",
     destination_latitude: null,
     destination_longitude: null,
+    destination_photo_url: null,
+    destination_photo_attribution: null,
     start_date: startDate,
     end_date: endDate,
     created_at: "2026-01-01T00:00:00.000Z",

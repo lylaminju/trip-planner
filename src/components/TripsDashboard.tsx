@@ -9,9 +9,11 @@ import { groupTripsByTiming } from "@/lib/trip-classification";
 import { errorMessage } from "@/lib/error-message";
 import { isTripOngoing } from "@/lib/trip-classification";
 import { addTripMember } from "@/lib/trip-members-api";
+import { fetchDestinationPhoto } from "@/lib/places-api";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
 import { CreateTripModal } from "./CreateTripModal";
+import type { GoogleDestinationSelection } from "./DestinationSearch";
 import { emptyTripInvite, type TripInviteDraft } from "./TripInviteFields";
 import { FeaturedTripCard } from "./FeaturedTripCard";
 import { FoldedMapIcon } from "./Icons";
@@ -19,7 +21,10 @@ import { TripEditForm } from "./TripEditForm";
 import { TripMembersModal } from "./TripMembersModal";
 import { TripsDashboardRail } from "./TripsDashboardRail";
 import { TripSection } from "./TripSection";
-import { tripMetadataPayloadFromForm } from "./trip-form-state";
+import {
+  tripGoogleDestinationChange,
+  tripMetadataPayloadFromForm,
+} from "./trip-form-state";
 import type { TripFormState } from "./trip-form-types";
 
 export { TripSection };
@@ -94,10 +99,12 @@ export function TripsDashboard(props: {
   const displayName = props.userName?.trim() || "Traveler";
   const userEmail = props.userEmail?.trim();
   const isAdmin = props.isAdmin ?? false;
-  const createCoverImage = getTripCoverImage({
-    destination: form.destination,
-    destinationSlug: form.destinationSlug,
-  });
+  const createCoverImage =
+    form.destinationPhotoData ??
+    getTripCoverImage({
+      destination: form.destination,
+      destinationSlug: form.destinationSlug,
+    });
 
   useEffect(() => {
     loadTrips()
@@ -205,6 +212,26 @@ export function TripsDashboard(props: {
     } finally {
       window.location.assign("/");
     }
+  }
+
+  function selectGoogleDestination(selection: GoogleDestinationSelection) {
+    setForm((current) => tripGoogleDestinationChange(current, selection));
+    if (!selection.photoName) {
+      return;
+    }
+    const { photoName, destination } = selection;
+    fetchDestinationPhoto(photoName)
+      .then((dataUrl) => {
+        // Ignore a late-arriving photo if the destination has since changed.
+        setForm((current) =>
+          current.destination === destination
+            ? { ...current, destinationPhotoData: dataUrl }
+            : current,
+        );
+      })
+      .catch(() => {
+        // Preview is best-effort; keep the curated cover on failure.
+      });
   }
 
   function openCreateModal() {
@@ -406,6 +433,7 @@ export function TripsDashboard(props: {
           isSaving={isSaving}
           onCancel={closeCreateModal}
           onChange={setForm}
+          onSelectGoogleDestination={selectGoogleDestination}
           onInviteChange={setInvite}
           onSubmit={submitCreate}
         />
@@ -433,6 +461,10 @@ function formFromTrip(trip: TripSummary): TripFormState {
     destinationSlug: trip.destination_slug,
     destinationLatitude: trip.destination_latitude,
     destinationLongitude: trip.destination_longitude,
+    // Editing never re-fetches a photo, so the form carries no cover image;
+    // the stored cover on the trip is left untouched by updates.
+    destinationPhotoData: null,
+    destinationPhotoAttribution: null,
     startDate: trip.start_date ?? "",
     endDate: trip.end_date ?? "",
   };
@@ -445,6 +477,8 @@ function emptyTripForm(): TripFormState {
     destinationSlug: null,
     destinationLatitude: null,
     destinationLongitude: null,
+    destinationPhotoData: null,
+    destinationPhotoAttribution: null,
     startDate: "",
     endDate: "",
   };

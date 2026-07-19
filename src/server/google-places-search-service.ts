@@ -2,6 +2,7 @@ import { GooglePlacesRateLimitError } from "@/server/errors";
 import {
   fetchDestinationDetails,
   fetchDestinationSuggestions,
+  fetchPlacePhoto,
   requirePlacesApiKey,
   type DestinationDetails,
   type DestinationSuggestion,
@@ -19,6 +20,18 @@ import {
 // Below this length autocomplete predictions are too broad to be useful, so we
 // skip the upstream call entirely and spend no budget on it.
 export const MIN_DESTINATION_QUERY_LENGTH = 3;
+
+// A cover-sized preview is plenty for the trip card; the same bytes are reused
+// as the stored cover, so there is never a second, larger fetch.
+const PHOTO_PREVIEW_MAX_WIDTH_PX = 800;
+
+// Fail closed on anything that is not a Place Photo resource name, so a
+// request-supplied value can never drive an arbitrary upstream fetch.
+const PHOTO_NAME_PATTERN = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
+
+export function isValidPlacePhotoName(photoName: string): boolean {
+  return PHOTO_NAME_PATTERN.test(photoName);
+}
 
 export async function searchDestinations(
   userId: string,
@@ -59,7 +72,29 @@ export async function getDestinationDetails(
   return details;
 }
 
-async function assertPlacesBudget(
+/**
+ * Fetches a place photo once (the single billed call) and returns it as a data
+ * URL. The browser previews this image and hands the same bytes back at trip
+ * creation, so a created trip's cover is never fetched from Google twice.
+ */
+export async function getDestinationPhoto(
+  userId: string,
+  photoName: string,
+): Promise<string> {
+  await assertPlacesBudget(userId, PLACES_SKU.PHOTO);
+
+  const photo = await fetchPlacePhoto({
+    apiKey: requirePlacesApiKey(),
+    photoName,
+    maxWidthPx: PHOTO_PREVIEW_MAX_WIDTH_PX,
+  });
+  await recordPlacesCall(userId, PLACES_SKU.PHOTO);
+
+  const base64 = Buffer.from(photo.bytes).toString("base64");
+  return `data:${photo.contentType};base64,${base64}`;
+}
+
+export async function assertPlacesBudget(
   userId: string,
   sku: PlacesSku,
 ): Promise<void> {

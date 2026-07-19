@@ -4,6 +4,8 @@ export type TripFormState = {
   destinationSlug: string | null;
   destinationLatitude: number | null;
   destinationLongitude: number | null;
+  destinationPhotoData: string | null;
+  destinationPhotoAttribution: string | null;
   startDate: string;
   endDate: string;
 };

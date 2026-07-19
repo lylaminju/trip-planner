@@ -28,6 +28,7 @@ export function TripCard(props: {
   const coverImage = getTripCoverImage({
     destination: trip.destination,
     destinationSlug: trip.destination_slug,
+    photoUrl: trip.destination_photo_url,
   });
   const destinationLabel = trip.destination?.trim() || "Destination needed";
   const periodLabel = formatTripPeriodLabel(trip);

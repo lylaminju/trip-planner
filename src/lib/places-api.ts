@@ -10,6 +10,8 @@ export type DestinationDetails = {
   latitude: number;
   longitude: number;
   google_maps_url: string | null;
+  photo_name: string | null;
+  photo_attribution: string | null;
 };
 
 // Thrown when live search is blocked (budget exhausted or per-user cap), so the
@@ -43,6 +45,17 @@ export async function fetchDestinationDetails(
     session_token: sessionToken,
   });
   return data.place as DestinationDetails;
+}
+
+// Fetches the cover photo once (the single billed Place Photo call) and returns
+// it as a data URL, reused for both the modal preview and the stored cover.
+export async function fetchDestinationPhoto(
+  photoName: string,
+): Promise<string> {
+  const data = await postPlaces("/api/places/photo", {
+    photo_name: photoName,
+  });
+  return data.data_url as string;
 }
 
 async function postPlaces(
