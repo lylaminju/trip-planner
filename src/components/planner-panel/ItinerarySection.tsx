@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { Dispatch, DragEvent, MouseEvent, SetStateAction } from "react";
 
 import type {
@@ -70,6 +71,32 @@ type Props = {
 };
 
 export function ItinerarySection(props: Props) {
+  const exportMenuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function closeExportMenuOnOutsidePointerDown(event: PointerEvent) {
+      const menu = exportMenuRef.current;
+      if (
+        menu?.open &&
+        event.target instanceof Node &&
+        !menu.contains(event.target)
+      ) {
+        menu.open = false;
+      }
+    }
+
+    document.addEventListener(
+      "pointerdown",
+      closeExportMenuOnOutsidePointerDown,
+    );
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        closeExportMenuOnOutsidePointerDown,
+      );
+    };
+  }, []);
+
   function activateDropTarget(event: DragEvent<HTMLElement>, key: string) {
     if (!props.canEdit || !hasScheduleDragData(event)) return;
 
@@ -123,7 +150,7 @@ export function ItinerarySection(props: Props) {
           }
         />
         <div className="section-heading-actions">
-          <details className="export-menu">
+          <details ref={exportMenuRef} className="export-menu">
             <summary>Export</summary>
             <div className="export-menu-content">
               <button
@@ -145,10 +172,12 @@ export function ItinerarySection(props: Props) {
                 )}
                 onClick={props.onDownloadExport}
               >
-                {exportFeedbackLabel(
-                  props.exportFeedback,
-                  "download",
-                  "Download .md",
+                {props.exportFeedback?.action === "download" ? (
+                  props.exportFeedback.label
+                ) : (
+                  <>
+                    Download <span className="export-ext-tag">.md</span> file
+                  </>
                 )}
               </button>
             </div>
