@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   inferEndVisitTime,
   inferInsertedVisitTime,
+  inferStartVisitTime,
 } from "@/components/planner-panel/drag-schedule";
 import type { ItineraryItem, Place } from "@/lib/types";
 
@@ -34,6 +35,33 @@ describe("drag schedule helpers", () => {
     ]);
 
     expect(result).toBe("23:59");
+  });
+
+  it("infers one hour before the earliest timed visit", () => {
+    const result = inferStartVisitTime([
+      itineraryItem({ id: 1, visit_time: "10:00" }),
+      itineraryItem({ id: 2, visit_time: "12:00" }),
+    ]);
+
+    expect(result).toBe("09:00");
+  });
+
+  it("skips malformed visit times when inferring the start visit time", () => {
+    const result = inferStartVisitTime([
+      itineraryItem({ id: 1, visit_time: "foo" }),
+      itineraryItem({ id: 2, visit_time: "10:00" }),
+      itineraryItem({ id: 3, visit_time: "12:00" }),
+    ]);
+
+    expect(result).toBe("09:00");
+  });
+
+  it("clamps inferred start times at the start of the day", () => {
+    const result = inferStartVisitTime([
+      itineraryItem({ id: 1, visit_time: "00:30" }),
+    ]);
+
+    expect(result).toBe("00:00");
   });
 });
 

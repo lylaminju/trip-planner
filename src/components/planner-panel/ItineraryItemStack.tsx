@@ -18,8 +18,10 @@ import {
   hasVisitTime,
   inferEndVisitTime,
   inferInsertedVisitTime,
+  inferStartVisitTime,
   insertionDropTargetKey,
   scheduleDraggedSource,
+  startDropTargetKey,
 } from "./drag-schedule";
 
 type Props = {
@@ -64,11 +66,14 @@ export function ItineraryItemStack(props: Props) {
     hasVisitTime(previousItem);
   const showEndTimedDropZone =
     hasVisitTime(props.item) && !hasVisitTime(props.nextItem);
+  const showStartTimedDropZone =
+    props.itemIndex === 0 && hasVisitTime(props.item);
   const insertionKey =
     previousItem === null
       ? null
       : insertionDropTargetKey(props.date, props.itemIndex);
   const endInsertionKey = endDropTargetKey(props.date);
+  const startInsertionKey = startDropTargetKey(props.date);
   const routeSegment = props.segmentView?.segment ?? null;
 
   return (
@@ -87,6 +92,29 @@ export function ItineraryItemStack(props: Props) {
               itinerary: props.itinerary,
               date: props.date,
               visitTime: inferInsertedVisitTime(previousItem, props.item),
+              onScheduleItem: props.onScheduleItem,
+            });
+          }}
+        />
+      )}
+      {props.canEdit && showStartTimedDropZone && (
+        <InsertionDropZone
+          active={props.dropTargetKey === startInsertionKey}
+          onDragEnter={(event) =>
+            props.activateDropTarget(event, startInsertionKey)
+          }
+          onDragOver={(event) =>
+            props.activateDropTarget(event, startInsertionKey)
+          }
+          onDragLeave={props.leaveDropTarget}
+          onDrop={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            props.onDropTargetChange(null);
+            scheduleDraggedSource(event, {
+              itinerary: props.itinerary,
+              date: props.date,
+              visitTime: inferStartVisitTime(props.dayItems),
               onScheduleItem: props.onScheduleItem,
             });
           }}

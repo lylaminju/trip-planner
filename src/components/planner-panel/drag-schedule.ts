@@ -91,12 +91,28 @@ export function inferEndVisitTime(items: ItineraryItem[]): string | null {
   return formatVisitTime(Math.min(lastMinutes + 60, 23 * 60 + 59));
 }
 
+export function inferStartVisitTime(items: ItineraryItem[]): string | null {
+  const timedMinutes = items
+    .map((item) => parseVisitTime(item.visit_time))
+    .filter((value): value is number => value !== null);
+  const firstMinutes = timedMinutes[0];
+  if (firstMinutes === undefined) {
+    return null;
+  }
+
+  return formatVisitTime(Math.max(firstMinutes - 60, 0));
+}
+
 export function insertionDropTargetKey(date: string, index: number): string {
   return `${date}:insert:${index}`;
 }
 
 export function endDropTargetKey(date: string): string {
   return `${date}:end`;
+}
+
+export function startDropTargetKey(date: string): string {
+  return `${date}:start`;
 }
 
 export function getFirstItemIdForPlace(
