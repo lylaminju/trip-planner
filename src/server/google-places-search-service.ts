@@ -3,6 +3,7 @@ import {
   fetchDestinationDetails,
   fetchDestinationSuggestions,
   fetchPlacePhoto,
+  fetchPlacePhotoReference,
   requirePlacesApiKey,
   type AutocompleteLocationBias,
   type DestinationDetails,
@@ -99,6 +100,35 @@ export async function getDestinationPhoto(
 
   const base64 = Buffer.from(photo.bytes).toString("base64");
   return `data:${photo.contentType};base64,${base64}`;
+}
+
+export type PlacePhotoResult = {
+  data_url: string | null;
+  attribution: string | null;
+};
+
+/**
+ * Resolves a photo for a place picked without a details call (a map POI click).
+ * The reference lookup uses only free IDs-Only fields, so it is neither
+ * budget-gated nor recorded; the single billed call is the photo fetch itself,
+ * and its data URL is reused for both the preview and the stored image.
+ */
+export async function getPlacePhotoForPlaceId(
+  userId: string,
+  placeId: string,
+): Promise<PlacePhotoResult> {
+  const reference = await fetchPlacePhotoReference({
+    apiKey: requirePlacesApiKey(),
+    placeId,
+  });
+  if (!reference.photo_name) {
+    return { data_url: null, attribution: null };
+  }
+
+  return {
+    data_url: await getDestinationPhoto(userId, reference.photo_name),
+    attribution: reference.photo_attribution,
+  };
 }
 
 export async function assertPlacesBudget(

@@ -1,7 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseImageDataUrl } from "@/server/destination-photo-service";
+vi.mock("@/server/supabase", () => ({
+  getSupabaseClient: vi.fn(),
+}));
+
+import {
+  parseImageDataUrl,
+  storeDestinationPhoto,
+  storePlacePhoto,
+} from "@/server/destination-photo-service";
 import { isValidPlacePhotoName } from "@/server/google-places-search-service";
+import { getSupabaseClient } from "@/server/supabase";
 
 const JPEG_DATA_URL = `data:image/jpeg;base64,${Buffer.from([
   0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10,
@@ -65,5 +74,42 @@ describe("parseImageDataUrl", () => {
     WRONG_MAGIC_DATA_URL,
   ])("rejects a malformed or mistyped image: %#", (value) => {
     expect(parseImageDataUrl(value)).toBeNull();
+  });
+});
+
+describe("photo storage bucket targets", () => {
+  const from = vi.fn();
+
+  beforeEach(() => {
+    from.mockReset().mockReturnValue({
+      upload: vi.fn().mockResolvedValue({ error: null }),
+      getPublicUrl: vi
+        .fn()
+        .mockReturnValue({ data: { publicUrl: "https://cdn.example.com/x" } }),
+    });
+    vi.mocked(getSupabaseClient).mockReturnValue({
+      storage: { from },
+    } as never);
+  });
+
+  it("stores destination photos in the trip-destination-photos bucket", async () => {
+    await expect(
+      storeDestinationPhoto("user-1", JPEG_DATA_URL),
+    ).resolves.toBe("https://cdn.example.com/x");
+    expect(from).toHaveBeenCalledWith("trip-destination-photos");
+  });
+
+  it("stores place photos in the place-photos bucket", async () => {
+    await expect(storePlacePhoto("user-1", JPEG_DATA_URL)).resolves.toBe(
+      "https://cdn.example.com/x",
+    );
+    expect(from).toHaveBeenCalledWith("place-photos");
+  });
+
+  it("fails soft to null for a rejected image without touching storage", async () => {
+    await expect(
+      storePlacePhoto("user-1", WRONG_MAGIC_DATA_URL),
+    ).resolves.toBeNull();
+    expect(from).not.toHaveBeenCalled();
   });
 });

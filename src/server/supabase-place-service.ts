@@ -294,6 +294,8 @@ function toPlaceInsert(tripId: number, input: PlaceCreateInput): PlaceInsert {
     longitude: input.longitude,
     notes: input.notes,
     links: input.links,
+    image_url: input.image_url ?? null,
+    image_credit: input.image_credit ?? null,
   };
 }
 

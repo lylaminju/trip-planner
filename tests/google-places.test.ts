@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchDestinationSuggestions,
+  fetchPlacePhotoReference,
   parseDetails,
+  parsePhotoReference,
   parseSuggestions,
 } from "@/server/google-places";
 
@@ -52,6 +54,56 @@ describe("fetchDestinationSuggestions", () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(body).not.toHaveProperty("locationBias");
   });
+});
+
+describe("fetchPlacePhotoReference", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  // The reference lookup must stay inside the free IDs-Only tier: any extra
+  // field in the mask would silently escalate it into a billed details SKU.
+  it("requests only free IDs-Only fields", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchPlacePhotoReference({ apiKey: "key", placeId: "ChIJabc" });
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/places/ChIJabc");
+    expect(init.headers["X-Goog-FieldMask"]).toBe("id,photos");
+  });
+});
+
+describe("parsePhotoReference", () => {
+  it("extracts the first photo name and its attribution", () => {
+    expect(
+      parsePhotoReference({
+        photos: [
+          {
+            name: "places/ChIJabc/photos/ref-1",
+            authorAttributions: [{ displayName: "Jane Doe" }],
+          },
+          { name: "places/ChIJabc/photos/ref-2" },
+        ],
+      }),
+    ).toEqual({
+      photo_name: "places/ChIJabc/photos/ref-1",
+      photo_attribution: "Jane Doe",
+    });
+  });
+
+  it.each([{}, { photos: [] }, { photos: [{ authorAttributions: [] }] }])(
+    "returns nulls when no usable photo exists %#",
+    (payload) => {
+      expect(parsePhotoReference(payload)).toEqual({
+        photo_name: null,
+        photo_attribution: null,
+      });
+    },
+  );
 });
 
 describe("parseSuggestions", () => {

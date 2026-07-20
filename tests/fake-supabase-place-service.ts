@@ -122,8 +122,8 @@ export function createFakeSupabasePlaceService() {
         longitude: input.longitude,
         notes: input.notes,
         links: [...input.links],
-        image_url: null,
-        image_credit: null,
+        image_url: input.image_url ?? null,
+        image_credit: input.image_credit ?? null,
         created_at: now(),
         updated_at: now(),
       };

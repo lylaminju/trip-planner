@@ -12,6 +12,7 @@ import {
   requireAuthenticatedRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
+import { resolvePlaceImage } from "@/server/place-image-resolution";
 import {
   createPlaceForRequest,
   removeAllPlacesForRequest,
@@ -86,6 +87,16 @@ export async function POST(request: Request, { params }: TripParams) {
       );
     }
 
+    const placeId = coordinates ? stringOrNull(body.place_id) : null;
+    // The photo data URL was fetched (and billed) once at preview time; here it
+    // is only validated and stored, never re-fetched from Google.
+    const image = await resolvePlaceImage({
+      userId: auth.user.id,
+      photoDataUrl: stringOrNull(body.photo_data_url),
+      photoAttribution: stringOrNull(body.photo_attribution),
+      placeId,
+    });
+
     return withRefreshedSession(
       NextResponse.json(
         await createPlaceForRequest(tripId, auth.user.id, {
@@ -93,13 +104,15 @@ export async function POST(request: Request, { params }: TripParams) {
           address: stringOrNull(body.address),
           notes: stringOrNull(body.notes),
           google_maps_url: resolved.google_maps_url,
-          place_id: coordinates ? stringOrNull(body.place_id) : null,
+          place_id: placeId,
           google_place_token: null,
           google_internal_ids: null,
           source_list_url: null,
           latitude: resolved.latitude,
           longitude: resolved.longitude,
           links: stringArray(body.links),
+          image_url: image.image_url,
+          image_credit: image.image_credit,
           visit_date: visitDate,
           visit_time: visitTime,
         }),

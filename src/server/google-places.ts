@@ -43,6 +43,9 @@ const AUTOCOMPLETE_FIELD_MASK =
 // Essentials IDs-Only field, so it returns the photo reference for free without
 // bumping the tier — the image itself is a separate Place Photo request.
 const DETAILS_FIELD_MASK = "id,displayName,location,googleMapsUri,photos";
+// Every field here is Essentials IDs-Only, so this lookup is free. It exists to
+// resolve a photo reference for places picked without a details call (map POIs).
+const PHOTO_REFERENCE_FIELD_MASK = "id,photos";
 
 export function requirePlacesApiKey(): string {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
@@ -109,6 +112,25 @@ export async function fetchDestinationDetails(input: {
     );
   }
   return details;
+}
+
+export type PlacePhotoReference = {
+  photo_name: string | null;
+  photo_attribution: string | null;
+};
+
+export async function fetchPlacePhotoReference(input: {
+  apiKey: string;
+  placeId: string;
+}): Promise<PlacePhotoReference> {
+  const payload = await placesFetch({
+    url: `${DETAILS_ENDPOINT}/${encodeURIComponent(input.placeId)}`,
+    apiKey: input.apiKey,
+    fieldMask: PHOTO_REFERENCE_FIELD_MASK,
+    method: "GET",
+  });
+
+  return parsePhotoReference(payload);
 }
 
 export async function fetchPlacePhoto(input: {
@@ -255,6 +277,16 @@ export function parseDetails(payload: unknown): DestinationDetails | null {
     photo_attribution: photoName
       ? parseFirstPhotoAttribution(record.photos)
       : null,
+  };
+}
+
+export function parsePhotoReference(payload: unknown): PlacePhotoReference {
+  const photos = asRecord(payload).photos;
+  const photoName = parseFirstPhotoName(photos);
+
+  return {
+    photo_name: photoName,
+    photo_attribution: photoName ? parseFirstPhotoAttribution(photos) : null,
   };
 }
 

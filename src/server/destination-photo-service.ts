@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { getSupabaseClient } from "@/server/supabase";
 
 export const TRIP_DESTINATION_PHOTO_BUCKET = "trip-destination-photos";
+export const PLACE_PHOTO_BUCKET = "place-photos";
 
 // The browser sends back the already-fetched preview image, so cap what we will
 // accept and store. A cover-sized JPEG/PNG is well under this.
@@ -49,6 +50,26 @@ export async function storeDestinationPhoto(
   userId: string,
   dataUrl: string,
 ): Promise<string | null> {
+  return storePhoto(TRIP_DESTINATION_PHOTO_BUCKET, userId, dataUrl);
+}
+
+/**
+ * Stores a client-supplied place image (fetched once at add time) in our own
+ * bucket and returns its public URL. Fails soft (returns null) so a malformed
+ * image or upload error never blocks adding the place.
+ */
+export async function storePlacePhoto(
+  userId: string,
+  dataUrl: string,
+): Promise<string | null> {
+  return storePhoto(PLACE_PHOTO_BUCKET, userId, dataUrl);
+}
+
+async function storePhoto(
+  bucket: string,
+  userId: string,
+  dataUrl: string,
+): Promise<string | null> {
   const image = parseImageDataUrl(dataUrl);
   if (!image) {
     return null;
@@ -56,7 +77,7 @@ export async function storeDestinationPhoto(
 
   const objectPath = `${userId}/${randomUUID()}.${image.extension}`;
   const { error: uploadError } = await getSupabaseClient()
-    .storage.from(TRIP_DESTINATION_PHOTO_BUCKET)
+    .storage.from(bucket)
     .upload(objectPath, image.bytes, {
       contentType: image.contentType,
       upsert: false,
@@ -66,7 +87,7 @@ export async function storeDestinationPhoto(
   }
 
   const { data } = getSupabaseClient()
-    .storage.from(TRIP_DESTINATION_PHOTO_BUCKET)
+    .storage.from(bucket)
     .getPublicUrl(objectPath);
   return data.publicUrl || null;
 }

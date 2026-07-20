@@ -87,6 +87,7 @@ async function withFreshTestEnv(
     vi.doUnmock("@/server/auth-session");
     vi.doUnmock("@/server/ai-planning-service");
     vi.doUnmock("@/server/google-places-search-service");
+    vi.doUnmock("@/server/place-image-resolution");
     vi.doUnmock("@/server/place-service");
     vi.doUnmock("@/server/supabase-place-service");
     vi.doUnmock("@/server/trip-access");
@@ -796,6 +797,135 @@ describe("API routes transport behavior", () => {
         error: "Location bias coordinates are invalid.",
       });
       expect(service.searchDestinations).not.toHaveBeenCalled();
+    });
+  });
+
+  it("resolves a place photo by place id through the photo route", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        getPlacePhotoForPlaceId: vi.fn().mockResolvedValue({
+          data_url: "data:image/jpeg;base64,abc",
+          attribution: "Jane Doe",
+        }),
+        isValidPlacePhotoName: vi.fn(),
+      }));
+      vi.doMock("@/server/place-image-resolution", () => ({
+        findReusablePlaceImage: vi
+          .fn()
+          .mockResolvedValue({ image_url: null, image_credit: null }),
+      }));
+
+      const { POST } = await import("@/app/api/places/photo/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(jsonRequest("POST", { place_id: "ChIJabc" }));
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        data_url: "data:image/jpeg;base64,abc",
+        attribution: "Jane Doe",
+      });
+      expect(service.getPlacePhotoForPlaceId).toHaveBeenCalledWith(
+        "user-1",
+        "ChIJabc",
+      );
+    });
+  });
+
+  it("reuses an already-stored place image without calling Google", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        getDestinationPhoto: vi.fn(),
+        getPlacePhotoForPlaceId: vi.fn(),
+        isValidPlacePhotoName: vi.fn().mockReturnValue(true),
+      }));
+      vi.doMock("@/server/place-image-resolution", () => ({
+        findReusablePlaceImage: vi.fn().mockResolvedValue({
+          image_url: "https://cdn.example.com/place-photos/saved.jpg",
+          image_credit: "Saved Credit",
+        }),
+      }));
+
+      const { POST } = await import("@/app/api/places/photo/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(
+        jsonRequest("POST", {
+          place_id: "ChIJabc",
+          photo_name: "places/ChIJabc/photos/ref-1",
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        image_url: "https://cdn.example.com/place-photos/saved.jpg",
+        image_credit: "Saved Credit",
+      });
+      expect(service.getDestinationPhoto).not.toHaveBeenCalled();
+      expect(service.getPlacePhotoForPlaceId).not.toHaveBeenCalled();
+    });
+  });
+
+  // Fail closed before a request-supplied id can drive an upstream fetch.
+  it.each(["bad id", "../ChIJabc", "ChIJabc?width=1"])(
+    "rejects a malformed photo place id: %s",
+    async (placeId) => {
+      await withFreshTestEnv(async () => {
+        vi.doMock("@/server/google-places-search-service", () => ({
+          getPlacePhotoForPlaceId: vi.fn(),
+          isValidPlacePhotoName: vi.fn(),
+        }));
+
+        const { POST } = await import("@/app/api/places/photo/route");
+        const service = await import("@/server/google-places-search-service");
+        const response = await POST(jsonRequest("POST", { place_id: placeId }));
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toEqual({
+          error: "A valid place id is required.",
+        });
+        expect(service.getPlacePhotoForPlaceId).not.toHaveBeenCalled();
+      });
+    },
+  );
+
+  it("stores a supplied place photo and saves its image fields", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/place-image-resolution", () => ({
+        resolvePlaceImage: vi.fn().mockResolvedValue({
+          image_url: "https://cdn.example.com/place-photos/user-1/a.jpg",
+          image_credit: "Jane Doe",
+        }),
+      }));
+
+      const { POST } = await import("@/app/api/trips/[tripId]/places/route");
+      const imageResolution = await import("@/server/place-image-resolution");
+      const response = await POST(
+        jsonRequest("POST", {
+          name: "Louvre Museum",
+          google_maps_url: "https://maps.google.com/?cid=42",
+          place_id: "google-place-1",
+          latitude: 48.8606,
+          longitude: 2.3376,
+          photo_data_url: "data:image/jpeg;base64,abc",
+          photo_attribution: "Jane Doe",
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        places: [
+          expect.objectContaining({
+            image_url: "https://cdn.example.com/place-photos/user-1/a.jpg",
+            image_credit: "Jane Doe",
+          }),
+        ],
+      });
+      expect(imageResolution.resolvePlaceImage).toHaveBeenCalledWith({
+        userId: "user-1",
+        photoDataUrl: "data:image/jpeg;base64,abc",
+        photoAttribution: "Jane Doe",
+        placeId: "google-place-1",
+      });
     });
   });
 

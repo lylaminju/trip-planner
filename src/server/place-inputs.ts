@@ -13,6 +13,8 @@ export type PlaceInsert = {
   longitude: number;
   notes: string | null;
   links: string[];
+  image_url?: string | null;
+  image_credit?: string | null;
   visit_date?: string | null;
   visit_time?: string | null;
 };
