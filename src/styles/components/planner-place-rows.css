@@ -55,6 +55,7 @@
 
 .visit-row {
   align-items: center;
+  border-top: 0;
   position: relative;
 }
 
