@@ -79,6 +79,10 @@ export function AddEditPlaceModal({
   // sent back on save, so the billed Place Photo call never repeats.
   const photo = usePlacePhotoPreview(isEditing ? null : searchPlace);
   const heroImageUrl = isEditing ? place.image_url : photo.imageUrl;
+  // In edit mode the photo is known up front and never loads, so a missing
+  // image should hide the hero rather than show an empty placeholder. The add
+  // flow keeps the hero to hold stable height while the photo is fetched.
+  const showPhotoHero = isEditing ? place.image_url !== null : true;
 
   // Errors surface inside the search step; rejections propagate back to it.
   async function handleResolveUrl(googleMapsUrl: string) {
@@ -218,10 +222,12 @@ export function AddEditPlaceModal({
           />
         ) : (
           <form className="place-details" onSubmit={handleSave}>
-            <PlacePhotoHero
-              imageUrl={heroImageUrl}
-              isLoading={!isEditing && photo.isLoading}
-            />
+            {showPhotoHero && (
+              <PlacePhotoHero
+                imageUrl={heroImageUrl}
+                isLoading={!isEditing && photo.isLoading}
+              />
+            )}
             <div className="place-resolved">
               <div className="place-resolved-pin" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
