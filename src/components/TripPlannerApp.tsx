@@ -174,6 +174,7 @@ export function TripPlannerApp({
     toggleCurrentLocation,
   } = useCurrentLocationControl(canShowCurrentLocation);
   const {
+    addPlaceSelection,
     addPlaceVisitDate,
     addingVisitPlace,
     closeModal,
@@ -182,6 +183,7 @@ export function TripPlannerApp({
     editingTripForm,
     isAdding,
     openAddModal,
+    openAddModalWithSelection,
     openAddVisitModal,
     openEditItemModal,
     openEditModal,
@@ -379,6 +381,7 @@ export function TripPlannerApp({
         editingItem={editingItem}
         addingVisitPlace={addingVisitPlace}
         addPlaceVisitDate={addPlaceVisitDate}
+        addPlaceSelection={addPlaceSelection}
         editingTripForm={editingTripForm}
         editTripError={editTripError}
         isSavingTrip={isSavingTrip}
@@ -390,6 +393,7 @@ export function TripPlannerApp({
         onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
         onMobileSheetStateChange={setMobileSheetState}
         onOpenAddModal={openAddModal}
+        onAddPlaceFromMap={openAddModalWithSelection}
         onOpenEditTripModal={openEditTripModal}
         onManageMembers={
           canEditTripMetadata ? () => setIsMembersModalOpen(true) : undefined

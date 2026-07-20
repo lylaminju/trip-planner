@@ -22,6 +22,7 @@ import type {
 } from "@/lib/types";
 
 import { AddEditPlaceModal } from "./AddEditPlaceModal";
+import type { PlaceSearchSelection } from "./AddPlaceSearchStep";
 import { AiPlanningWizard } from "./AiPlanningWizard";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { EditTripModal } from "./EditTripModal";
@@ -79,6 +80,7 @@ type Props = {
   editingItem: ItineraryItem | null;
   addingVisitPlace: Place | null;
   addPlaceVisitDate: string | null;
+  addPlaceSelection: PlaceSearchSelection | null;
   editingTripForm: TripFormState | null;
   editTripError: string | null;
   isSavingTrip: boolean;
@@ -88,6 +90,7 @@ type Props = {
   onPlanWithAi?: () => void;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onOpenAddModal: (visitDate?: string | null) => void;
+  onAddPlaceFromMap: (selection: PlaceSearchSelection) => void;
   onOpenEditTripModal: () => void;
   onManageMembers?: () => void;
   onCopyMarkdownExport: () => void;
@@ -258,6 +261,7 @@ export function TripPlannerView(props: Props) {
         canEdit={props.canEdit}
         onToggleCurrentLocation={props.onToggleCurrentLocation}
         onAddPlace={props.onOpenAddModal}
+        onAddPlaceFromMap={props.onAddPlaceFromMap}
         onPlanWithAi={props.onPlanWithAi}
         onSelectPlace={props.onSelectItem}
         onSelectSegment={props.onToggleSegmentSelection}
@@ -277,6 +281,7 @@ export function TripPlannerView(props: Props) {
           savedPlaces={props.plannerSnapshot.places}
           visitDateOptions={props.visitDateOptions}
           defaultVisitDate={props.editingPlace ? null : props.addPlaceVisitDate}
+          initialSearchPlace={props.editingPlace ? null : props.addPlaceSelection}
           destinationBias={
             props.destinationFocus
               ? {

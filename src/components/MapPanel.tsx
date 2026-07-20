@@ -36,6 +36,8 @@ import {
 } from "./map-panel/map-signatures";
 import { useGoogleMapInstance } from "./map-panel/useGoogleMapInstance";
 import { useMapOverlays } from "./map-panel/useMapOverlays";
+import { useMapPoiPicker } from "./map-panel/useMapPoiPicker";
+import type { PlaceSearchSelection } from "./AddPlaceSearchStep";
 
 const DATE_FOCUS_BOUNDS_PADDING = 48;
 const SEGMENT_FOCUS_BOUNDS_PADDING = 64;
@@ -59,6 +61,7 @@ type Props = {
   canEdit: boolean;
   onToggleCurrentLocation: () => void;
   onAddPlace: () => void;
+  onAddPlaceFromMap: (selection: PlaceSearchSelection) => void;
   onPlanWithAi?: () => void;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
@@ -114,6 +117,16 @@ export function MapPanel(props: Props) {
       itineraryItemsSignature,
       unscheduledPlacesSignature,
     });
+
+  useMapPoiPicker({
+    apiKey,
+    isMapReady,
+    loadFailed,
+    mapInstanceRef,
+    mapContainerRef: mapRef,
+    enabled: props.canEdit,
+    onAddPlace: props.onAddPlaceFromMap,
+  });
 
   useMapOverlays({
     apiKey,

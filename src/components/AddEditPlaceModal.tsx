@@ -21,6 +21,7 @@ type Props = {
   visitDateOptions: VisitDateOption[];
   defaultVisitDate?: string | null;
   destinationBias?: PlaceSearchBias | null;
+  initialSearchPlace?: PlaceSearchSelection | null;
   onCancel: () => void;
   onResolveUrl: (googleMapsUrl: string) => Promise<ResolvedPlace>;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
@@ -33,17 +34,28 @@ export function AddEditPlaceModal({
   visitDateOptions,
   defaultVisitDate,
   destinationBias,
+  initialSearchPlace,
   onCancel,
   onResolveUrl,
   onSave,
 }: Props) {
   const isEditing = place !== null;
+  // Seeds the details step directly, e.g. when a place was picked from the map.
+  const initialSelection = isEditing ? null : (initialSearchPlace ?? null);
 
-  const [step, setStep] = useState<1 | 2>(isEditing ? 2 : 1);
-  const [url, setUrl] = useState(place?.google_maps_url ?? "");
-  const [canonicalUrl, setCanonicalUrl] = useState(place?.google_maps_url ?? "");
-  const [name, setName] = useState(place?.name ?? "");
-  const [hasResolvedName, setHasResolvedName] = useState(isEditing);
+  const [step, setStep] = useState<1 | 2>(
+    isEditing || initialSelection ? 2 : 1,
+  );
+  const [url, setUrl] = useState(
+    place?.google_maps_url ?? initialSelection?.google_maps_url ?? "",
+  );
+  const [canonicalUrl, setCanonicalUrl] = useState(
+    place?.google_maps_url ?? initialSelection?.google_maps_url ?? "",
+  );
+  const [name, setName] = useState(place?.name ?? initialSelection?.name ?? "");
+  const [hasResolvedName, setHasResolvedName] = useState(
+    isEditing || Boolean(initialSelection && initialSelection.name !== ""),
+  );
   const [selectedDate, setSelectedDate] = useState<string | null>(
     defaultVisitDate ?? null,
   );
@@ -54,7 +66,7 @@ export function AddEditPlaceModal({
     place?.links?.length ? place.links : [""],
   );
   const [searchPlace, setSearchPlace] = useState<PlaceSearchSelection | null>(
-    null,
+    initialSelection,
   );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -52,6 +52,29 @@ export function currentLocationMarkerContent(): HTMLElement {
   return element;
 }
 
+// Marker content for the "Add this place" chip anchored at a clicked POI. The
+// anchor wrapper carries the below-the-POI offset so the pill's own
+// hover/active transforms do not fight it.
+export function poiAddChipContent(): HTMLElement {
+  const anchor = document.createElement("div");
+  anchor.className = "map-poi-add-chip-anchor";
+
+  const chip = document.createElement("div");
+  chip.className = "map-poi-add-chip";
+
+  const plus = document.createElement("span");
+  plus.className = "map-poi-add-chip-plus";
+  plus.setAttribute("aria-hidden", "true");
+  plus.textContent = "+";
+
+  const label = document.createElement("span");
+  label.textContent = "Add this place";
+
+  chip.append(plus, label);
+  anchor.append(chip);
+  return anchor;
+}
+
 export function getInfoWindow(infoWindowRef: {
   current: google.maps.InfoWindow | null;
 }): google.maps.InfoWindow {

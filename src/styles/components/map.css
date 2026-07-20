@@ -271,6 +271,45 @@
   }
 }
 
+/* Marker content anchors bottom-center at the clicked point; push the pill
+   below the POI icon and its label so it covers neither them nor the native
+   info box opening above. */
+.map-poi-add-chip-anchor {
+  transform: translateY(calc(100% + 22px));
+}
+
+.map-poi-add-chip {
+  align-items: center;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  box-shadow: var(--shadow-map-control);
+  color: var(--text-on-accent);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 6px;
+  padding: 10px 16px;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
+  white-space: nowrap;
+}
+
+.map-poi-add-chip:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.map-poi-add-chip:active {
+  transform: translateY(1px);
+}
+
+.map-poi-add-chip-plus {
+  line-height: 1;
+}
+
 .place-info-window {
   display: grid;
   gap: 4px;
