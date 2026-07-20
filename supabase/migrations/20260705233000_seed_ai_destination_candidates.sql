@@ -38,7 +38,7 @@ values
   ('banff-national-park', 'Cave and Basin National Historic Site', 'landmark', array['landmarks', 'museums', 'kid-friendly'], 'Banff Town', 'central', 8, 51.1697, -115.5906, null, 90, 'mixed'),
   ('banff-national-park', 'Vermilion Lakes', 'scenic_lake', array['nature', 'viewpoints', 'low-cost-free'], 'Banff Town', 'central', 9, 51.1814, -115.5949, null, 60, 'outdoor'),
   ('banff-national-park', 'Banff Avenue', 'neighborhood', array['neighborhoods', 'landmarks', 'kid-friendly'], 'Banff Town', 'central', 10, 51.1778, -115.5708, null, 75, 'outdoor'),
-  ('banff-national-park', 'Hoodoos Viewpoint', 'viewpoint', array['nature', 'viewpoints', 'low-cost-free'], 'Banff Town', 'central', 11, 51.1852, -115.5379, null, 45, 'outdoor'),
+  ('banff-national-park', 'Hoodoos Viewpoint', 'viewpoint', array['nature', 'viewpoints', 'low-cost-free'], 'Banff Town', 'central', 11, 51.1895, -115.5212, null, 45, 'outdoor'),
   ('banff-national-park', 'Peyto Lake Viewpoint', 'viewpoint', array['nature', 'viewpoints'], 'Icefields Parkway', 'day_trip', 12, 51.7175, -116.515, null, 90, 'outdoor'),
   ('banff-national-park', 'Bow Lake', 'scenic_lake', array['nature', 'viewpoints'], 'Icefields Parkway', 'day_trip', 13, 51.679, -116.4674, null, 75, 'outdoor'),
   ('banff-national-park', 'Sunshine Meadows', 'hike', array['nature', 'viewpoints'], 'Sunshine Village', 'nearby', 14, 51.1146, -115.7674, null, 180, 'outdoor'),
