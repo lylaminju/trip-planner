@@ -11,17 +11,56 @@ colors:
   active-line: "#3f4750"
   danger: "#b42318"
 typography:
-  body:
+  caption:
     fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "11px"
     fontWeight: 400
-    lineHeight: 1.4
   label:
     fontFamily: "Arial, Helvetica, sans-serif"
     fontSize: "12px"
     fontWeight: 700
+  body-sm:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+  body:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.4
+  body-lg:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+  title:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "16px"
+    fontWeight: 700
+  title-md:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "17px"
+    fontWeight: 700
+  title-lg:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "18px"
+    fontWeight: 700
+  headline:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "22px"
+    fontWeight: 700
+  headline-lg:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "24px"
+    fontWeight: 700
 rounded:
+  tight: "4px"
   control: "6px"
   panel: "8px"
+  control-large: "10px"
+  card: "12px"
+  card-large: "14px"
+  sheet: "16px"
+  hero: "18px"
   auth-card: "20px"
   pill: "999px"
 spacing:
@@ -116,10 +155,12 @@ compact. It should not draw attention away from the itinerary and map.
 
 - **Display** (700-900, landing-page `clamp()` scale): Reserved for the public
   landing hero and major brand surfaces.
-- **Headline** (700, 24-32px): Page and section titles.
+- **Headline** (700, 22-24px): Page and section titles.
 - **Title** (700, 15-18px): Cards, rows, dates, and preview headings.
-- **Body** (400, 14-16px): Explanatory text with a 65-75ch maximum line length.
+- **Body** (400, 13-16px): Explanatory text with a 65-75ch maximum line length.
 - **Label** (700, 12-13px): Form labels, badges, metadata, and compact controls.
+- **Caption** (400, 11px): Fine print such as photo credits, attribution, and
+  dense secondary metadata. Do not go below 11px for readable text.
 
 ### Named Rules
 
@@ -169,8 +210,9 @@ shadow only when a surface floats above another surface or responds to state.
 
 ### Cards / Containers
 
-- **Corner Style:** 8px for product panels, up to 16-20px only for large landing
-  hero or auth surfaces.
+- **Corner Style:** 8px for product panels and 10px for larger in-panel cards
+  and media (modal heroes, resolved-place cards); 12-18px for sheets, popovers,
+  and landing surfaces; 20px only for large auth surfaces.
 - **Background:** White panels on light neutral background.
 - **Shadow Strategy:** Flat by default, lifted only for overlays or product
   preview staging.
