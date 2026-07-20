@@ -92,6 +92,12 @@ describe("buildPoiPlaceSelection", () => {
       latitude: 37.7,
       longitude: -122.4,
       google_maps_url: "https://www.google.com/maps/place/?q=place_id%3Apoi-123",
+      // POI clicks skip the details call; the modal resolves the photo from
+      // the place id instead.
+      photo_name: null,
+      photo_attribution: null,
+      image_url: null,
+      image_credit: null,
     });
   });
 

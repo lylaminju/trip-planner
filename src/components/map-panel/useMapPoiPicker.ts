@@ -60,6 +60,12 @@ export function buildPoiPlaceSelection(poi: ActivePoi): PlaceSearchSelection {
     latitude: poi.latitude,
     longitude: poi.longitude,
     google_maps_url: buildGoogleMapsPlaceIdUrl(poi.placeId),
+    // No details call happens for POI clicks; the modal resolves the photo
+    // from the place id instead.
+    photo_name: null,
+    photo_attribution: null,
+    image_url: null,
+    image_credit: null,
   };
 }
 

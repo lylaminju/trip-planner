@@ -2,6 +2,7 @@
 
 import { useState, type SubmitEvent } from "react";
 
+import { usePlacePhotoPreview } from "@/hooks/usePlacePhotoPreview";
 import type { PlaceSearchBias } from "@/lib/places-api";
 import type { ResolvedPlace } from "@/lib/planner-api";
 import type { Place, VisitDateOption } from "@/lib/types";
@@ -12,6 +13,7 @@ import {
 } from "./AddPlaceSearchStep";
 import { TrashIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
+import { PlacePhotoHero } from "./PlacePhotoHero";
 import { VisitScheduleFields } from "./VisitScheduleFields";
 
 type Props = {
@@ -73,6 +75,11 @@ export function AddEditPlaceModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetches the place photo once for the hero preview; the same data URL is
+  // sent back on save, so the billed Place Photo call never repeats.
+  const photo = usePlacePhotoPreview(isEditing ? null : searchPlace);
+  const heroImageUrl = isEditing ? place.image_url : photo.imageUrl;
+
   // Errors surface inside the search step; rejections propagate back to it.
   async function handleResolveUrl(googleMapsUrl: string) {
     const resolved = await onResolveUrl(googleMapsUrl);
@@ -115,6 +122,13 @@ export function AddEditPlaceModal({
       return;
     }
 
+    setIsSaving(true);
+    setError(null);
+
+    // Awaits any in-flight photo fetch so a fast save still carries the
+    // already-billed preview image. Candidate images resolve server-side.
+    const photoPayload = isEditing ? null : await photo.getPhotoPayload();
+
     const trimmedLinks = links.map((link) => link.trim()).filter(Boolean);
     const payload: Record<string, unknown> = isEditing
       ? {
@@ -137,10 +151,9 @@ export function AddEditPlaceModal({
                 longitude: searchPlace.longitude,
               }
             : {}),
+          ...(photoPayload ?? {}),
         };
 
-    setIsSaving(true);
-    setError(null);
     try {
       await onSave(payload);
     } catch (reason) {
@@ -205,6 +218,10 @@ export function AddEditPlaceModal({
           />
         ) : (
           <form className="place-details" onSubmit={handleSave}>
+            <PlacePhotoHero
+              imageUrl={heroImageUrl}
+              isLoading={!isEditing && photo.isLoading}
+            />
             <div className="place-resolved">
               <div className="place-resolved-pin" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

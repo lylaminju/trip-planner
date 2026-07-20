@@ -461,6 +461,49 @@
   gap: 16px;
 }
 
+.place-photo-hero {
+  align-items: center;
+  background: var(--surface-subtle);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  /* The photo's intrinsic width (~800px) must never widen the modal: cap the
+     hero at the modal's inner width. Height follows the photo's own ratio;
+     the min-height keeps the loading and no-photo states from collapsing. */
+  max-width: 100%;
+  min-height: 140px;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.place-photo-hero--loading {
+  animation: place-photo-hero-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes place-photo-hero-pulse {
+  50% {
+    background: var(--surface-map-muted);
+  }
+}
+
+.place-photo-hero-img {
+  display: block;
+  /* Natural aspect ratio, capped so an extreme portrait photo cannot push the
+     schedule fields below the fold; object-fit only crops past the cap. */
+  height: auto;
+  max-height: 360px;
+  max-width: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.place-photo-hero-fallback {
+  color: var(--text-soft);
+  display: flex;
+}
+
 .place-resolved {
   align-items: center;
   background: var(--accent-selected-bg);

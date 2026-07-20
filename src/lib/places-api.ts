@@ -67,6 +67,39 @@ export async function fetchDestinationPhoto(
   return data.data_url as string;
 }
 
+export type PlacePhoto = {
+  // Freshly fetched from Google (the single billed Place Photo call); the
+  // same data URL is previewed and sent back at save time.
+  data_url: string | null;
+  attribution: string | null;
+  // Already stored in our own bucket for this place id; previewed as-is and
+  // never re-uploaded — the save path re-resolves it server-side.
+  image_url: string | null;
+  image_credit: string | null;
+};
+
+// Resolves the preview photo for a place selection. The server first reuses an
+// image we already stored for the place id (no Google call), then fetches via
+// the known photo reference, then falls back to a free IDs-Only reference
+// lookup for map POI picks.
+export async function fetchPlacePhotoForPlace(input: {
+  placeId: string;
+  photoName: string | null;
+}): Promise<PlacePhoto> {
+  const data = await postPlaces("/api/places/photo", {
+    place_id: input.placeId,
+    ...(input.photoName ? { photo_name: input.photoName } : {}),
+  });
+  return {
+    data_url: typeof data.data_url === "string" ? data.data_url : null,
+    attribution:
+      typeof data.attribution === "string" ? data.attribution : null,
+    image_url: typeof data.image_url === "string" ? data.image_url : null,
+    image_credit:
+      typeof data.image_credit === "string" ? data.image_credit : null,
+  };
+}
+
 async function postPlaces(
   path: string,
   body: Record<string, string | number>,

@@ -11,6 +11,10 @@ const MAP_SELECTION: PlaceSearchSelection = {
   latitude: 37.7,
   longitude: -122.4,
   google_maps_url: "https://www.google.com/maps/place/?q=place_id%3Apoi-123",
+  photo_name: null,
+  photo_attribution: null,
+  image_url: null,
+  image_credit: null,
 };
 
 function renderAddModal(initialSearchPlace: PlaceSearchSelection) {
@@ -44,5 +48,23 @@ describe("AddEditPlaceModal with a map-picked selection", () => {
 
     expect(markup).not.toContain('role="combobox"');
     expect(markup).toContain("Add a name for this place");
+  });
+
+  it("renders the photo hero section on the details step", () => {
+    const markup = renderAddModal(MAP_SELECTION);
+
+    expect(markup).toContain("place-photo-hero");
+  });
+
+  it("shows a curated candidate's stored image in the hero", () => {
+    const markup = renderAddModal({
+      ...MAP_SELECTION,
+      image_url: "https://cdn.example.com/storage/candidate.jpg",
+      image_credit: "Jane Doe",
+    });
+
+    expect(markup).toContain(
+      'src="https://cdn.example.com/storage/candidate.jpg"',
+    );
   });
 });

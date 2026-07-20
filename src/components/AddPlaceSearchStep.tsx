@@ -41,6 +41,13 @@ export type PlaceSearchSelection = {
   latitude: number;
   longitude: number;
   google_maps_url: string;
+  // Photo reference from a live Place Details response; the image itself is
+  // fetched once in the details step and reused as the stored place image.
+  photo_name: string | null;
+  photo_attribution: string | null;
+  // Already-stored image from a curated candidate; needs no Google call.
+  image_url: string | null;
+  image_credit: string | null;
 };
 
 type Props = {
@@ -181,6 +188,10 @@ export function AddPlaceSearchStep({
         google_maps_url:
           details.google_maps_url ??
           buildGoogleMapsPlaceIdUrl(details.place_id),
+        photo_name: details.photo_name,
+        photo_attribution: details.photo_attribution,
+        image_url: null,
+        image_credit: null,
       });
     } catch (reason) {
       if (reason instanceof DestinationSearchUnavailableError) {
@@ -211,6 +222,10 @@ export function AddPlaceSearchStep({
             latitude: candidate.latitude,
             longitude: candidate.longitude,
           }),
+      photo_name: null,
+      photo_attribution: null,
+      image_url: candidate.image_url,
+      image_credit: candidate.image_credit,
     });
   }
 
