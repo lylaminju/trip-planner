@@ -39,6 +39,10 @@
     z-index: 10;
   }
 
+  .planner-resize-handle {
+    display: none;
+  }
+
   .planner-panel.mobile-sheet-collapsed {
     height: calc(40px + env(safe-area-inset-bottom));
     overflow: hidden;

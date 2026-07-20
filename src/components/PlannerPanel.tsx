@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type CSSProperties, type MouseEvent } from "react";
+import {
+  useMemo,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { useMobileSheetDrag } from "@/hooks/useMobileSheetDrag";
@@ -85,6 +91,7 @@ type Props = {
   onModeChange: (id: number, mode: TravelMode) => void;
   onDeleteItem: (id: number) => void;
   onDeleteAllItems: () => void;
+  resizeHandle?: ReactNode;
 };
 
 type PickerState = {
@@ -360,6 +367,7 @@ export function PlannerPanel(props: Props) {
             document.body,
           )}
       </div>
+      {props.resizeHandle}
     </section>
   );
 }

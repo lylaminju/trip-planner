@@ -1,7 +1,10 @@
 /* Shared app shell, panel, and section layout primitives. */
 .app-shell {
   display: grid;
-  grid-template-columns: minmax(540px, 640px) minmax(0, 1fr);
+  grid-template-columns: minmax(360px, var(--planner-panel-width, 640px)) minmax(
+      0,
+      1fr
+    );
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -10,6 +13,12 @@
 
 .app-shell.planner-panel-expanded {
   grid-template-columns: minmax(0, 1fr) 0px;
+}
+
+.app-shell.planner-resizing {
+  cursor: col-resize;
+  transition: none;
+  user-select: none;
 }
 
 .panel {
@@ -47,6 +56,34 @@
 
 .planner-panel.expanded {
   border-right: 0;
+}
+
+.planner-resize-handle {
+  background: transparent;
+  cursor: col-resize;
+  inset-block: 0;
+  position: absolute;
+  right: 0;
+  touch-action: none;
+  transition: background 120ms ease;
+  width: 4px;
+  /* Above sticky section headings and row chrome (6-9), below the floating export menu (20). */
+  z-index: 10;
+}
+
+.planner-resize-handle:hover,
+.app-shell.planner-resizing .planner-resize-handle {
+  background: var(--border-strong);
+}
+
+.planner-resize-handle:focus-visible {
+  background: var(--accent-border-muted);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.planner-panel.expanded .planner-resize-handle {
+  display: none;
 }
 
 .app-header {

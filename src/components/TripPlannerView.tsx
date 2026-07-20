@@ -1,7 +1,8 @@
 "use client";
 
-import type { SubmitEvent } from "react";
+import type { CSSProperties, SubmitEvent } from "react";
 
+import { usePlannerPanelResize } from "@/hooks/usePlannerPanelResize";
 import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { DestinationFocus } from "@/lib/destination-options";
 import { errorMessage } from "@/lib/error-message";
@@ -26,6 +27,7 @@ import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { EditTripModal } from "./EditTripModal";
 import { MapPanel } from "./MapPanel";
 import { PlannerPanel } from "./PlannerPanel";
+import { PlannerResizeHandle } from "./planner-panel/PlannerResizeHandle";
 import type { TripFormState } from "./trip-form-types";
 
 type ExportFeedback = {
@@ -136,12 +138,18 @@ type Props = {
 export function TripPlannerView(props: Props) {
   const addingVisitPlace = props.addingVisitPlace;
   const editingItem = props.editingItem;
+  const panelResize = usePlannerPanelResize();
 
   return (
     <main
       className={`app-shell mobile-sheet-${props.mobileSheetState} ${
         props.isPlannerPanelExpanded ? "planner-panel-expanded" : ""
-      }`}
+      } ${panelResize.isResizing ? "planner-resizing" : ""}`}
+      style={
+        {
+          "--planner-panel-width": `${panelResize.width}px`,
+        } as CSSProperties
+      }
     >
       <PlannerPanel
         title={props.tripTitle}
@@ -225,6 +233,9 @@ export function TripPlannerView(props: Props) {
               errorMessage(reason, "Failed to update route mode."),
             );
           })
+        }
+        resizeHandle={
+          <PlannerResizeHandle handleProps={panelResize.handleProps} />
         }
       />
       <MapPanel
