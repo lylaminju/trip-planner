@@ -104,6 +104,14 @@ This file applies to the whole repository. Follow it when changing code here.
 - Standard checks after code changes: `npm test` and `npx tsc --noEmit`.
 - Run `npm run build` when changes affect Next.js routing, server/client boundaries, environment-variable behavior, or production bundling.
 
+## Billable External API Usage
+
+- Before running anything that calls metered external APIs (Google Places/Routes, OpenAI, and similar) outside the app's normal request path — batch scripts, backfills, dry runs, verification sweeps — state the expected request count, the SKU or quota it draws from, and the estimated cost, then wait for approval.
+- Count every planned iteration toward that estimate: dry runs, retries, and verification passes all consume quota, not just the final apply run.
+- If mid-task iteration would add unplanned calls (for example an extra dry run after a logic fix), surface the addition instead of silently rerunning.
+- "Within the free tier" still needs approval: free monthly call allotments are shared budgets, and drawing them down is billable-adjacent usage.
+- Read-only database queries and local tests need no approval; anything metered by an external vendor does.
+
 ## Branching
 
 - Commit directly to the default `main` branch. Do not create a new branch before committing unless the user explicitly requests one.
