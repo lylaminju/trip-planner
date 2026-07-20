@@ -206,23 +206,36 @@ export function DestinationSearch(props: {
             </p>
           ) : null}
 
-          {isSearching ? (
-            <GoogleSuggestions
-              suggestions={suggestions}
-              isLoading={isLoading}
-              onSelect={selectGoogleSuggestion}
+          {isSearching && curatedOptions.length ? (
+            <p className="destination-combobox-group-label">
+              Featured destinations
+            </p>
+          ) : null}
+          {curatedOptions.map((option) => (
+            <DestinationOptionRow
+              key={option.slug}
+              option={option}
+              isSelected={matchedOption?.slug === option.slug}
+              showPreview={props.showPreview}
+              onSelect={selectCurated}
             />
+          ))}
+
+          {isSearching ? (
+            <>
+              {curatedOptions.length ? (
+                <p className="destination-combobox-group-label">
+                  On Google Maps
+                </p>
+              ) : null}
+              <GoogleSuggestions
+                suggestions={suggestions}
+                isLoading={isLoading}
+                onSelect={selectGoogleSuggestion}
+              />
+            </>
           ) : (
             <>
-              {curatedOptions.map((option) => (
-                <DestinationOptionRow
-                  key={option.slug}
-                  option={option}
-                  isSelected={matchedOption?.slug === option.slug}
-                  showPreview={props.showPreview}
-                  onSelect={selectCurated}
-                />
-              ))}
               {showCustomOption ? (
                 <button
                   type="button"
