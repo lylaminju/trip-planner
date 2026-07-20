@@ -348,6 +348,9 @@ export function TripPlannerApp({
       )}
       <TripPlannerView
         tripId={tripId}
+        hasCuratedCandidates={isAiPlanningDestinationSupported(
+          trip?.destination_slug,
+        )}
         mobileSheetState={mobileSheetState}
         isPlannerPanelExpanded={isPlannerPanelExpanded}
         tripTitle={tripTitle}

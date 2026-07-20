@@ -18,6 +18,7 @@ type Props = {
   tripId: number;
   place: Place | null;
   savedPlaces: Place[];
+  hasCuratedCandidates: boolean;
   visitDateOptions: VisitDateOption[];
   defaultVisitDate?: string | null;
   destinationBias?: PlaceSearchBias | null;
@@ -31,6 +32,7 @@ export function AddEditPlaceModal({
   tripId,
   place,
   savedPlaces,
+  hasCuratedCandidates,
   visitDateOptions,
   defaultVisitDate,
   destinationBias,
@@ -196,6 +198,7 @@ export function AddEditPlaceModal({
           <AddPlaceSearchStep
             tripId={tripId}
             savedPlaces={savedPlaces}
+            hasCuratedCandidates={hasCuratedCandidates}
             destinationBias={destinationBias ?? null}
             onSelectPlace={handleSelectSearchPlace}
             onResolveUrl={handleResolveUrl}

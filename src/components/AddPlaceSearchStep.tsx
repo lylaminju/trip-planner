@@ -46,6 +46,7 @@ export type PlaceSearchSelection = {
 type Props = {
   tripId: number;
   savedPlaces: Place[];
+  hasCuratedCandidates: boolean;
   destinationBias: PlaceSearchBias | null;
   onSelectPlace: (selection: PlaceSearchSelection) => void;
   onResolveUrl: (googleMapsUrl: string) => Promise<void>;
@@ -54,6 +55,7 @@ type Props = {
 export function AddPlaceSearchStep({
   tripId,
   savedPlaces,
+  hasCuratedCandidates,
   destinationBias,
   onSelectPlace,
   onResolveUrl,
@@ -81,13 +83,18 @@ export function AddPlaceSearchStep({
     trimmedQuery.length >= MIN_QUERY_LENGTH &&
     unavailableMessage === null;
   // Curated attractions fill the popover before the query is long enough for
-  // live Google search, starting with the full list on focus.
-  const candidates = useDestinationCandidates(tripId);
-  const candidateMatches =
-    !isPastedUrl && trimmedQuery.length < MIN_QUERY_LENGTH
-      ? matchDestinationCandidates(candidates, savedPlaces, trimmedQuery)
-      : [];
-  const showsCandidates = candidateMatches.length > 0;
+  // live Google search, starting with the full list on focus. While the
+  // catalog is in flight, a pending row holds the popover open so the list
+  // doesn't pop in from nothing.
+  const isBrowsingCandidates =
+    !isPastedUrl && trimmedQuery.length < MIN_QUERY_LENGTH;
+  const { candidates, isLoading: isCandidatesLoading } =
+    useDestinationCandidates(tripId, hasCuratedCandidates);
+  const candidateMatches = isBrowsingCandidates
+    ? matchDestinationCandidates(candidates, savedPlaces, trimmedQuery)
+    : [];
+  const showsCandidatesPending = isBrowsingCandidates && isCandidatesLoading;
+  const showsCandidates = candidateMatches.length > 0 || showsCandidatesPending;
   const showPopover = isOpen && (isPastedUrl || isSearching || showsCandidates);
   // Primitive deps: a parent re-render must not reset the debounce timer just
   // because it rebuilt the bias object with the same coordinates.
@@ -263,7 +270,9 @@ export function AddPlaceSearchStep({
             <p className="place-search-group-label">Suggested places</p>
           )}
           <div className="place-search-list" id={listId} role="listbox">
-            {showsCandidates ? (
+            {showsCandidates && candidateMatches.length === 0 ? (
+              <p className="place-search-empty">Preparing suggestions…</p>
+            ) : showsCandidates ? (
               candidateMatches.map((candidate) => (
                 <button
                   type="button"
