@@ -97,6 +97,23 @@ export async function getAiPlanningSetupForRequest(
   };
 }
 
+// Lighter than the full planning setup: the Add Place search step only needs
+// the curated catalog, not lodging/transit/preferences.
+export async function listDestinationCandidatesForRequest(
+  tripId: number,
+  userId: string,
+): Promise<AiDestinationCandidate[]> {
+  await requireTripRole(tripId, userId, "owner");
+  const trip = await getTripById(tripId);
+  if (
+    !trip.destination_slug ||
+    !isAiPlanningDestinationSupported(trip.destination_slug)
+  ) {
+    return [];
+  }
+  return listDestinationCandidates(trip.destination_slug);
+}
+
 export async function saveAiPlanningPreferencesForRequest(
   tripId: number,
   userId: string,

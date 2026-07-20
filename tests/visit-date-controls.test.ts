@@ -15,7 +15,9 @@ const visitDateOptions: VisitDateOption[] = [
 function renderAddModal(overrides: Record<string, unknown> = {}) {
   return renderToStaticMarkup(
     createElement(AddEditPlaceModal, {
+      tripId: 1,
       place: null,
+      savedPlaces: [],
       visitDateOptions,
       onCancel: vi.fn(),
       onResolveUrl: vi.fn(),
@@ -40,7 +42,9 @@ describe("add / edit place modal", () => {
   it("shows the resolved place details when editing", () => {
     const markup = renderToStaticMarkup(
       createElement(AddEditPlaceModal, {
+        tripId: 1,
         place: buildPlace({ name: "Existing stop" }),
+        savedPlaces: [],
         visitDateOptions,
         onCancel: vi.fn(),
         onResolveUrl: vi.fn(),

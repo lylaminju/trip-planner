@@ -1,6 +1,7 @@
 import { vi } from "vitest";
 
 import type {
+  AiDestinationCandidate,
   Trip,
   TripMembership,
   TripTransitPoint,
@@ -206,7 +207,7 @@ export function transitPointRecord(
   };
 }
 
-export function candidateRecord(id: number) {
+export function candidateRecord(id: number): AiDestinationCandidate {
   return {
     id,
     destination_slug: "new-york-city",

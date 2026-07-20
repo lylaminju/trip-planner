@@ -12,6 +12,16 @@ export function buildGoogleMapsPlaceIdUrl(placeId: string): string {
   return `https://www.google.com/maps/place/?${params.toString()}`;
 }
 
+// Documented Maps URLs search link for a coordinate, used for curated
+// candidates that have no stored Google place id.
+export function buildGoogleMapsSearchUrl(coordinate: Coordinate): string {
+  const params = new URLSearchParams({
+    api: "1",
+    query: `${coordinate.latitude},${coordinate.longitude}`,
+  });
+  return `https://www.google.com/maps/search/?${params.toString()}`;
+}
+
 export function buildGoogleMapsDirectionsUrl(input: {
   origin: Coordinate;
   destination: Coordinate;

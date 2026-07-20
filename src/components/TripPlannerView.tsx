@@ -45,6 +45,7 @@ type AiPlanningWizardState = {
 };
 
 type Props = {
+  tripId: number;
   mobileSheetState: MobileSheetState;
   isPlannerPanelExpanded: boolean;
   tripTitle: string;
@@ -271,7 +272,9 @@ export function TripPlannerView(props: Props) {
       )}
       {(props.isAdding || props.editingPlace) && (
         <AddEditPlaceModal
+          tripId={props.tripId}
           place={props.editingPlace}
+          savedPlaces={props.plannerSnapshot.places}
           visitDateOptions={props.visitDateOptions}
           defaultVisitDate={props.editingPlace ? null : props.addPlaceVisitDate}
           destinationBias={

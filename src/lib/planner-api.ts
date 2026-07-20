@@ -1,4 +1,5 @@
 import type {
+  AiDestinationCandidate,
   AiPlanningGenerationInput,
   AiPlanningPreferenceInput,
   AiPlanningPreferences,
@@ -61,6 +62,18 @@ export async function loadAiPlanningSetup(
   }
 
   return response.json();
+}
+
+export async function loadDestinationCandidates(
+  tripId: number,
+): Promise<AiDestinationCandidate[]> {
+  const response = await fetch(`${tripApiBase(tripId)}/places/candidates`);
+  if (!response.ok) {
+    throw new Error("Failed to load suggested places.");
+  }
+
+  const data = await response.json();
+  return Array.isArray(data?.candidates) ? data.candidates : [];
 }
 
 export async function saveAiPlanningPreferences(

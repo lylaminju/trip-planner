@@ -11,6 +11,52 @@ import {
   withMockedAiPlanningService,
 } from "./ai-planning-service.test-helpers";
 
+describe("listDestinationCandidatesForRequest", () => {
+  it("requires owner access and returns the curated catalog for supported destinations", async () => {
+    const candidates = [candidateRecord(1), candidateRecord(2)];
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    const listDestinationCandidates = vi.fn().mockResolvedValue(candidates);
+
+    await withMockedAiPlanningService(
+      {
+        requireTripRole,
+        getTripById: vi
+          .fn()
+          .mockResolvedValue(tripRecord({ destination_slug: "new-york-city" })),
+        supabaseAiPlanningService: { listDestinationCandidates },
+      },
+      async ({ service }) => {
+        await expect(
+          service.listDestinationCandidatesForRequest(1, "user-1"),
+        ).resolves.toEqual(candidates);
+      },
+    );
+
+    expect(requireTripRole).toHaveBeenCalledWith(1, "user-1", "owner");
+    expect(listDestinationCandidates).toHaveBeenCalledWith("new-york-city");
+  });
+
+  it("returns an empty list without querying the catalog for unsupported destinations", async () => {
+    const listDestinationCandidates = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi
+          .fn()
+          .mockResolvedValue(tripRecord({ destination_slug: "atlantis" })),
+        supabaseAiPlanningService: { listDestinationCandidates },
+      },
+      async ({ service }) => {
+        await expect(
+          service.listDestinationCandidatesForRequest(1, "user-1"),
+        ).resolves.toEqual([]);
+      },
+    );
+
+    expect(listDestinationCandidates).not.toHaveBeenCalled();
+  });
+});
+
 describe("ai-planning-service request boundary", () => {
   it("requires owner access and returns empty-catalog setup data for supported destinations", async () => {
     const trip = tripRecord({ destination_slug: "new-york-city" });

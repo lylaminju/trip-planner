@@ -15,7 +15,9 @@ import { ModalShell } from "./ModalShell";
 import { VisitScheduleFields } from "./VisitScheduleFields";
 
 type Props = {
+  tripId: number;
   place: Place | null;
+  savedPlaces: Place[];
   visitDateOptions: VisitDateOption[];
   defaultVisitDate?: string | null;
   destinationBias?: PlaceSearchBias | null;
@@ -25,7 +27,9 @@ type Props = {
 };
 
 export function AddEditPlaceModal({
+  tripId,
   place,
+  savedPlaces,
   visitDateOptions,
   defaultVisitDate,
   destinationBias,
@@ -178,6 +182,8 @@ export function AddEditPlaceModal({
 
         {!isEditing && step === 1 ? (
           <AddPlaceSearchStep
+            tripId={tripId}
+            savedPlaces={savedPlaces}
             destinationBias={destinationBias ?? null}
             onSelectPlace={handleSelectSearchPlace}
             onResolveUrl={handleResolveUrl}

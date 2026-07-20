@@ -10,8 +10,13 @@ import {
   type SubmitEvent,
 } from "react";
 
+import { useDestinationCandidates } from "@/hooks/useDestinationCandidates";
+import { matchDestinationCandidates } from "@/lib/destination-candidates";
 import { errorMessage } from "@/lib/error-message";
-import { buildGoogleMapsPlaceIdUrl } from "@/lib/maps-url";
+import {
+  buildGoogleMapsPlaceIdUrl,
+  buildGoogleMapsSearchUrl,
+} from "@/lib/maps-url";
 import {
   DestinationSearchUnavailableError,
   fetchDestinationDetails,
@@ -19,6 +24,9 @@ import {
   type DestinationSuggestion,
   type PlaceSearchBias,
 } from "@/lib/places-api";
+import type { AiDestinationCandidate, Place } from "@/lib/types";
+
+import { MapPinIcon } from "./Icons";
 
 const MIN_QUERY_LENGTH = 3;
 const SEARCH_DEBOUNCE_MS = 400;
@@ -28,7 +36,7 @@ const SEARCH_UNAVAILABLE_MESSAGE =
   "Search is unavailable right now — paste a Google Maps link instead.";
 
 export type PlaceSearchSelection = {
-  place_id: string;
+  place_id: string | null;
   name: string;
   latitude: number;
   longitude: number;
@@ -36,12 +44,16 @@ export type PlaceSearchSelection = {
 };
 
 type Props = {
+  tripId: number;
+  savedPlaces: Place[];
   destinationBias: PlaceSearchBias | null;
   onSelectPlace: (selection: PlaceSearchSelection) => void;
   onResolveUrl: (googleMapsUrl: string) => Promise<void>;
 };
 
 export function AddPlaceSearchStep({
+  tripId,
+  savedPlaces,
   destinationBias,
   onSelectPlace,
   onResolveUrl,
@@ -68,7 +80,15 @@ export function AddPlaceSearchStep({
     !isPastedUrl &&
     trimmedQuery.length >= MIN_QUERY_LENGTH &&
     unavailableMessage === null;
-  const showPopover = isOpen && (isPastedUrl || isSearching);
+  // Curated attractions fill the popover before the query is long enough for
+  // live Google search, starting with the full list on focus.
+  const candidates = useDestinationCandidates(tripId);
+  const candidateMatches =
+    !isPastedUrl && trimmedQuery.length < MIN_QUERY_LENGTH
+      ? matchDestinationCandidates(candidates, savedPlaces, trimmedQuery)
+      : [];
+  const showsCandidates = candidateMatches.length > 0;
+  const showPopover = isOpen && (isPastedUrl || isSearching || showsCandidates);
   // Primitive deps: a parent re-render must not reset the debounce timer just
   // because it rebuilt the bias object with the same coordinates.
   const biasLatitude = destinationBias?.latitude ?? null;
@@ -168,6 +188,25 @@ export function AddPlaceSearchStep({
     }
   }
 
+  // Curated candidates already carry verified coordinates, so no billed
+  // Place Details call is needed.
+  function selectCandidate(candidate: AiDestinationCandidate) {
+    if (isBusy) return;
+    setIsOpen(false);
+    onSelectPlace({
+      place_id: candidate.google_place_id,
+      name: candidate.name,
+      latitude: candidate.latitude,
+      longitude: candidate.longitude,
+      google_maps_url: candidate.google_place_id
+        ? buildGoogleMapsPlaceIdUrl(candidate.google_place_id)
+        : buildGoogleMapsSearchUrl({
+            latitude: candidate.latitude,
+            longitude: candidate.longitude,
+          }),
+    });
+  }
+
   async function resolvePastedUrl() {
     if (isBusy) return;
     setIsOpen(false);
@@ -220,8 +259,55 @@ export function AddPlaceSearchStep({
           aria-label="Search Google Maps"
         />
         <div className="place-search-popover" hidden={!showPopover}>
+          {showsCandidates && (
+            <p className="place-search-group-label">Suggested places</p>
+          )}
           <div className="place-search-list" id={listId} role="listbox">
-            {isPastedUrl ? (
+            {showsCandidates ? (
+              candidateMatches.map((candidate) => (
+                <button
+                  type="button"
+                  key={candidate.id}
+                  className="place-search-option place-search-candidate-option"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectCandidate(candidate)}
+                  role="option"
+                  aria-selected="false"
+                  disabled={isBusy}
+                >
+                  <span className="place-search-candidate-thumb">
+                    {candidate.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- remote Supabase Storage thumbnail; fixed 40×40 box, no next/image domain config needed
+                      <img
+                        className="place-search-candidate-thumb-img"
+                        src={candidate.image_url}
+                        alt=""
+                        loading="lazy"
+                        width={40}
+                        height={40}
+                      />
+                    ) : (
+                      <span
+                        className="place-search-candidate-thumb-fallback"
+                        aria-hidden="true"
+                      >
+                        <MapPinIcon />
+                      </span>
+                    )}
+                  </span>
+                  <span className="place-search-candidate-text">
+                    <span className="place-search-option-name">
+                      {candidate.name}
+                    </span>
+                    {candidate.area ? (
+                      <span className="place-search-option-detail">
+                        {candidate.area}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              ))
+            ) : isPastedUrl ? (
               <button
                 type="button"
                 className="place-search-option place-search-link-option"

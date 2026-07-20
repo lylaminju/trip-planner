@@ -25,6 +25,7 @@ describe("TripPlannerView", () => {
 
 function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
   return {
+    tripId: 1,
     mobileSheetState: "half" as const,
     isPlannerPanelExpanded: false,
     tripTitle: "New York City",

@@ -345,6 +345,7 @@ export function TripPlannerApp({
         />
       )}
       <TripPlannerView
+        tripId={tripId}
         mobileSheetState={mobileSheetState}
         isPlannerPanelExpanded={isPlannerPanelExpanded}
         tripTitle={tripTitle}

@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { buildGoogleMapsDirectionsUrl } from "@/lib/maps-url";
+import {
+  buildGoogleMapsDirectionsUrl,
+  buildGoogleMapsSearchUrl,
+} from "@/lib/maps-url";
+
+describe("buildGoogleMapsSearchUrl", () => {
+  it("builds a documented Maps URLs search link from coordinates", () => {
+    const url = buildGoogleMapsSearchUrl({
+      latitude: 40.7579747,
+      longitude: -73.9855426,
+    });
+
+    expect(url).toBe(
+      "https://www.google.com/maps/search/?api=1&query=40.7579747%2C-73.9855426",
+    );
+  });
+});
 
 describe("buildGoogleMapsDirectionsUrl", () => {
   it("uses coordinates and official Google travel mode names", () => {
