@@ -55,7 +55,7 @@ export function attachPoiClickListener(
 // savable selection — the modal asks the user to type the name.
 export function buildPoiPlaceSelection(poi: ActivePoi): PlaceSearchSelection {
   return {
-    place_id: poi.placeId,
+    google_place_id: poi.placeId,
     name: poi.name ?? "",
     latitude: poi.latitude,
     longitude: poi.longitude,

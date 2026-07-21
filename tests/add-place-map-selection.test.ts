@@ -6,7 +6,7 @@ import { AddEditPlaceModal } from "@/components/AddEditPlaceModal";
 import type { PlaceSearchSelection } from "@/components/AddPlaceSearchStep";
 
 const MAP_SELECTION: PlaceSearchSelection = {
-  place_id: "poi-123",
+  google_place_id: "poi-123",
   name: "Blue Bottle Coffee",
   latitude: 37.7,
   longitude: -122.4,

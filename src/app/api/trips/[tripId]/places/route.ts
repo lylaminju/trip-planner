@@ -87,7 +87,7 @@ export async function POST(request: Request, { params }: TripParams) {
       );
     }
 
-    const placeId = coordinates ? stringOrNull(body.place_id) : null;
+    const placeId = coordinates ? stringOrNull(body.google_place_id) : null;
     // The photo data URL was fetched (and billed) once at preview time; here it
     // is only validated and stored, never re-fetched from Google.
     const image = await resolvePlaceImage({

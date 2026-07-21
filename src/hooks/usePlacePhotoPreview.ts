@@ -10,7 +10,7 @@ import {
 } from "@/lib/places-api";
 
 type SelectionPhotoSource = {
-  place_id: string | null;
+  google_place_id: string | null;
   photo_name: string | null;
   photo_attribution: string | null;
   image_url: string | null;
@@ -50,7 +50,7 @@ export function usePlacePhotoPreview(
   const [isLoading, setIsLoading] = useState(false);
   const photoPromiseRef = useRef<Promise<PlacePhoto | null> | null>(null);
 
-  const placeId = selection?.place_id ?? null;
+  const placeId = selection?.google_place_id ?? null;
   const photoName = selection?.photo_name ?? null;
   const photoAttribution = selection?.photo_attribution ?? null;
   const hasStoredImage = Boolean(selection?.image_url);

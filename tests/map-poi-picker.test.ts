@@ -87,7 +87,7 @@ describe("buildPoiPlaceSelection", () => {
     });
 
     expect(selection).toEqual({
-      place_id: "poi-123",
+      google_place_id: "poi-123",
       name: "Blue Bottle Coffee",
       latitude: 37.7,
       longitude: -122.4,
@@ -110,7 +110,7 @@ describe("buildPoiPlaceSelection", () => {
     });
 
     expect(selection.name).toBe("");
-    expect(selection.place_id).toBe("poi-123");
+    expect(selection.google_place_id).toBe("poi-123");
   });
 });
 

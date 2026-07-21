@@ -36,7 +36,7 @@ const SEARCH_UNAVAILABLE_MESSAGE =
   "Search is unavailable right now — paste a Google Maps link instead.";
 
 export type PlaceSearchSelection = {
-  place_id: string | null;
+  google_place_id: string | null;
   name: string;
   latitude: number;
   longitude: number;
@@ -181,7 +181,7 @@ export function AddPlaceSearchStep({
         sessionTokenRef.current,
       );
       onSelectPlace({
-        place_id: details.place_id,
+        google_place_id: details.place_id,
         name: details.name,
         latitude: details.latitude,
         longitude: details.longitude,
@@ -212,7 +212,7 @@ export function AddPlaceSearchStep({
     if (isBusy) return;
     setIsOpen(false);
     onSelectPlace({
-      place_id: candidate.google_place_id,
+      google_place_id: candidate.google_place_id,
       name: candidate.name,
       latitude: candidate.latitude,
       longitude: candidate.longitude,

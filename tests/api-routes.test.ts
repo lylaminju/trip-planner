@@ -695,7 +695,7 @@ describe("API routes transport behavior", () => {
         jsonRequest("POST", {
           name: "Louvre Museum",
           google_maps_url: "https://maps.google.com/?cid=42",
-          place_id: "google-place-1",
+          google_place_id: "google-place-1",
           latitude: 48.8606,
           longitude: 2.3376,
         }),
@@ -708,7 +708,7 @@ describe("API routes transport behavior", () => {
           expect.objectContaining({
             name: "Louvre Museum",
             google_maps_url: "https://maps.google.com/?cid=42",
-            place_id: "google-place-1",
+            google_place_id: "google-place-1",
             latitude: 48.8606,
             longitude: 2.3376,
           }),
@@ -902,7 +902,7 @@ describe("API routes transport behavior", () => {
         jsonRequest("POST", {
           name: "Louvre Museum",
           google_maps_url: "https://maps.google.com/?cid=42",
-          place_id: "google-place-1",
+          google_place_id: "google-place-1",
           latitude: 48.8606,
           longitude: 2.3376,
           photo_data_url: "data:image/jpeg;base64,abc",

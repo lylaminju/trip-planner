@@ -150,7 +150,7 @@ export function AddEditPlaceModal({
           visit_time: selectedDate ? visitTime : null,
           ...(searchPlace
             ? {
-                place_id: searchPlace.place_id,
+                google_place_id: searchPlace.google_place_id,
                 latitude: searchPlace.latitude,
                 longitude: searchPlace.longitude,
               }
