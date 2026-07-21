@@ -1,6 +1,6 @@
 import { findDestinationOption } from "./destination-options";
 
-export const DEFAULT_TRIP_COVER_IMAGE = "/sign-in-bg.jpg";
+export const DEFAULT_TRIP_COVER_IMAGE = "/default-trip-cover.jpg";
 
 export function getTripCoverImage(input: {
   destination: string | null;

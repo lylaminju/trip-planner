@@ -73,7 +73,7 @@ describe("TripCard", () => {
           destination_slug: null,
         }),
       }),
-    ).toContain("/sign-in-bg.jpg");
+    ).toContain("/default-trip-cover.jpg");
   });
 
   it("disables the delete button and shows the delete spinner while deleting", () => {
