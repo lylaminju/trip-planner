@@ -57,6 +57,7 @@ type Props = {
   onSelectDate: (date: string) => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
+  onDuplicateItem: (item: ItineraryItem) => void;
   onEditItem: (item: ItineraryItem) => void;
   onDelete: (id: number) => void;
   onDeleteItem: (id: number) => void;
@@ -225,6 +226,7 @@ export function ItinerarySection(props: Props) {
               onSelectSegment={props.onSelectSegment}
               onToggleDateCollapsed={props.onToggleDateCollapsed}
               onSelectDate={props.onSelectDate}
+              onDuplicateItem={props.onDuplicateItem}
               onEditItem={props.onEditItem}
               onDeleteItem={props.onDeleteItem}
               onScheduleItem={props.onScheduleItem}

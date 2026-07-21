@@ -1,10 +1,18 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 import { formatPlaceRow, formatSchedule, placeInitial } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
-import { CalendarPlusIcon, PencilIcon, TrashIcon } from "../Icons";
+import {
+  CalendarPlusIcon,
+  CopyIcon,
+  EllipsisIcon,
+  PencilIcon,
+  TrashIcon,
+} from "../Icons";
 import { VisitTimeSlot } from "./VisitTimeSlot";
 
 export function ItineraryItemRow(props: {
@@ -15,6 +23,7 @@ export function ItineraryItemRow(props: {
   canEdit: boolean;
   onDragEnd?: () => void;
   onSelect: () => void;
+  onDuplicate: () => void;
   onEdit: () => void;
   onTimeChange: (visitTime: string | null) => void | Promise<void>;
   onDelete: () => void;
@@ -31,11 +40,39 @@ export function ItineraryItemRow(props: {
     .filter(Boolean)
     .join(" ");
   const dragLabel = `Drag ${props.item.place.name} to reorder or move date`;
+  const duplicateLabel = `Duplicate visit to ${props.item.place.name}`;
   const editLabel = `Edit visit to ${props.item.place.name}`;
   const deleteLabel = `Delete visit to ${props.item.place.name}`;
   const deleteButtonLabel = props.isDeleting
     ? `Deleting visit to ${props.item.place.name}`
     : deleteLabel;
+  const menuLabel = `Visit actions for ${props.item.place.name}`;
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        actionsRef.current &&
+        !actionsRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMenuOpen]);
 
   return (
     <div className={rowClassName}>
@@ -123,27 +160,65 @@ export function ItineraryItemRow(props: {
         </button>
       </span>
       {props.canEdit && (
-        <span className="visit-row-actions">
+        <div className="visit-row-actions-wrap" ref={actionsRef}>
           <button
             type="button"
-            className="icon-button"
-            aria-label={editLabel}
-            title={editLabel}
-            onClick={props.onEdit}
+            className="icon-button visit-row-menu-toggle"
+            aria-label={menuLabel}
+            title={menuLabel}
+            aria-haspopup="true"
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen((open) => !open)}
           >
-            <PencilIcon />
+            <EllipsisIcon />
           </button>
-          <button
-            type="button"
-            className="icon-button danger-button"
-            aria-label={deleteButtonLabel}
-            title={deleteButtonLabel}
-            disabled={props.isDeleting}
-            onClick={props.onDelete}
+          <span
+            className={
+              isMenuOpen ? "visit-row-actions open" : "visit-row-actions"
+            }
           >
-            {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
-          </button>
-        </span>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={duplicateLabel}
+              title={duplicateLabel}
+              onClick={() => {
+                setIsMenuOpen(false);
+                props.onDuplicate();
+              }}
+            >
+              <CopyIcon />
+              <span className="visit-row-action-label">Duplicate</span>
+            </button>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={editLabel}
+              title={editLabel}
+              onClick={() => {
+                setIsMenuOpen(false);
+                props.onEdit();
+              }}
+            >
+              <PencilIcon />
+              <span className="visit-row-action-label">Edit</span>
+            </button>
+            <button
+              type="button"
+              className="icon-button danger-button"
+              aria-label={deleteButtonLabel}
+              title={deleteButtonLabel}
+              disabled={props.isDeleting}
+              onClick={() => {
+                setIsMenuOpen(false);
+                props.onDelete();
+              }}
+            >
+              {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
+              <span className="visit-row-action-label">Delete</span>
+            </button>
+          </span>
+        </div>
       )}
     </div>
   );

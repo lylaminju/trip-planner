@@ -21,7 +21,6 @@ import {
 } from "@/lib/route-reconciliation";
 import type {
   ItineraryItem,
-  Place,
   PlannerSnapshot,
   TravelMode,
 } from "@/lib/types";
@@ -33,7 +32,6 @@ type TripPlannerMutationOptions = {
   setPlannerSnapshot: Dispatch<SetStateAction<PlannerSnapshot>>;
   setError: Dispatch<SetStateAction<string | null>>;
   closeModal: () => void;
-  setAddingVisitPlace: (place: Place | null) => void;
   setEditingItem: (item: ItineraryItem | null) => void;
   clearActiveCanonicalPlace: () => void;
   clearDeletedPlaceSelection: (
@@ -135,7 +133,7 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
       options.setPlannerSnapshot(
         await createItineraryItemRequest(options.tripId, placeId, payload),
       );
-      options.setAddingVisitPlace(null);
+      options.closeModal();
       options.setError(null);
     } catch (reason) {
       const message = errorMessage(reason, "Failed to add visit.");

@@ -161,6 +161,7 @@ function itinerarySectionMarkup(
       onSelectDate: vi.fn(),
       onAddVisit: vi.fn(),
       onEdit: vi.fn(),
+      onDuplicateItem: vi.fn(),
       onEditItem: vi.fn(),
       onDelete: vi.fn(),
       onDeleteItem: vi.fn(),

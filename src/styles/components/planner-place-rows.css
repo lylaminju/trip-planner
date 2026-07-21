@@ -437,6 +437,19 @@
   gap: 2px;
 }
 
+.visit-row-actions-wrap {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+/* The kebab toggle and menu labels are mobile-only; desktop shows inline icons. */
+.visit-row-menu-toggle,
+.visit-row-action-label {
+  display: none;
+}
+
 .place-row-actions {
   align-items: center;
   display: inline-flex;

@@ -309,15 +309,54 @@
     width: 34px;
   }
 
-  .place-row-actions,
-  .visit-row-actions {
+  .place-row-actions {
     flex-direction: column;
     gap: 2px;
   }
 
-  .place-row-actions .icon-button,
+  .place-row-actions .icon-button {
+    flex-basis: auto;
+  }
+
+  /* Visit rows collapse their three actions into a kebab menu to save space. */
+  .visit-row-menu-toggle {
+    display: inline-flex;
+  }
+
+  .visit-row-actions {
+    align-items: stretch;
+    background: var(--surface-panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow-popover);
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    inset-inline-end: 0;
+    padding: 4px;
+    position: absolute;
+    top: calc(100% - 6px);
+    z-index: 6;
+  }
+
+  .visit-row-actions.open {
+    display: flex;
+  }
+
   .visit-row-actions .icon-button {
     flex-basis: auto;
+    gap: 8px;
+    justify-content: flex-start;
+    min-width: 0;
+    padding-inline: 8px;
+    white-space: nowrap;
+    width: auto;
+  }
+
+  .visit-row-action-label {
+    display: inline;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .segment-row {

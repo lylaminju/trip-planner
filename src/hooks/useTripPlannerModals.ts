@@ -10,6 +10,7 @@ type TripPlannerModals = {
   addPlaceVisitDate: string | null;
   addingVisitPlace: Place | null;
   editingItem: ItineraryItem | null;
+  duplicatingItem: ItineraryItem | null;
   editingPlace: Place | null;
   editingTripForm: TripFormState | null;
   isAdding: boolean;
@@ -18,6 +19,7 @@ type TripPlannerModals = {
   openAddModalWithSelection: (selection: PlaceSearchSelection) => void;
   openAddVisitModal: (place: Place) => void;
   openEditItemModal: (item: ItineraryItem) => void;
+  openDuplicateItemModal: (item: ItineraryItem) => void;
   openEditModal: (place: Place) => void;
   openEditTripModal: () => void;
   setAddingVisitPlace: (place: Place | null) => void;
@@ -33,6 +35,9 @@ export function useTripPlannerModals(input: {
 }): TripPlannerModals {
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
+  const [duplicatingItem, setDuplicatingItem] = useState<ItineraryItem | null>(
+    null,
+  );
   const [editingTripForm, setEditingTripForm] = useState<TripFormState | null>(
     null,
   );
@@ -49,6 +54,7 @@ export function useTripPlannerModals(input: {
     input.clearError();
     setEditingPlace(null);
     setEditingItem(null);
+    setDuplicatingItem(null);
     setAddingVisitPlace(null);
     setAddPlaceVisitDate(visitDate);
     setAddPlaceSelection(null);
@@ -60,6 +66,7 @@ export function useTripPlannerModals(input: {
     input.clearError();
     setEditingPlace(null);
     setEditingItem(null);
+    setDuplicatingItem(null);
     setAddingVisitPlace(null);
     setAddPlaceVisitDate(null);
     setAddPlaceSelection(selection);
@@ -71,6 +78,7 @@ export function useTripPlannerModals(input: {
     input.clearError();
     setEditingPlace(place);
     setEditingItem(null);
+    setDuplicatingItem(null);
     setAddingVisitPlace(null);
     setAddPlaceVisitDate(null);
     setAddPlaceSelection(null);
@@ -82,6 +90,19 @@ export function useTripPlannerModals(input: {
     input.clearError();
     setEditingPlace(null);
     setEditingItem(item);
+    setDuplicatingItem(null);
+    setAddingVisitPlace(null);
+    setAddPlaceVisitDate(null);
+    setAddPlaceSelection(null);
+    setIsAdding(false);
+  }
+
+  function openDuplicateItemModal(item: ItineraryItem) {
+    if (!input.canEdit) return;
+    input.clearError();
+    setEditingPlace(null);
+    setEditingItem(null);
+    setDuplicatingItem(item);
     setAddingVisitPlace(null);
     setAddPlaceVisitDate(null);
     setAddPlaceSelection(null);
@@ -93,6 +114,7 @@ export function useTripPlannerModals(input: {
     input.clearError();
     setEditingPlace(null);
     setEditingItem(null);
+    setDuplicatingItem(null);
     setAddingVisitPlace(place);
     setAddPlaceVisitDate(null);
     setAddPlaceSelection(null);
@@ -109,6 +131,7 @@ export function useTripPlannerModals(input: {
     setIsAdding(false);
     setEditingPlace(null);
     setEditingItem(null);
+    setDuplicatingItem(null);
     setAddingVisitPlace(null);
     setAddPlaceVisitDate(null);
     setAddPlaceSelection(null);
@@ -119,6 +142,7 @@ export function useTripPlannerModals(input: {
     addPlaceVisitDate,
     addingVisitPlace,
     editingItem,
+    duplicatingItem,
     editingPlace,
     editingTripForm,
     isAdding,
@@ -127,6 +151,7 @@ export function useTripPlannerModals(input: {
     openAddModalWithSelection,
     openAddVisitModal,
     openEditItemModal,
+    openDuplicateItemModal,
     openEditModal,
     openEditTripModal,
     setAddingVisitPlace,

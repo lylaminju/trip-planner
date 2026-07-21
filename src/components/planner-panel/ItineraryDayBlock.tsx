@@ -41,6 +41,7 @@ type Props = {
   onSelectSegment: (id: number | null) => void;
   onToggleDateCollapsed: (date: string) => void;
   onSelectDate: (date: string) => void;
+  onDuplicateItem: (item: ItineraryItem) => void;
   onEditItem: (item: ItineraryItem) => void;
   onDeleteItem: (id: number) => void;
   onScheduleItem: (
@@ -157,6 +158,7 @@ export function ItineraryDayBlock(props: Props) {
             onDropTargetChange={props.onDropTargetChange}
             onSelectPlace={props.onSelectPlace}
             onSelectSegment={props.onSelectSegment}
+            onDuplicateItem={props.onDuplicateItem}
             onEditItem={props.onEditItem}
             onDeleteItem={props.onDeleteItem}
             onScheduleItem={props.onScheduleItem}

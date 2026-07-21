@@ -7,9 +7,18 @@ import type { ItineraryItem, Place, VisitDateOption } from "@/lib/types";
 import { ModalShell } from "./ModalShell";
 import { VisitScheduleFields } from "./VisitScheduleFields";
 
+type VisitModalMode = "add" | "edit" | "duplicate";
+
+const MODAL_HEADINGS: Record<VisitModalMode, string> = {
+  add: "Add visit",
+  edit: "Edit visit",
+  duplicate: "Duplicate visit",
+};
+
 type Props = {
   item?: ItineraryItem;
   place?: Place;
+  mode?: VisitModalMode;
   visitDateOptions: VisitDateOption[];
   onCancel: () => void;
   onSave: (payload: Record<string, unknown>) => Promise<void>;
@@ -18,6 +27,7 @@ type Props = {
 export function EditItineraryItemModal({
   item,
   place,
+  mode,
   visitDateOptions,
   onCancel,
   onSave,
@@ -30,7 +40,7 @@ export function EditItineraryItemModal({
   const placeLinks = displayPlace.links.filter(
     (link) => link.trim().length > 0,
   );
-  const isCreating = !item;
+  const resolvedMode: VisitModalMode = mode ?? (item ? "edit" : "add");
 
   const validDates = new Set(visitDateOptions.map((option) => option.value));
   const initialDate =
@@ -72,7 +82,7 @@ export function EditItineraryItemModal({
       <div className="modal place-modal">
         <header className="place-modal-header">
           <div className="place-modal-header-left">
-            <h2>{isCreating ? "Add visit" : "Edit visit"}</h2>
+            <h2>{MODAL_HEADINGS[resolvedMode]}</h2>
           </div>
           <div className="place-modal-header-right">
             <button

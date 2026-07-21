@@ -69,6 +69,7 @@ type Props = {
   onDownloadExport: () => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
+  onDuplicateItem: (item: ItineraryItem) => void;
   onEditItem: (item: ItineraryItem) => void;
   onDelete: (id: number) => void;
   onDeleteAllPlaces: () => void;
@@ -314,6 +315,7 @@ export function PlannerPanel(props: Props) {
             onSelectDate={props.onSelectDate}
             onAddVisit={props.onAddVisit}
             onEdit={props.onEdit}
+            onDuplicateItem={props.onDuplicateItem}
             onEditItem={props.onEditItem}
             onDelete={props.onDelete}
             onDeleteItem={props.onDeleteItem}

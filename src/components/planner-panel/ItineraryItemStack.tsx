@@ -47,6 +47,7 @@ type Props = {
   onDropTargetChange: (key: string | null) => void;
   onSelectPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
+  onDuplicateItem: (item: ItineraryItem) => void;
   onEditItem: (item: ItineraryItem) => void;
   onDeleteItem: (id: number) => void;
   onScheduleItem: (
@@ -136,6 +137,11 @@ export function ItineraryItemStack(props: Props) {
             props.activePlaceId === props.item.id ? null : props.item.id,
           )
         }
+        onDuplicate={() => {
+          props.onSelectPlace(null);
+          props.onSelectSegment(null);
+          props.onDuplicateItem(props.item);
+        }}
         onEdit={() => {
           props.onSelectPlace(null);
           props.onSelectSegment(null);

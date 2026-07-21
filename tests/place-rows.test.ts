@@ -44,6 +44,7 @@ describe("PlaceRows", () => {
         canEdit: true,
         isDeleting: true,
         onSelect: vi.fn(),
+        onDuplicate: vi.fn(),
         onEdit: vi.fn(),
         onTimeChange: vi.fn(),
         onDelete: vi.fn(),
@@ -76,7 +77,7 @@ describe("PlaceRows", () => {
     expect(markup).toContain("disabled");
   });
 
-  it("groups itinerary edit and delete actions for desktop hover reveal", () => {
+  it("groups itinerary duplicate, edit, and delete actions for desktop hover reveal", () => {
     const markup = renderToStaticMarkup(
       createElement(ItineraryItemRow, {
         item: buildItineraryItem({
@@ -89,6 +90,7 @@ describe("PlaceRows", () => {
         canEdit: true,
         isDeleting: false,
         onSelect: vi.fn(),
+        onDuplicate: vi.fn(),
         onEdit: vi.fn(),
         onTimeChange: vi.fn(),
         onDelete: vi.fn(),
@@ -97,8 +99,35 @@ describe("PlaceRows", () => {
 
     expect(markup).toContain('class="place-row visit-row');
     expect(markup).toContain('class="visit-row-actions"');
+    expect(markup).toContain('aria-label="Duplicate visit to Bryant Park"');
     expect(markup).toContain('aria-label="Edit visit to Bryant Park"');
     expect(markup).toContain('aria-label="Delete visit to Bryant Park"');
+  });
+
+  it("collapses itinerary actions behind a menu toggle", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ItineraryItemRow, {
+        item: buildItineraryItem({
+          id: 11,
+          place: buildPlace({ id: 7, name: "Bryant Park" }),
+        }),
+        active: false,
+        markerLabel: null,
+        markerColor: "#0f766e",
+        canEdit: true,
+        isDeleting: false,
+        onSelect: vi.fn(),
+        onDuplicate: vi.fn(),
+        onEdit: vi.fn(),
+        onTimeChange: vi.fn(),
+        onDelete: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('class="visit-row-actions-wrap"');
+    expect(markup).toContain('aria-label="Visit actions for Bryant Park"');
+    expect(markup).toContain('aria-haspopup="true"');
+    expect(markup).toContain('aria-label="Duplicate visit to Bryant Park"');
   });
 
   it("renders itinerary visit times as split quick-edit segments", () => {
@@ -115,6 +144,7 @@ describe("PlaceRows", () => {
         canEdit: true,
         isDeleting: false,
         onSelect: vi.fn(),
+        onDuplicate: vi.fn(),
         onEdit: vi.fn(),
         onTimeChange: vi.fn(),
         onDelete: vi.fn(),
@@ -146,6 +176,7 @@ describe("PlaceRows", () => {
         canEdit: true,
         isDeleting: false,
         onSelect: vi.fn(),
+        onDuplicate: vi.fn(),
         onEdit: vi.fn(),
         onTimeChange: vi.fn(),
         onDelete: vi.fn(),
@@ -239,12 +270,17 @@ describe("PlaceRows", () => {
     expect(markup).toContain('class="place-row-actions"');
   });
 
-  it("stacks row action buttons vertically on mobile layouts", () => {
+  it("stacks unscheduled place row actions vertically on mobile layouts", () => {
     const css = readFileSync("src/styles/mobile.css", "utf8");
 
-    expect(css).toContain(
-      ".place-row-actions,\n  .visit-row-actions {\n    flex-direction: column;",
-    );
+    expect(css).toContain(".place-row-actions {\n    flex-direction: column;");
+  });
+
+  it("collapses itinerary visit actions behind a kebab menu on mobile layouts", () => {
+    const css = readFileSync("src/styles/mobile.css", "utf8");
+
+    expect(css).toContain(".visit-row-menu-toggle {\n    display: inline-flex;");
+    expect(css).toContain(".visit-row-actions.open {\n    display: flex;");
   });
 
   it("reveals visit row actions only on hover-capable desktop layouts", () => {

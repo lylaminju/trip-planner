@@ -179,6 +179,7 @@ export function TripPlannerApp({
     addingVisitPlace,
     closeModal,
     editingItem,
+    duplicatingItem,
     editingPlace,
     editingTripForm,
     isAdding,
@@ -186,9 +187,9 @@ export function TripPlannerApp({
     openAddModalWithSelection,
     openAddVisitModal,
     openEditItemModal,
+    openDuplicateItemModal,
     openEditModal,
     openEditTripModal,
-    setAddingVisitPlace,
     setEditingItem,
     setEditingTripForm,
   } = useTripPlannerModals({
@@ -207,7 +208,6 @@ export function TripPlannerApp({
     setPlannerSnapshot,
     setError,
     closeModal,
-    setAddingVisitPlace,
     setEditingItem,
     clearActiveCanonicalPlace: selection.clearActiveCanonicalPlace,
     clearDeletedPlaceSelection: selection.clearDeletedPlaceSelection,
@@ -382,6 +382,7 @@ export function TripPlannerApp({
         isAdding={isAdding}
         editingPlace={editingPlace}
         editingItem={editingItem}
+        duplicatingItem={duplicatingItem}
         addingVisitPlace={addingVisitPlace}
         addPlaceVisitDate={addPlaceVisitDate}
         addPlaceSelection={addPlaceSelection}
@@ -406,6 +407,7 @@ export function TripPlannerApp({
         onOpenAddVisitModal={openAddVisitModal}
         onOpenEditModal={openEditModal}
         onOpenEditItemModal={openEditItemModal}
+        onOpenDuplicateItemModal={openDuplicateItemModal}
         onDeletePlace={plannerMutations.deletePlace}
         onDeleteAllPlaces={plannerMutations.deleteAllPlaces}
         onSelectItem={selection.selectItem}

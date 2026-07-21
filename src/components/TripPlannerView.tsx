@@ -79,6 +79,7 @@ type Props = {
   isAdding: boolean;
   editingPlace: Place | null;
   editingItem: ItineraryItem | null;
+  duplicatingItem: ItineraryItem | null;
   addingVisitPlace: Place | null;
   addPlaceVisitDate: string | null;
   addPlaceSelection: PlaceSearchSelection | null;
@@ -99,6 +100,7 @@ type Props = {
   onOpenAddVisitModal: (place: Place) => void;
   onOpenEditModal: (place: Place) => void;
   onOpenEditItemModal: (item: ItineraryItem) => void;
+  onOpenDuplicateItemModal: (item: ItineraryItem) => void;
   onDeletePlace: (id: number) => Promise<void>;
   onDeleteAllPlaces: () => Promise<void>;
   onSelectItem: (id: number | null) => void;
@@ -143,6 +145,7 @@ type Props = {
 export function TripPlannerView(props: Props) {
   const addingVisitPlace = props.addingVisitPlace;
   const editingItem = props.editingItem;
+  const duplicatingItem = props.duplicatingItem;
   const panelResize = usePlannerPanelResize();
 
   return (
@@ -189,6 +192,7 @@ export function TripPlannerView(props: Props) {
         onDownloadExport={props.onDownloadMarkdownExport}
         onAddVisit={props.onOpenAddVisitModal}
         onEdit={props.onOpenEditModal}
+        onDuplicateItem={props.onOpenDuplicateItemModal}
         onEditItem={props.onOpenEditItemModal}
         onDelete={(id) =>
           props.onDeletePlace(id).catch((reason) => {
@@ -316,6 +320,17 @@ export function TripPlannerView(props: Props) {
           onCancel={props.onCloseModal}
           onSave={(payload) =>
             props.onCreateItineraryItem(addingVisitPlace.id, payload)
+          }
+        />
+      )}
+      {duplicatingItem && (
+        <EditItineraryItemModal
+          item={duplicatingItem}
+          mode="duplicate"
+          visitDateOptions={props.visitDateOptions}
+          onCancel={props.onCloseModal}
+          onSave={(payload) =>
+            props.onCreateItineraryItem(duplicatingItem.place_id, payload)
           }
         />
       )}
