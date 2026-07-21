@@ -146,15 +146,31 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     visitTime: string | null,
   ) {
     if (!options.canEdit) return;
-    options.setPlannerSnapshot(
-      await scheduleItineraryItemRequest(
-        options.tripId,
-        id,
-        visitDate,
-        visitTime,
+    // Optimistically apply the new schedule so the row updates immediately;
+    // the server snapshot then replaces it (or we revert on failure).
+    const previousSnapshot = options.plannerSnapshot;
+    options.setPlannerSnapshot((current) => ({
+      ...current,
+      itineraryItems: current.itineraryItems.map((item) =>
+        item.id === id
+          ? { ...item, visit_date: visitDate, visit_time: visitTime }
+          : item,
       ),
-    );
-    options.setError(null);
+    }));
+    try {
+      options.setPlannerSnapshot(
+        await scheduleItineraryItemRequest(
+          options.tripId,
+          id,
+          visitDate,
+          visitTime,
+        ),
+      );
+      options.setError(null);
+    } catch (reason) {
+      options.setPlannerSnapshot(previousSnapshot);
+      throw reason;
+    }
   }
 
   async function deleteItineraryItem(id: number) {
