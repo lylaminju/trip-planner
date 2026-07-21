@@ -51,6 +51,41 @@ export function scheduleDraggedSource(
   }
 }
 
+// Resolve where a day-background drop should place the dragged item.
+// Returns null (no-op) when the item is already on this day, so releasing the
+// drag back onto its own day never wipes its visit time.
+export function resolveDayDropSchedule(
+  item: ItineraryItem,
+  date: string,
+): { visitDate: string; visitTime: string | null } | null {
+  if (item.visit_date === date) {
+    return null;
+  }
+
+  return { visitDate: date, visitTime: null };
+}
+
+export function scheduleDraggedSourceToDay(
+  event: DragEvent<HTMLElement>,
+  options: {
+    itinerary: ItineraryView;
+    date: string;
+    onScheduleItem: (
+      id: number,
+      visitDate: string | null,
+      visitTime: string | null,
+    ) => void;
+  },
+) {
+  const item = getDraggedItem(event, options.itinerary);
+  if (!item) return;
+
+  const schedule = resolveDayDropSchedule(item, options.date);
+  if (!schedule) return;
+
+  options.onScheduleItem(item.id, schedule.visitDate, schedule.visitTime);
+}
+
 export function inferInsertedVisitTime(
   previous: ItineraryItem,
   next: ItineraryItem,

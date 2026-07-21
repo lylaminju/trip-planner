@@ -14,7 +14,7 @@ import type {
 
 import { ChevronRightIcon, PlusIcon } from "../Icons";
 import { ItineraryItemStack } from "./ItineraryItemStack";
-import { scheduleDraggedSource } from "./drag-schedule";
+import { scheduleDraggedSourceToDay } from "./drag-schedule";
 
 type Props = {
   day: ItineraryDay;
@@ -78,10 +78,9 @@ export function ItineraryDayBlock(props: Props) {
         if (!props.canEdit) return;
         event.preventDefault();
         props.onDropTargetChange(null);
-        scheduleDraggedSource(event, {
+        scheduleDraggedSourceToDay(event, {
           itinerary: props.itinerary,
           date: props.day.date,
-          visitTime: null,
           onScheduleItem: props.onScheduleItem,
         });
       }}

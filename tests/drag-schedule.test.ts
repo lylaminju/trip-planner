@@ -4,6 +4,7 @@ import {
   inferEndVisitTime,
   inferInsertedVisitTime,
   inferStartVisitTime,
+  resolveDayDropSchedule,
 } from "@/components/planner-panel/drag-schedule";
 import type { ItineraryItem, Place } from "@/lib/types";
 
@@ -62,6 +63,29 @@ describe("drag schedule helpers", () => {
     ]);
 
     expect(result).toBe("00:00");
+  });
+
+  it("treats a drop onto the item's current day as a no-op", () => {
+    const item = itineraryItem({
+      id: 1,
+      visit_date: "2026-06-01",
+      visit_time: "10:00",
+    });
+
+    expect(resolveDayDropSchedule(item, "2026-06-01")).toBeNull();
+  });
+
+  it("schedules onto a different day as untimed", () => {
+    const item = itineraryItem({
+      id: 1,
+      visit_date: "2026-06-01",
+      visit_time: "10:00",
+    });
+
+    expect(resolveDayDropSchedule(item, "2026-06-02")).toEqual({
+      visitDate: "2026-06-02",
+      visitTime: null,
+    });
   });
 });
 
