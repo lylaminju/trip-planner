@@ -2,7 +2,10 @@ import { useId, type SubmitEvent } from "react";
 
 import { getTripCoverImage } from "@/lib/city-covers";
 import type { TripSummary } from "@/lib/types";
-import { DestinationCombobox } from "./DestinationCombobox";
+import {
+  DestinationSearch,
+  type GoogleDestinationSelection,
+} from "./DestinationSearch";
 import { TripDateRangePicker } from "./TripDateRangePicker";
 import {
   tripDestinationFormChange,
@@ -16,6 +19,7 @@ export function TripEditForm(props: {
   isFeatured?: boolean;
   isSaving: boolean;
   onChange: (form: TripFormState) => void;
+  onSelectGoogle: (selection: GoogleDestinationSelection) => void;
   onCancel: () => void;
   onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
@@ -63,12 +67,13 @@ export function TripEditForm(props: {
         <label className="sr-only" htmlFor={destinationId}>
           Destination
         </label>
-        <DestinationCombobox
+        <DestinationSearch
           inputId={destinationId}
           value={props.form.destination}
           onChange={(destination) =>
             props.onChange(tripDestinationFormChange(props.form, destination))
           }
+          onSelectGoogle={props.onSelectGoogle}
         />
 
         <div className="trip-edit-date-row">

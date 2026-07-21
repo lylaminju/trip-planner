@@ -36,6 +36,7 @@ export function formPayload(form: TripFormState): TripMetadataPayload {
     destination_slug: form.destinationSlug,
     destination_latitude: form.destinationLatitude,
     destination_longitude: form.destinationLongitude,
+    destination_country_codes: form.destinationCountryCodes,
     start_date: form.startDate || null,
     end_date: form.endDate || null,
   };
@@ -48,6 +49,7 @@ export function formFromTrip(trip: Trip): TripFormState {
     destinationSlug: trip.destination_slug,
     destinationLatitude: trip.destination_latitude,
     destinationLongitude: trip.destination_longitude,
+    destinationCountryCodes: trip.destination_country_codes,
     // Editing never re-fetches a photo, so the form carries no cover image;
     // the stored cover on the trip is left untouched by updates.
     destinationPhotoData: null,

@@ -20,6 +20,10 @@ export type DestinationDetails = {
   latitude: number;
   longitude: number;
   google_maps_url: string | null;
+  // CLDR/ISO region code of the place's country (e.g. "JP"), used to restrict a
+  // trip's later place searches to the destination country. Null when Google
+  // returns no country component.
+  country_code: string | null;
   // Photo resource name (e.g. "places/ID/photos/REF") and its required author
   // attribution. The actual image is only fetched later, once per created trip.
   photo_name: string | null;
@@ -36,13 +40,21 @@ const REQUEST_TIMEOUT_MS = 8_000;
 // (not restrict) to the trip destination, so distant explicit queries still match.
 const AUTOCOMPLETE_BIAS_RADIUS_METERS = 50_000;
 
+// Google's includedRegionCodes accepts at most 15 CLDR region codes (identical
+// to ISO-3166 alpha-2 country codes for our use); extra codes are rejected by the
+// API, so we cap before sending.
+const AUTOCOMPLETE_MAX_COUNTRY_CODES = 15;
+
 const AUTOCOMPLETE_FIELD_MASK =
   "suggestions.placePrediction.placeId,suggestions.placePrediction.structuredFormat";
 // Keep the details field mask inside Place Details Pro so a lookup never
 // escalates into the pricier Enterprise/Atmosphere tiers. `photos` is an
 // Essentials IDs-Only field, so it returns the photo reference for free without
 // bumping the tier — the image itself is a separate Place Photo request.
-const DETAILS_FIELD_MASK = "id,displayName,location,googleMapsUri,photos";
+// `addressComponents` stays within Pro too, and supplies the country code for
+// free from the same billed lookup.
+const DETAILS_FIELD_MASK =
+  "id,displayName,location,googleMapsUri,photos,addressComponents";
 // Every field here is Essentials IDs-Only, so this lookup is free. It exists to
 // resolve a photo reference for places picked without a details call (map POIs).
 const PHOTO_REFERENCE_FIELD_MASK = "id,photos";
@@ -60,7 +72,15 @@ export async function fetchDestinationSuggestions(input: {
   query: string;
   sessionToken: string;
   locationBias?: AutocompleteLocationBias | null;
+  // Restrict predictions to these countries. Used to keep a trip's place search
+  // inside its destination country. Empty/absent = no restriction. The soft
+  // locationBias still ranks nearby results first within.
+  countryCodes?: string[] | null;
 }): Promise<DestinationSuggestion[]> {
+  const countryCodes = (input.countryCodes ?? [])
+    .map((code) => code.toLowerCase())
+    .slice(0, AUTOCOMPLETE_MAX_COUNTRY_CODES);
+
   const payload = await placesFetch({
     url: AUTOCOMPLETE_ENDPOINT,
     apiKey: input.apiKey,
@@ -82,6 +102,9 @@ export async function fetchDestinationSuggestions(input: {
             },
           }
         : {}),
+      // `includedRegionCodes` is Google's parameter name; for our purposes the
+      // values are the destination country codes.
+      ...(countryCodes.length ? { includedRegionCodes: countryCodes } : {}),
     },
   });
 
@@ -273,11 +296,26 @@ export function parseDetails(payload: unknown): DestinationDetails | null {
     latitude,
     longitude,
     google_maps_url: asString(record.googleMapsUri),
+    country_code: parseCountryCode(record.addressComponents),
     photo_name: photoName,
     photo_attribution: photoName
       ? parseFirstPhotoAttribution(record.photos)
       : null,
   };
+}
+
+function parseCountryCode(addressComponents: unknown): string | null {
+  if (!Array.isArray(addressComponents)) {
+    return null;
+  }
+  for (const component of addressComponents) {
+    const record = asRecord(component);
+    const types = record.types;
+    if (Array.isArray(types) && types.includes("country")) {
+      return asString(record.shortText);
+    }
+  }
+  return null;
 }
 
 export function parsePhotoReference(payload: unknown): PlacePhotoReference {

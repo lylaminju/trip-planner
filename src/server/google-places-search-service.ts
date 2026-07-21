@@ -43,6 +43,7 @@ export async function searchDestinations(
   query: string,
   sessionToken: string,
   locationBias: AutocompleteLocationBias | null = null,
+  countryCodes: string[] | null = null,
 ): Promise<DestinationSuggestion[]> {
   const trimmed = query.trim();
   if (trimmed.length < MIN_DESTINATION_QUERY_LENGTH) {
@@ -56,6 +57,7 @@ export async function searchDestinations(
     query: trimmed,
     sessionToken,
     locationBias,
+    countryCodes,
   });
 
   await recordPlacesCall(userId, PLACES_SKU.AUTOCOMPLETE);

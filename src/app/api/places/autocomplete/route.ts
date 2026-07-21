@@ -6,6 +6,7 @@ import {
   isValidLongitude,
   jsonError,
   mapRouteError,
+  nullableCountryCodes,
   readJsonBody,
   requireAuthenticatedRequest,
   withRefreshedSession,
@@ -36,12 +37,18 @@ export async function POST(request: Request) {
     return locationBias;
   }
 
+  const countryCodes = nullableCountryCodes(body.country_codes);
+  if (countryCodes instanceof NextResponse) {
+    return countryCodes;
+  }
+
   try {
     const suggestions = await searchDestinations(
       auth.user.id,
       query,
       sessionToken,
       locationBias,
+      countryCodes,
     );
 
     return withRefreshedSession(

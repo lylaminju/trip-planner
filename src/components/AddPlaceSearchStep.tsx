@@ -55,6 +55,9 @@ type Props = {
   savedPlaces: Place[];
   hasCuratedCandidates: boolean;
   destinationBias: PlaceSearchBias | null;
+  // Restricts live search to the trip's destination country/countries so generic
+  // queries stop surfacing unrelated foreign places. Null = unrestricted.
+  destinationCountryCodes: string[] | null;
   onSelectPlace: (selection: PlaceSearchSelection) => void;
   onResolveUrl: (googleMapsUrl: string) => Promise<void>;
 };
@@ -64,6 +67,7 @@ export function AddPlaceSearchStep({
   savedPlaces,
   hasCuratedCandidates,
   destinationBias,
+  destinationCountryCodes,
   onSelectPlace,
   onResolveUrl,
 }: Props) {
@@ -107,6 +111,7 @@ export function AddPlaceSearchStep({
   // because it rebuilt the bias object with the same coordinates.
   const biasLatitude = destinationBias?.latitude ?? null;
   const biasLongitude = destinationBias?.longitude ?? null;
+  const countryCodesKey = (destinationCountryCodes ?? []).join(",");
 
   useEffect(() => {
     if (!isSearching) {
@@ -125,6 +130,7 @@ export function AddPlaceSearchStep({
         biasLatitude !== null && biasLongitude !== null
           ? { latitude: biasLatitude, longitude: biasLongitude }
           : null,
+        countryCodesKey ? countryCodesKey.split(",") : null,
       )
         .then((results) => {
           if (requestId !== requestIdRef.current) return;
@@ -145,7 +151,7 @@ export function AddPlaceSearchStep({
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
-  }, [trimmedQuery, isSearching, biasLatitude, biasLongitude]);
+  }, [trimmedQuery, isSearching, biasLatitude, biasLongitude, countryCodesKey]);
 
   function resetSession() {
     sessionTokenRef.current = crypto.randomUUID();

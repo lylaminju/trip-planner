@@ -24,6 +24,7 @@ export function tripMetadataPayloadFromForm(
     destination_slug: form.destinationSlug,
     destination_latitude: form.destinationLatitude,
     destination_longitude: form.destinationLongitude,
+    destination_country_codes: form.destinationCountryCodes,
     destination_photo_data: form.destinationPhotoData,
     destination_photo_attribution: form.destinationPhotoAttribution,
     start_date: form.startDate || null,
@@ -41,6 +42,7 @@ export function tripDestinationFormChange(
     destinationSlug: findDestinationOption(destination)?.slug ?? null,
     destinationLatitude: null,
     destinationLongitude: null,
+    destinationCountryCodes: null,
     destinationPhotoData: null,
     destinationPhotoAttribution: null,
   };
@@ -56,6 +58,9 @@ export function tripGoogleDestinationChange(
     destinationSlug: null,
     destinationLatitude: selection.latitude,
     destinationLongitude: selection.longitude,
+    destinationCountryCodes: selection.countryCode
+      ? [selection.countryCode]
+      : null,
     // The cover image is loaded asynchronously after selection; keep it null
     // until those bytes arrive so a stale cover never lingers.
     destinationPhotoData: null,

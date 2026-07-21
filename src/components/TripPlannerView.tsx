@@ -55,6 +55,7 @@ type Props = {
   members: TripMemberSummary[];
   currentUserId: string;
   destinationFocus: DestinationFocus | null;
+  destinationCountryCodes: string[] | null;
   itinerary: ItineraryView;
   plannerSnapshot: PlannerSnapshot;
   activeItemId: number | null;
@@ -296,6 +297,7 @@ export function TripPlannerView(props: Props) {
                 }
               : null
           }
+          destinationCountryCodes={props.destinationCountryCodes}
           onCancel={props.onCloseModal}
           onResolveUrl={props.onResolvePlaceUrl}
           onSave={(payload) =>

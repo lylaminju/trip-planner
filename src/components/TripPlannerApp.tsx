@@ -358,6 +358,7 @@ export function TripPlannerApp({
         members={members}
         currentUserId={currentUserId}
         destinationFocus={destinationFocus}
+        destinationCountryCodes={trip?.destination_country_codes ?? null}
         itinerary={itinerary}
         plannerSnapshot={plannerSnapshot}
         activeItemId={selection.activeItemId}

@@ -5,6 +5,7 @@ import {
   isValidIsoDate,
   jsonError,
   mapRouteError,
+  nullableCountryCodes,
   readJsonBody,
   requireAuthenticatedRequest,
   withRefreshedSession,
@@ -114,6 +115,11 @@ function parseTripCreateInput(
     return longitude;
   }
 
+  const countryCodes = nullableCountryCodes(body.destination_country_codes);
+  if (countryCodes instanceof Response) {
+    return countryCodes;
+  }
+
   if (startDate && endDate && startDate > endDate) {
     return jsonError(
       "Trip start date must be before or equal to end date.",
@@ -127,6 +133,7 @@ function parseTripCreateInput(
     destination_slug: destinationSlug,
     destination_latitude: latitude,
     destination_longitude: longitude,
+    destination_country_codes: countryCodes,
     destination_photo_data: nullablePhotoData(body.destination_photo_data),
     destination_photo_attribution: nullablePhotoAttribution(
       body.destination_photo_attribution,

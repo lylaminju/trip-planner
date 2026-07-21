@@ -31,6 +31,7 @@ export type GoogleDestinationSelection = {
   destination: string;
   latitude: number;
   longitude: number;
+  countryCode: string | null;
   photoName: string | null;
   photoAttribution: string | null;
 };
@@ -144,6 +145,7 @@ export function DestinationSearch(props: {
         destination: details.name,
         latitude: details.latitude,
         longitude: details.longitude,
+        countryCode: details.country_code,
         photoName: details.photo_name,
         photoAttribution: details.photo_attribution,
       });

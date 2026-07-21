@@ -24,6 +24,7 @@ type Props = {
   visitDateOptions: VisitDateOption[];
   defaultVisitDate?: string | null;
   destinationBias?: PlaceSearchBias | null;
+  destinationCountryCodes?: string[] | null;
   initialSearchPlace?: PlaceSearchSelection | null;
   onCancel: () => void;
   onResolveUrl: (googleMapsUrl: string) => Promise<ResolvedPlace>;
@@ -38,6 +39,7 @@ export function AddEditPlaceModal({
   visitDateOptions,
   defaultVisitDate,
   destinationBias,
+  destinationCountryCodes,
   initialSearchPlace,
   onCancel,
   onResolveUrl,
@@ -217,6 +219,7 @@ export function AddEditPlaceModal({
             savedPlaces={savedPlaces}
             hasCuratedCandidates={hasCuratedCandidates}
             destinationBias={destinationBias ?? null}
+            destinationCountryCodes={destinationCountryCodes ?? null}
             onSelectPlace={handleSelectSearchPlace}
             onResolveUrl={handleResolveUrl}
           />

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import type { GoogleDestinationSelection } from "@/components/DestinationSearch";
 import {
   tripDestinationFormChange,
+  tripGoogleDestinationChange,
   tripMetadataPayloadFromForm,
   updateTripFormField,
 } from "@/components/trip-form-state";
@@ -17,6 +19,7 @@ describe("updateTripFormField", () => {
       destinationSlug: null,
       destinationLatitude: null,
       destinationLongitude: null,
+      destinationCountryCodes: null,
       destinationPhotoData: null,
       destinationPhotoAttribution: null,
       startDate: "2026-06-01",
@@ -42,6 +45,7 @@ describe("updateTripFormField", () => {
         destinationSlug: "toronto",
         destinationLatitude: null,
         destinationLongitude: null,
+        destinationCountryCodes: null,
         destinationPhotoData: null,
         destinationPhotoAttribution: null,
         startDate: "2026-06-01",
@@ -53,10 +57,30 @@ describe("updateTripFormField", () => {
       destination_slug: "toronto",
       destination_latitude: null,
       destination_longitude: null,
+      destination_country_codes: null,
       destination_photo_data: null,
       destination_photo_attribution: null,
       start_date: "2026-06-01",
       end_date: null,
+    });
+  });
+
+  it("forwards the captured destination country codes into the payload", () => {
+    expect(
+      tripMetadataPayloadFromForm({
+        name: "Yakushima getaway",
+        destination: "Yakushima Island",
+        destinationSlug: null,
+        destinationLatitude: 30.3,
+        destinationLongitude: 130.5,
+        destinationCountryCodes: ["JP"],
+        destinationPhotoData: null,
+        destinationPhotoAttribution: null,
+        startDate: "",
+        endDate: "",
+      }),
+    ).toMatchObject({
+      destination_country_codes: ["JP"],
     });
   });
 
@@ -68,6 +92,7 @@ describe("updateTripFormField", () => {
         destinationSlug: null,
         destinationLatitude: 30.3,
         destinationLongitude: 130.5,
+        destinationCountryCodes: ["JP"],
         destinationPhotoData: SAMPLE_PHOTO_DATA_URL,
         destinationPhotoAttribution: "Jane Doe",
         startDate: "",
@@ -87,6 +112,7 @@ describe("updateTripFormField", () => {
         destinationSlug: null,
         destinationLatitude: null,
         destinationLongitude: null,
+        destinationCountryCodes: null,
         destinationPhotoData: null,
         destinationPhotoAttribution: null,
         startDate: "",
@@ -98,26 +124,30 @@ describe("updateTripFormField", () => {
       destination_slug: null,
       destination_latitude: null,
       destination_longitude: null,
+      destination_country_codes: null,
       destination_photo_data: null,
       destination_photo_attribution: null,
       start_date: null,
       end_date: null,
     });
   });
+});
+
+describe("tripDestinationFormChange", () => {
+  const form: TripFormState = {
+    name: "Draft trip",
+    destination: "",
+    destinationSlug: null,
+    destinationLatitude: null,
+    destinationLongitude: null,
+    destinationCountryCodes: null,
+    destinationPhotoData: null,
+    destinationPhotoAttribution: null,
+    startDate: "",
+    endDate: "",
+  };
 
   it("sets destination slugs for curated destination text and clears custom text", () => {
-    const form: TripFormState = {
-      name: "Draft trip",
-      destination: "",
-      destinationSlug: null,
-      destinationLatitude: null,
-      destinationLongitude: null,
-      destinationPhotoData: null,
-      destinationPhotoAttribution: null,
-      startDate: "",
-      endDate: "",
-    };
-
     expect(tripDestinationFormChange(form, "Toronto")).toEqual({
       ...form,
       destination: "Toronto",
@@ -131,24 +161,64 @@ describe("updateTripFormField", () => {
     });
   });
 
-  it("clears a stale cover image when the destination is typed by hand", () => {
-    const form: TripFormState = {
-      name: "Draft trip",
+  it("clears stale coordinates, country, and cover when the destination is typed by hand", () => {
+    const withPick: TripFormState = {
+      ...form,
       destination: "Yakushima",
-      destinationSlug: null,
       destinationLatitude: 30.3,
       destinationLongitude: 130.5,
+      destinationCountryCodes: ["JP"],
       destinationPhotoData: SAMPLE_PHOTO_DATA_URL,
       destinationPhotoAttribution: "Jane Doe",
-      startDate: "",
-      endDate: "",
     };
 
-    expect(tripDestinationFormChange(form, "Yakushima Island")).toMatchObject({
+    expect(tripDestinationFormChange(withPick, "Yakushima Island")).toMatchObject({
       destinationLatitude: null,
       destinationLongitude: null,
+      destinationCountryCodes: null,
       destinationPhotoData: null,
       destinationPhotoAttribution: null,
     });
+  });
+});
+
+describe("tripGoogleDestinationChange", () => {
+  const form: TripFormState = {
+    name: "Draft trip",
+    destination: "",
+    destinationSlug: null,
+    destinationLatitude: null,
+    destinationLongitude: null,
+    destinationCountryCodes: null,
+    destinationPhotoData: null,
+    destinationPhotoAttribution: null,
+    startDate: "",
+    endDate: "",
+  };
+
+  const selection: GoogleDestinationSelection = {
+    destination: "Yakushima Island",
+    latitude: 30.3446,
+    longitude: 130.5127,
+    countryCode: "JP",
+    photoName: null,
+    photoAttribution: "Jane Doe",
+  };
+
+  it("captures the picked place's country code as a single-element array", () => {
+    expect(tripGoogleDestinationChange(form, selection)).toMatchObject({
+      destination: "Yakushima Island",
+      destinationLatitude: 30.3446,
+      destinationLongitude: 130.5127,
+      destinationSlug: null,
+      destinationCountryCodes: ["JP"],
+    });
+  });
+
+  it("leaves country codes unset when Google returns no country", () => {
+    expect(
+      tripGoogleDestinationChange(form, { ...selection, countryCode: null })
+        .destinationCountryCodes,
+    ).toBeNull();
   });
 });

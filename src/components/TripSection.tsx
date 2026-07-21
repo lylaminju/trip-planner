@@ -2,6 +2,7 @@ import type { SubmitEvent } from "react";
 
 import type { TripSummary } from "@/lib/types";
 import { CollapseToggleButton } from "./CollapseToggleButton";
+import type { GoogleDestinationSelection } from "./DestinationSearch";
 import { FoldedMapIcon } from "./Icons";
 import { TripCard, type TripCardVariant } from "./TripCard";
 import { TripEditForm } from "./TripEditForm";
@@ -20,6 +21,7 @@ export function TripSection(props: {
   onEditStart: (trip: TripSummary) => void;
   onEditCancel: () => void;
   onEditChange: (form: TripFormState) => void;
+  onEditSelectGoogle: (selection: GoogleDestinationSelection) => void;
   onEditSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
   onDelete: (trip: TripSummary) => void;
   onManageMembers?: (trip: TripSummary) => void;
@@ -68,6 +70,7 @@ export function TripSection(props: {
                   form={props.editing.form}
                   isSaving={props.isSaving}
                   onChange={props.onEditChange}
+                  onSelectGoogle={props.onEditSelectGoogle}
                   onCancel={props.onEditCancel}
                   onSubmit={props.onEditSubmit}
                 />

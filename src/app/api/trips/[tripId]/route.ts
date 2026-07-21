@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import {
   asObject,
   isValidIsoDate,
+  isValidLatitude,
+  isValidLongitude,
   jsonError,
   mapRouteError,
+  nullableCountryCodes,
   readJsonBody,
   requireAuthenticatedRequest,
   withRefreshedSession,
@@ -104,6 +107,33 @@ function parseTripUpdateInput(value: unknown): TripUpdateInput | NextResponse {
       return destinationSlug;
     }
     input.destination_slug = destinationSlug;
+  }
+
+  // Coordinates and country codes travel together with the destination: a picked
+  // Google place carries all three, and clearing the destination clears them.
+  // null is a valid "unset" here, so we accept it explicitly.
+  if ("destination_latitude" in body) {
+    const latitude = body.destination_latitude;
+    if (latitude !== null && !isValidLatitude(latitude)) {
+      return jsonError("Trip destination latitude is invalid.", 400);
+    }
+    input.destination_latitude = latitude === null ? null : latitude;
+  }
+
+  if ("destination_longitude" in body) {
+    const longitude = body.destination_longitude;
+    if (longitude !== null && !isValidLongitude(longitude)) {
+      return jsonError("Trip destination longitude is invalid.", 400);
+    }
+    input.destination_longitude = longitude === null ? null : longitude;
+  }
+
+  if ("destination_country_codes" in body) {
+    const countryCodes = nullableCountryCodes(body.destination_country_codes);
+    if (countryCodes instanceof Response) {
+      return countryCodes;
+    }
+    input.destination_country_codes = countryCodes;
   }
 
   if ("start_date" in body) {

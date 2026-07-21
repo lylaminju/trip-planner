@@ -10,6 +10,7 @@ export type DestinationDetails = {
   latitude: number;
   longitude: number;
   google_maps_url: string | null;
+  country_code: string | null;
   photo_name: string | null;
   photo_attribution: string | null;
 };
@@ -32,12 +33,16 @@ export async function fetchDestinationSuggestions(
   query: string,
   sessionToken: string,
   bias?: PlaceSearchBias | null,
+  countryCodes?: string[] | null,
 ): Promise<DestinationSuggestion[]> {
   const data = await postPlaces("/api/places/autocomplete", {
     query,
     session_token: sessionToken,
     ...(bias
       ? { bias_latitude: bias.latitude, bias_longitude: bias.longitude }
+      : {}),
+    ...(countryCodes && countryCodes.length
+      ? { country_codes: countryCodes }
       : {}),
   });
   return Array.isArray(data.suggestions)
@@ -102,7 +107,7 @@ export async function fetchPlacePhotoForPlace(input: {
 
 async function postPlaces(
   path: string,
-  body: Record<string, string | number>,
+  body: Record<string, string | number | string[]>,
 ): Promise<Record<string, unknown>> {
   const response = await fetch(path, {
     method: "POST",

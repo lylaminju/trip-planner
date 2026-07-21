@@ -48,6 +48,34 @@ export function isValidLongitude(value: unknown): value is number {
   );
 }
 
+// Country codes gate an external, metered place search, so this shared validator
+// (used by both the trip routes and the autocomplete route) fails closed instead
+// of being duplicated. undefined/null => unrestricted; otherwise every entry must
+// be a two-letter code and the list stays within the Places API's 15-code ceiling
+// for includedRegionCodes.
+const COUNTRY_CODE_PATTERN = /^[A-Za-z]{2}$/;
+const MAX_COUNTRY_CODES = 15;
+
+export function nullableCountryCodes(
+  value: unknown,
+): string[] | NextResponse | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (
+    !Array.isArray(value) ||
+    value.length > MAX_COUNTRY_CODES ||
+    !value.every(
+      (code) => typeof code === "string" && COUNTRY_CODE_PATTERN.test(code),
+    )
+  ) {
+    return jsonError("Country codes must be two-letter codes.", 400);
+  }
+
+  return value;
+}
+
 export async function readJsonBody(
   request: Request,
 ): Promise<

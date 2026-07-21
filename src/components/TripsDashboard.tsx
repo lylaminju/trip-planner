@@ -214,6 +214,17 @@ export function TripsDashboard(props: {
     }
   }
 
+  // Editing captures the picked place's coordinates and country (so search bias
+  // and country restriction stay correct) but leaves the stored cover untouched,
+  // matching the rest of the edit flow which never re-fetches a photo.
+  function selectEditGoogleDestination(selection: GoogleDestinationSelection) {
+    setEditing((current) =>
+      current
+        ? { ...current, form: tripGoogleDestinationChange(current.form, selection) }
+        : current,
+    );
+  }
+
   function selectGoogleDestination(selection: GoogleDestinationSelection) {
     setForm((current) => tripGoogleDestinationChange(current, selection));
     if (!selection.photoName) {
@@ -331,6 +342,7 @@ export function TripsDashboard(props: {
                         current ? { ...current, form } : current,
                       )
                     }
+                    onSelectGoogle={selectEditGoogleDestination}
                     onCancel={() => setEditing(null)}
                     onSubmit={submitEdit}
                   />
@@ -367,6 +379,7 @@ export function TripsDashboard(props: {
                       current ? { ...current, form } : current,
                     )
                   }
+                  onEditSelectGoogle={selectEditGoogleDestination}
                   onEditSubmit={submitEdit}
                   onDelete={removeTrip}
                   onManageMembers={(trip) => setManagingMembersTripId(trip.id)}
@@ -392,6 +405,7 @@ export function TripsDashboard(props: {
                       current ? { ...current, form } : current,
                     )
                   }
+                  onEditSelectGoogle={selectEditGoogleDestination}
                   onEditSubmit={submitEdit}
                   onDelete={removeTrip}
                   onManageMembers={(trip) => setManagingMembersTripId(trip.id)}
@@ -461,6 +475,7 @@ function formFromTrip(trip: TripSummary): TripFormState {
     destinationSlug: trip.destination_slug,
     destinationLatitude: trip.destination_latitude,
     destinationLongitude: trip.destination_longitude,
+    destinationCountryCodes: trip.destination_country_codes,
     // Editing never re-fetches a photo, so the form carries no cover image;
     // the stored cover on the trip is left untouched by updates.
     destinationPhotoData: null,
@@ -477,6 +492,7 @@ function emptyTripForm(): TripFormState {
     destinationSlug: null,
     destinationLatitude: null,
     destinationLongitude: null,
+    destinationCountryCodes: null,
     destinationPhotoData: null,
     destinationPhotoAttribution: null,
     startDate: "",

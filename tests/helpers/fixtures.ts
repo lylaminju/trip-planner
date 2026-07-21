@@ -75,6 +75,7 @@ export function buildTrip(overrides: Partial<Trip> = {}): Trip {
     destination_slug: overrides.destination_slug ?? "tokyo",
     destination_latitude: overrides.destination_latitude ?? null,
     destination_longitude: overrides.destination_longitude ?? null,
+    destination_country_codes: overrides.destination_country_codes ?? null,
     destination_photo_url: overrides.destination_photo_url ?? null,
     destination_photo_attribution: overrides.destination_photo_attribution ?? null,
     start_date: overrides.start_date ?? "2026-04-01",

@@ -54,6 +54,52 @@ describe("fetchDestinationSuggestions", () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(body).not.toHaveProperty("locationBias");
   });
+
+  it("restricts to the given country codes, lowercased", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchDestinationSuggestions({
+      apiKey: "key",
+      query: "ferry terminal",
+      sessionToken: "session-1",
+      countryCodes: ["JP", "KR"],
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.includedRegionCodes).toEqual(["jp", "kr"]);
+  });
+
+  it.each([undefined, null, []])(
+    "omits the country restriction when none is provided %#",
+    async (countryCodes) => {
+      const fetchMock = stubFetch();
+
+      await fetchDestinationSuggestions({
+        apiKey: "key",
+        query: "ferry terminal",
+        sessionToken: "session-1",
+        countryCodes,
+      });
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+      expect(body).not.toHaveProperty("includedRegionCodes");
+    },
+  );
+
+  it("caps the country codes at the API maximum of 15", async () => {
+    const fetchMock = stubFetch();
+    const countryCodes = Array.from({ length: 20 }, () => "jp");
+
+    await fetchDestinationSuggestions({
+      apiKey: "key",
+      query: "ferry terminal",
+      sessionToken: "session-1",
+      countryCodes,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.includedRegionCodes).toHaveLength(15);
+  });
 });
 
 describe("fetchPlacePhotoReference", () => {
@@ -180,9 +226,40 @@ describe("parseDetails", () => {
       latitude: 35.01,
       longitude: 135.76,
       google_maps_url: "https://maps.google.com/?cid=1",
+      country_code: null,
       photo_name: null,
       photo_attribution: null,
     });
+  });
+
+  it("extracts the country code from the country address component", () => {
+    const payload = {
+      id: "place-1",
+      displayName: { text: "Yakushima" },
+      location: { latitude: 30.34, longitude: 130.51 },
+      addressComponents: [
+        { types: ["locality", "political"], shortText: "Yakushima" },
+        { types: ["country", "political"], shortText: "JP", longText: "Japan" },
+      ],
+    };
+
+    expect(parseDetails(payload)?.country_code).toBe("JP");
+  });
+
+  it.each([
+    undefined,
+    [],
+    [{ types: ["locality"], shortText: "Yakushima" }],
+    [{ types: ["country"] }],
+  ])("returns a null country code when none is present %#", (addressComponents) => {
+    const payload = {
+      id: "place-1",
+      displayName: { text: "Kyoto" },
+      location: { latitude: 35.01, longitude: 135.76 },
+      addressComponents,
+    };
+
+    expect(parseDetails(payload)?.country_code).toBeNull();
   });
 
   it("extracts the first photo reference and its author attribution", () => {

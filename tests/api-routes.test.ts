@@ -768,7 +768,56 @@ describe("API routes transport behavior", () => {
         "louvre",
         "session-1",
         { latitude: 48.8566, longitude: 2.3522 },
+        null,
       );
+    });
+  });
+
+  it("forwards valid autocomplete country codes to destination search", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        searchDestinations: vi.fn().mockResolvedValue([]),
+      }));
+
+      const { POST } = await import("@/app/api/places/autocomplete/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(
+        jsonRequest("POST", {
+          query: "ferry terminal",
+          session_token: "session-1",
+          country_codes: ["JP"],
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(service.searchDestinations).toHaveBeenCalledWith(
+        "user-1",
+        "ferry terminal",
+        "session-1",
+        null,
+        ["JP"],
+      );
+    });
+  });
+
+  it("rejects malformed autocomplete country codes", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        searchDestinations: vi.fn().mockResolvedValue([]),
+      }));
+
+      const { POST } = await import("@/app/api/places/autocomplete/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(
+        jsonRequest("POST", {
+          query: "ferry terminal",
+          session_token: "session-1",
+          country_codes: ["JPN"],
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      expect(service.searchDestinations).not.toHaveBeenCalled();
     });
   });
 

@@ -231,6 +231,7 @@ function setup(
       destination_slug: "new-york-city",
       destination_latitude: null,
       destination_longitude: null,
+      destination_country_codes: null,
       destination_photo_url: null,
       destination_photo_attribution: null,
       start_date: "2026-05-27",

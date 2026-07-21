@@ -6,6 +6,7 @@ export type TripMetadataPayload = {
   destination_slug: string | null;
   destination_latitude: number | null;
   destination_longitude: number | null;
+  destination_country_codes: string[] | null;
   // Only meaningful on create: the already-fetched cover image (data URL) and
   // its attribution, stored as the trip's cover photo.
   destination_photo_data?: string | null;

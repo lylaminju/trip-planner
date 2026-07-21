@@ -35,6 +35,7 @@ describe("trips api client", () => {
         destination_slug: "toronto",
         destination_latitude: null,
         destination_longitude: null,
+        destination_country_codes: null,
         start_date: null,
         end_date: null,
       }),

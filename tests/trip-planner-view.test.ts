@@ -34,6 +34,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     members: [],
     currentUserId: "user-1",
     destinationFocus: null,
+    destinationCountryCodes: null,
     itinerary: itinerary(),
     plannerSnapshot: plannerSnapshot(),
     activeItemId: null,
