@@ -15,6 +15,10 @@ import {
   updateSegmentModeRequest,
   type ResolvedPlace,
 } from "@/lib/planner-api";
+import {
+  applyOptimisticReconciliation,
+  isOptimisticSegmentId,
+} from "@/lib/route-reconciliation";
 import type {
   ItineraryItem,
   Place,
@@ -149,14 +153,22 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     // Optimistically apply the new schedule so the row updates immediately;
     // the server snapshot then replaces it (or we revert on failure).
     const previousSnapshot = options.plannerSnapshot;
-    options.setPlannerSnapshot((current) => ({
-      ...current,
-      itineraryItems: current.itineraryItems.map((item) =>
+    options.setPlannerSnapshot((current) => {
+      const itineraryItems = current.itineraryItems.map((item) =>
         item.id === id
           ? { ...item, visit_date: visitDate, visit_time: visitTime }
           : item,
-      ),
-    }));
+      );
+      return {
+        ...current,
+        itineraryItems,
+        routeSegments: applyOptimisticReconciliation(
+          itineraryItems,
+          current.routeSegments,
+          options.tripId,
+        ),
+      };
+    });
     try {
       options.setPlannerSnapshot(
         await scheduleItineraryItemRequest(
@@ -225,6 +237,7 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
 
   async function updateSegmentMode(id: number, mode: TravelMode) {
     if (!options.canEdit) return;
+    if (isOptimisticSegmentId(id)) return;
     options.setPlannerSnapshot(
       await updateSegmentModeRequest(options.tripId, id, mode),
     );

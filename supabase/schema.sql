@@ -320,6 +320,11 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  -- Keep in sync with MAX_DEFAULT_WALKING_DISTANCE_KM in
+  -- src/lib/route-reconciliation.ts.
+  walking_distance_max_km constant double precision := 2;
+  earth_radius_km constant double precision := 6371;
 begin
   perform pg_advisory_xact_lock(
     hashtextextended('route_segments', p_trip_id)
@@ -381,15 +386,11 @@ begin
   with routable_items as (
     select
       itinerary_items.id,
-      lead(itinerary_items.id) over (
-        partition by itinerary_items.visit_date
-        order by
-          split_part(itinerary_items.visit_time, ':', 1)::integer * 60
-            + split_part(itinerary_items.visit_time, ':', 2)::integer,
-          lower(places.name),
-          places.name,
-          itinerary_items.place_id
-      ) as to_item_id
+      places.latitude,
+      places.longitude,
+      lead(itinerary_items.id) over next_visit as to_item_id,
+      lead(places.latitude) over next_visit as to_latitude,
+      lead(places.longitude) over next_visit as to_longitude
     from public.itinerary_items
     join public.places
       on places.id = itinerary_items.place_id
@@ -401,11 +402,29 @@ begin
       and itinerary_items.visit_time ~ '^[0-9]{1,2}:[0-9]{2}$'
       and split_part(itinerary_items.visit_time, ':', 1)::integer between 0 and 23
       and split_part(itinerary_items.visit_time, ':', 2)::integer between 0 and 59
+    window next_visit as (
+      partition by itinerary_items.visit_date
+      order by
+        split_part(itinerary_items.visit_time, ':', 1)::integer * 60
+          + split_part(itinerary_items.visit_time, ':', 2)::integer,
+        lower(places.name),
+        places.name,
+        itinerary_items.place_id
+    )
   ),
   desired_pairs as (
     select
       id as from_item_id,
-      to_item_id
+      to_item_id,
+      case
+        when 2 * earth_radius_km * asin(sqrt(least(1,
+          power(sin(radians((to_latitude - latitude) / 2)), 2)
+            + cos(radians(latitude)) * cos(radians(to_latitude))
+              * power(sin(radians((to_longitude - longitude) / 2)), 2)
+        ))) > walking_distance_max_km
+          then 'driving'
+        else 'walking'
+      end as mode
     from routable_items
     where to_item_id is not null
   )
@@ -414,7 +433,7 @@ begin
     p_trip_id,
     desired_pairs.from_item_id,
     desired_pairs.to_item_id,
-    'walking'
+    desired_pairs.mode
   from desired_pairs
   where not exists (
     select 1

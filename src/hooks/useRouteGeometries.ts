@@ -9,6 +9,7 @@ import {
   writeRouteGeometryBrowserCache,
 } from "@/lib/route-geometry-browser-cache";
 import { loadRouteGeometries } from "@/lib/route-geometry-loader";
+import { isOptimisticSegmentId } from "@/lib/route-reconciliation";
 import type { PlannerSnapshot, RouteGeometry } from "@/lib/types";
 
 export function useRouteGeometries(
@@ -26,13 +27,19 @@ export function useRouteGeometries(
   );
   const routeGeometriesRef = useRef<Map<number, RouteGeometry>>(new Map());
   const routeGeometrySignaturesRef = useRef<Map<number, string>>(new Map());
+  // Optimistic placeholder segments only exist client-side; fetching their
+  // geometry would hit the server with ids it has never stored.
+  const persistedSegments = useMemo(
+    () =>
+      snapshot.routeSegments.filter(
+        (segment) => !isOptimisticSegmentId(segment.id),
+      ),
+    [snapshot.routeSegments],
+  );
   const routeGeometrySignature = useMemo(
     () =>
-      buildRouteGeometrySignature(
-        snapshot.routeSegments,
-        snapshot.itineraryItems,
-      ),
-    [snapshot.routeSegments, snapshot.itineraryItems],
+      buildRouteGeometrySignature(persistedSegments, snapshot.itineraryItems),
+    [persistedSegments, snapshot.itineraryItems],
   );
 
   useEffect(() => {
@@ -42,14 +49,14 @@ export function useRouteGeometries(
       snapshot.itineraryItems.map((item) => [item.id, item]),
     );
     const nextSignatures = new Map(
-      snapshot.routeSegments.map((segment) => [
+      persistedSegments.map((segment) => [
         segment.id,
         routeGeometryRequestSignature(segment, itemsById),
       ]),
     );
     const nextSegmentIds = new Set(nextSignatures.keys());
     const staleSegmentIds = new Set(
-      snapshot.routeSegments
+      persistedSegments
         .filter(
           (segment) =>
             routeGeometrySignaturesRef.current.get(segment.id) !==
@@ -83,14 +90,14 @@ export function useRouteGeometries(
       setRouteGeometries(hydratedRouteGeometries);
     }
 
-    if (snapshot.routeSegments.length === 0) {
+    if (persistedSegments.length === 0) {
       routeGeometrySignaturesRef.current.clear();
       setRouteGeometryError(null);
       controller.abort();
       return;
     }
 
-    const missingSegmentIds = snapshot.routeSegments
+    const missingSegmentIds = persistedSegments
       .map((segment) => segment.id)
       .filter((segmentId) => !hydratedRouteGeometries.has(segmentId));
 
@@ -148,7 +155,7 @@ export function useRouteGeometries(
       cancelled = true;
       controller.abort();
     };
-  }, [routeGeometrySignature, snapshot.routeSegments, tripId]);
+  }, [routeGeometrySignature, persistedSegments, tripId]);
 
   return { routeGeometries, routeGeometryError };
 }

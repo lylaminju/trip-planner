@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { reconcileRouteSegments } from "@/lib/route-reconciliation";
+import {
+  applyOptimisticReconciliation,
+  reconcileRouteSegments,
+} from "@/lib/route-reconciliation";
 import type { ItineraryItem, RouteSegment } from "@/lib/types";
 
 const stamp = "2026-05-19 00:00:00";
@@ -9,6 +12,7 @@ function place(
   name: string,
   visit_date: string | null,
   visit_time: string | null,
+  coordinates?: { latitude: number; longitude: number },
 ): ItineraryItem {
   const place = {
     id,
@@ -20,8 +24,9 @@ function place(
     google_place_token: null,
     google_internal_ids: null,
     source_list_url: null,
-    latitude: 40 + id,
-    longitude: -73 - id,
+    // Roughly 110 m apart per id step, so default pairs stay walkable.
+    latitude: coordinates?.latitude ?? 40 + id * 0.001,
+    longitude: coordinates?.longitude ?? -73,
     notes: null,
     links: [],
     image_url: null,
@@ -121,6 +126,26 @@ describe("reconcileRouteSegments", () => {
     expect(result.toInsert).toEqual([]);
   });
 
+  it("defaults to driving when stops are more than 2 km apart", () => {
+    const result = reconcileRouteSegments(
+      [
+        place(1, "A", "2026-06-01", "09:00", {
+          latitude: 51.1784,
+          longitude: -115.5708,
+        }),
+        place(2, "B", "2026-06-01", "10:00", {
+          latitude: 51.4254,
+          longitude: -116.1773,
+        }),
+      ],
+      [],
+    );
+
+    expect(result.toInsert).toEqual([
+      { from_item_id: 1, to_item_id: 2, mode: "driving" },
+    ]);
+  });
+
   it("treats malformed visit times as untimed for route creation", () => {
     const result = reconcileRouteSegments(
       [
@@ -135,5 +160,62 @@ describe("reconcileRouteSegments", () => {
       { from_item_id: 1, to_item_id: 3, mode: "walking" },
     ]);
     expect(result.toDeleteIds).toEqual([]);
+  });
+});
+
+describe("applyOptimisticReconciliation", () => {
+  it("returns the same array when the schedule needs no segment changes", () => {
+    const segments = [segment(8, 1, 2, "transit")];
+    const result = applyOptimisticReconciliation(
+      [
+        place(1, "A", "2026-06-01", "09:00"),
+        place(2, "B", "2026-06-01", "10:00"),
+      ],
+      segments,
+      1,
+    );
+
+    expect(result).toBe(segments);
+  });
+
+  it("replaces stale segments with walking placeholders for new pairs", () => {
+    const result = applyOptimisticReconciliation(
+      [
+        place(1, "A", "2026-06-01", "11:00"),
+        place(2, "B", "2026-06-01", "09:00"),
+        place(3, "C", "2026-06-01", "10:00"),
+      ],
+      [segment(1, 1, 2, "walking"), segment(2, 2, 3, "bicycling")],
+      1,
+    );
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual(segment(2, 2, 3, "bicycling"));
+    expect(result[1]).toMatchObject({
+      trip_id: 1,
+      from_item_id: 3,
+      to_item_id: 1,
+      mode: "walking",
+    });
+    expect(result[1].id).toBeLessThan(0);
+  });
+
+  it("keeps placeholder ids unique below existing optimistic ids", () => {
+    const result = applyOptimisticReconciliation(
+      [
+        place(1, "A", "2026-06-01", "09:00"),
+        place(2, "B", "2026-06-01", "10:00"),
+        place(3, "C", "2026-06-01", "11:00"),
+      ],
+      [segment(-1, 1, 2, "walking")],
+      1,
+    );
+
+    expect(result.map((item) => item.id)).toEqual([-1, -2]);
+    expect(result[1]).toMatchObject({
+      from_item_id: 2,
+      to_item_id: 3,
+      mode: "walking",
+    });
   });
 });
