@@ -454,45 +454,59 @@
 }
 
 .visit-time-menu {
+  --time-wheel-option-height: 28px;
+  --time-wheel-visible-options: 5;
   background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 6px;
   box-shadow: var(--shadow-popover);
   display: grid;
-  gap: 2px;
+  height: calc(
+    var(--time-wheel-option-height) * var(--time-wheel-visible-options)
+  );
   left: 0;
-  max-height: 176px;
+  -ms-overflow-style: none;
   overflow-y: auto;
-  padding: 4px;
+  padding: 0;
   position: absolute;
-  top: calc(100% + 6px);
-  width: 44px;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
   z-index: 5;
 }
 
-.visit-time-menu.minute-menu {
-  left: 36px;
-}
-
-.visit-time-menu.hour-menu {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.visit-time-menu.hour-menu::-webkit-scrollbar {
+.visit-time-menu::-webkit-scrollbar {
   display: none;
+}
+
+/* Spacer rows so the first and last option can snap to the wheel center. */
+.visit-time-menu::before,
+.visit-time-menu::after {
+  content: "";
+  height: calc(
+    var(--time-wheel-option-height) * (var(--time-wheel-visible-options) - 1) /
+      2
+  );
+}
+
+.visit-time-menu.minute-menu {
+  left: 32px;
 }
 
 .visit-time-menu-option {
   background: transparent;
   border: 0;
   border-radius: 4px;
-  color: var(--text);
+  color: var(--muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
-  min-height: 26px;
-  padding: 2px 0;
+  height: var(--time-wheel-option-height);
+  padding: 0;
+  scroll-snap-align: center;
   text-align: center;
 }
 
@@ -512,7 +526,7 @@
   font-weight: 700;
   left: 0;
   position: absolute;
-  top: calc(100% + 190px);
+  top: calc(50% + 79px);
   white-space: nowrap;
 }
 

@@ -186,6 +186,7 @@ describe("PlaceRows", () => {
     expect(markup).toContain('aria-label="Choose hour for Bryant Park"');
     expect(markup).toContain('class="visit-time-menu-option selected"');
     expect(markup).toContain('aria-selected="true"');
+    expect(markup).toContain('data-option-value="23"');
     expect(markup).toContain(">19</button>");
     expect(markup).toContain(">23</button>");
     expect(markup).not.toContain("<select");
@@ -321,11 +322,11 @@ describe("PlaceRows", () => {
     const addControlHoverRule = cssRule(css, ".visit-time-add-control:hover");
     const addControlSvgRule = cssRule(css, ".visit-time-add-control svg");
     const menuRule = cssRule(css, ".visit-time-menu");
-    const hourMenuRule = cssRule(css, ".visit-time-menu.hour-menu");
-    const hourMenuScrollbarRule = cssRule(
+    const menuScrollbarRule = cssRule(
       css,
-      ".visit-time-menu.hour-menu::-webkit-scrollbar",
+      ".visit-time-menu::-webkit-scrollbar",
     );
+    const menuOptionRule = cssRule(css, ".visit-time-menu-option");
 
     expect(slotRule).toContain("--visit-time-slot-width: 60px;");
     expect(slotRule).toContain("flex: 0 0 var(--visit-time-slot-width);");
@@ -362,11 +363,14 @@ describe("PlaceRows", () => {
     expect(addControlSvgRule).toContain("stroke: currentColor;");
     expect(addControlSvgRule).toContain("width: 15px;");
     expect(menuRule).toContain("position: absolute;");
-    expect(menuRule).toContain("top: calc(100% + 6px);");
+    expect(menuRule).toContain("top: 50%;");
+    expect(menuRule).toContain("transform: translateY(-50%);");
     expect(menuRule).toContain("overflow-y: auto;");
-    expect(hourMenuRule).toContain("scrollbar-width: none;");
-    expect(hourMenuRule).toContain("-ms-overflow-style: none;");
-    expect(hourMenuScrollbarRule).toContain("display: none;");
+    expect(menuRule).toContain("scroll-snap-type: y mandatory;");
+    expect(menuRule).toContain("scrollbar-width: none;");
+    expect(menuRule).toContain("-ms-overflow-style: none;");
+    expect(menuScrollbarRule).toContain("display: none;");
+    expect(menuOptionRule).toContain("scroll-snap-align: center;");
   });
 
   it("styles drag handles as borderless row affordances", () => {

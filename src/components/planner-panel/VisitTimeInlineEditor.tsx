@@ -29,6 +29,8 @@ type Props = {
 
 export function VisitTimeInlineEditor(props: Props) {
   const activeOptionRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLSpanElement>(null);
+  const scrollFrameRef = useRef<number | null>(null);
   const normalizedValue =
     normalizeQuickVisitTime(props.value) ?? DEFAULT_QUICK_VISIT_TIME;
   const [hourValue, minuteValue] = splitVisitTime(normalizedValue);
@@ -45,11 +47,24 @@ export function VisitTimeInlineEditor(props: Props) {
     props.activeSegment === "hour"
       ? `Choose hour for ${props.placeName}`
       : `Choose minute for ${props.placeName}`;
+  const menuValues: readonly string[] = menuOptions;
 
   useEffect(() => {
-    activeOptionRef.current?.focus({ preventScroll: true });
-    activeOptionRef.current?.scrollIntoView({ block: "nearest" });
-  }, [props.activeSegment, selectedMenuValue]);
+    const menu = menuRef.current;
+    const option = activeOptionRef.current;
+    if (menu && option) {
+      menu.scrollTop =
+        option.offsetTop - (menu.clientHeight - option.offsetHeight) / 2;
+    }
+    option?.focus({ preventScroll: true });
+
+    return () => {
+      if (scrollFrameRef.current !== null) {
+        cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
+    };
+  }, [props.activeSegment]);
 
   function handleBlur(event: FocusEvent<HTMLSpanElement>) {
     const nextTarget = event.relatedTarget;
@@ -64,6 +79,22 @@ export function VisitTimeInlineEditor(props: Props) {
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      const selectedIndex = menuValues.indexOf(selectedMenuValue);
+      const nextIndex = Math.min(
+        menuValues.length - 1,
+        Math.max(0, (selectedIndex === -1 ? 0 : selectedIndex) + step),
+      );
+      const nextValue = menuValues[nextIndex];
+      if (nextValue !== selectedMenuValue) {
+        applyWheelValue(nextValue);
+        scrollValueToCenter(nextValue, "smooth");
+      }
+      return;
+    }
+
     if (event.key === "ArrowLeft") {
       event.preventDefault();
       props.onActiveSegmentChange("hour");
@@ -100,6 +131,66 @@ export function VisitTimeInlineEditor(props: Props) {
     }
 
     setMinute(value);
+  }
+
+  // Updates the draft to the value under the wheel's center band without
+  // committing: hour changes stay on the hour wheel, minute changes wait for
+  // an explicit pick or blur to save.
+  function applyWheelValue(value: string) {
+    if (props.activeSegment === "hour") {
+      props.onValueChange(`${value}:${minuteValue || "00"}`);
+      return;
+    }
+
+    props.onValueChange(`${hourValue || "09"}:${value}`);
+  }
+
+  function scrollValueToCenter(value: string, behavior: ScrollBehavior) {
+    const menu = menuRef.current;
+    const option = menu?.querySelector<HTMLButtonElement>(
+      `[data-option-value="${value}"]`,
+    );
+    if (!menu || !option) {
+      return;
+    }
+
+    menu.scrollTo({
+      behavior,
+      top: option.offsetTop - (menu.clientHeight - option.offsetHeight) / 2,
+    });
+  }
+
+  function handleMenuScroll() {
+    if (scrollFrameRef.current !== null) {
+      return;
+    }
+
+    scrollFrameRef.current = requestAnimationFrame(() => {
+      scrollFrameRef.current = null;
+      const menu = menuRef.current;
+      if (!menu) {
+        return;
+      }
+
+      const menuCenter = menu.scrollTop + menu.clientHeight / 2;
+      let nearestValue: string | null = null;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+      for (const option of menu.querySelectorAll<HTMLButtonElement>(
+        "[data-option-value]",
+      )) {
+        const distance = Math.abs(
+          option.offsetTop + option.offsetHeight / 2 - menuCenter,
+        );
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestValue = option.dataset.optionValue ?? null;
+        }
+      }
+
+      if (nearestValue && nearestValue !== selectedMenuValue) {
+        applyWheelValue(nearestValue);
+      }
+    });
   }
 
   return (
@@ -141,9 +232,11 @@ export function VisitTimeInlineEditor(props: Props) {
         </button>
       </span>
       <span
+        ref={menuRef}
         className={`visit-time-menu ${props.activeSegment}-menu`}
         role="listbox"
         aria-label={menuLabel}
+        onScroll={handleMenuScroll}
       >
         {menuOptions.map((value) => {
           const selected = value === selectedMenuValue;
@@ -158,6 +251,7 @@ export function VisitTimeInlineEditor(props: Props) {
               }`}
               role="option"
               aria-selected={selected}
+              data-option-value={value}
               disabled={props.isSaving}
               onClick={() => chooseOption(value)}
             >

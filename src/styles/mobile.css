@@ -287,7 +287,8 @@
     font-size: 14px;
   }
 
-  .visit-time-segment {
+  .visit-time-segment,
+  .visit-time-menu-option {
     font-size: 12px;
   }
 
