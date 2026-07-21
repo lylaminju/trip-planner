@@ -174,7 +174,7 @@ function place(overrides: Partial<Place>): Place {
     name: "Place",
     address: null,
     google_maps_url: "https://www.google.com/maps",
-    place_id: null,
+    google_place_id: null,
     google_place_token: null,
     google_internal_ids: null,
     source_list_url: null,

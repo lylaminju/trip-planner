@@ -140,7 +140,7 @@ function place(overrides: Partial<Place> & { id: number; name: string }): Place 
     name,
     address: overrides.address ?? null,
     google_maps_url: overrides.google_maps_url ?? "https://maps.google.com",
-    place_id: null,
+    google_place_id: null,
     google_place_token: null,
     google_internal_ids: null,
     source_list_url: null,

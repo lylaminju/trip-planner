@@ -6,12 +6,12 @@ import { candidateRecord } from "./ai-planning-service.test-helpers";
 
 function savedPlace(
   overrides: Partial<{
-    place_id: string | null;
+    google_place_id: string | null;
     latitude: number;
     longitude: number;
   }> = {},
 ) {
-  return { place_id: null, latitude: 0, longitude: 0, ...overrides };
+  return { google_place_id: null, latitude: 0, longitude: 0, ...overrides };
 }
 
 describe("matchDestinationCandidates", () => {
@@ -23,7 +23,7 @@ describe("matchDestinationCandidates", () => {
     const matches = matchDestinationCandidates(
       [byPlaceId, byCoordinates, unsaved],
       [
-        savedPlace({ place_id: "gp-1" }),
+        savedPlace({ google_place_id: "gp-1" }),
         savedPlace({ latitude: 41.5, longitude: -74 }),
       ],
       "",

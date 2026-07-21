@@ -19,7 +19,7 @@ export function buildPlace(overrides: Partial<Place> = {}): Place {
     address: overrides.address ?? null,
     google_maps_url:
       overrides.google_maps_url ?? "https://www.google.com/maps/place",
-    place_id: overrides.place_id ?? null,
+    google_place_id: overrides.google_place_id ?? null,
     google_place_token: overrides.google_place_token ?? null,
     google_internal_ids: overrides.google_internal_ids ?? null,
     source_list_url: overrides.source_list_url ?? null,

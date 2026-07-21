@@ -66,7 +66,7 @@ flowchart TD
     D -- miss --> F["POST /api/places/photo<br/>{ place_id, photo_name? }<br/>promise cached in session LRU"]
 
     subgraph SERVER["Server: reuse before refetch"]
-        F --> G{"Saved place image?<br/>(places by place_id)"}
+        F --> G{"Saved place image?<br/>(places by google_place_id)"}
         G -- no --> H{"Candidate image?<br/>(ai_destination_candidates<br/>by google_place_id)"}
         G -- yes --> I["Return stored bucket URL<br/>(0 Google calls)"]
         H -- yes --> I

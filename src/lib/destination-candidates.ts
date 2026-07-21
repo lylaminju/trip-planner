@@ -1,6 +1,6 @@
 import type { AiDestinationCandidate, Place } from "./types";
 
-type SavedPlaceKey = Pick<Place, "place_id" | "latitude" | "longitude">;
+type SavedPlaceKey = Pick<Place, "google_place_id" | "latitude" | "longitude">;
 
 // Candidates the Add Place search offers before the query is long enough for
 // live Google search: already-saved places are hidden, and a short query
@@ -32,7 +32,7 @@ function isAlreadySaved(
   return savedPlaces.some(
     (place) =>
       (candidate.google_place_id !== null &&
-        place.place_id === candidate.google_place_id) ||
+        place.google_place_id === candidate.google_place_id) ||
       (place.latitude === candidate.latitude &&
         place.longitude === candidate.longitude),
   );

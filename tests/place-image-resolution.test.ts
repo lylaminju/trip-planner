@@ -134,7 +134,7 @@ describe("resolvePlaceImage", () => {
       image_credit: "City",
     });
     expect(queriesByTable.places.eq).toHaveBeenCalledWith(
-      "place_id",
+      "google_place_id",
       "ChIJabc",
     );
     expect(queriesByTable.ai_destination_candidates.eq).toHaveBeenCalledWith(

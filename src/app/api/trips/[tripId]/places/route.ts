@@ -104,7 +104,7 @@ export async function POST(request: Request, { params }: TripParams) {
           address: stringOrNull(body.address),
           notes: stringOrNull(body.notes),
           google_maps_url: resolved.google_maps_url,
-          place_id: placeId,
+          google_place_id: placeId,
           google_place_token: null,
           google_internal_ids: null,
           source_list_url: null,

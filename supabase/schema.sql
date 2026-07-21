@@ -215,7 +215,7 @@ create table if not exists public.places (
   name text not null,
   address text,
   google_maps_url text not null,
-  place_id text,
+  google_place_id text,
   google_place_token text,
   google_internal_ids text,
   source_list_url text,

@@ -114,7 +114,7 @@ export function createFakeSupabasePlaceService() {
         name: input.name,
         address: input.address,
         google_maps_url: input.google_maps_url,
-        place_id: input.place_id,
+        google_place_id: input.google_place_id,
         google_place_token: input.google_place_token,
         google_internal_ids: input.google_internal_ids,
         source_list_url: input.source_list_url,

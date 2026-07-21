@@ -45,7 +45,7 @@ export async function resolvePlaceImage(input: {
 export async function findReusablePlaceImage(
   placeId: string,
 ): Promise<PlaceImage> {
-  const saved = await findImageByPlaceId("places", "place_id", placeId);
+  const saved = await findImageByPlaceId("places", "google_place_id", placeId);
   if (saved.image_url) {
     return saved;
   }

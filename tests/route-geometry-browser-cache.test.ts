@@ -233,7 +233,7 @@ function itineraryItemFixture(input: {
       name: `Place ${input.id}`,
       address: null,
       google_maps_url: "https://maps.google.com",
-      place_id: null,
+      google_place_id: null,
       google_place_token: null,
       google_internal_ids: null,
       source_list_url: null,

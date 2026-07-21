@@ -42,7 +42,7 @@ export type Place = {
   name: string;
   address: string | null;
   google_maps_url: string;
-  place_id: string | null;
+  google_place_id: string | null;
   google_place_token: string | null;
   google_internal_ids: string | null;
   source_list_url: string | null;
