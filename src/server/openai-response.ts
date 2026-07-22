@@ -1,5 +1,7 @@
 // Shared parsing helpers for OpenAI Responses API payloads.
 
+import { parseRetryAfterSeconds } from "./retry-after";
+
 export function extractOutputText(body: unknown): string {
   if (hasStringProperty(body, "output_text")) {
     return body.output_text;
@@ -34,6 +36,19 @@ export function openAiFailureDetail(
   return body === null
     ? `HTTP ${status} with a non-JSON response`
     : openAiErrorMessage(body);
+}
+
+// Retry-after hint for a 429 response: the HTTP `Retry-After` header when
+// present, otherwise the delay embedded in OpenAI's error message. Null when
+// neither carries one.
+export function openAiRetryAfterSeconds(
+  response: { headers: Headers },
+  body: unknown,
+): number | null {
+  return parseRetryAfterSeconds(
+    response.headers.get("retry-after"),
+    openAiErrorMessage(body),
+  );
 }
 
 export function openAiErrorMessage(body: unknown): string {

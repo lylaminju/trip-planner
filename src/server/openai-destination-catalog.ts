@@ -10,6 +10,7 @@ import { AiUpstreamRateLimitError } from "./errors";
 import {
   extractOutputText,
   openAiFailureDetail,
+  openAiRetryAfterSeconds,
   openAiUsageTokens,
 } from "./openai-response";
 
@@ -205,6 +206,7 @@ async function requestStructuredOpenAiResponse({
   if (response.status === 429) {
     throw new AiUpstreamRateLimitError(
       openAiFailureDetail(body, response.status),
+      openAiRetryAfterSeconds(response, body),
     );
   }
   if (!response.ok || body === null) {

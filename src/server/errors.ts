@@ -1,3 +1,5 @@
+import { humanizeRetryAfter } from "./retry-after";
+
 export class PlaceNotFoundError extends Error {
   constructor(id: number) {
     super(`Place ${id} not found`);
@@ -82,12 +84,17 @@ export class AiGenerationRateLimitError extends Error {
 }
 
 // OpenAI itself rejected the call with a 429 (tokens-per-minute budget),
-// as opposed to our own daily generation cap above. The message stays generic
-// for users; upstreamDetail carries OpenAI's exact limit diagnostics for logs.
+// as opposed to our own daily generation cap above. The user-facing message
+// echoes OpenAI's own retry-after hint when we can parse one, and falls back to
+// a generic "in a minute" otherwise; upstreamDetail carries OpenAI's exact
+// limit diagnostics for logs.
 export class AiUpstreamRateLimitError extends Error {
-  constructor(readonly upstreamDetail: string | null = null) {
+  constructor(
+    readonly upstreamDetail: string | null = null,
+    readonly retryAfterSeconds: number | null = null,
+  ) {
     super(
-      "The AI service is handling too many requests right now. Please try again in a minute.",
+      `The AI service is handling too many requests right now. Please try again in ${humanizeRetryAfter(retryAfterSeconds)}.`,
     );
     this.name = "AiUpstreamRateLimitError";
   }

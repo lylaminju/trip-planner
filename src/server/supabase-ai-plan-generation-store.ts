@@ -61,7 +61,12 @@ export async function countUserGenerationsToday(
     .from("ai_plan_generations")
     .select("*", { count: "exact", head: true })
     .eq("created_by_user_id", userId)
-    .gte("created_at", todayStart.toISOString());
+    .gte("created_at", todayStart.toISOString())
+    // A generation only counts against the daily cap if it actually consumed
+    // (or is still consuming) OpenAI budget. Failures that never reached token
+    // billing — upstream 429s in particular — leave token_input_count NULL and
+    // cost nothing, so they must not burn one of the user's daily slots.
+    .or("status.neq.failed,token_input_count.not.is.null");
 
   if (error) throwSupabaseError(error);
   return count ?? 0;

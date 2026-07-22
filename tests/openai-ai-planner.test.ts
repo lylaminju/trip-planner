@@ -176,6 +176,31 @@ describe("OpenAI AI planner adapter", () => {
       "The AI service is handling too many requests right now. Please try again in a minute.",
     );
   });
+
+  it("echoes OpenAI's retry-after hint in the rate-limit message", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json(
+        {
+          error: {
+            message:
+              "Rate limit reached on tokens per min (TPM): ... Please try again in 51h56m26.88s. Visit ...",
+          },
+        },
+        { status: 429 },
+      ),
+    );
+
+    await expect(
+      requestAiItineraryPlan({
+        apiKey: "test-key",
+        model: "gpt-5.5",
+        context: promptContext(),
+        fetchImpl: fetchMock,
+      }),
+    ).rejects.toThrow(
+      "The AI service is handling too many requests right now. Please try again in about 52 hours.",
+    );
+  });
 });
 
 function promptContext(): AiPlannerPromptContext {
