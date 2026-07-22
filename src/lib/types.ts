@@ -55,6 +55,10 @@ export type Place = {
   links: string[];
   image_url: string | null;
   image_credit: string | null;
+  // Emoji thumbnail shown when the place has no photo. Set for AI-generated
+  // anchor places (transit hubs and lodging); null elsewhere, where the name
+  // initial is used instead.
+  fallback_emoji?: string | null;
   created_at: string;
   updated_at: string;
 };

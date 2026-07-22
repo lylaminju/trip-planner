@@ -4,6 +4,10 @@ import type {
   TripTransitPoint,
 } from "@/lib/types";
 import {
+  LODGING_FALLBACK_EMOJI,
+  transitHubFallbackEmoji,
+} from "@/lib/place-fallback-emoji";
+import {
   formatVisitTime,
   nextVisitGridMinuteAfter,
   parseVisitTime,
@@ -43,14 +47,31 @@ export function buildAiGeneratedPlaceRows(input: {
 }) {
   const visits = input.plan.days.flatMap((day) => day.visits);
   const anchors = [
-    input.arrivalPoint ?? null,
-    input.lodging,
-    input.departurePoint ?? null,
+    input.arrivalPoint
+      ? {
+          location: input.arrivalPoint,
+          fallbackEmoji: transitHubFallbackEmoji(input.arrivalPoint.hub_type),
+        }
+      : null,
+    input.lodging
+      ? { location: input.lodging, fallbackEmoji: LODGING_FALLBACK_EMOJI }
+      : null,
+    input.departurePoint
+      ? {
+          location: input.departurePoint,
+          fallbackEmoji: transitHubFallbackEmoji(input.departurePoint.hub_type),
+        }
+      : null,
   ].filter((anchor) => anchor !== null);
 
   return [
     ...anchors.map((anchor) =>
-      anchorPlaceRow(input.tripId, input.generationId, anchor),
+      anchorPlaceRow(
+        input.tripId,
+        input.generationId,
+        anchor.location,
+        anchor.fallbackEmoji,
+      ),
     ),
     ...visits.map((visit) => {
       const candidate = input.candidateById.get(visit.candidate_id);
@@ -304,6 +325,7 @@ function candidatePlaceRow(
     links: [],
     image_url: candidate.image_url,
     image_credit: candidate.image_credit,
+    fallback_emoji: null,
     created_by_source: "ai",
     ai_generation_id: generationId,
   };
@@ -316,6 +338,7 @@ function anchorPlaceRow(
     TripLodging,
     "name" | "latitude" | "longitude" | "google_place_id"
   >,
+  fallbackEmoji: string | null,
 ) {
   return {
     trip_id: tripId,
@@ -332,6 +355,7 @@ function anchorPlaceRow(
     links: [],
     image_url: null,
     image_credit: null,
+    fallback_emoji: fallbackEmoji,
     created_by_source: "ai",
     ai_generation_id: generationId,
   };

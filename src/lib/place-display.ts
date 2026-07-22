@@ -41,6 +41,15 @@ export function placeInitial(name: string): string {
   return (first ?? "").toUpperCase();
 }
 
+// Thumbnail glyph for a place with no photo: an explicit fallback emoji when the
+// place carries one (AI-generated transit hubs and lodging), otherwise the
+// name-initial monogram.
+export function placeThumbGlyph(
+  place: Pick<Place, "fallback_emoji" | "name">,
+): string {
+  return place.fallback_emoji ?? placeInitial(place.name);
+}
+
 export function formatSchedule(item: ItineraryItem): string {
   if (item.visit_date && item.visit_time)
     return `${item.visit_date} ${item.visit_time}`;

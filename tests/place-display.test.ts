@@ -4,6 +4,7 @@ import {
   formatItineraryDateHeading,
   formatPlaceRow,
   placeInitial,
+  placeThumbGlyph,
 } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
@@ -143,6 +144,18 @@ describe("placeInitial", () => {
     expect(initial).toBe("🚌");
     expect([...initial]).toHaveLength(1);
     expect(initial.codePointAt(0)).toBe(0x1f68c);
+  });
+});
+
+describe("placeThumbGlyph", () => {
+  it("prefers an explicit fallback emoji", () => {
+    expect(placeThumbGlyph({ name: "JFK Airport", fallback_emoji: "✈️" })).toBe(
+      "✈️",
+    );
+  });
+
+  it("uses the name initial when there is no fallback emoji", () => {
+    expect(placeThumbGlyph({ name: "louvre", fallback_emoji: null })).toBe("L");
   });
 });
 

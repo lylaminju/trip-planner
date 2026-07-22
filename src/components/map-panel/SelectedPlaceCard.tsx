@@ -1,6 +1,6 @@
 "use client";
 
-import { placeInitial } from "@/lib/place-display";
+import { placeThumbGlyph } from "@/lib/place-display";
 import type { ItineraryItem, ItineraryView, Place } from "@/lib/types";
 
 import { CloseIcon, ExternalLinkIcon } from "../Icons";
@@ -78,7 +78,7 @@ export function SelectedPlaceCard(props: {
               loading="lazy"
             />
           ) : (
-            placeInitial(place.name)
+            placeThumbGlyph(place)
           )}
         </span>
         <div className="map-selected-card-info">

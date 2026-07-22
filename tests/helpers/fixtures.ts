@@ -29,6 +29,7 @@ export function buildPlace(overrides: Partial<Place> = {}): Place {
     links: overrides.links ?? [],
     image_url: overrides.image_url ?? null,
     image_credit: overrides.image_credit ?? null,
+    fallback_emoji: overrides.fallback_emoji ?? null,
     created_at: overrides.created_at ?? STAMP,
     updated_at: overrides.updated_at ?? STAMP,
   };

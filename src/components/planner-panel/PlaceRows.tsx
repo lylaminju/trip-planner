@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { formatPlaceRow, formatSchedule, placeInitial } from "@/lib/place-display";
+import {
+  formatPlaceRow,
+  formatSchedule,
+  placeThumbGlyph,
+} from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
@@ -120,7 +124,7 @@ export function ItineraryItemRow(props: {
               loading="lazy"
             />
           ) : (
-            placeInitial(props.item.place.name)
+            placeThumbGlyph(props.item.place)
           )}
         </span>
         {props.markerLabel && (

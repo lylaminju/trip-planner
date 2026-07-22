@@ -7,6 +7,7 @@ import {
 } from "@/server/ai-plan-batch-rows";
 import type {
   AiDestinationCandidate,
+  AiTransitHubType,
   TripLodging,
   TripTransitPoint,
   TripTransitPointKind,
@@ -50,12 +51,75 @@ describe("AI plan batch rows", () => {
       name: "Pod Times Square",
       image_url: null,
       image_credit: null,
+      fallback_emoji: "🏨",
     });
     expect(rows[1]).toMatchObject({
       name: "Candidate 10",
       image_url: "https://images.example/candidate-10.webp",
       image_credit: "Photo: Example Author",
+      fallback_emoji: null,
     });
+  });
+
+  it("labels arrival and departure anchors with their transit hub emoji", () => {
+    const rows = buildAiGeneratedPlaceRows({
+      tripId: 1,
+      generationId: 5,
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([[10, candidate(10)]]),
+      lodging: lodging(),
+      arrivalPoint: transitPoint("arrival", "11:00", "airport"),
+      departurePoint: transitPoint("departure", "18:00", "train_station"),
+    });
+
+    // Anchor order is arrival, lodging, departure, then the day's attractions.
+    expect(rows.map((row) => row.fallback_emoji)).toEqual([
+      "✈️",
+      "🏨",
+      "🚆",
+      null,
+    ]);
+  });
+
+  it("leaves a custom transit point without a hub type unlabeled", () => {
+    const rows = buildAiGeneratedPlaceRows({
+      tripId: 1,
+      generationId: 5,
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([[10, candidate(10)]]),
+      lodging: null,
+      arrivalPoint: transitPoint("arrival", "11:00", null),
+    });
+
+    expect(rows[0]).toMatchObject({ name: "JFK Airport", fallback_emoji: null });
   });
 
   it("moves the first attraction after the lodging travel duration on the 10-minute grid", () => {
@@ -330,6 +394,7 @@ function lodging(): TripLodging {
 function transitPoint(
   kind: TripTransitPointKind,
   eventTime: string | null,
+  hubType: AiTransitHubType | null = "airport",
 ): TripTransitPoint {
   return {
     id: kind === "arrival" ? 20 : 21,
@@ -339,7 +404,7 @@ function transitPoint(
     latitude: 40.64,
     longitude: -73.78,
     google_place_id: null,
-    hub_type: "airport",
+    hub_type: hubType,
     event_time: eventTime,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
