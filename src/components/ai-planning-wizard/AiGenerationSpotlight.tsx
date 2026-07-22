@@ -54,8 +54,8 @@ export function AiGenerationSpotlight({
               src={active.image_url}
               alt=""
               loading="lazy"
-              width={108}
-              height={104}
+              width={152}
+              height={140}
             />
           ) : (
             <span className="ai-spotlight-thumb-fallback">

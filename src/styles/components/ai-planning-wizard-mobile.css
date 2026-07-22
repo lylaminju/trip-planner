@@ -6,6 +6,16 @@
     width: calc(100vw - 24px);
   }
 
+  /* Tighter padding and a smaller thumb so the spotlight card keeps room for
+     its text on the narrow mobile modal. */
+  .ai-generation-screen {
+    padding: 32px 20px;
+  }
+
+  .ai-spotlight-card {
+    grid-template-columns: 120px 1fr;
+  }
+
   .ai-wizard {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
