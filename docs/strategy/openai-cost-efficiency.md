@@ -83,10 +83,28 @@ The OpenAI project caps the planner model's throughput
 project TPM for the planner model is set to 80,000, sized so one capped catalog
 build plus a concurrent hub or itinerary call fit within a single minute.
 
-## 6. Images never come from OpenAI or Google
+## 6. Candidate images: one billed Google photo per attraction, ever
 
-Catalog images are sourced from Wikimedia Commons by
-`scripts/backfill-candidate-images.mjs` — free, run outside the request path,
-and stored in our own bucket — so neither the catalog call nor any per-view
-rendering carries image API cost. See
-`docs/strategy/place-photo-add-place-modal.md` for the Google-side equivalent.
+Catalog thumbnails come from Google Places, resolved inline during catalog
+generation (`src/server/google-candidate-images.ts`) so candidates appear with
+images the moment the catalog is ready. Per candidate:
+
+1. Text Search masked to `places.id` — free IDs-Only SKU — resolves the place,
+   biased to the destination coordinates.
+2. An IDs-Only photo-reference lookup (`id,photos`) — also free.
+3. One billed Place Photo media call (~$7/1,000) at 480px, stored in our
+   `candidate-images` bucket with author attribution. Google is never called
+   again for that candidate.
+
+A 40-candidate destination therefore costs ~$0.28 in photos, once, shared by
+every future trip there. The resolved `google_place_id` is persisted on the
+candidate, powering Add-place dedup and photo reuse.
+
+Photo calls draw from the same internal free-tier ceilings as the rest of the
+app (`supabase-google-places-usage-store.ts`: 900 photos/month shared, 200
+calls/user/day). Image resolution truncates to the remaining budget and fails
+soft — candidates are left imageless rather than spilling into paid usage.
+`scripts/backfill-candidate-images.mjs` (Wikimedia, $0) remains the manual
+recovery path for imageless rows. See
+`docs/strategy/place-photo-add-place-modal.md` for the field-mask SKU rules
+this flow follows.

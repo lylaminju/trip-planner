@@ -107,6 +107,7 @@ type RequestOptions = {
 
 const CATALOG_SYSTEM_PROMPT = [
   `Build a catalog of roughly ${AI_CATALOG_TARGET_CANDIDATE_COUNT} attractions for the given travel destination, for use by an itinerary planner.`,
+  "Order the candidates by how famous and essential they are, most iconic first.",
   `Use at most ${AI_CATALOG_MAX_WEB_SEARCHES} web searches. Prefer broad queries that verify many attractions at once — such as top-attraction roundups or lists of permanently closed attractions — rather than checking attractions one by one; rely on your own knowledge for well-established places.`,
   "Never include permanently closed attractions.",
   "Include attractions, sights, parks, museums, viewpoints, neighborhoods, and markets or food halls; do not include restaurants, cafes, bars, or hotels.",

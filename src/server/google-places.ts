@@ -32,6 +32,8 @@ export type DestinationDetails = {
 
 const AUTOCOMPLETE_ENDPOINT =
   "https://places.googleapis.com/v1/places:autocomplete";
+const SEARCH_TEXT_ENDPOINT =
+  "https://places.googleapis.com/v1/places:searchText";
 const DETAILS_ENDPOINT = "https://places.googleapis.com/v1/places";
 const PLACES_MEDIA_BASE = "https://places.googleapis.com/v1";
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -58,6 +60,12 @@ const DETAILS_FIELD_MASK =
 // Every field here is Essentials IDs-Only, so this lookup is free. It exists to
 // resolve a photo reference for places picked without a details call (map POIs).
 const PHOTO_REFERENCE_FIELD_MASK = "id,photos";
+// Text Search masked to the place id alone stays in the free IDs-Only SKU;
+// any richer field would escalate the whole request to a billed tier.
+const SEARCH_TEXT_FIELD_MASK = "places.id";
+// Same soft-bias contract as autocomplete: rank results near the destination
+// first without excluding an exact-name match elsewhere.
+const SEARCH_TEXT_BIAS_RADIUS_METERS = 50_000;
 
 export function requirePlacesApiKey(): string {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
@@ -135,6 +143,49 @@ export async function fetchDestinationDetails(input: {
     );
   }
   return details;
+}
+
+/**
+ * Resolves a free-text place name to its place id via Text Search with an
+ * IDs-Only field mask (a $0 SKU). Returns null when nothing matches.
+ */
+export async function searchPlaceId(input: {
+  apiKey: string;
+  query: string;
+  locationBias?: AutocompleteLocationBias | null;
+}): Promise<string | null> {
+  const payload = await placesFetch({
+    url: SEARCH_TEXT_ENDPOINT,
+    apiKey: input.apiKey,
+    fieldMask: SEARCH_TEXT_FIELD_MASK,
+    method: "POST",
+    body: {
+      textQuery: input.query,
+      ...(input.locationBias
+        ? {
+            locationBias: {
+              circle: {
+                center: {
+                  latitude: input.locationBias.latitude,
+                  longitude: input.locationBias.longitude,
+                },
+                radius: SEARCH_TEXT_BIAS_RADIUS_METERS,
+              },
+            },
+          }
+        : {}),
+    },
+  });
+
+  return parseFirstSearchPlaceId(payload);
+}
+
+export function parseFirstSearchPlaceId(payload: unknown): string | null {
+  const places = asRecord(payload).places;
+  if (!Array.isArray(places)) {
+    return null;
+  }
+  return asString(asRecord(places[0]).id);
 }
 
 export type PlacePhotoReference = {

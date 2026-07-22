@@ -869,6 +869,9 @@ describe("prepareDestinationCatalogForRequest", () => {
       catalog: generated,
       usage: { inputTokens: 100, outputTokens: 200 },
     });
+    const resolveCandidateImagesWithGoogle = vi
+      .fn()
+      .mockResolvedValue(undefined);
     const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 77 });
     const updateAiPlanGeneration = vi.fn();
 
@@ -880,6 +883,7 @@ describe("prepareDestinationCatalogForRequest", () => {
           insertDestinationCandidates,
         },
         aiCatalog: { requestAiDestinationCatalog },
+        candidateImages: { resolveCandidateImagesWithGoogle },
         aiPlanApplication: { createAiPlanGeneration, updateAiPlanGeneration },
       },
       async ({ service }) => {
@@ -910,6 +914,11 @@ describe("prepareDestinationCatalogForRequest", () => {
         expect.objectContaining({ name: "Generated Spot 1", sort_order: 1 }),
       ]),
     );
+    expect(resolveCandidateImagesWithGoogle).toHaveBeenCalledWith({
+      candidates: insertedCandidates,
+      destination: expect.objectContaining({ name: "Lisbon" }),
+      userId: "user-1",
+    });
     expect(createAiPlanGeneration).toHaveBeenCalledWith(1, "user-1", {
       prompt_version: "ai-destination-catalog-v2",
       preferences_snapshot: {},

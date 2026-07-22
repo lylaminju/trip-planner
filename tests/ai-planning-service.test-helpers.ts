@@ -16,6 +16,7 @@ export async function withMockedAiPlanningService(
     supabaseAiPlanningService?: Record<string, ReturnType<typeof vi.fn>>;
     aiPlanner?: Record<string, ReturnType<typeof vi.fn>>;
     aiCatalog?: Record<string, ReturnType<typeof vi.fn>>;
+    candidateImages?: Record<string, ReturnType<typeof vi.fn>>;
     aiPlanApplication?: Record<string, ReturnType<typeof vi.fn>>;
   },
   run: (context: {
@@ -66,6 +67,10 @@ export async function withMockedAiPlanningService(
     requestAiDestinationTransitHubs: vi.fn(),
     ...mocks.aiCatalog,
   }));
+  vi.doMock("@/server/google-candidate-images", () => ({
+    resolveCandidateImagesWithGoogle: vi.fn().mockResolvedValue(undefined),
+    ...mocks.candidateImages,
+  }));
   vi.doMock("@/server/supabase-ai-plan-application-service", () => ({
     countUserGenerationsToday: vi.fn().mockResolvedValue(0),
     createAiPlanGeneration: vi.fn(),
@@ -93,6 +98,7 @@ export async function withMockedAiPlanningService(
     vi.doUnmock("@/server/supabase-ai-planning-service");
     vi.doUnmock("@/server/openai-ai-planner");
     vi.doUnmock("@/server/openai-destination-catalog");
+    vi.doUnmock("@/server/google-candidate-images");
     vi.doUnmock("@/server/supabase-ai-plan-application-service");
     vi.doUnmock("@/server/supabase-google-routes-usage-store");
     vi.doUnmock("@/server/trip-access");

@@ -6,6 +6,7 @@ import {
   parseDetails,
   parsePhotoReference,
   parseSuggestions,
+  searchPlaceId,
 } from "@/server/google-places";
 
 describe("fetchDestinationSuggestions", () => {
@@ -318,5 +319,54 @@ describe("parseDetails", () => {
     { displayName: { text: "Kyoto" }, location: { latitude: 1, longitude: 2 } },
   ])("returns null for malformed detail payload %#", (payload) => {
     expect(parseDetails(payload)).toBeNull();
+  });
+});
+
+describe("searchPlaceId", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("sends an IDs-only text search biased to the destination", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ places: [{ id: "place-1" }] }), {
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      searchPlaceId({
+        apiKey: "key",
+        query: "Ohori Park, Fukuoka",
+        locationBias: { latitude: 33.59, longitude: 130.4 },
+      }),
+    ).resolves.toBe("place-1");
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://places.googleapis.com/v1/places:searchText");
+    // The id-only mask keeps this request in the free IDs-Only SKU.
+    expect(init.headers["X-Goog-FieldMask"]).toBe("places.id");
+    const body = JSON.parse(init.body as string);
+    expect(body.textQuery).toBe("Ohori Park, Fukuoka");
+    expect(body.locationBias.circle.center).toEqual({
+      latitude: 33.59,
+      longitude: 130.4,
+    });
+  });
+
+  it("returns null when the search has no results", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ places: [] }), { status: 200 }),
+        ),
+    );
+
+    await expect(
+      searchPlaceId({ apiKey: "key", query: "Nowhere" }),
+    ).resolves.toBeNull();
   });
 });

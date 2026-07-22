@@ -60,6 +60,7 @@ import {
   sanitizeAiDestinationTransitHubs,
   type AiCatalogDestination,
 } from "./openai-destination-catalog";
+import { resolveCandidateImagesWithGoogle } from "./google-candidate-images";
 import {
   resolveTransitPointForGeneration,
   transitPointOfKind,
@@ -228,6 +229,13 @@ async function generateDestinationCandidates(
         candidateKey,
         sanitizeAiDestinationCandidates(catalog, destination),
       );
+      // Best-effort thumbnails: a missing key, exhausted photo budget, or
+      // upstream failure must never fail the catalog itself.
+      await resolveCandidateImagesWithGoogle({
+        candidates: inserted,
+        destination,
+        userId,
+      }).catch(() => undefined);
       return { result: inserted, insertedCount: inserted.length, usage };
     },
   );
