@@ -215,6 +215,26 @@ describe("sanitizeAiDestinationCandidates", () => {
     );
   });
 
+  it("drops hedged candidates whose name ends in a question mark", () => {
+    const candidates = sanitizeAiDestinationCandidates(
+      {
+        candidates: [
+          ...generatedCandidates(AI_CATALOG_MIN_CANDIDATE_COUNT),
+          candidateInput({
+            name: "Walt Disney Family Museum?",
+            blurb: "skip...",
+          }),
+        ],
+      },
+      LISBON,
+    );
+
+    expect(
+      candidates.some((candidate) => candidate.name.endsWith("?")),
+    ).toBe(false);
+    expect(candidates).toHaveLength(AI_CATALOG_MIN_CANDIDATE_COUNT);
+  });
+
   it("keeps day-trip candidates within the allowed radius", () => {
     const sintra = candidateInput({
       name: "Pena Palace",

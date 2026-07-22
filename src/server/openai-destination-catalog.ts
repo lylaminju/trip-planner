@@ -254,6 +254,13 @@ function structuredTextFormat(name: string, schema: unknown) {
   };
 }
 
+// A generated name ending in a question mark is the model hedging about
+// whether the attraction belongs, not a real attraction name (for example
+// "Walt Disney Family Museum?" paired with a "skip..." blurb). Structured
+// Outputs guarantees the JSON shape but not the semantic quality of free-text
+// fields, so drop these rows before a note-to-self becomes a permanent entry.
+const HEDGED_CANDIDATE_NAME_PATTERN = /\?$/;
+
 /**
  * Filters generated attractions down to rows that satisfy the candidate
  * table's constraints: deduped names, known tags/tiers, valid coordinates near
@@ -271,6 +278,7 @@ export function sanitizeAiDestinationCandidates(
     const name = candidate.name.trim();
     const category = candidate.category.trim();
     if (!name || !category) continue;
+    if (HEDGED_CANDIDATE_NAME_PATTERN.test(name)) continue;
     if (seenCandidateNames.has(name.toLowerCase())) continue;
     if (!isUsableLocation(candidate, destination)) continue;
     if (
