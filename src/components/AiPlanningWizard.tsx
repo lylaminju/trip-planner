@@ -309,9 +309,6 @@ export function AiPlanningWizard(props: Props) {
           (props.isGenerating ? (
             <AiGenerationScreen
               destination={props.setup.trip.destination}
-              days={days}
-              paceRange={compactVisitsRange(draft)}
-              modeLabels={travelModeLabels(draft)}
               candidates={props.setup.candidates}
               selectedIds={draft.must_see_candidate_ids}
             />

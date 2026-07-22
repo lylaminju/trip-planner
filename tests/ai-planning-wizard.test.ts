@@ -68,7 +68,7 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Next");
   });
 
-  it("replaces wizard body with centered loading icons while generating", () => {
+  it("replaces wizard body with the generation screen while generating", () => {
     const markup = renderToStaticMarkup(
       createElement(AiPlanningWizard, {
         setup: setup(),
@@ -87,7 +87,7 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain('class="ai-generation-screen"');
     expect(markup).toContain('role="status"');
     expect(markup).toContain("Creating itinerary");
-    expect(markup).toContain('class="ai-generation-icons"');
+    expect(markup).toContain('class="ai-generation-spotlight"');
     expect(markup).toContain("Building your New York City itinerary");
     expect(markup).not.toContain("Step 1 of 6");
     expect(markup).not.toContain("How full should each day feel?");

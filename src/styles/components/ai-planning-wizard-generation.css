@@ -10,63 +10,11 @@
   text-align: center;
 }
 
-.ai-generation-icons {
-  align-items: center;
-  color: var(--accent);
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-}
-
-.ai-generation-icon {
-  animation: ai-generation-icon-pulse 1.3s ease-in-out infinite;
-  fill: none;
-  height: 40px;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-  width: 40px;
-}
-
-.ai-generation-icon:nth-child(2) {
-  animation-delay: 0.16s;
-}
-
-.ai-generation-icon:nth-child(3) {
-  animation-delay: 0.32s;
-}
-
 .ai-generation-title {
   color: var(--text);
   font-size: 23px;
   font-weight: 800;
   margin: 0 0 6px;
-}
-
-.ai-generation-status-message {
-  color: var(--muted);
-  font-size: 14px;
-  margin: 0;
-  min-height: 20px;
-}
-
-.ai-generation-bar {
-  background: var(--surface-subtle);
-  border-radius: 999px;
-  height: 6px;
-  max-width: 80%;
-  overflow: hidden;
-  width: 300px;
-}
-
-.ai-generation-bar-fill {
-  animation: ai-generation-bar-slide 1.4s ease-in-out infinite;
-  background: var(--accent);
-  border-radius: 999px;
-  display: block;
-  height: 100%;
-  width: 40%;
 }
 
 @keyframes ai-generation-icon-pulse {
@@ -82,25 +30,141 @@
   }
 }
 
-@keyframes ai-generation-bar-slide {
-  0% {
-    transform: translateX(-120%);
+/* Spotlight — rotating "meanwhile" cards reusing the destination catalog */
+.ai-generation-spotlight {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 440px;
+  width: 100%;
+}
+
+.ai-spotlight-eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ai-spotlight-card {
+  align-items: center;
+  animation: ai-spotlight-fade 420ms ease;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-control);
+  box-sizing: border-box;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 108px 1fr;
+  padding: 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.ai-spotlight-thumb {
+  align-items: center;
+  align-self: stretch;
+  background: var(--surface-map-muted);
+  border-radius: 10px;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 104px;
+  overflow: hidden;
+}
+
+.ai-spotlight-thumb-img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.ai-spotlight-thumb-fallback {
+  align-items: center;
+  color: var(--text-soft);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.ai-spotlight-thumb-fallback svg {
+  height: 30px;
+  width: 30px;
+}
+
+.ai-spotlight-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.ai-spotlight-name {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Reserve one line so cards without a neighborhood keep a stable height. */
+.ai-spotlight-meta {
+  color: var(--muted);
+  font-size: 12px;
+  min-height: 1.3em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Clamp and reserve three lines so blurbs of any length hold the same height. */
+.ai-spotlight-blurb {
+  -webkit-box-orient: vertical;
+  color: var(--text-tertiary);
+  display: -webkit-box;
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-line-clamp: 3;
+  min-height: calc(1.45em * 3);
+  overflow: hidden;
+}
+
+.ai-spotlight-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.ai-spotlight-dot {
+  background: var(--surface-map-muted);
+  border-radius: 999px;
+  height: 6px;
+  transition: all 200ms ease;
+  width: 6px;
+}
+
+.ai-spotlight-dot.active {
+  background: var(--accent);
+  width: 18px;
+}
+
+@keyframes ai-spotlight-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 
-  100% {
-    transform: translateX(320%);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ai-generation-icon {
+  .ai-spotlight-card {
     animation: none;
-    opacity: 1;
-  }
-
-  .ai-generation-bar-fill {
-    animation: none;
-    width: 100%;
   }
 }
 
