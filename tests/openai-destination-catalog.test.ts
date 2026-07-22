@@ -20,7 +20,7 @@ const LISBON_DESTINATION = {
 };
 
 describe("requestAiDestinationCatalog", () => {
-  it("requests a strict structured attraction catalog with web search enabled", async () => {
+  it("requests a strict structured attraction catalog from model knowledge alone", async () => {
     const catalog = { candidates: [] };
     const fetchMock = vi.fn().mockResolvedValue(
       Response.json({
@@ -53,10 +53,14 @@ describe("requestAiDestinationCatalog", () => {
     );
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.model).toBe("gpt-5.5");
-    expect(body.tools).toEqual([{ type: "web_search" }]);
-    // Search budget is capped both as a hard API limit and in the prompt.
-    expect(body.max_tool_calls).toBe(6);
-    expect(body.input[0].content[0].text).toContain("at most 6 web searches");
+    // No web search: catalog speed comes first; date-specific verification
+    // happens at itinerary generation instead.
+    expect(body.tools).toBeUndefined();
+    expect(body.max_tool_calls).toBeUndefined();
+    expect(body.input[0].content[0].text).toContain("most iconic first");
+    expect(body.input[0].content[0].text).toContain(
+      "permanently closed or under long-term renovation",
+    );
     expect(JSON.parse(body.input[1].content[0].text).destination.name).toBe(
       "Lisbon",
     );

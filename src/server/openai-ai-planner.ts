@@ -65,10 +65,18 @@ export type AiPlannerPromptContext = {
   validationErrors: string[];
 };
 
+// Hard ceiling on web_search tool calls per itinerary generation. Searches
+// verify only the places being scheduled (operation + opening days for the
+// actual trip dates), so the budget stays small and the run bounded.
+export const AI_ITINERARY_MAX_WEB_SEARCHES = 6;
+
 type RequestOptions = {
   apiKey: string;
   model: string;
   context: AiPlannerPromptContext;
+  // Primary generation verifies scheduled places with web search; the repair
+  // attempt runs without it so a validation failure never doubles search spend.
+  enableWebSearch?: boolean;
   fetchImpl?: typeof fetch;
 };
 
@@ -95,10 +103,18 @@ const SYSTEM_PROMPT = [
   "If validation errors are provided, repair only those issues.",
 ].join(" ");
 
+const WEB_SEARCH_VERIFICATION_PROMPT = [
+  `Use at most ${AI_ITINERARY_MAX_WEB_SEARCHES} web searches, and only to verify places you intend to schedule: confirm they currently operate and check their opening days and hours against the trip dates.`,
+  "Never schedule a place on a day it is closed; move it to another day or pick another candidate instead.",
+  "When a search reveals a booking requirement, seasonal closure, or unusual hours, mention it briefly in that visit's notes.",
+  "If a must-see candidate appears to be closed, keep it scheduled and add a clear warning note rather than dropping it.",
+].join(" ");
+
 export async function requestAiItineraryPlan({
   apiKey,
   model,
   context,
+  enableWebSearch = false,
   fetchImpl = fetch,
 }: RequestOptions): Promise<RequestResult> {
   const response = await fetchImpl("https://api.openai.com/v1/responses", {
@@ -109,10 +125,23 @@ export async function requestAiItineraryPlan({
     },
     body: JSON.stringify({
       model,
+      ...(enableWebSearch
+        ? {
+            tools: [{ type: "web_search" }],
+            max_tool_calls: AI_ITINERARY_MAX_WEB_SEARCHES,
+          }
+        : {}),
       input: [
         {
           role: "system",
-          content: [{ type: "input_text", text: SYSTEM_PROMPT }],
+          content: [
+            {
+              type: "input_text",
+              text: enableWebSearch
+                ? `${SYSTEM_PROMPT} ${WEB_SEARCH_VERIFICATION_PROMPT}`
+                : SYSTEM_PROMPT,
+            },
+          ],
         },
         {
           role: "user",

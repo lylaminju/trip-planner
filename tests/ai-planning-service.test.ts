@@ -315,6 +315,11 @@ describe("ai-planning-service request boundary", () => {
     expect(requestAiItineraryPlan.mock.calls[0][0].model).toBe(
       "gpt-5-mini-test",
     );
+    // Only the primary call spends web searches; the repair runs without.
+    expect(requestAiItineraryPlan.mock.calls[0][0].enableWebSearch).toBe(true);
+    expect(
+      requestAiItineraryPlan.mock.calls[1][0].enableWebSearch,
+    ).toBeUndefined();
     expect(requestAiItineraryPlan.mock.calls[1][0].context.validationErrors).toContain(
       "Candidate 99 is not in the curated list.",
     );
@@ -920,7 +925,7 @@ describe("prepareDestinationCatalogForRequest", () => {
       userId: "user-1",
     });
     expect(createAiPlanGeneration).toHaveBeenCalledWith(1, "user-1", {
-      prompt_version: "ai-destination-catalog-v2",
+      prompt_version: "ai-destination-catalog-v3",
       preferences_snapshot: {},
       candidate_count: 0,
       must_see_count: 0,

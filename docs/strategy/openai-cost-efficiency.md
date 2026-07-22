@@ -25,9 +25,9 @@ output cannot become a destination's permanent catalog.
 
 | Call | prompt_version | Web search | Trigger | Frequency |
 | --- | --- | --- | --- | --- |
-| Attraction catalog (~40 candidates) | `ai-destination-catalog-v2` | Yes, capped | Wizard open, catalog missing | Once per destination |
+| Attraction catalog (~40 candidates) | `ai-destination-catalog-v3` | No | Wizard open, catalog missing | Once per destination |
 | Transit hubs (≤5 hubs) | `ai-destination-transit-hubs-v1` | No | Wizard open, hubs missing | Once per destination |
-| Itinerary generation | `ai-itinerary-v1` | No | "Create itinerary" | Per generation, ≤2 model calls |
+| Itinerary generation | `ai-itinerary-v2` | Capped, primary call only | "Create itinerary" | Per generation, ≤2 model calls |
 
 Transit hubs (airports, stations) are stable facts, so their call runs on model
 knowledge alone — no web-search billing, a few-hundred-token output, and a
@@ -35,27 +35,33 @@ knowledge alone — no web-search billing, a few-hundred-token output, and a
 Start & end step while the catalog is still building. Splitting duplicates only
 the small request preamble (~1–2k input tokens once per destination).
 
-## 3. Web searches are capped per catalog build
+## 3. Web search runs at itinerary time, capped, primary call only
 
 Each `web_search` tool round appends result snippets to the context, and every
 subsequent pass re-reads the whole accumulated context, so token burn compounds
-with search count. Uncapped, the model verified attractions one by one:
-measured Fukuoka runs consumed ~23,000 tokens mid-flight and then requested
-~17,000 more (~40k/attempt), colliding with the project's tokens-per-minute
-limit and billing the burned tokens on every failed attempt.
+with search count. Uncapped catalog-time search verified attractions one by
+one: measured Fukuoka runs consumed ~23,000 tokens mid-flight and then
+requested ~17,000 more (~40k/attempt), colliding with the project's
+tokens-per-minute limit and billing the burned tokens on every failed attempt.
 
-The cap is enforced twice in `requestAiDestinationCatalog`:
+Search now lives where the trip dates are known — itinerary generation — and
+is bounded three ways in `requestAiItineraryPlan`:
 
-- `max_tool_calls: AI_CATALOG_MAX_WEB_SEARCHES` (6) — a hard API-level ceiling
-  ([tool docs](https://platform.openai.com/docs/guides/tools-web-search)).
-- A prompt instruction to spend those searches on broad queries (top-attraction
-  roundups, closed-attraction lists) instead of per-attraction checks, relying
-  on model knowledge for well-established places.
+- `max_tool_calls: AI_ITINERARY_MAX_WEB_SEARCHES` (6) — a hard API-level
+  ceiling ([tool docs](https://platform.openai.com/docs/guides/tools-web-search)).
+- The prompt directs searches only at places the model intends to schedule:
+  confirm they operate and check opening days/hours against the trip dates,
+  never scheduling a place on a day it is closed.
+- The repair attempt runs without search, so a validation failure never
+  doubles search spend.
 
-Web search tool calls are billed per call on top of tokens, so the cap bounds
-both meters. The accepted tradeoff: a recently closed minor attraction is less
-likely to be caught than under per-attraction verification; the post-generation
-banner already directs users to verify hours and venues before visiting.
+The catalog call uses no search at all: long-established attractions are
+stable model knowledge, and the prompt excludes attractions the model knows to
+be closed or under long-term renovation. This makes catalog generation a
+single fast pass and moves the recurring search cost (billed per call, on top
+of tokens) to the itinerary, where each generation buys date-specific
+verification. The post-generation banner still directs users to confirm hours
+before visiting.
 
 ## 4. Itinerary generation is bounded to two model calls
 

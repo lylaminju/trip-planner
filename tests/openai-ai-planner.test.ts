@@ -92,6 +92,54 @@ describe("OpenAI AI planner adapter", () => {
     ).rejects.toThrow("OpenAI itinerary generation failed: Bad request");
   });
 
+  it("verifies scheduled places with capped web search on the primary call", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        output_text: JSON.stringify({ days: [] }),
+        usage: { input_tokens: 1, output_tokens: 2 },
+      }),
+    );
+
+    await requestAiItineraryPlan({
+      apiKey: "test-key",
+      model: "gpt-5.5",
+      context: promptContext(),
+      enableWebSearch: true,
+      fetchImpl: fetchMock,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.tools).toEqual([{ type: "web_search" }]);
+    expect(body.max_tool_calls).toBe(6);
+    expect(body.input[0].content[0].text).toContain(
+      "opening days and hours against the trip dates",
+    );
+    expect(body.input[0].content[0].text).toContain(
+      "keep it scheduled and add a clear warning note",
+    );
+  });
+
+  it("runs without web search by default so the repair attempt stays cheap", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        output_text: JSON.stringify({ days: [] }),
+        usage: { input_tokens: 1, output_tokens: 2 },
+      }),
+    );
+
+    await requestAiItineraryPlan({
+      apiKey: "test-key",
+      model: "gpt-5.5",
+      context: promptContext(),
+      fetchImpl: fetchMock,
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.tools).toBeUndefined();
+    expect(body.max_tool_calls).toBeUndefined();
+    expect(body.input[0].content[0].text).not.toContain("web search");
+  });
+
   it("reports non-JSON OpenAI responses instead of raising a parse error", async () => {
     const fetchMock = vi
       .fn()

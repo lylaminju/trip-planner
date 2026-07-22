@@ -72,9 +72,11 @@ import {
 import { requireTripRole } from "./trip-access";
 import { getTripById } from "./trip-service";
 
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v1";
-// v2: attractions only — transit hubs moved to their own faster call.
-const AI_CATALOG_PROMPT_VERSION = "ai-destination-catalog-v2";
+// v2: web search verifies scheduled places' operation and opening days.
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v2";
+// v3: model knowledge only — closure verification moved to itinerary
+// generation, where the trip dates are known.
+const AI_CATALOG_PROMPT_VERSION = "ai-destination-catalog-v3";
 const AI_HUBS_PROMPT_VERSION = "ai-destination-transit-hubs-v1";
 const AI_GENERATION_DAILY_LIMIT = 30;
 
@@ -453,6 +455,7 @@ export async function generateAiItineraryForRequest(
     const primary = await requestAiItineraryPlan({
       apiKey: config.apiKey,
       model: config.model,
+      enableWebSearch: true,
       context: promptContext({
         trip,
         lodging,
