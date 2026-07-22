@@ -57,24 +57,33 @@ export function findDestinationOption(
   );
 }
 
-// Effective country codes for restricting a trip's place search to its
-// destination country. Prefers the trip's own resolved codes, then falls back
-// to the curated preset's country when a preset-based trip has none stored
-// (e.g. created before Google resolved its country), so a US trip's search
-// never leaks predictions from other countries. Mirrors the server-side
-// fallback used when generating the destination catalog.
-export function resolveDestinationCountryCodes(trip: {
-  destination_country_codes: string[] | null;
+// Fills a trip's destination coordinates and country codes from its curated
+// preset when they are not already set. Preset trips are created storing only a
+// slug, so this is applied at trip creation to make the stored columns the
+// single source of truth for map focus and place-search scope (no read-time
+// derivation needed downstream). A one-time migration backfills existing rows.
+export function fillPresetTripGeo(trip: {
   destination_slug: string | null;
   destination: string;
-}): string[] | null {
-  if (trip.destination_country_codes?.length) {
-    return trip.destination_country_codes;
-  }
-  const presetCode = findDestinationOption(
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  destination_country_codes: string[] | null;
+}): {
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  destination_country_codes: string[] | null;
+} {
+  const preset = findDestinationOption(
     trip.destination_slug ?? trip.destination,
-  )?.countryCode;
-  return presetCode ? [presetCode] : null;
+  );
+  return {
+    destination_latitude: trip.destination_latitude ?? preset?.latitude ?? null,
+    destination_longitude:
+      trip.destination_longitude ?? preset?.longitude ?? null,
+    destination_country_codes:
+      trip.destination_country_codes ??
+      (preset?.countryCode ? [preset.countryCode] : null),
+  };
 }
 
 export function findDestinationFocus(

@@ -18,10 +18,6 @@ import {
   countTripDays,
   formatTripDateRangeShort,
 } from "@/lib/ai-planning-preferences";
-import {
-  findDestinationFocus,
-  resolveDestinationCountryCodes,
-} from "@/lib/destination-options";
 import type {
   AiCatalogPrepStatus,
   AiPlanningGenerationInput,
@@ -169,24 +165,18 @@ export function AiPlanningWizard(props: Props) {
     trip?.start_date && trip.end_date
       ? countTripDays(trip.start_date, trip.end_date)
       : 0;
-  // Bias place search toward the trip destination, matching the planner's
-  // place search. Preset-based trips can have null coordinates, so fall back to
-  // the curated preset's focus before giving up on a bias.
-  const destinationFocus =
+  // Preset and custom trips both store their destination coordinates and
+  // country, so bias and restrict place search straight from the columns: the
+  // bias ranks results near the destination, the country codes keep a generic
+  // query like "hotel" from surfacing places in far-off countries.
+  const destinationBias =
     trip?.destination_latitude != null && trip.destination_longitude != null
-      ? { latitude: trip.destination_latitude, longitude: trip.destination_longitude }
-      : findDestinationFocus(trip?.destination_slug ?? trip?.destination);
-  const destinationBias = destinationFocus
-    ? {
-        latitude: destinationFocus.latitude,
-        longitude: destinationFocus.longitude,
-      }
-    : null;
-  // Restrict predictions to the destination country so a generic query like
-  // "hotel" never surfaces places from far-off countries.
-  const destinationCountryCodes = trip
-    ? resolveDestinationCountryCodes(trip)
-    : null;
+      ? {
+          latitude: trip.destination_latitude,
+          longitude: trip.destination_longitude,
+        }
+      : null;
+  const destinationCountryCodes = trip?.destination_country_codes ?? null;
   const modesEmpty = draft.preferred_travel_modes.length === 0;
   const isReviewStep = stepIndex === LAST_STEP_INDEX;
   const currentStep = STEP_META[stepIndex];
@@ -322,6 +312,8 @@ export function AiPlanningWizard(props: Props) {
               days={days}
               paceRange={compactVisitsRange(draft)}
               modeLabels={travelModeLabels(draft)}
+              candidates={props.setup.candidates}
+              selectedIds={draft.must_see_candidate_ids}
             />
           ) : (
             <form

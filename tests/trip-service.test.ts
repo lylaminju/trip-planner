@@ -28,9 +28,15 @@ describe("trip-service", () => {
         end_date: "2026-06-02",
       });
 
+      // A preset destination arrives with only a slug; creation fills its
+      // coordinates and country from the preset so the columns are the source
+      // of truth for map focus and place-search scope.
       expect(insertedTrips[0]).toMatchObject({
         destination: "Toronto",
         destination_slug: "toronto",
+        destination_latitude: 43.6532,
+        destination_longitude: -79.3832,
+        destination_country_codes: ["CA"],
       });
       expect(selectedFields[0]).toContain("destination_slug");
       expect(trip.destination_slug).toBe("toronto");

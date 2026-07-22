@@ -1,3 +1,4 @@
+import { fillPresetTripGeo } from "@/lib/destination-options";
 import {
   applyTripDateShift,
   planTripDateShift,
@@ -100,6 +101,10 @@ export async function createTripForRequest(
     ? await storeDestinationPhoto(userId, input.destination_photo_data)
     : null;
 
+  // Preset destinations arrive with only a slug; store the preset's own
+  // coordinates and country so the trip's columns are the source of truth.
+  const geo = fillPresetTripGeo(input);
+
   const { data: tripRow, error: tripError } = await getSupabaseClient()
     .from("trips")
     .insert({
@@ -107,9 +112,9 @@ export async function createTripForRequest(
       name: input.name,
       destination: input.destination,
       destination_slug: input.destination_slug,
-      destination_latitude: input.destination_latitude,
-      destination_longitude: input.destination_longitude,
-      destination_country_codes: input.destination_country_codes,
+      destination_latitude: geo.destination_latitude,
+      destination_longitude: geo.destination_longitude,
+      destination_country_codes: geo.destination_country_codes,
       destination_photo_url: destinationPhotoUrl,
       destination_photo_attribution: destinationPhotoUrl
         ? input.destination_photo_attribution

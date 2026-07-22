@@ -6,43 +6,61 @@ import path from "node:path";
 import { DESTINATIONS } from "@/data/destinations";
 import {
   DESTINATION_OPTIONS,
+  fillPresetTripGeo,
   filterDestinationOptions,
   findDestinationOption,
-  resolveDestinationCountryCodes,
 } from "@/lib/destination-options";
 import { DEFAULT_TRIP_COVER_IMAGE, getTripCoverImage } from "@/lib/city-covers";
 
-describe("resolveDestinationCountryCodes", () => {
-  it("falls back to the preset country when a preset trip has no stored codes", () => {
-    // Regression: NYC trip 54 had null country codes, so its place search
-    // leaked predictions worldwide instead of restricting to the US.
+describe("fillPresetTripGeo", () => {
+  it("fills coordinates and country from the preset when a preset trip has none", () => {
+    // Preset trips are created storing only a slug; creation fills their geo so
+    // the columns are the source of truth for map focus and place-search scope.
     expect(
-      resolveDestinationCountryCodes({
-        destination_country_codes: null,
+      fillPresetTripGeo({
         destination_slug: "new-york-city",
         destination: "New York City",
+        destination_latitude: null,
+        destination_longitude: null,
+        destination_country_codes: null,
       }),
-    ).toEqual(["US"]);
+    ).toEqual({
+      destination_latitude: 40.7128,
+      destination_longitude: -74.006,
+      destination_country_codes: ["US"],
+    });
   });
 
-  it("prefers the trip's own resolved codes over the preset", () => {
+  it("keeps a custom trip's own coordinates and country over any preset", () => {
     expect(
-      resolveDestinationCountryCodes({
+      fillPresetTripGeo({
+        destination_slug: null,
+        destination: "New York City",
+        destination_latitude: 12.34,
+        destination_longitude: 56.78,
         destination_country_codes: ["FR"],
-        destination_slug: "new-york-city",
-        destination: "New York City",
       }),
-    ).toEqual(["FR"]);
+    ).toEqual({
+      destination_latitude: 12.34,
+      destination_longitude: 56.78,
+      destination_country_codes: ["FR"],
+    });
   });
 
-  it("returns null for a custom destination with no preset match", () => {
+  it("leaves geo null for a custom destination with no preset match", () => {
     expect(
-      resolveDestinationCountryCodes({
-        destination_country_codes: null,
+      fillPresetTripGeo({
         destination_slug: null,
         destination: "Some Uncatalogued Town",
+        destination_latitude: null,
+        destination_longitude: null,
+        destination_country_codes: null,
       }),
-    ).toBeNull();
+    ).toEqual({
+      destination_latitude: null,
+      destination_longitude: null,
+      destination_country_codes: null,
+    });
   });
 });
 
