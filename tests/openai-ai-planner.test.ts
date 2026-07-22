@@ -65,6 +65,12 @@ describe("OpenAI AI planner adapter", () => {
     expect(body.input[0].content[0].text).toContain(
       "travel time from lodging to the first attraction",
     );
+    expect(body.input[0].content[0].text).toContain(
+      'about 60 minutes when trip_start_point.type is "airport"',
+    );
+    expect(body.input[0].content[0].text).toContain(
+      'about 150 minutes early when trip_end_point.type is "airport"',
+    );
     expect(body.input[0].content[0].text).toContain("10-minute increments");
     expect(body.text.format.type).toBe("json_schema");
     expect(body.text.format.strict).toBe(true);

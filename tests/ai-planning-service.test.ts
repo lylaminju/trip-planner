@@ -554,12 +554,14 @@ describe("ai-planning-service request boundary", () => {
             name: "JFK Airport",
             latitude: 40.641,
             longitude: -73.778,
+            type: "airport",
             time: "15:00",
           },
           trip_end_point: {
             name: "JFK Airport",
             latitude: 40.641,
             longitude: -73.778,
+            type: "airport",
             time: "21:00",
           },
         }),
@@ -655,10 +657,113 @@ describe("ai-planning-service request boundary", () => {
             name: "JFK Airport",
             latitude: 40.641,
             longitude: -73.778,
+            type: "airport",
             time: "15:00",
           },
         }),
       }),
+    );
+  });
+
+  it("rejects and repairs a first-day visit inside the airport arrival buffer", async () => {
+    const hub = transitHubRecord(71, "John F. Kennedy International Airport");
+    const arrivalPoint = transitPointRecord("arrival", "15:00", "airport");
+    const rushedFirstVisit = {
+      plan: {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                // Landing time itself — before the 60-minute airport egress buffer.
+                start_time: "15:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      usage: { inputTokens: 10, outputTokens: 20 },
+    };
+    const repairedFirstVisit = {
+      plan: {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "16:00",
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      usage: { inputTokens: 5, outputTokens: 10 },
+    };
+    const requestAiItineraryPlan = vi
+      .fn()
+      .mockResolvedValueOnce(rushedFirstVisit)
+      .mockResolvedValueOnce(repairedFirstVisit);
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+    const replaceAiGeneratedBatch = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(
+          tripRecord({ start_date: "2026-05-27", end_date: "2026-05-27" }),
+        ),
+        supabaseAiPlanningService: {
+          listDestinationCandidates: vi
+            .fn()
+            .mockResolvedValue([candidateRecord(10)]),
+          listDestinationTransitHubs: vi.fn().mockResolvedValue([hub]),
+          upsertPlanningPreferences: vi.fn().mockResolvedValue(
+            savedPreferenceRecord({ must_see_candidate_ids: [10] }),
+          ),
+          upsertTransitPointFromHub: vi.fn().mockResolvedValue(arrivalPoint),
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration: vi.fn().mockResolvedValue({ id: 55 }),
+          updateAiPlanGeneration: vi.fn(),
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [10],
+            arrival_hub_id: 71,
+            arrival_time: "15:00",
+          }),
+        ).resolves.toEqual({ generationId: 55, plannerSnapshot });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiItineraryPlan).toHaveBeenCalledTimes(2);
+    expect(requestAiItineraryPlan.mock.calls[1][0].context.validationErrors).toContain(
+      "Day 2026-05-27 has a visit before 16:00.",
+    );
+    expect(replaceAiGeneratedBatch).toHaveBeenCalledWith(
+      1,
+      55,
+      repairedFirstVisit.plan,
+      [candidateRecord(10)],
+      expect.any(Object),
+      null,
+      expect.any(String),
+      "user-1",
+      arrivalPoint,
+      null,
     );
   });
 

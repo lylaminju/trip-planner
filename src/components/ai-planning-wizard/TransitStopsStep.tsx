@@ -55,6 +55,7 @@ export function TransitStopsStep({
       <TransitStopField
         label="Where your trip starts"
         timeLabel="Arrival time"
+        timeHint="When you land or arrive — we leave time to get out before your first stop."
         idleHint="Day one starts here instead of where you're staying."
         urlPlaceholder="Paste a Google Maps link to your arrival spot"
         currentLabel="Current arrival stop"
@@ -81,6 +82,7 @@ export function TransitStopsStep({
       <TransitStopField
         label="Where your trip ends"
         timeLabel="Departure time"
+        timeHint="When your flight or train departs — we finish early enough to reach it."
         idleHint="Your last day wraps up here with time to spare."
         urlPlaceholder="Paste a Google Maps link to your departure spot"
         currentLabel="Current departure stop"
@@ -108,6 +110,7 @@ export function TransitStopsStep({
 function TransitStopField({
   label,
   timeLabel,
+  timeHint,
   idleHint,
   urlPlaceholder,
   currentLabel,
@@ -124,6 +127,7 @@ function TransitStopField({
 }: {
   label: string;
   timeLabel: string;
+  timeHint: string;
   idleHint: string;
   urlPlaceholder: string;
   currentLabel: string;
@@ -214,14 +218,17 @@ function TransitStopField({
             </>
           )}
         </div>
-        <label className="ai-field-group ai-field-time">
-          <span className="ai-field-label">{timeLabel}</span>
-          <input
-            type="time"
-            value={time}
-            onChange={(event) => onTimeChange(event.currentTarget.value)}
-          />
-        </label>
+        <div className="ai-field-time">
+          <label className="ai-field-group">
+            <span className="ai-field-label">{timeLabel}</span>
+            <input
+              type="time"
+              value={time}
+              onChange={(event) => onTimeChange(event.currentTarget.value)}
+            />
+          </label>
+          <p className="ai-transit-time-hint">{timeHint}</p>
+        </div>
       </div>
 
       {currentPoint && choice === null && (

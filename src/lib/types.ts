@@ -190,6 +190,10 @@ export type TripTransitPoint = {
   latitude: number;
   longitude: number;
   google_place_id: string | null;
+  // Type of the underlying transit hub when the point came from one; null for
+  // custom Google Maps points whose type is unknown. Drives arrival/departure
+  // buffer sizing (see src/lib/transit-buffers.ts).
+  hub_type: AiTransitHubType | null;
   event_time: string | null;
   created_at: string;
   updated_at: string;

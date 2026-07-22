@@ -55,6 +55,7 @@ export function transitPointPromptContext(
         name: point.name,
         latitude: point.latitude,
         longitude: point.longitude,
+        type: point.hub_type,
         time: point.event_time,
       }
     : null;

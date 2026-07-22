@@ -14,6 +14,11 @@ import type {
 } from "@/lib/types";
 import { isValidIsoDate } from "@/app/api/_utils";
 
+import {
+  firstDayEarliestStartFromArrival,
+  lastDayLatestEndFromDeparture,
+} from "@/lib/transit-buffers";
+
 import { promptContext } from "./ai-planner-prompt-context";
 import { validateAiItineraryPlan } from "./ai-plan-validation";
 import {
@@ -418,6 +423,12 @@ export async function generateAiItineraryForRequest(
     },
     transitPointOfKind(existingTransitPoints, "departure"),
   );
+  // Hard realism floors the plan must respect: the first day cannot start until
+  // the arrival hub's egress buffer has passed, and the last day must wrap up
+  // before the departure hub's pre-departure buffer (airports need the most).
+  const firstDayEarliestStartTime =
+    firstDayEarliestStartFromArrival(arrivalPoint);
+  const lastDayLatestEndTime = lastDayLatestEndFromDeparture(departurePoint);
   const savedPreferences = await upsertPlanningPreferences(
     tripId,
     generationInput.preferences,
@@ -453,8 +464,8 @@ export async function generateAiItineraryForRequest(
       visitsPerDayMax: savedPreferences.visits_per_day_max,
       mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
       earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
-      firstDayEarliestStartTime: arrivalPoint?.event_time ?? null,
-      lastDayLatestEndTime: departurePoint?.event_time ?? null,
+      firstDayEarliestStartTime,
+      lastDayLatestEndTime,
     });
 
     let finalPlan = primary.plan;

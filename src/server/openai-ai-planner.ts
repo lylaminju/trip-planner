@@ -1,9 +1,16 @@
 import type {
   AiDestinationCandidate,
   AiPlanningPreferenceInput,
+  AiTransitHubType,
   Trip,
   TripLodging,
 } from "@/lib/types";
+import {
+  AIRPORT_ARRIVAL_BUFFER_MINUTES,
+  AIRPORT_DEPARTURE_BUFFER_MINUTES,
+  DEFAULT_ARRIVAL_BUFFER_MINUTES,
+  DEFAULT_DEPARTURE_BUFFER_MINUTES,
+} from "@/lib/transit-buffers";
 
 import { AiUpstreamRateLimitError } from "./errors";
 import {
@@ -28,6 +35,9 @@ export type AiPlannerTransitPointContext = {
   name: string;
   latitude: number;
   longitude: number;
+  // Hub type when known, so the model can size airport vs. other-hub buffers;
+  // null for custom points, which use the smaller non-airport buffer.
+  type: AiTransitHubType | null;
   time: string | null;
 };
 
@@ -77,8 +87,9 @@ const SYSTEM_PROMPT = [
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
   "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
   "Use the provided daily_start_time as the time each day starts from lodging; the first attraction should account for realistic travel time from lodging to the first attraction.",
-  "When trip_start_point is provided, the first trip day begins there instead of lodging, starting at its time when given (otherwise daily_start_time); plan the first day's attractions accounting for travel from that point and do not schedule it as an attraction.",
-  "When trip_end_point is provided, the last day's visits must finish with enough time to reach it, before its time when given; keep the last day's final attractions convenient to it and do not schedule it as an attraction.",
+  "When trip_start_point is provided, the first trip day begins there instead of lodging; when it has no time, start from daily_start_time and treat that as the moment you leave the start point.",
+  `After arriving at trip_start_point at its given time, reserve buffer time before the first attraction can begin: about ${AIRPORT_ARRIVAL_BUFFER_MINUTES} minutes when trip_start_point.type is "airport" (deplaning, immigration, and baggage) and about ${DEFAULT_ARRIVAL_BUFFER_MINUTES} minutes for train, bus, ferry, or custom stops, then add realistic travel time from that point to the first attraction. Do not schedule trip_start_point as an attraction.`,
+  `When trip_end_point is provided, the last day's final attractions must finish early enough to reach it and be there before its given time with buffer: about ${AIRPORT_DEPARTURE_BUFFER_MINUTES} minutes early when trip_end_point.type is "airport" (check-in, security, and boarding) and about ${DEFAULT_DEPARTURE_BUFFER_MINUTES} minutes early for train, bus, ferry, or custom stops, plus realistic travel time to reach it. Keep the last day's final attractions convenient to it and do not schedule it as an attraction.`,
   "Use 10-minute increments for all visit start times, for example 09:00, 09:10, 09:20, 09:30, 09:40, or 09:50.",
   "Use candidate planning notes when relevant, for example booking recommendations.",
   "If validation errors are provided, repair only those issues.",

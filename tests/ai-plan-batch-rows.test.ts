@@ -339,6 +339,7 @@ function transitPoint(
     latitude: 40.64,
     longitude: -73.78,
     google_place_id: null,
+    hub_type: "airport",
     event_time: eventTime,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",

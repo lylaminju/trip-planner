@@ -3,6 +3,7 @@ import type {
   AiDestinationTransitHub,
   AiPlanningPreferenceInput,
   AiPlanningPreferences,
+  AiTransitHubType,
   TripLodging,
   TripTransitPoint,
   TripTransitPointKind,
@@ -23,7 +24,7 @@ const TRIP_LODGING_COLUMNS =
 const AI_PLANNING_PREFERENCES_COLUMNS =
   "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, preferred_travel_modes, must_see_candidate_ids, created_at, updated_at";
 const TRIP_TRANSIT_POINT_COLUMNS =
-  "id, trip_id, kind, name, latitude, longitude, google_place_id, event_time, created_at, updated_at";
+  "id, trip_id, kind, name, latitude, longitude, google_place_id, hub_type, event_time, created_at, updated_at";
 const AI_TRANSIT_HUB_COLUMNS =
   "id, destination_slug, name, hub_type, iata_code, latitude, longitude, sort_order, created_at, updated_at";
 
@@ -183,6 +184,7 @@ export async function upsertTransitPointFromGoogleMapsUrl(
     name: resolved.name?.trim() || TRANSIT_POINT_FALLBACK_NAMES[kind],
     latitude: resolved.latitude,
     longitude: resolved.longitude,
+    hub_type: null,
     event_time: eventTime,
   });
 }
@@ -197,6 +199,7 @@ export async function upsertTransitPointFromHub(
     name: hub.name,
     latitude: hub.latitude,
     longitude: hub.longitude,
+    hub_type: hub.hub_type,
     event_time: eventTime,
   });
 }
@@ -208,6 +211,7 @@ async function upsertTransitPoint(
     name: string;
     latitude: number;
     longitude: number;
+    hub_type: AiTransitHubType | null;
     event_time: string | null;
   },
 ): Promise<TripTransitPoint> {

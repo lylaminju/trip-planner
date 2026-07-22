@@ -230,6 +230,11 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.ai-field-time {
+  display: grid;
+  gap: 10px;
+}
+
 .ai-field-time input[type="time"] {
   width: 148px;
 }
@@ -310,6 +315,13 @@
   display: grid;
   gap: 18px;
   padding: 24px 28px;
+}
+
+.ai-transit-time-hint {
+  color: var(--text-soft);
+  font-size: 13px;
+  margin: 0;
+  max-width: 22ch;
 }
 
 .ai-transit-current {

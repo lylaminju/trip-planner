@@ -2,6 +2,7 @@ import { vi } from "vitest";
 
 import type {
   AiDestinationCandidate,
+  AiTransitHubType,
   Trip,
   TripMembership,
   TripTransitPoint,
@@ -207,6 +208,7 @@ export function transitHubRecord(id: number, name: string) {
 export function transitPointRecord(
   kind: TripTransitPointKind,
   eventTime: string | null,
+  hubType: AiTransitHubType | null = "airport",
 ): TripTransitPoint {
   return {
     id: kind === "arrival" ? 8 : 9,
@@ -216,6 +218,7 @@ export function transitPointRecord(
     latitude: 40.641,
     longitude: -73.778,
     google_place_id: null,
+    hub_type: hubType,
     event_time: eventTime,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
