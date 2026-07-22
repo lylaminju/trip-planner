@@ -319,13 +319,17 @@ export function AiPlanningWizard(props: Props) {
                       Plan with AI
                     </div>
                     <div className="ai-wizard-brand-sub">
-                      {props.setup.trip.destination}
-                      {trip?.start_date && trip.end_date
-                        ? ` · ${formatTripDateRangeShort(
+                      <span className="ai-wizard-brand-destination">
+                        {props.setup.trip.destination}
+                      </span>
+                      {trip?.start_date && trip.end_date && (
+                        <span className="ai-wizard-brand-dates">
+                          {formatTripDateRangeShort(
                             trip.start_date,
                             trip.end_date,
-                          )}`
-                        : ""}
+                          )}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
