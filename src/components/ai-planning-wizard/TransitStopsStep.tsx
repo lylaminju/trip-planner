@@ -1,4 +1,5 @@
 import type {
+  AiCatalogPrepStatus,
   AiDestinationTransitHub,
   TripTransitPoint,
 } from "@/lib/types";
@@ -15,6 +16,8 @@ import { UrlPreviewHint } from "./UrlPreviewHint";
 export function TransitStopsStep({
   currentArrivalPoint,
   currentDeparturePoint,
+  hubsStatus,
+  onRetryPrepare,
   onTransitDraftChange,
   transitDraft,
   transitHubs,
@@ -22,6 +25,8 @@ export function TransitStopsStep({
 }: {
   currentArrivalPoint: TripTransitPoint | null;
   currentDeparturePoint: TripTransitPoint | null;
+  hubsStatus: AiCatalogPrepStatus;
+  onRetryPrepare: () => void;
   onTransitDraftChange: (draft: TransitStopDraft) => void;
   transitDraft: TransitStopDraft;
   transitHubs: AiDestinationTransitHub[];
@@ -29,6 +34,24 @@ export function TransitStopsStep({
 }) {
   return (
     <div className="ai-logistics-step">
+      {transitHubs.length === 0 && hubsStatus === "preparing" && (
+        <p className="ai-step-pending" role="status">
+          Finding this destination&apos;s airports and stations… You can paste
+          a Google Maps link below meanwhile.
+        </p>
+      )}
+      {transitHubs.length === 0 && hubsStatus === "error" && (
+        <p className="ai-step-pending" role="alert">
+          Couldn&apos;t find suggested airports and stations.{" "}
+          <button
+            type="button"
+            className="ai-step-retry"
+            onClick={onRetryPrepare}
+          >
+            Try again
+          </button>
+        </p>
+      )}
       <TransitStopField
         label="Where your trip starts"
         timeLabel="Arrival time"

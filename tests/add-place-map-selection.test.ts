@@ -23,7 +23,6 @@ function renderAddModal(initialSearchPlace: PlaceSearchSelection) {
       tripId: 1,
       place: null,
       savedPlaces: [],
-      hasCuratedCandidates: false,
       visitDateOptions: [],
       initialSearchPlace,
       onCancel: vi.fn(),

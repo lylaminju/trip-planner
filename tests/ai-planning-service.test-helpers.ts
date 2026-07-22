@@ -14,6 +14,7 @@ export async function withMockedAiPlanningService(
     requireTripRole?: ReturnType<typeof vi.fn>;
     supabaseAiPlanningService?: Record<string, ReturnType<typeof vi.fn>>;
     aiPlanner?: Record<string, ReturnType<typeof vi.fn>>;
+    aiCatalog?: Record<string, ReturnType<typeof vi.fn>>;
     aiPlanApplication?: Record<string, ReturnType<typeof vi.fn>>;
   },
   run: (context: {
@@ -46,11 +47,23 @@ export async function withMockedAiPlanningService(
     upsertTransitPointFromGoogleMapsUrl: vi.fn(),
     upsertTransitPointFromHub: vi.fn(),
     updateTransitPointTime: vi.fn(),
+    insertDestinationCandidates: vi.fn(),
+    insertDestinationTransitHubs: vi.fn(),
     ...mocks.supabaseAiPlanningService,
   }));
   vi.doMock("@/server/openai-ai-planner", () => ({
     requestAiItineraryPlan: vi.fn(),
     ...mocks.aiPlanner,
+  }));
+  // Keep the real sanitizer so catalog tests exercise production filtering;
+  // only the OpenAI request is stubbed.
+  vi.doMock("@/server/openai-destination-catalog", async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/server/openai-destination-catalog")
+    >()),
+    requestAiDestinationCatalog: vi.fn(),
+    requestAiDestinationTransitHubs: vi.fn(),
+    ...mocks.aiCatalog,
   }));
   vi.doMock("@/server/supabase-ai-plan-application-service", () => ({
     countUserGenerationsToday: vi.fn().mockResolvedValue(0),
@@ -78,6 +91,7 @@ export async function withMockedAiPlanningService(
   } finally {
     vi.doUnmock("@/server/supabase-ai-planning-service");
     vi.doUnmock("@/server/openai-ai-planner");
+    vi.doUnmock("@/server/openai-destination-catalog");
     vi.doUnmock("@/server/supabase-ai-plan-application-service");
     vi.doUnmock("@/server/supabase-google-routes-usage-store");
     vi.doUnmock("@/server/trip-access");

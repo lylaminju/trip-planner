@@ -9,6 +9,7 @@ import { errorMessage } from "@/lib/error-message";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type { ResolvedPlace } from "@/lib/planner-api";
 import type {
+  AiCatalogPrepStatus,
   AiPlanningGenerationInput,
   AiPlanningSetup,
   ItineraryItem,
@@ -43,11 +44,12 @@ type AiPlanningWizardState = {
   isGenerating: boolean;
   setup: AiPlanningSetup | null;
   error: string | null;
+  catalogStatus: AiCatalogPrepStatus;
+  hubsStatus: AiCatalogPrepStatus;
 };
 
 type Props = {
   tripId: number;
-  hasCuratedCandidates: boolean;
   mobileSheetState: MobileSheetState;
   isPlannerPanelExpanded: boolean;
   tripTitle: string;
@@ -139,6 +141,7 @@ type Props = {
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onSetError: (message: string | null) => void;
   onCloseAiPlanningWizard: () => void;
+  onRetryAiCatalogPrepare: () => void;
   onCreateAiItinerary: (input: AiPlanningGenerationInput) => Promise<void>;
   onRetryAiPlanningLoad: () => void;
 };
@@ -285,7 +288,6 @@ export function TripPlannerView(props: Props) {
           tripId={props.tripId}
           place={props.editingPlace}
           savedPlaces={props.plannerSnapshot.places}
-          hasCuratedCandidates={props.hasCuratedCandidates}
           visitDateOptions={props.visitDateOptions}
           defaultVisitDate={props.editingPlace ? null : props.addPlaceVisitDate}
           initialSearchPlace={props.editingPlace ? null : props.addPlaceSelection}
@@ -350,6 +352,9 @@ export function TripPlannerView(props: Props) {
         <AiPlanningWizard
           setup={props.aiPlanningWizard.setup}
           isLoading={props.aiPlanningWizard.isLoading}
+          catalogStatus={props.aiPlanningWizard.catalogStatus}
+          hubsStatus={props.aiPlanningWizard.hubsStatus}
+          onRetryCatalogPrepare={props.onRetryAiCatalogPrepare}
           error={props.aiPlanningWizard.error}
           isGenerating={props.aiPlanningWizard.isGenerating}
           onCancel={props.onCloseAiPlanningWizard}

@@ -53,7 +53,6 @@ export type PlaceSearchSelection = {
 type Props = {
   tripId: number;
   savedPlaces: Place[];
-  hasCuratedCandidates: boolean;
   destinationBias: PlaceSearchBias | null;
   // Restricts live search to the trip's destination country/countries so generic
   // queries stop surfacing unrelated foreign places. Null = unrestricted.
@@ -65,7 +64,6 @@ type Props = {
 export function AddPlaceSearchStep({
   tripId,
   savedPlaces,
-  hasCuratedCandidates,
   destinationBias,
   destinationCountryCodes,
   onSelectPlace,
@@ -93,14 +91,14 @@ export function AddPlaceSearchStep({
     !isPastedUrl &&
     trimmedQuery.length >= MIN_QUERY_LENGTH &&
     unavailableMessage === null;
-  // Curated attractions fill the popover before the query is long enough for
-  // live Google search, starting with the full list on focus. While the
-  // catalog is in flight, a pending row holds the popover open so the list
-  // doesn't pop in from nothing.
+  // Catalog attractions (curated or AI-generated) fill the popover before the
+  // query is long enough for live Google search, starting with the full list
+  // on focus. While the catalog is in flight, a pending row holds the popover
+  // open so the list doesn't pop in from nothing.
   const isBrowsingCandidates =
     !isPastedUrl && trimmedQuery.length < MIN_QUERY_LENGTH;
   const { candidates, isLoading: isCandidatesLoading } =
-    useDestinationCandidates(tripId, hasCuratedCandidates);
+    useDestinationCandidates(tripId);
   const candidateMatches = isBrowsingCandidates
     ? matchDestinationCandidates(candidates, savedPlaces, trimmedQuery)
     : [];

@@ -19,6 +19,9 @@ describe("AiPlanningWizard", () => {
       createElement(AiPlanningWizard, {
         setup: null,
         isLoading: true,
+        catalogStatus: "ready",
+        hubsStatus: "ready",
+        onRetryCatalogPrepare: vi.fn(),
         error: null,
         isGenerating: false,
         onCancel: vi.fn(),
@@ -37,6 +40,9 @@ describe("AiPlanningWizard", () => {
       createElement(AiPlanningWizard, {
         setup: setup(),
         isLoading: false,
+        catalogStatus: "ready",
+        hubsStatus: "ready",
+        onRetryCatalogPrepare: vi.fn(),
         error: null,
         isGenerating: false,
         onCancel: vi.fn(),
@@ -67,6 +73,9 @@ describe("AiPlanningWizard", () => {
       createElement(AiPlanningWizard, {
         setup: setup(),
         isLoading: false,
+        catalogStatus: "ready",
+        hubsStatus: "ready",
+        onRetryCatalogPrepare: vi.fn(),
         error: null,
         isGenerating: true,
         onCancel: vi.fn(),
@@ -89,6 +98,9 @@ describe("AiPlanningWizard", () => {
       createElement(AiPlanningWizard, {
         setup: setup(),
         isLoading: false,
+        catalogStatus: "ready",
+        hubsStatus: "ready",
+        onRetryCatalogPrepare: vi.fn(),
         error: "The AI planner couldn't create an itinerary.",
         isGenerating: false,
         onCancel: vi.fn(),
@@ -108,6 +120,9 @@ describe("AiPlanningWizard", () => {
       createElement(AiPlanningWizard, {
         setup: null,
         isLoading: false,
+        catalogStatus: "ready",
+        hubsStatus: "ready",
+        onRetryCatalogPrepare: vi.fn(),
         error: "Failed to load AI planning setup.",
         isGenerating: false,
         onCancel: vi.fn(),
@@ -193,6 +208,8 @@ describe("AiPlanningWizard", () => {
         ],
         tripId: 1,
         onTransitDraftChange: vi.fn(),
+        hubsStatus: "ready" as const,
+        onRetryPrepare: vi.fn(),
       }),
     );
 
@@ -237,6 +254,8 @@ describe("AiPlanningWizard", () => {
         transitHubs: [],
         tripId: 1,
         onTransitDraftChange: vi.fn(),
+        hubsStatus: "ready" as const,
+        onRetryPrepare: vi.fn(),
       }),
     );
 
@@ -248,6 +267,8 @@ describe("AiPlanningWizard", () => {
   it("shows candidate planning notes on the must-see step", () => {
     const markup = renderToStaticMarkup(
       createElement(MustSeeStep, {
+        catalogStatus: "ready" as const,
+        onRetryPrepare: vi.fn(),
         candidates: [
           {
             ...candidate(
@@ -270,9 +291,45 @@ describe("AiPlanningWizard", () => {
     expect(markup).not.toContain('aria-label="Clear selected must-sees"');
   });
 
+  it("shows a centered animated pending state while the catalog prepares", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MustSeeStep, {
+        catalogStatus: "preparing" as const,
+        onRetryPrepare: vi.fn(),
+        candidates: [],
+        draft: preferenceDraft(),
+        onChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('class="ai-step-pending-screen"');
+    expect(markup).toContain('role="status"');
+    expect(markup).toContain("Finding top attractions…");
+    expect(markup).toContain('class="ai-step-pending-icon"');
+  });
+
+  it("offers a retry when catalog preparation failed", () => {
+    const onRetryPrepare = vi.fn();
+    const markup = renderToStaticMarkup(
+      createElement(MustSeeStep, {
+        catalogStatus: "error" as const,
+        onRetryPrepare,
+        candidates: [],
+        draft: preferenceDraft(),
+        onChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain('class="ai-step-retry"');
+    expect(markup).toContain("Try again");
+  });
+
   it("shows a Clear control only once must-sees are selected", () => {
     const markup = renderToStaticMarkup(
       createElement(MustSeeStep, {
+        catalogStatus: "ready" as const,
+        onRetryPrepare: vi.fn(),
         candidates: [candidate(10, "Central Park", "park", ["nature"], "Manhattan")],
         draft: { ...preferenceDraft(), must_see_candidate_ids: [10] },
         onChange: vi.fn(),
@@ -437,7 +494,7 @@ function setup(): AiPlanningSetup {
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     },
-    isSupportedDestination: true,
+    candidatesReady: true,
     candidates: [
       candidate(10, "Central Park", "park", ["nature"], "Manhattan"),
       candidate(11, "The Met", "museum", ["museums"], "Upper East Side"),

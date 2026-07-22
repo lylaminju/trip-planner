@@ -1,5 +1,6 @@
 import type {
   AiDestinationCandidate,
+  AiDestinationTransitHub,
   AiPlanningGenerationInput,
   AiPlanningPreferenceInput,
   AiPlanningPreferences,
@@ -64,6 +65,49 @@ export async function loadAiPlanningSetup(
   return response.json();
 }
 
+// Generates and stores the destination's arrival transit hubs when they don't
+// exist yet — a small, fast AI call fired alongside the catalog preparation.
+export async function prepareAiDestinationTransitHubs(
+  tripId: number,
+): Promise<AiDestinationTransitHub[]> {
+  const response = await fetch(
+    `${tripApiBase(tripId)}/ai-planning/transit-hubs`,
+    { method: "POST" },
+  );
+  const data = await readJsonBody(response);
+
+  if (!response.ok || data === null) {
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "Failed to prepare transit stops.",
+    );
+  }
+
+  return Array.isArray(data?.transitHubs) ? data.transitHubs : [];
+}
+
+// Generates and stores the destination's candidate catalog when it doesn't
+// exist yet (a long AI call), then returns the refreshed planning setup.
+export async function prepareAiDestinationCatalog(
+  tripId: number,
+): Promise<AiPlanningSetup> {
+  const response = await fetch(`${tripApiBase(tripId)}/ai-planning/candidates`, {
+    method: "POST",
+  });
+  const data = await readJsonBody(response);
+
+  if (!response.ok || data === null) {
+    throw new Error(
+      typeof data?.error === "string"
+        ? data.error
+        : "Failed to prepare destination suggestions.",
+    );
+  }
+
+  return data;
+}
+
 export async function loadDestinationCandidates(
   tripId: number,
 ): Promise<AiDestinationCandidate[]> {
@@ -107,9 +151,9 @@ export async function generateAiItinerary(
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const data = await response.json();
+  const data = await readJsonBody(response);
 
-  if (!response.ok) {
+  if (!response.ok || data === null) {
     throw new Error(
       typeof data?.error === "string"
         ? data.error
@@ -299,6 +343,17 @@ export function logoutRequest(): Promise<Response> {
 
 function tripApiBase(tripId: number): string {
   return `/api/trips/${tripId}`;
+}
+
+// Long AI requests can fail with an empty or HTML 500 body (unhandled server
+// error, gateway timeout); null lets callers fall back to their own message
+// instead of surfacing a raw JSON parse error.
+async function readJsonBody(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 function isAbortError(error: unknown, signal?: AbortSignal): boolean {

@@ -5,6 +5,7 @@ import {
   estimateStopCount,
 } from "@/lib/ai-planning-preferences";
 import type {
+  AiCatalogPrepStatus,
   AiDestinationCandidate,
   AiDestinationTransitHub,
   AiPlanningPreferenceInput,
@@ -16,7 +17,7 @@ import {
   type TransitStopDraft,
 } from "./transit-stop-draft";
 import { toggleValue } from "./toggle-value";
-import { MapPinIcon } from "../Icons";
+import { MagicWandIcon, MapPinIcon } from "../Icons";
 
 type StepProps = {
   draft: AiPlanningPreferenceInput;
@@ -158,9 +159,45 @@ export function InterestStep({ draft, onChange }: StepProps) {
 
 export function MustSeeStep({
   candidates,
+  catalogStatus,
+  onRetryPrepare,
   draft,
   onChange,
-}: StepProps & { candidates: AiDestinationCandidate[] }) {
+}: StepProps & {
+  candidates: AiDestinationCandidate[];
+  catalogStatus: AiCatalogPrepStatus;
+  onRetryPrepare: () => void;
+}) {
+  if (candidates.length === 0 && catalogStatus === "preparing") {
+    return (
+      <div className="ai-step-pending-screen" role="status">
+        <span className="ai-step-pending-icon" aria-hidden="true">
+          <MagicWandIcon />
+        </span>
+        <p className="ai-step-pending-title">Finding top attractions…</p>
+        <p className="ai-step-pending-sub">
+          They&apos;ll appear here in a minute.
+        </p>
+      </div>
+    );
+  }
+  if (candidates.length === 0 && catalogStatus === "error") {
+    return (
+      <div className="ai-step-pending-screen">
+        <p className="error-text" role="alert">
+          Couldn&apos;t load attraction suggestions.
+        </p>
+        <button
+          type="button"
+          className="ai-step-retry"
+          onClick={onRetryPrepare}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
   const count = draft.must_see_candidate_ids.length;
   return (
     <div className="ai-choice-step">

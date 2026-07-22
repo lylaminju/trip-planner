@@ -397,7 +397,7 @@ describe("API routes transport behavior", () => {
           created_at: "2026-01-01T00:00:00.000Z",
           updated_at: "2026-01-01T00:00:00.000Z",
         },
-        isSupportedDestination: true,
+        candidatesReady: true,
         candidates: [],
         lodging: null,
         preferences: null,
@@ -431,6 +431,88 @@ describe("API routes transport behavior", () => {
           await import("@/app/api/trips/[tripId]/ai-planning/setup/route");
         const response = await GET(
           new Request("http://localhost/api/trips/1/ai-planning/setup"),
+          tripParams(),
+        );
+
+        expect(response.status).toBe(401);
+        await expect(response.json()).resolves.toEqual({
+          error: "Authentication required.",
+        });
+      },
+      { authenticated: false },
+    );
+  });
+
+  it("prepares the destination catalog and returns the refreshed setup", async () => {
+    await withFreshTestEnv(async () => {
+      const setup = {
+        trip: { id: 1 },
+        candidatesReady: true,
+        candidates: [],
+        lodging: null,
+        preferences: null,
+      };
+
+      vi.doMock("@/server/ai-planning-service", () => ({
+        prepareDestinationCatalogForRequest: vi.fn().mockResolvedValue(setup),
+      }));
+
+      const { POST } =
+        await import("@/app/api/trips/[tripId]/ai-planning/candidates/route");
+      const service = await import("@/server/ai-planning-service");
+      const response = await POST(
+        new Request("http://localhost/api/trips/1/ai-planning/candidates", {
+          method: "POST",
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual(setup);
+      expect(service.prepareDestinationCatalogForRequest).toHaveBeenCalledWith(
+        1,
+        "user-1",
+      );
+    });
+  });
+
+  it("prepares destination transit hubs for authenticated trip owners", async () => {
+    await withFreshTestEnv(async () => {
+      const transitHubs = [{ id: 5, name: "Lisbon Airport" }];
+
+      vi.doMock("@/server/ai-planning-service", () => ({
+        prepareDestinationTransitHubsForRequest: vi
+          .fn()
+          .mockResolvedValue(transitHubs),
+      }));
+
+      const { POST } =
+        await import("@/app/api/trips/[tripId]/ai-planning/transit-hubs/route");
+      const service = await import("@/server/ai-planning-service");
+      const response = await POST(
+        new Request("http://localhost/api/trips/1/ai-planning/transit-hubs", {
+          method: "POST",
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({ transitHubs });
+      expect(
+        service.prepareDestinationTransitHubsForRequest,
+      ).toHaveBeenCalledWith(1, "user-1");
+    });
+  });
+
+  it("returns 401 for unauthenticated destination catalog preparation", async () => {
+    await withFreshTestEnv(
+      async () => {
+        const { POST } =
+          await import("@/app/api/trips/[tripId]/ai-planning/candidates/route");
+        const response = await POST(
+          new Request("http://localhost/api/trips/1/ai-planning/candidates", {
+            method: "POST",
+          }),
           tripParams(),
         );
 

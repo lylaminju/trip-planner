@@ -129,12 +129,14 @@ describe("TripPlannerApp", () => {
     expect(withPlaces).toContain("Plan with AI");
   });
 
-  it("hides AI planning for unsupported destinations, non-owners, or invalid dates", () => {
+  it("hides AI planning for trips without a destination, non-owners, or invalid dates", () => {
     const unsupported = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
         currentUserId: "user-1",
-        initialData: buildTripPlannerInitialData(),
+        initialData: buildTripPlannerInitialData({
+          trip: { ...buildTrip(), destination: "", destination_slug: null },
+        }),
       }),
     );
     const editor = renderToStaticMarkup(

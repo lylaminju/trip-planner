@@ -1,6 +1,12 @@
-import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
+import { destinationCandidateKey } from "@/lib/ai-planning";
+import {
+  countryNameFromCode,
+  findDestinationFocus,
+  findDestinationOption,
+} from "@/lib/destination-options";
 import type {
   AiDestinationCandidate,
+  AiDestinationTransitHub,
   AiPlanningPreferences,
   AiPlanningSetup,
   PlannerSnapshot,
@@ -17,6 +23,7 @@ import {
 import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
+  AiUpstreamRateLimitError,
   GoogleRoutesRateLimitError,
   TripValidationError,
 } from "./errors";
@@ -34,11 +41,20 @@ import {
   getPlanningPreferences,
   getPrimaryLodging,
   getTransitPoints,
+  insertDestinationCandidates,
+  insertDestinationTransitHubs,
   listDestinationCandidates,
   listDestinationTransitHubs,
   upsertPrimaryLodgingFromGoogleMapsUrl,
   upsertPlanningPreferences,
 } from "./supabase-ai-planning-service";
+import {
+  requestAiDestinationCatalog,
+  requestAiDestinationTransitHubs,
+  sanitizeAiDestinationCandidates,
+  sanitizeAiDestinationTransitHubs,
+  type AiCatalogDestination,
+} from "./openai-destination-catalog";
 import {
   resolveTransitPointForGeneration,
   transitPointOfKind,
@@ -51,7 +67,15 @@ import { requireTripRole } from "./trip-access";
 import { getTripById } from "./trip-service";
 
 const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v1";
+// v2: attractions only — transit hubs moved to their own faster call.
+const AI_CATALOG_PROMPT_VERSION = "ai-destination-catalog-v2";
+const AI_HUBS_PROMPT_VERSION = "ai-destination-transit-hubs-v1";
 const AI_GENERATION_DAILY_LIMIT = 30;
+
+const DESTINATION_NOT_PLANNABLE_MESSAGE =
+  "AI planning needs a trip destination first.";
+const CATALOG_NOT_READY_MESSAGE =
+  "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";
 
 export async function getAiPlanningSetupForRequest(
   tripId: number,
@@ -59,14 +83,12 @@ export async function getAiPlanningSetupForRequest(
 ): Promise<AiPlanningSetup> {
   await requireTripRole(tripId, userId, "owner");
   const trip = await getTripById(tripId);
-  const isSupportedDestination = isAiPlanningDestinationSupported(
-    trip.destination_slug,
-  );
+  const candidateKey = destinationCandidateKey(trip);
 
-  if (!isSupportedDestination || !trip.destination_slug) {
+  if (!candidateKey) {
     return {
       trip,
-      isSupportedDestination: false,
+      candidatesReady: false,
       candidates: [],
       lodging: null,
       arrivalPoint: null,
@@ -78,16 +100,16 @@ export async function getAiPlanningSetupForRequest(
 
   const [candidates, lodging, transitPoints, transitHubs, preferences] =
     await Promise.all([
-      listDestinationCandidates(trip.destination_slug),
+      listDestinationCandidates(candidateKey),
       getPrimaryLodging(tripId),
       getTransitPoints(tripId),
-      listDestinationTransitHubs(trip.destination_slug),
+      listDestinationTransitHubs(candidateKey),
       getPlanningPreferences(tripId),
     ]);
 
   return {
     trip,
-    isSupportedDestination,
+    candidatesReady: candidates.length > 0,
     candidates,
     lodging,
     arrivalPoint: transitPointOfKind(transitPoints, "arrival"),
@@ -97,21 +119,63 @@ export async function getAiPlanningSetupForRequest(
   };
 }
 
+// Ensures the trip's destination has an attraction catalog, generating and
+// persisting one with OpenAI when the destination has no curated rows yet.
+// Returns the refreshed planning setup so the wizard can continue in one step.
+export async function prepareDestinationCatalogForRequest(
+  tripId: number,
+  userId: string,
+): Promise<AiPlanningSetup> {
+  await requireTripRole(tripId, userId, "owner");
+  const trip = await getTripById(tripId);
+  const candidateKey = destinationCandidateKey(trip);
+  if (!candidateKey) {
+    throw new TripValidationError(DESTINATION_NOT_PLANNABLE_MESSAGE);
+  }
+
+  const existing = await listDestinationCandidates(candidateKey);
+  if (existing.length === 0) {
+    await generateDestinationCandidates(trip, candidateKey, tripId, userId);
+  }
+
+  return getAiPlanningSetupForRequest(tripId, userId);
+}
+
+// Companion to the catalog preparation above, split out because hubs come from
+// a much smaller model call (no web search): the wizard fires both in parallel
+// and the Start & end step unlocks as soon as this one lands.
+export async function prepareDestinationTransitHubsForRequest(
+  tripId: number,
+  userId: string,
+): Promise<AiDestinationTransitHub[]> {
+  await requireTripRole(tripId, userId, "owner");
+  const trip = await getTripById(tripId);
+  const candidateKey = destinationCandidateKey(trip);
+  if (!candidateKey) {
+    throw new TripValidationError(DESTINATION_NOT_PLANNABLE_MESSAGE);
+  }
+
+  const existing = await listDestinationTransitHubs(candidateKey);
+  if (existing.length > 0) {
+    return existing;
+  }
+
+  return generateDestinationTransitHubs(trip, candidateKey, tripId, userId);
+}
+
 // Lighter than the full planning setup: the Add Place search step only needs
-// the curated catalog, not lodging/transit/preferences.
+// the destination's candidate catalog, not lodging/transit/preferences.
 export async function listDestinationCandidatesForRequest(
   tripId: number,
   userId: string,
 ): Promise<AiDestinationCandidate[]> {
   await requireTripRole(tripId, userId, "owner");
   const trip = await getTripById(tripId);
-  if (
-    !trip.destination_slug ||
-    !isAiPlanningDestinationSupported(trip.destination_slug)
-  ) {
+  const candidateKey = destinationCandidateKey(trip);
+  if (!candidateKey) {
     return [];
   }
-  return listDestinationCandidates(trip.destination_slug);
+  return listDestinationCandidates(candidateKey);
 }
 
 export async function saveAiPlanningPreferencesForRequest(
@@ -121,23 +185,163 @@ export async function saveAiPlanningPreferencesForRequest(
 ): Promise<AiPlanningPreferences> {
   await requireTripRole(tripId, userId, "owner");
   const trip = await getTripById(tripId);
+  const candidateKey = destinationCandidateKey(trip);
 
-  if (
-    !trip.destination_slug ||
-    !isAiPlanningDestinationSupported(trip.destination_slug)
-  ) {
-    throw new TripValidationError(
-      "AI planning is not available for this destination.",
-    );
+  if (!candidateKey) {
+    throw new TripValidationError(DESTINATION_NOT_PLANNABLE_MESSAGE);
   }
 
-  const candidates = await listDestinationCandidates(trip.destination_slug);
+  const candidates = await listDestinationCandidates(candidateKey);
   const input = parseAiPlanningPreferenceInput(
     payload,
     candidateIdSet(candidates),
   );
 
   return upsertPlanningPreferences(tripId, input);
+}
+
+// Generates a destination's attraction catalog with OpenAI (web search
+// enabled) and persists it for reuse by every trip sharing the destination key.
+async function generateDestinationCandidates(
+  trip: Trip,
+  candidateKey: string,
+  tripId: number,
+  userId: string,
+): Promise<AiDestinationCandidate[]> {
+  return runLoggedCatalogGeneration(
+    tripId,
+    userId,
+    AI_CATALOG_PROMPT_VERSION,
+    async (config) => {
+      const destination = catalogDestinationContext(trip);
+      const { catalog, usage } = await requestAiDestinationCatalog({
+        apiKey: config.apiKey,
+        model: config.model,
+        destination,
+      });
+      const inserted = await insertDestinationCandidates(
+        candidateKey,
+        sanitizeAiDestinationCandidates(catalog, destination),
+      );
+      return { result: inserted, insertedCount: inserted.length, usage };
+    },
+  );
+}
+
+// Generates the destination's arrival transit hubs with a small, fast model
+// call (no web search) so the wizard's Start & end step is ready quickly.
+async function generateDestinationTransitHubs(
+  trip: Trip,
+  candidateKey: string,
+  tripId: number,
+  userId: string,
+): Promise<AiDestinationTransitHub[]> {
+  return runLoggedCatalogGeneration(
+    tripId,
+    userId,
+    AI_HUBS_PROMPT_VERSION,
+    async (config) => {
+      const destination = catalogDestinationContext(trip);
+      const { hubList, usage } = await requestAiDestinationTransitHubs({
+        apiKey: config.apiKey,
+        model: config.model,
+        destination,
+      });
+      const inserted = await insertDestinationTransitHubs(
+        candidateKey,
+        sanitizeAiDestinationTransitHubs(hubList, destination),
+      );
+      return { result: inserted, insertedCount: inserted.length, usage };
+    },
+  );
+}
+
+// Shared wrapper for one-time catalog generations: enforces the shared daily
+// limit and logs the call in ai_plan_generations (distinct prompt version per
+// call type) so cost and failures stay visible alongside itinerary runs.
+async function runLoggedCatalogGeneration<T>(
+  tripId: number,
+  userId: string,
+  promptVersion: string,
+  produce: (config: { apiKey: string; model: string }) => Promise<{
+    result: T;
+    insertedCount: number;
+    usage: { inputTokens: number | null; outputTokens: number | null };
+  }>,
+): Promise<T> {
+  const startedAt = Date.now();
+  const todayCount = await countUserGenerationsToday(userId);
+  if (todayCount >= AI_GENERATION_DAILY_LIMIT) {
+    throw new AiGenerationRateLimitError(
+      "Daily AI generation limit reached. Please try again tomorrow.",
+    );
+  }
+
+  const config = openAiPlannerConfig();
+  const generation = await createAiPlanGeneration(tripId, userId, {
+    prompt_version: promptVersion,
+    preferences_snapshot: {},
+    candidate_count: 0,
+    must_see_count: 0,
+  });
+
+  try {
+    const { result, insertedCount, usage } = await produce(config);
+
+    await updateAiPlanGeneration(generation.id, {
+      status: "completed",
+      model: config.model,
+      generated_place_count: insertedCount,
+      duration_ms: Date.now() - startedAt,
+      token_input_count: usage.inputTokens,
+      token_output_count: usage.outputTokens,
+      failure_reason: null,
+    });
+    return result;
+  } catch (error) {
+    await updateAiPlanGeneration(generation.id, {
+      status: "failed",
+      model: config.model,
+      duration_ms: Date.now() - startedAt,
+      failure_reason: generationFailureReason(error),
+    });
+    throw error;
+  }
+}
+
+// Upstream rate-limit errors carry a deliberately generic user-facing message;
+// keep OpenAI's diagnostics (which limit, tokens requested, retry hint) in the
+// logged failure reason so limit issues stay debuggable.
+function generationFailureReason(error: unknown): string {
+  if (error instanceof AiUpstreamRateLimitError && error.upstreamDetail) {
+    return `${error.message} (${error.upstreamDetail})`;
+  }
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
+// Destination context for catalog generation: custom destinations carry their
+// own Google coordinates and country codes; curated presets fall back to the
+// preset's coordinates and country.
+function catalogDestinationContext(trip: Trip): AiCatalogDestination {
+  const preset = trip.destination_slug
+    ? findDestinationFocus(trip.destination_slug)
+    : null;
+  const countryCodes =
+    trip.destination_country_codes ??
+    (trip.destination_slug
+      ? [findDestinationOption(trip.destination_slug)?.countryCode].filter(
+          (code): code is string => Boolean(code),
+        )
+      : []);
+
+  return {
+    name: trip.destination,
+    latitude: trip.destination_latitude ?? preset?.latitude ?? null,
+    longitude: trip.destination_longitude ?? preset?.longitude ?? null,
+    countryNames: countryCodes
+      .map((code) => countryNameFromCode(code))
+      .filter((name): name is string => Boolean(name)),
+  };
 }
 
 export async function generateAiItineraryForRequest(
@@ -163,15 +367,21 @@ export async function generateAiItineraryForRequest(
   }
 
   const trip = await getTripById(tripId);
-  ensureSupportedDestination(trip);
+  const candidateKey = destinationCandidateKey(trip);
+  if (!candidateKey) {
+    throw new TripValidationError(DESTINATION_NOT_PLANNABLE_MESSAGE);
+  }
   const tripDates = tripDateRange(trip);
   const [candidates, existingLodging, existingTransitPoints, transitHubs] =
     await Promise.all([
-      listDestinationCandidates(trip.destination_slug),
+      listDestinationCandidates(candidateKey),
       getPrimaryLodging(tripId),
       getTransitPoints(tripId),
-      listDestinationTransitHubs(trip.destination_slug),
+      listDestinationTransitHubs(candidateKey),
     ]);
+  if (candidates.length === 0) {
+    throw new TripValidationError(CATALOG_NOT_READY_MESSAGE);
+  }
   const hubById = new Map(transitHubs.map((hub) => [hub.id, hub]));
   const generationInput = parseAiPlanningGenerationInput(
     payload,
@@ -356,7 +566,7 @@ export async function generateAiItineraryForRequest(
     await updateAiPlanGeneration(generation.id, {
       status: "failed",
       duration_ms: Date.now() - startedAt,
-      failure_reason: error instanceof Error ? error.message : "Unknown error",
+      failure_reason: generationFailureReason(error),
     });
     throw error;
   }
@@ -366,19 +576,6 @@ function candidateIdSet(
   candidates: AiDestinationCandidate[],
 ): ReadonlySet<number> {
   return new Set(candidates.map((candidate) => candidate.id));
-}
-
-function ensureSupportedDestination(
-  trip: Trip,
-): asserts trip is Trip & { destination_slug: string } {
-  if (
-    !trip.destination_slug ||
-    !isAiPlanningDestinationSupported(trip.destination_slug)
-  ) {
-    throw new TripValidationError(
-      "AI planning is not available for this destination.",
-    );
-  }
 }
 
 function tripDateRange(trip: Pick<Trip, "start_date" | "end_date">): string[] {

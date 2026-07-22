@@ -19,6 +19,7 @@ import {
   formatTripDateRangeShort,
 } from "@/lib/ai-planning-preferences";
 import type {
+  AiCatalogPrepStatus,
   AiPlanningGenerationInput,
   AiPlanningPreferenceInput,
   AiPlanningSetup,
@@ -45,6 +46,11 @@ import { ModalShell } from "./ModalShell";
 type Props = {
   setup: AiPlanningSetup | null;
   isLoading: boolean;
+  // Background preparation of the destination's attractions and transit hubs;
+  // the dependent steps render their own pending/error states.
+  catalogStatus: AiCatalogPrepStatus;
+  hubsStatus: AiCatalogPrepStatus;
+  onRetryCatalogPrepare: () => void;
   error: string | null;
   isGenerating: boolean;
   onCancel: () => void;
@@ -122,13 +128,20 @@ export function AiPlanningWizard(props: Props) {
     }
   }, [showStepForm]);
 
+  // Initialize the drafts from the first setup only. The setup object updates
+  // again when background catalog/hub preparation lands, and that must not
+  // reset the user's in-progress answers or step position. (A fresh open
+  // remounts the wizard, so the ref starts false again.)
+  const hasInitializedFromSetupRef = useRef(false);
   useEffect(() => {
-    setDraft(initialDraft);
+    if (!setup || hasInitializedFromSetupRef.current) return;
+    hasInitializedFromSetupRef.current = true;
+    setDraft(buildAiPlanningPreferenceDraft(setup));
     setDailyStartTime(AI_DEFAULT_DAILY_START_TIME);
     setLodgingGoogleMapsUrl("");
     setTransitDraft(buildTransitStopDraft(setup));
     setStepIndex(0);
-  }, [initialDraft, setup]);
+  }, [setup]);
 
   const tripId = props.setup?.trip.id ?? 0;
   const lodgingPreview = useResolvedPlaceName(tripId, lodgingGoogleMapsUrl);
@@ -158,7 +171,11 @@ export function AiPlanningWizard(props: Props) {
   const isOptionalStep = "optional" in currentStep && currentStep.optional;
   const requiresTravelModes =
     currentStep.key === "logistics" || isReviewStep;
-  const submitBlocked = modesEmpty && requiresTravelModes;
+  // Generation validates against catalog candidate IDs server-side, so the
+  // final submit must wait for the background catalog preparation.
+  const catalogPending = props.catalogStatus !== "ready";
+  const submitBlocked =
+    (modesEmpty && requiresTravelModes) || (isReviewStep && catalogPending);
 
   function goNext() {
     if (submitBlocked) {
@@ -421,6 +438,8 @@ export function AiPlanningWizard(props: Props) {
                     <TransitStopsStep
                       currentArrivalPoint={props.setup.arrivalPoint}
                       currentDeparturePoint={props.setup.departurePoint}
+                      hubsStatus={props.hubsStatus}
+                      onRetryPrepare={props.onRetryCatalogPrepare}
                       onTransitDraftChange={setTransitDraft}
                       transitDraft={transitDraft}
                       transitHubs={props.setup.transitHubs}
@@ -430,6 +449,8 @@ export function AiPlanningWizard(props: Props) {
                   {stepIndex === 4 && (
                     <MustSeeStep
                       candidates={props.setup.candidates}
+                      catalogStatus={props.catalogStatus}
+                      onRetryPrepare={props.onRetryCatalogPrepare}
                       draft={draft}
                       onChange={setDraft}
                     />
@@ -466,6 +487,18 @@ export function AiPlanningWizard(props: Props) {
                 {isReviewStep && props.error && (
                   <p className="ai-wizard-error" role="alert">
                     {props.error}
+                  </p>
+                )}
+                {isReviewStep && props.catalogStatus === "error" && (
+                  <p className="ai-wizard-error" role="alert">
+                    Couldn&apos;t prepare this destination&apos;s attractions.{" "}
+                    <button
+                      type="button"
+                      className="ai-step-retry"
+                      onClick={props.onRetryCatalogPrepare}
+                    >
+                      Try again
+                    </button>
                   </p>
                 )}
 
@@ -505,7 +538,9 @@ export function AiPlanningWizard(props: Props) {
                       {isReviewStep
                         ? props.error
                           ? "Try again"
-                          : AI_CREATE_ITINERARY_LABEL
+                          : catalogPending
+                            ? "Preparing destination…"
+                            : AI_CREATE_ITINERARY_LABEL
                         : "Next"}
                     </button>
                     <span className="ai-wizard-enter-hint" aria-hidden="true">

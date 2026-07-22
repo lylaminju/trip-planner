@@ -12,7 +12,7 @@ import {
 } from "./ai-planning-service.test-helpers";
 
 describe("listDestinationCandidatesForRequest", () => {
-  it("requires owner access and returns the curated catalog for supported destinations", async () => {
+  it("requires owner access and returns the destination's candidate catalog", async () => {
     const candidates = [candidateRecord(1), candidateRecord(2)];
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const listDestinationCandidates = vi.fn().mockResolvedValue(candidates);
@@ -36,14 +36,45 @@ describe("listDestinationCandidatesForRequest", () => {
     expect(listDestinationCandidates).toHaveBeenCalledWith("new-york-city");
   });
 
-  it("returns an empty list without querying the catalog for unsupported destinations", async () => {
+  it("lists custom Google-searched destinations under their derived catalog key", async () => {
+    const listDestinationCandidates = vi.fn().mockResolvedValue([]);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(
+          tripRecord({
+            destination: "Lisbon",
+            destination_slug: null,
+            destination_latitude: 38.7223,
+            destination_longitude: -9.1393,
+            destination_country_codes: ["PT"],
+          }),
+        ),
+        supabaseAiPlanningService: { listDestinationCandidates },
+      },
+      async ({ service }) => {
+        await expect(
+          service.listDestinationCandidatesForRequest(1, "user-1"),
+        ).resolves.toEqual([]);
+      },
+    );
+
+    expect(listDestinationCandidates).toHaveBeenCalledWith(
+      "custom-pt-lisbon-38.7,-9.1",
+    );
+  });
+
+  it("returns an empty list without querying the catalog when the destination has no catalog key", async () => {
     const listDestinationCandidates = vi.fn();
 
     await withMockedAiPlanningService(
       {
-        getTripById: vi
-          .fn()
-          .mockResolvedValue(tripRecord({ destination_slug: "atlantis" })),
+        getTripById: vi.fn().mockResolvedValue(
+          tripRecord({
+            destination: "",
+            destination_slug: null,
+          }),
+        ),
         supabaseAiPlanningService: { listDestinationCandidates },
       },
       async ({ service }) => {
@@ -58,7 +89,7 @@ describe("listDestinationCandidatesForRequest", () => {
 });
 
 describe("ai-planning-service request boundary", () => {
-  it("requires owner access and returns empty-catalog setup data for supported destinations", async () => {
+  it("requires owner access and reports an unprepared catalog as not ready", async () => {
     const trip = tripRecord({ destination_slug: "new-york-city" });
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const getTripById = vi.fn().mockResolvedValue(trip);
@@ -81,7 +112,7 @@ describe("ai-planning-service request boundary", () => {
           service.getAiPlanningSetupForRequest(1, "user-1"),
         ).resolves.toEqual({
           trip,
-          isSupportedDestination: true,
+          candidatesReady: false,
           candidates: [],
           lodging: null,
           arrivalPoint: null,
@@ -99,8 +130,8 @@ describe("ai-planning-service request boundary", () => {
     expect(getPlanningPreferences).toHaveBeenCalledWith(1);
   });
 
-  it("returns unsupported setup without reading AI planning tables", async () => {
-    const trip = tripRecord({ destination_slug: "montreal" });
+  it("returns not-ready setup without reading AI planning tables when the destination has no catalog key", async () => {
+    const trip = tripRecord({ destination: "", destination_slug: null });
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const getTripById = vi.fn().mockResolvedValue(trip);
     const listDestinationCandidates = vi.fn();
@@ -122,7 +153,7 @@ describe("ai-planning-service request boundary", () => {
           service.getAiPlanningSetupForRequest(1, "user-1"),
         ).resolves.toEqual({
           trip,
-          isSupportedDestination: false,
+          candidatesReady: false,
           candidates: [],
           lodging: null,
           arrivalPoint: null,
@@ -688,5 +719,309 @@ describe("ai-planning-service request boundary", () => {
         failure_reason: "OpenAI AI planner model is not configured.",
       }),
     );
+  });
+});
+
+describe("prepareDestinationCatalogForRequest", () => {
+  function generatedCatalog(count: number) {
+    return {
+      candidates: Array.from({ length: count }, (_, index) => ({
+        name: `Generated Spot ${index + 1}`,
+        category: "landmark",
+        tags: ["landmarks"],
+        area: "Alfama",
+        region_distance_tier: "central" as const,
+        latitude: 38.71 + index * 0.001,
+        longitude: -9.13,
+        typical_duration_minutes: 60,
+        indoor_outdoor: null,
+        planning_note: null,
+        blurb: null,
+      })),
+    };
+  }
+
+  const customTrip = () =>
+    tripRecord({
+      destination: "Lisbon",
+      destination_slug: null,
+      destination_latitude: 38.7223,
+      destination_longitude: -9.1393,
+      destination_country_codes: ["PT"],
+    });
+
+  it("generates, persists, and logs a catalog for a destination without one", async () => {
+    const generated = generatedCatalog(15);
+    const insertedCandidates = [candidateRecord(1)];
+    const listDestinationCandidates = vi
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValue(insertedCandidates);
+    const insertDestinationCandidates = vi
+      .fn()
+      .mockResolvedValue(insertedCandidates);
+    const requestAiDestinationCatalog = vi.fn().mockResolvedValue({
+      catalog: generated,
+      usage: { inputTokens: 100, outputTokens: 200 },
+    });
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 77 });
+    const updateAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(customTrip()),
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          insertDestinationCandidates,
+        },
+        aiCatalog: { requestAiDestinationCatalog },
+        aiPlanApplication: { createAiPlanGeneration, updateAiPlanGeneration },
+      },
+      async ({ service }) => {
+        const setup = await service.prepareDestinationCatalogForRequest(
+          1,
+          "user-1",
+        );
+        expect(setup.candidatesReady).toBe(true);
+        expect(setup.candidates).toEqual(insertedCandidates);
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiDestinationCatalog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "gpt-5-mini-test",
+        destination: expect.objectContaining({
+          name: "Lisbon",
+          latitude: 38.7223,
+          longitude: -9.1393,
+          countryNames: ["Portugal"],
+        }),
+      }),
+    );
+    expect(insertDestinationCandidates).toHaveBeenCalledWith(
+      "custom-pt-lisbon-38.7,-9.1",
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Generated Spot 1", sort_order: 1 }),
+      ]),
+    );
+    expect(createAiPlanGeneration).toHaveBeenCalledWith(1, "user-1", {
+      prompt_version: "ai-destination-catalog-v2",
+      preferences_snapshot: {},
+      candidate_count: 0,
+      must_see_count: 0,
+    });
+    expect(updateAiPlanGeneration).toHaveBeenCalledWith(
+      77,
+      expect.objectContaining({
+        status: "completed",
+        generated_place_count: 1,
+        token_input_count: 100,
+        token_output_count: 200,
+      }),
+    );
+  });
+
+  it("returns the existing setup without generating when the catalog already exists", async () => {
+    const listDestinationCandidates = vi
+      .fn()
+      .mockResolvedValue([candidateRecord(1)]);
+    const requestAiDestinationCatalog = vi.fn();
+    const createAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(customTrip()),
+        supabaseAiPlanningService: { listDestinationCandidates },
+        aiCatalog: { requestAiDestinationCatalog },
+        aiPlanApplication: { createAiPlanGeneration },
+      },
+      async ({ service }) => {
+        const setup = await service.prepareDestinationCatalogForRequest(
+          1,
+          "user-1",
+        );
+        expect(setup.candidatesReady).toBe(true);
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiDestinationCatalog).not.toHaveBeenCalled();
+    expect(createAiPlanGeneration).not.toHaveBeenCalled();
+  });
+
+  it("rejects trips whose destination has no catalog key", async () => {
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi
+          .fn()
+          .mockResolvedValue(tripRecord({ destination: "", destination_slug: null })),
+      },
+      async ({ service }) => {
+        await expect(
+          service.prepareDestinationCatalogForRequest(1, "user-1"),
+        ).rejects.toThrow("AI planning needs a trip destination first.");
+      },
+    );
+  });
+
+  it("marks the logged generation failed when catalog generation fails", async () => {
+    const listDestinationCandidates = vi.fn().mockResolvedValue([]);
+    const requestAiDestinationCatalog = vi
+      .fn()
+      .mockRejectedValue(new Error("OpenAI destination catalog generation failed: boom"));
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 77 });
+    const updateAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(customTrip()),
+        supabaseAiPlanningService: { listDestinationCandidates },
+        aiCatalog: { requestAiDestinationCatalog },
+        aiPlanApplication: { createAiPlanGeneration, updateAiPlanGeneration },
+      },
+      async ({ service }) => {
+        await expect(
+          service.prepareDestinationCatalogForRequest(1, "user-1"),
+        ).rejects.toThrow("OpenAI destination catalog generation failed: boom");
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(updateAiPlanGeneration).toHaveBeenCalledWith(
+      77,
+      expect.objectContaining({
+        status: "failed",
+        failure_reason: "OpenAI destination catalog generation failed: boom",
+      }),
+    );
+  });
+});
+
+describe("prepareDestinationTransitHubsForRequest", () => {
+  const customTrip = () =>
+    tripRecord({
+      destination: "Lisbon",
+      destination_slug: null,
+      destination_latitude: 38.7223,
+      destination_longitude: -9.1393,
+      destination_country_codes: ["PT"],
+    });
+
+  it("generates, persists, and logs hubs for a destination without any", async () => {
+    const insertedHubs = [transitHubRecord(5, "Lisbon Airport")];
+    const listDestinationTransitHubs = vi.fn().mockResolvedValue([]);
+    const insertDestinationTransitHubs = vi
+      .fn()
+      .mockResolvedValue(insertedHubs);
+    const requestAiDestinationTransitHubs = vi.fn().mockResolvedValue({
+      hubList: {
+        transit_hubs: [
+          {
+            name: "Lisbon Airport",
+            hub_type: "airport",
+            iata_code: "LIS",
+            latitude: 38.7742,
+            longitude: -9.1342,
+          },
+        ],
+      },
+      usage: { inputTokens: 10, outputTokens: 20 },
+    });
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 78 });
+    const updateAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(customTrip()),
+        supabaseAiPlanningService: {
+          listDestinationTransitHubs,
+          insertDestinationTransitHubs,
+        },
+        aiCatalog: { requestAiDestinationTransitHubs },
+        aiPlanApplication: { createAiPlanGeneration, updateAiPlanGeneration },
+      },
+      async ({ service }) => {
+        await expect(
+          service.prepareDestinationTransitHubsForRequest(1, "user-1"),
+        ).resolves.toEqual(insertedHubs);
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(insertDestinationTransitHubs).toHaveBeenCalledWith(
+      "custom-pt-lisbon-38.7,-9.1",
+      [expect.objectContaining({ name: "Lisbon Airport", sort_order: 1 })],
+    );
+    expect(createAiPlanGeneration).toHaveBeenCalledWith(1, "user-1", {
+      prompt_version: "ai-destination-transit-hubs-v1",
+      preferences_snapshot: {},
+      candidate_count: 0,
+      must_see_count: 0,
+    });
+    expect(updateAiPlanGeneration).toHaveBeenCalledWith(
+      78,
+      expect.objectContaining({ status: "completed", generated_place_count: 1 }),
+    );
+  });
+
+  it("returns existing hubs without generating", async () => {
+    const existing = [transitHubRecord(5, "Lisbon Airport")];
+    const requestAiDestinationTransitHubs = vi.fn();
+    const createAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(customTrip()),
+        supabaseAiPlanningService: {
+          listDestinationTransitHubs: vi.fn().mockResolvedValue(existing),
+        },
+        aiCatalog: { requestAiDestinationTransitHubs },
+        aiPlanApplication: { createAiPlanGeneration },
+      },
+      async ({ service }) => {
+        await expect(
+          service.prepareDestinationTransitHubsForRequest(1, "user-1"),
+        ).resolves.toEqual(existing);
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiDestinationTransitHubs).not.toHaveBeenCalled();
+    expect(createAiPlanGeneration).not.toHaveBeenCalled();
+  });
+});
+
+describe("generateAiItineraryForRequest catalog gate", () => {
+  it("rejects generation when the destination catalog is not prepared yet", async () => {
+    const requestAiItineraryPlan = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(
+          tripRecord({ start_date: "2026-05-27", end_date: "2026-05-27" }),
+        ),
+        supabaseAiPlanningService: {
+          listDestinationCandidates: vi.fn().mockResolvedValue([]),
+        },
+        aiPlanner: { requestAiItineraryPlan },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+            interest_tags: [],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [],
+          }),
+        ).rejects.toThrow(
+          "This destination's attraction catalog hasn't been prepared yet.",
+        );
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiItineraryPlan).not.toHaveBeenCalled();
   });
 });

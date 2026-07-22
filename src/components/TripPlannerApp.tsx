@@ -17,7 +17,7 @@ import { useTripPlannerModals } from "@/hooks/useTripPlannerModals";
 import { useTripPlannerSelection } from "@/hooks/useTripPlannerSelection";
 import {
   AI_OPENING_HOURS_WARNING,
-  isAiPlanningDestinationSupported,
+  canPlanTripWithAi,
 } from "@/lib/ai-planning";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
 import {
@@ -31,6 +31,8 @@ import {
   generateAiItinerary,
   loadAiPlanningSetup,
   loadTripPlannerInitialData,
+  prepareAiDestinationCatalog,
+  prepareAiDestinationTransitHubs,
 } from "@/lib/planner-api";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
@@ -38,6 +40,7 @@ import { tripDurationDays } from "@/lib/trip-day-metrics";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import { updateTrip } from "@/lib/trips-api";
 import type {
+  AiCatalogPrepStatus,
   AiPlanningGenerationInput,
   AiPlanningSetup,
   PlannerSnapshot,
@@ -67,6 +70,10 @@ type AiPlanningWizardState = {
   isGenerating: boolean;
   setup: AiPlanningSetup | null;
   error: string | null;
+  // Attractions and transit hubs prepare in the background after the wizard
+  // opens; the steps that need them show their own pending state meanwhile.
+  catalogStatus: AiCatalogPrepStatus;
+  hubsStatus: AiCatalogPrepStatus;
 };
 
 type TripPlannerAppProps = {
@@ -111,10 +118,15 @@ export function TripPlannerApp({
       isGenerating: false,
       setup: null,
       error: null,
+      catalogStatus: "ready",
+      hubsStatus: "ready",
     });
   const [aiGenerationToast, setAiGenerationToast] = useState<string | null>(
     null,
   );
+  // Ties background catalog/hub preparations to a specific wizard open, so a
+  // response landing after close (or a reopen) can't clobber newer state.
+  const aiWizardOpenIdRef = useRef(0);
 
   const itinerary = useMemo(
     () => buildItineraryForTrip(plannerSnapshot, trip),
@@ -151,7 +163,7 @@ export function TripPlannerApp({
   const canEditTripMetadata = role === "owner";
   const canPlanWithAi =
     canEditTripMetadata &&
-    isAiPlanningDestinationSupported(trip?.destination_slug) &&
+    canPlanTripWithAi(trip) &&
     hasAiPlanningDateRange(trip);
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
@@ -266,35 +278,118 @@ export function TripPlannerApp({
   async function openAiPlanningSetup() {
     if (!canPlanWithAi) return;
 
+    const openId = ++aiWizardOpenIdRef.current;
     setAiPlanningWizard({
       isOpen: true,
       isLoading: true,
       isGenerating: false,
       setup: null,
       error: null,
+      catalogStatus: "ready",
+      hubsStatus: "ready",
     });
 
     try {
       const setup = await loadAiPlanningSetup(tripId);
+      if (aiWizardOpenIdRef.current !== openId) return;
+
+      // The wizard opens on this fast setup alone; missing catalog pieces
+      // prepare in the background while the user works through steps 1-3.
+      const needsCatalog = !setup.candidatesReady;
+      const needsHubs = setup.transitHubs.length === 0;
       setAiPlanningWizard({
         isOpen: true,
         isLoading: false,
         isGenerating: false,
         setup,
         error: null,
+        catalogStatus: needsCatalog ? "preparing" : "ready",
+        hubsStatus: needsHubs ? "preparing" : "ready",
       });
+      if (needsHubs) void prepareHubsInBackground(openId);
+      if (needsCatalog) void prepareCatalogInBackground(openId);
     } catch (reason) {
+      if (aiWizardOpenIdRef.current !== openId) return;
       setAiPlanningWizard({
         isOpen: true,
         isLoading: false,
         isGenerating: false,
         setup: null,
         error: errorMessage(reason, "Failed to load AI planning setup."),
+        catalogStatus: "ready",
+        hubsStatus: "ready",
       });
     }
   }
 
+  async function prepareHubsInBackground(openId: number) {
+    try {
+      const transitHubs = await prepareAiDestinationTransitHubs(tripId);
+      if (aiWizardOpenIdRef.current !== openId) return;
+      setAiPlanningWizard((current) =>
+        current.setup
+          ? {
+              ...current,
+              hubsStatus: "ready",
+              setup: { ...current.setup, transitHubs },
+            }
+          : current,
+      );
+    } catch {
+      if (aiWizardOpenIdRef.current !== openId) return;
+      setAiPlanningWizard((current) => ({ ...current, hubsStatus: "error" }));
+    }
+  }
+
+  async function prepareCatalogInBackground(openId: number) {
+    try {
+      const refreshed = await prepareAiDestinationCatalog(tripId);
+      if (aiWizardOpenIdRef.current !== openId) return;
+      setAiPlanningWizard((current) => {
+        if (!current.setup) return current;
+        return {
+          ...current,
+          catalogStatus: "ready",
+          setup: {
+            ...current.setup,
+            candidates: refreshed.candidates,
+            candidatesReady: refreshed.candidatesReady,
+            // The refreshed setup normally includes the hubs too (the hub
+            // call finishes first); keep in-flight ones if it raced ahead.
+            transitHubs:
+              refreshed.transitHubs.length > 0
+                ? refreshed.transitHubs
+                : current.setup.transitHubs,
+          },
+        };
+      });
+    } catch {
+      if (aiWizardOpenIdRef.current !== openId) return;
+      setAiPlanningWizard((current) => ({
+        ...current,
+        catalogStatus: "error",
+      }));
+    }
+  }
+
+  function retryAiCatalogPreparation() {
+    const openId = aiWizardOpenIdRef.current;
+    if (aiPlanningWizard.hubsStatus === "error") {
+      setAiPlanningWizard((current) => ({ ...current, hubsStatus: "preparing" }));
+      void prepareHubsInBackground(openId);
+    }
+    if (aiPlanningWizard.catalogStatus === "error") {
+      setAiPlanningWizard((current) => ({
+        ...current,
+        catalogStatus: "preparing",
+      }));
+      void prepareCatalogInBackground(openId);
+    }
+  }
+
   function closeAiPlanningWizard() {
+    // Invalidate in-flight background preparations from this open.
+    aiWizardOpenIdRef.current += 1;
     setAiPlanningWizard((current) => ({
       ...current,
       isOpen: false,
@@ -348,9 +443,6 @@ export function TripPlannerApp({
       )}
       <TripPlannerView
         tripId={tripId}
-        hasCuratedCandidates={isAiPlanningDestinationSupported(
-          trip?.destination_slug,
-        )}
         mobileSheetState={mobileSheetState}
         isPlannerPanelExpanded={isPlannerPanelExpanded}
         tripTitle={tripTitle}
@@ -433,6 +525,7 @@ export function TripPlannerApp({
         onSetError={setError}
         onCloseAiPlanningWizard={closeAiPlanningWizard}
         onRetryAiPlanningLoad={openAiPlanningSetup}
+        onRetryAiCatalogPrepare={retryAiCatalogPreparation}
         onCreateAiItinerary={createAiItineraryFromWizard}
       />
     </>

@@ -85,6 +85,43 @@ describe("OpenAI AI planner adapter", () => {
       }),
     ).rejects.toThrow("OpenAI itinerary generation failed: Bad request");
   });
+
+  it("reports non-JSON OpenAI responses instead of raising a parse error", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response("<!DOCTYPE html>", { status: 502 }));
+
+    await expect(
+      requestAiItineraryPlan({
+        apiKey: "test-key",
+        model: "gpt-5.5",
+        context: promptContext(),
+        fetchImpl: fetchMock,
+      }),
+    ).rejects.toThrow(
+      "OpenAI itinerary generation failed: HTTP 502 with a non-JSON response",
+    );
+  });
+
+  it("maps OpenAI 429 responses to a friendly rate-limit error", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json(
+        { error: { message: "Rate limit reached on tokens per min (TPM)" } },
+        { status: 429 },
+      ),
+    );
+
+    await expect(
+      requestAiItineraryPlan({
+        apiKey: "test-key",
+        model: "gpt-5.5",
+        context: promptContext(),
+        fetchImpl: fetchMock,
+      }),
+    ).rejects.toThrow(
+      "The AI service is handling too many requests right now. Please try again in a minute.",
+    );
+  });
 });
 
 function promptContext(): AiPlannerPromptContext {

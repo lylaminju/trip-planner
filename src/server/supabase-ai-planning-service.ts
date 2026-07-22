@@ -10,6 +10,10 @@ import type {
 
 import { TripValidationError } from "./errors";
 import { resolveGoogleMapsUrl } from "./google-url-resolver";
+import type {
+  SanitizedCatalogCandidate,
+  SanitizedCatalogHub,
+} from "./openai-destination-catalog";
 import { getSupabaseClient } from "./supabase";
 
 const AI_DESTINATION_CANDIDATE_COLUMNS =
@@ -39,6 +43,69 @@ export async function listDestinationCandidates(
 
   if (error) throwSupabaseError(error);
   return (data ?? []) as AiDestinationCandidate[];
+}
+
+const POSTGRES_UNIQUE_VIOLATION_CODE = "23505";
+
+/**
+ * Persists AI-generated attraction candidates for a destination key. When a
+ * concurrent request already stored a catalog for the same key (unique index
+ * on destination_slug + sort_order), the existing rows win and are returned.
+ */
+export async function insertDestinationCandidates(
+  destinationSlug: string,
+  candidates: SanitizedCatalogCandidate[],
+): Promise<AiDestinationCandidate[]> {
+  const { data, error } = await getSupabaseClient()
+    .from("ai_destination_candidates")
+    .insert(
+      candidates.map((candidate) => ({
+        destination_slug: destinationSlug,
+        ...candidate,
+      })),
+    )
+    .select(AI_DESTINATION_CANDIDATE_COLUMNS);
+
+  if (error) {
+    if (isUniqueViolation(error)) {
+      return listDestinationCandidates(destinationSlug);
+    }
+    throwSupabaseError(error);
+  }
+
+  return (data ?? []) as AiDestinationCandidate[];
+}
+
+// Same concurrent-writer contract as candidates, backed by the unique index
+// on (destination_slug, sort_order).
+export async function insertDestinationTransitHubs(
+  destinationSlug: string,
+  hubs: SanitizedCatalogHub[],
+): Promise<AiDestinationTransitHub[]> {
+  if (hubs.length === 0) return [];
+
+  const { data, error } = await getSupabaseClient()
+    .from("ai_destination_transit_hubs")
+    .insert(
+      hubs.map((hub) => ({
+        destination_slug: destinationSlug,
+        ...hub,
+      })),
+    )
+    .select(AI_TRANSIT_HUB_COLUMNS);
+
+  if (error) {
+    if (isUniqueViolation(error)) {
+      return listDestinationTransitHubs(destinationSlug);
+    }
+    throwSupabaseError(error);
+  }
+
+  return (data ?? []) as AiDestinationTransitHub[];
+}
+
+function isUniqueViolation(error: { code?: string }): boolean {
+  return error.code === POSTGRES_UNIQUE_VIOLATION_CODE;
 }
 
 export async function getPrimaryLodging(

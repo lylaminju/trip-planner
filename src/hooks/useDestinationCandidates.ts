@@ -8,21 +8,18 @@ type DestinationCandidatesState = {
   isLoading: boolean;
 };
 
-// Curated attraction suggestions for the trip's destination. Empty on load
-// failure — the suggestions are an optional enhancement, so errors never
+// Attraction suggestions from the trip destination's candidate catalog
+// (curated or AI-generated); empty when no catalog exists yet. Empty on load
+// failure too — the suggestions are an optional enhancement, so errors never
 // surface. isLoading lets the search popover show a pending row instead of
-// nothing while the catalog is in flight. Pass enabled=false for
-// destinations without a curated catalog: the fetch is skipped entirely so
-// the popover never opens, not even with a pending row.
+// nothing while the catalog is in flight.
 export function useDestinationCandidates(
   tripId: number,
-  enabled: boolean,
 ): DestinationCandidatesState {
   const [candidates, setCandidates] = useState<AiDestinationCandidate[]>([]);
-  const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!enabled) return;
     let cancelled = false;
     setIsLoading(true);
     loadDestinationCandidates(tripId)
@@ -38,7 +35,7 @@ export function useDestinationCandidates(
     return () => {
       cancelled = true;
     };
-  }, [tripId, enabled]);
+  }, [tripId]);
 
-  return { candidates, isLoading: enabled && isLoading };
+  return { candidates, isLoading };
 }

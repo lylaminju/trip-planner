@@ -220,9 +220,15 @@ export type AiPlanningPreferences = AiPlanningPreferenceInput & {
   updated_at: string;
 };
 
+// Client-side readiness of a destination catalog piece (attractions or transit
+// hubs) while the wizard prepares it in the background.
+export type AiCatalogPrepStatus = "ready" | "preparing" | "error";
+
 export type AiPlanningSetup = {
   trip: Trip;
-  isSupportedDestination: boolean;
+  // False until the destination's candidate catalog exists; the wizard then
+  // prepares one via POST /ai-planning/candidates before planning.
+  candidatesReady: boolean;
   candidates: AiDestinationCandidate[];
   lodging: TripLodging | null;
   arrivalPoint: TripTransitPoint | null;

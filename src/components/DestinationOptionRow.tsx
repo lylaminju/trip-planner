@@ -1,6 +1,5 @@
 "use client";
 
-import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
 import {
   countryNameFromCode,
   type DestinationOption,
@@ -43,29 +42,6 @@ export function DestinationOptionRow(props: {
       ) : (
         <span className="destination-combobox-option-name">{option.name}</span>
       )}
-      {isAiPlanningDestinationSupported(option.slug) ? (
-        <span
-          className="destination-combobox-option-badge"
-          aria-label="AI-planning available"
-        >
-          <span
-            className="destination-combobox-option-badge-icon"
-            aria-hidden="true"
-          >
-            🪄
-          </span>
-          <span className="destination-combobox-option-badge-text">
-            AI-planning available
-          </span>
-          <span
-            className="destination-combobox-option-badge-short"
-            aria-hidden="true"
-          >
-            <span>🪄 AI</span>
-            <span>Planning</span>
-          </span>
-        </span>
-      ) : null}
     </button>
   );
 }

@@ -91,7 +91,6 @@ describe("TripsDashboard", () => {
       'class="destination-combobox destination-combobox-has-icon"',
     );
     expect(markup).toContain('role="combobox"');
-    expect(markup).toContain('aria-label="AI-planning available"');
     expect(markup).toContain('class="trip-create-hero"');
     expect(markup).toContain("Pick a destination to see it come alive");
     expect(markup).toContain('class="trip-date-range-picker"');

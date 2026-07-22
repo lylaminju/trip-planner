@@ -26,7 +26,6 @@ describe("TripPlannerView", () => {
 function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
   return {
     tripId: 1,
-    hasCuratedCandidates: false,
     mobileSheetState: "half" as const,
     isPlannerPanelExpanded: false,
     tripTitle: "New York City",
@@ -69,6 +68,8 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     aiPlanningWizard: {
       isOpen: false,
       isLoading: false,
+      catalogStatus: "ready" as const,
+      hubsStatus: "ready" as const,
       isGenerating: false,
       setup: null,
       error: null,
@@ -116,6 +117,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onCloseAiPlanningWizard: vi.fn(),
     onCreateAiItinerary: vi.fn().mockResolvedValue(undefined),
     onRetryAiPlanningLoad: vi.fn(),
+    onRetryAiCatalogPrepare: vi.fn(),
     ...overrides,
   };
 }

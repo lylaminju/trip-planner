@@ -10,7 +10,6 @@ import {
   findDestinationOption,
 } from "@/lib/destination-options";
 import { DEFAULT_TRIP_COVER_IMAGE, getTripCoverImage } from "@/lib/city-covers";
-import { isAiPlanningDestinationSupported } from "@/lib/ai-planning";
 
 describe("destination options", () => {
   it("provides a cover image for every curated destination", () => {
@@ -61,31 +60,15 @@ describe("destination options", () => {
     }
   });
 
-  it("lists AI-planning destinations first, then alphabetical within each group", () => {
+  it("lists destinations alphabetically", () => {
     const options = filterDestinationOptions("");
 
-    // Every curated destination appears exactly once.
-    expect(options.map((option) => option.name).sort(byName)).toEqual(
+    // Every curated destination appears exactly once, in alphabetical order.
+    const names = options.map((option) => option.name);
+    expect([...names].sort(byName)).toEqual(
       DESTINATIONS.map((destination) => destination.name).sort(byName),
     );
-
-    // AI-supported destinations are grouped ahead of the unsupported ones.
-    const supportedFlags = options.map((option) =>
-      isAiPlanningDestinationSupported(option.slug),
-    );
-    const firstUnsupported = supportedFlags.indexOf(false);
-    expect(supportedFlags.slice(0, firstUnsupported).every(Boolean)).toBe(true);
-    expect(supportedFlags.slice(firstUnsupported).some(Boolean)).toBe(false);
-
-    // Names stay alphabetical within each group.
-    const supportedNames = options
-      .filter((option) => isAiPlanningDestinationSupported(option.slug))
-      .map((option) => option.name);
-    const unsupportedNames = options
-      .filter((option) => !isAiPlanningDestinationSupported(option.slug))
-      .map((option) => option.name);
-    expect(supportedNames).toEqual([...supportedNames].sort(byName));
-    expect(unsupportedNames).toEqual([...unsupportedNames].sort(byName));
+    expect(names).toEqual([...names].sort(byName));
   });
 
   it("keeps the source destination list alphabetized by name", () => {
