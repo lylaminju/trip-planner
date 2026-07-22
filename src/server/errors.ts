@@ -81,6 +81,18 @@ export class AiGenerationRateLimitError extends Error {
   }
 }
 
+// OpenAI itself rejected the call with a 429 (tokens-per-minute budget),
+// as opposed to our own daily generation cap above. The message stays generic
+// for users; upstreamDetail carries OpenAI's exact limit diagnostics for logs.
+export class AiUpstreamRateLimitError extends Error {
+  constructor(readonly upstreamDetail: string | null = null) {
+    super(
+      "The AI service is handling too many requests right now. Please try again in a minute.",
+    );
+    this.name = "AiUpstreamRateLimitError";
+  }
+}
+
 export class GoogleRoutesRateLimitError extends Error {
   constructor(message: string) {
     super(message);

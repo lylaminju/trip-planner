@@ -4,6 +4,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
+  AiUpstreamRateLimitError,
   GooglePlacesConfigError,
   GooglePlacesRateLimitError,
   GooglePlacesUpstreamError,
@@ -131,6 +132,7 @@ const SERVER_FAULT_ERROR_TYPES = [
 
 const RATE_LIMIT_ERROR_TYPES = [
   AiGenerationRateLimitError,
+  AiUpstreamRateLimitError,
   GoogleRoutesRateLimitError,
   GooglePlacesRateLimitError,
 ];
@@ -184,6 +186,10 @@ export function mapRouteError(error: unknown): NextResponse | null {
   }
 
   if (error instanceof AiGenerationRateLimitError) {
+    return jsonError(error.message, 429);
+  }
+
+  if (error instanceof AiUpstreamRateLimitError) {
     return jsonError(error.message, 429);
   }
 

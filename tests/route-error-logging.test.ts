@@ -4,6 +4,7 @@ import { mapRouteError } from "@/app/api/_utils";
 import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
+  AiUpstreamRateLimitError,
   GoogleMapsUrlUpstreamError,
   GoogleMapsUrlValidationError,
   GoogleRoutesConfigError,
@@ -25,6 +26,7 @@ const serverFaultErrors: [string, Error][] = [
 
 const rateLimitErrors: [string, Error][] = [
   ["AiGenerationRateLimitError", new AiGenerationRateLimitError("daily cap hit")],
+  ["AiUpstreamRateLimitError", new AiUpstreamRateLimitError()],
   ["GoogleRoutesRateLimitError", new GoogleRoutesRateLimitError("daily cap hit")],
 ];
 
