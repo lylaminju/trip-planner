@@ -23,6 +23,7 @@ import { toggleCollapsedDate } from "@/lib/date-collapse";
 import {
   DEFAULT_DESTINATION_ZOOM,
   findDestinationFocus,
+  resolveDestinationCountryCodes,
 } from "@/lib/destination-options";
 import { errorMessage } from "@/lib/error-message";
 import { buildVisitDateOptions } from "@/lib/itinerary";
@@ -450,7 +451,7 @@ export function TripPlannerApp({
         members={members}
         currentUserId={currentUserId}
         destinationFocus={destinationFocus}
-        destinationCountryCodes={trip?.destination_country_codes ?? null}
+        destinationCountryCodes={trip ? resolveDestinationCountryCodes(trip) : null}
         itinerary={itinerary}
         plannerSnapshot={plannerSnapshot}
         activeItemId={selection.activeItemId}

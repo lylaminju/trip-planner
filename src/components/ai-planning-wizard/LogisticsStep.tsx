@@ -1,15 +1,18 @@
 import { AI_TRAVEL_MODE_OPTIONS } from "@/lib/ai-planning-preferences";
+import type { PlaceSearchBias } from "@/lib/places-api";
 import type {
   AiPlanningPreferenceInput,
   TripLodging,
 } from "@/lib/types";
 
+import { PlaceSearchField } from "./PlaceSearchField";
 import { toggleValue } from "./toggle-value";
-import { UrlPreviewHint } from "./UrlPreviewHint";
 
 export function LogisticsStep({
   currentLodging,
   dailyStartTime,
+  destinationBias,
+  destinationCountryCodes,
   draft,
   lodgingGoogleMapsUrl,
   onChange,
@@ -19,6 +22,8 @@ export function LogisticsStep({
 }: {
   currentLodging: TripLodging | null;
   dailyStartTime: string;
+  destinationBias: PlaceSearchBias | null;
+  destinationCountryCodes: string[] | null;
   draft: AiPlanningPreferenceInput;
   lodgingGoogleMapsUrl: string;
   onChange: (draft: AiPlanningPreferenceInput) => void;
@@ -66,25 +71,21 @@ export function LogisticsStep({
       </div>
 
       <div className="ai-field-row">
-        <label className="ai-field-group">
+        <div className="ai-field-group">
           <span className="ai-field-label">
             Where your days begin
             <span className="ai-field-optional"> — optional</span>
           </span>
-          <input
-            type="url"
-            value={lodgingGoogleMapsUrl}
-            placeholder="Paste a Google Maps link to where you're staying"
-            onChange={(event) =>
-              onLodgingGoogleMapsUrlChange(event.currentTarget.value)
-            }
-          />
-          <UrlPreviewHint
+          <PlaceSearchField
             tripId={tripId}
-            url={lodgingGoogleMapsUrl}
+            value={lodgingGoogleMapsUrl}
+            bias={destinationBias}
+            countryCodes={destinationCountryCodes}
+            ariaLabel="Where your days begin"
             idleHint="We route each day out from here and back."
+            onChange={onLodgingGoogleMapsUrlChange}
           />
-        </label>
+        </div>
         <label className="ai-field-group ai-field-time">
           <span className="ai-field-label">Daily start time</span>
           <input

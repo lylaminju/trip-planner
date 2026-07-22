@@ -135,11 +135,13 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Try again");
   });
 
-  it("renders an optional lodging Google Maps URL on the logistics step", () => {
+  it("renders a searchable optional start-of-day field on the logistics step", () => {
     const markup = renderToStaticMarkup(
       createElement(LogisticsStep, {
         draft: preferenceDraft(),
         dailyStartTime: "08:30",
+        destinationBias: { latitude: 40.7128, longitude: -74.006 },
+        destinationCountryCodes: ["US"],
         lodgingGoogleMapsUrl: "",
         currentLodging: {
           id: 2,
@@ -164,7 +166,9 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain('type="time"');
     expect(markup).toContain('value="08:30"');
     expect(markup).toContain("Where your days begin");
-    expect(markup).toContain('type="url"');
+    // The field is now a place-search combobox that also accepts a pasted link.
+    expect(markup).toContain('role="combobox"');
+    expect(markup).toContain("paste a Google Maps link");
     expect(markup).toContain("Pod Times Square");
   });
 
@@ -208,6 +212,8 @@ describe("AiPlanningWizard", () => {
           },
         ],
         tripId: 1,
+        destinationBias: { latitude: 40.7128, longitude: -74.006 },
+        destinationCountryCodes: ["US"],
         onTransitDraftChange: vi.fn(),
         hubsStatus: "ready" as const,
         onRetryPrepare: vi.fn(),
@@ -255,6 +261,8 @@ describe("AiPlanningWizard", () => {
         },
         transitHubs: [],
         tripId: 1,
+        destinationBias: { latitude: 40.7128, longitude: -74.006 },
+        destinationCountryCodes: ["US"],
         onTransitDraftChange: vi.fn(),
         hubsStatus: "ready" as const,
         onRetryPrepare: vi.fn(),
@@ -264,6 +272,34 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("ai-transit-current");
     expect(markup).toContain("JFK Airport");
     expect(markup).toContain("15:30");
+  });
+
+  it("renders a place-search combobox for a custom transit stop", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TransitStopsStep, {
+        currentArrivalPoint: null,
+        currentDeparturePoint: null,
+        transitDraft: {
+          arrivalChoice: "custom",
+          arrivalUrl: "",
+          arrivalTime: "",
+          departureChoice: "same",
+          departureUrl: "",
+          departureTime: "",
+        },
+        transitHubs: [],
+        tripId: 1,
+        destinationBias: { latitude: 40.7128, longitude: -74.006 },
+        destinationCountryCodes: ["US"],
+        onTransitDraftChange: vi.fn(),
+        hubsStatus: "ready" as const,
+        onRetryPrepare: vi.fn(),
+      }),
+    );
+
+    // The custom-stop input is now a searchable combobox, not a paste-only URL.
+    expect(markup).toContain('role="combobox"');
+    expect(markup).toContain("paste a Google Maps link");
   });
 
   it("shows candidate planning notes on the must-see step", () => {

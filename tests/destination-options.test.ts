@@ -8,8 +8,43 @@ import {
   DESTINATION_OPTIONS,
   filterDestinationOptions,
   findDestinationOption,
+  resolveDestinationCountryCodes,
 } from "@/lib/destination-options";
 import { DEFAULT_TRIP_COVER_IMAGE, getTripCoverImage } from "@/lib/city-covers";
+
+describe("resolveDestinationCountryCodes", () => {
+  it("falls back to the preset country when a preset trip has no stored codes", () => {
+    // Regression: NYC trip 54 had null country codes, so its place search
+    // leaked predictions worldwide instead of restricting to the US.
+    expect(
+      resolveDestinationCountryCodes({
+        destination_country_codes: null,
+        destination_slug: "new-york-city",
+        destination: "New York City",
+      }),
+    ).toEqual(["US"]);
+  });
+
+  it("prefers the trip's own resolved codes over the preset", () => {
+    expect(
+      resolveDestinationCountryCodes({
+        destination_country_codes: ["FR"],
+        destination_slug: "new-york-city",
+        destination: "New York City",
+      }),
+    ).toEqual(["FR"]);
+  });
+
+  it("returns null for a custom destination with no preset match", () => {
+    expect(
+      resolveDestinationCountryCodes({
+        destination_country_codes: null,
+        destination_slug: null,
+        destination: "Some Uncatalogued Town",
+      }),
+    ).toBeNull();
+  });
+});
 
 describe("destination options", () => {
   it("provides a cover image for every curated destination", () => {

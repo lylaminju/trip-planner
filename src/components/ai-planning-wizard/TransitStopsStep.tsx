@@ -1,9 +1,11 @@
+import type { PlaceSearchBias } from "@/lib/places-api";
 import type {
   AiCatalogPrepStatus,
   AiDestinationTransitHub,
   TripTransitPoint,
 } from "@/lib/types";
 
+import { PlaceSearchField } from "./PlaceSearchField";
 import {
   TRANSIT_CUSTOM_STOP_EMOJI,
   transitHubChipEmoji,
@@ -11,11 +13,12 @@ import {
   type TransitDepartureChoice,
   type TransitStopDraft,
 } from "./transit-stop-draft";
-import { UrlPreviewHint } from "./UrlPreviewHint";
 
 export function TransitStopsStep({
   currentArrivalPoint,
   currentDeparturePoint,
+  destinationBias,
+  destinationCountryCodes,
   hubsStatus,
   onRetryPrepare,
   onTransitDraftChange,
@@ -25,6 +28,8 @@ export function TransitStopsStep({
 }: {
   currentArrivalPoint: TripTransitPoint | null;
   currentDeparturePoint: TripTransitPoint | null;
+  destinationBias: PlaceSearchBias | null;
+  destinationCountryCodes: string[] | null;
   hubsStatus: AiCatalogPrepStatus;
   onRetryPrepare: () => void;
   onTransitDraftChange: (draft: TransitStopDraft) => void;
@@ -57,7 +62,6 @@ export function TransitStopsStep({
         timeLabel="Arrival time"
         timeHint="When you land or arrive — we leave time to get out before your first stop."
         idleHint="Day one starts here instead of where you're staying."
-        urlPlaceholder="Paste a Google Maps link to your arrival spot"
         currentLabel="Current arrival stop"
         currentPoint={currentArrivalPoint}
         choice={transitDraft.arrivalChoice}
@@ -65,6 +69,8 @@ export function TransitStopsStep({
         time={transitDraft.arrivalTime}
         transitHubs={transitHubs}
         tripId={tripId}
+        destinationBias={destinationBias}
+        destinationCountryCodes={destinationCountryCodes}
         onChoiceChange={(arrivalChoice) =>
           onTransitDraftChange({
             ...transitDraft,
@@ -84,7 +90,6 @@ export function TransitStopsStep({
         timeLabel="Departure time"
         timeHint="When your flight or train departs — we finish early enough to reach it."
         idleHint="Your last day wraps up here with time to spare."
-        urlPlaceholder="Paste a Google Maps link to your departure spot"
         currentLabel="Current departure stop"
         currentPoint={currentDeparturePoint}
         choice={transitDraft.departureChoice}
@@ -92,6 +97,8 @@ export function TransitStopsStep({
         time={transitDraft.departureTime}
         transitHubs={transitHubs}
         tripId={tripId}
+        destinationBias={destinationBias}
+        destinationCountryCodes={destinationCountryCodes}
         allowSameAsArrival
         onChoiceChange={(departureChoice) =>
           onTransitDraftChange({ ...transitDraft, departureChoice })
@@ -112,7 +119,6 @@ function TransitStopField({
   timeLabel,
   timeHint,
   idleHint,
-  urlPlaceholder,
   currentLabel,
   currentPoint,
   choice,
@@ -120,6 +126,8 @@ function TransitStopField({
   time,
   transitHubs,
   tripId,
+  destinationBias,
+  destinationCountryCodes,
   allowSameAsArrival = false,
   onChoiceChange,
   onUrlChange,
@@ -129,7 +137,6 @@ function TransitStopField({
   timeLabel: string;
   timeHint: string;
   idleHint: string;
-  urlPlaceholder: string;
   currentLabel: string;
   currentPoint: TripTransitPoint | null;
   choice: TransitDepartureChoice;
@@ -137,6 +144,8 @@ function TransitStopField({
   time: string;
   transitHubs: AiDestinationTransitHub[];
   tripId: number;
+  destinationBias: PlaceSearchBias | null;
+  destinationCountryCodes: string[] | null;
   allowSameAsArrival?: boolean;
   onChoiceChange: (choice: TransitDepartureChoice) => void;
   onUrlChange: (url: string) => void;
@@ -206,16 +215,15 @@ function TransitStopField({
             </div>
           )}
           {choice === "custom" && (
-            <>
-              <input
-                type="url"
-                value={url}
-                placeholder={urlPlaceholder}
-                aria-label={`${label} Google Maps link`}
-                onChange={(event) => onUrlChange(event.currentTarget.value)}
-              />
-              <UrlPreviewHint tripId={tripId} url={url} idleHint={idleHint} />
-            </>
+            <PlaceSearchField
+              tripId={tripId}
+              value={url}
+              bias={destinationBias}
+              countryCodes={destinationCountryCodes}
+              ariaLabel={label}
+              idleHint={idleHint}
+              onChange={onUrlChange}
+            />
           )}
         </div>
         <div className="ai-field-time">

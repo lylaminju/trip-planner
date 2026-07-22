@@ -18,6 +18,10 @@ import {
   countTripDays,
   formatTripDateRangeShort,
 } from "@/lib/ai-planning-preferences";
+import {
+  findDestinationFocus,
+  resolveDestinationCountryCodes,
+} from "@/lib/destination-options";
 import type {
   AiCatalogPrepStatus,
   AiPlanningGenerationInput,
@@ -165,6 +169,24 @@ export function AiPlanningWizard(props: Props) {
     trip?.start_date && trip.end_date
       ? countTripDays(trip.start_date, trip.end_date)
       : 0;
+  // Bias place search toward the trip destination, matching the planner's
+  // place search. Preset-based trips can have null coordinates, so fall back to
+  // the curated preset's focus before giving up on a bias.
+  const destinationFocus =
+    trip?.destination_latitude != null && trip.destination_longitude != null
+      ? { latitude: trip.destination_latitude, longitude: trip.destination_longitude }
+      : findDestinationFocus(trip?.destination_slug ?? trip?.destination);
+  const destinationBias = destinationFocus
+    ? {
+        latitude: destinationFocus.latitude,
+        longitude: destinationFocus.longitude,
+      }
+    : null;
+  // Restrict predictions to the destination country so a generic query like
+  // "hotel" never surfaces places from far-off countries.
+  const destinationCountryCodes = trip
+    ? resolveDestinationCountryCodes(trip)
+    : null;
   const modesEmpty = draft.preferred_travel_modes.length === 0;
   const isReviewStep = stepIndex === LAST_STEP_INDEX;
   const currentStep = STEP_META[stepIndex];
@@ -430,6 +452,8 @@ export function AiPlanningWizard(props: Props) {
                     <LogisticsStep
                       currentLodging={props.setup.lodging}
                       dailyStartTime={dailyStartTime}
+                      destinationBias={destinationBias}
+                      destinationCountryCodes={destinationCountryCodes}
                       draft={draft}
                       lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
                       onChange={setDraft}
@@ -442,6 +466,8 @@ export function AiPlanningWizard(props: Props) {
                     <TransitStopsStep
                       currentArrivalPoint={props.setup.arrivalPoint}
                       currentDeparturePoint={props.setup.departurePoint}
+                      destinationBias={destinationBias}
+                      destinationCountryCodes={destinationCountryCodes}
                       hubsStatus={props.hubsStatus}
                       onRetryPrepare={props.onRetryCatalogPrepare}
                       onTransitDraftChange={setTransitDraft}

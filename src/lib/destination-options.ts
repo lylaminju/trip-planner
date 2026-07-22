@@ -57,6 +57,26 @@ export function findDestinationOption(
   );
 }
 
+// Effective country codes for restricting a trip's place search to its
+// destination country. Prefers the trip's own resolved codes, then falls back
+// to the curated preset's country when a preset-based trip has none stored
+// (e.g. created before Google resolved its country), so a US trip's search
+// never leaks predictions from other countries. Mirrors the server-side
+// fallback used when generating the destination catalog.
+export function resolveDestinationCountryCodes(trip: {
+  destination_country_codes: string[] | null;
+  destination_slug: string | null;
+  destination: string;
+}): string[] | null {
+  if (trip.destination_country_codes?.length) {
+    return trip.destination_country_codes;
+  }
+  const presetCode = findDestinationOption(
+    trip.destination_slug ?? trip.destination,
+  )?.countryCode;
+  return presetCode ? [presetCode] : null;
+}
+
 export function findDestinationFocus(
   value: string | null | undefined,
 ): DestinationFocus | null {
