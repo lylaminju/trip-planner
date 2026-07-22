@@ -191,21 +191,31 @@ async function buildFirstVisitRoutePlansByDate(input: {
   );
 
   for (const day of input.plan.days) {
-    const firstVisit = day.visits[0];
-    if (!firstVisit) continue;
-
-    const origin =
-      day.date === firstDate && arrivalPoint ? arrivalPoint : input.lodging;
+    const dayStartsAtArrival = day.date === firstDate && arrivalPoint !== null;
+    const origin = dayStartsAtArrival ? arrivalPoint : input.lodging;
     if (!origin) continue;
 
-    const candidate = input.candidateById.get(firstVisit.candidate_id);
-    if (!candidate) {
-      throw new Error(`Candidate ${firstVisit.candidate_id} is not available.`);
+    // The measured leg mirrors the first scheduled hop of the day. On the
+    // arrival day with lodging the traveler goes hub -> lodging to drop bags,
+    // so that is the measured leg; otherwise it is origin -> first attraction.
+    let destination: Coordinates;
+    if (dayStartsAtArrival && input.lodging) {
+      destination = input.lodging;
+    } else {
+      const firstVisit = day.visits[0];
+      if (!firstVisit) continue;
+      const candidate = input.candidateById.get(firstVisit.candidate_id);
+      if (!candidate) {
+        throw new Error(
+          `Candidate ${firstVisit.candidate_id} is not available.`,
+        );
+      }
+      destination = candidate;
     }
 
     const routePlan = await resolveTravelPlan(
       origin,
-      candidate,
+      destination,
       input.preferredModes,
       input.userId,
     );

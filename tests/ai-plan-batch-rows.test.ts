@@ -249,7 +249,7 @@ describe("AI plan batch rows", () => {
     ]);
   });
 
-  it("replaces the day-one lodging anchor with the arrival stop and appends the departure stop", () => {
+  it("inserts the lodging after the day-one arrival stop and appends the departure stop", () => {
     const entries = buildGeneratedScheduleEntries({
       plan: {
         days: [
@@ -299,11 +299,55 @@ describe("AI plan batch rows", () => {
         startTime: entry.startTime,
       })),
     ).toEqual([
+      // Day one: arrive at the hub, then the lodging (15:00 + 60m airport
+      // egress buffer + 30m hub-to-lodging travel), then the first attraction.
       { date: "2026-08-10", placeId: 100, startTime: "15:00" },
-      { date: "2026-08-10", placeId: 102, startTime: "15:30" },
+      { date: "2026-08-10", placeId: 101, startTime: "16:30" },
+      { date: "2026-08-10", placeId: 102, startTime: "16:40" },
       { date: "2026-08-11", placeId: 101, startTime: "09:00" },
       { date: "2026-08-11", placeId: 104, startTime: "10:00" },
       { date: "2026-08-11", placeId: 103, startTime: "18:30" },
+    ]);
+  });
+
+  it("times the day-one lodging stop with the non-airport egress buffer", () => {
+    const entries = buildGeneratedScheduleEntries({
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([[10, candidate(10)]]),
+      lodging: lodging(),
+      lodgingStartTime: "09:00",
+      lodgingPlaceId: 101,
+      arrivalPoint: transitPoint("arrival", "10:00", "train_station"),
+      arrivalPlaceId: 100,
+      candidatePlaceIds: [102],
+      // Measured hub-to-lodging travel is 20 minutes.
+      firstVisitTravelDurationsByDate: new Map([["2026-08-10", 20 * 60]]),
+    });
+
+    expect(
+      entries.map((entry) => ({
+        placeId: entry.placeId,
+        startTime: entry.startTime,
+      })),
+    ).toEqual([
+      { placeId: 100, startTime: "10:00" },
+      // 10:00 + 15m train-station egress buffer + 20m travel, rounded to grid.
+      { placeId: 101, startTime: "10:40" },
+      { placeId: 102, startTime: "10:50" },
     ]);
   });
 
