@@ -120,11 +120,24 @@ function tokenizeForMatch(value) {
     .filter((token) => token && !TITLE_STOPWORDS.has(token));
 }
 
-// Turn a destination slug ("banff-national-park") into a human place name
-// ("Banff National Park") used to geographically anchor the Wikipedia search.
+// Catalog keys for custom Google-searched destinations look like
+// "custom-pt-lisbon-38.7,-9.1" (country code + normalized name + rounded
+// coordinates, with "na" for missing coordinates and "place" for a name that
+// normalized to nothing). Only the name part anchors a Wikipedia search.
+const CUSTOM_KEY_PATTERN =
+  /^custom-[a-z]{2}-(.+?)(?:-(?:na|-?\d+\.\d+,-?\d+\.\d+))?$/;
+const CUSTOM_KEY_UNNAMED_PLACEHOLDER = "place";
+
+// Turn a destination slug ("banff-national-park") or custom catalog key
+// ("custom-pt-lisbon-38.7,-9.1") into a human place name ("Banff National
+// Park", "Lisbon") used to geographically anchor the Wikipedia search. A
+// custom key without a usable name anchors nothing.
 export function slugToPlaceName(slug) {
   if (typeof slug !== "string") return "";
-  return slug
+  const customMatch = CUSTOM_KEY_PATTERN.exec(slug);
+  const namePart = customMatch ? customMatch[1] : slug;
+  if (customMatch && namePart === CUSTOM_KEY_UNNAMED_PLACEHOLDER) return "";
+  return namePart
     .replace(/[-_]+/g, " ")
     .trim()
     .replace(/\s+/g, " ")
@@ -349,8 +362,14 @@ async function ensureBucket(supabase) {
   }
 }
 
+// Custom catalog keys contain commas and dots ("custom-pt-lisbon-38.7,-9.1"),
+// which Supabase Storage rejects in object keys; curated slugs pass unchanged.
+function storageSafeSlug(destinationSlug) {
+  return destinationSlug.replace(/[^a-z0-9-]+/gi, "-");
+}
+
 async function uploadThumbnail(supabase, destinationSlug, id, webpBuffer) {
-  const objectPath = `${destinationSlug}/${id}.webp`;
+  const objectPath = `${storageSafeSlug(destinationSlug)}/${id}.webp`;
   const { error } = await supabase.storage
     .from(CANDIDATE_IMAGES_BUCKET)
     .upload(objectPath, webpBuffer, { contentType: "image/webp", upsert: true });
@@ -465,6 +484,76 @@ export async function backfillCandidateImages({
   return summary;
 }
 
+// AI-generated itinerary places copy their candidate's exact coordinates and
+// carry no Google place id, so coordinates are the join key — the same rule
+// the Add Place search uses to hide already-saved candidates.
+export function matchPlacesToCandidateImages(places, candidates) {
+  const candidateByCoords = new Map();
+  for (const candidate of candidates) {
+    if (!candidate.image_url) continue;
+    candidateByCoords.set(
+      `${candidate.latitude},${candidate.longitude}`,
+      candidate,
+    );
+  }
+
+  const matches = [];
+  for (const place of places) {
+    const candidate = candidateByCoords.get(
+      `${place.latitude},${place.longitude}`,
+    );
+    if (candidate) {
+      matches.push({
+        placeId: place.id,
+        imageUrl: candidate.image_url,
+        imageCredit: candidate.image_credit ?? null,
+      });
+    }
+  }
+  return matches;
+}
+
+// Copies freshly sourced catalog images onto AI-generated places that were
+// created before their candidate had an image, so existing itineraries get
+// pictures without regenerating the plan. Idempotent: only fills null images.
+export async function propagateCandidateImagesToAiPlaces({ supabase } = {}) {
+  const { data: candidates, error } = await supabase
+    .from("ai_destination_candidates")
+    .select("latitude, longitude, image_url, image_credit")
+    .not("image_url", "is", null);
+  if (error) throw new Error(`Could not load candidates: ${error.message}`);
+
+  const { data: places, error: placesError } = await supabase
+    .from("places")
+    .select("id, latitude, longitude")
+    .eq("created_by_source", "ai")
+    .is("image_url", null);
+  if (placesError) {
+    throw new Error(`Could not load AI places: ${placesError.message}`);
+  }
+
+  const matches = matchPlacesToCandidateImages(places ?? [], candidates ?? []);
+  const summary = { imagelessAiPlaces: places?.length ?? 0, updated: 0 };
+
+  for (const match of matches) {
+    const { error: updateError } = await supabase
+      .from("places")
+      .update({
+        image_url: match.imageUrl,
+        image_credit: match.imageCredit,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", match.placeId);
+    if (updateError) throw new Error(updateError.message);
+    summary.updated += 1;
+  }
+
+  console.log(
+    `Propagated images to ${summary.updated} of ${summary.imagelessAiPlaces} imageless AI-generated place(s).`,
+  );
+  return summary;
+}
+
 // Re-clean already-stored blurbs in place (no network / no image work), applying
 // the current buildBlurb rules so pronunciation glosses are stripped from rows
 // seeded before that logic existed.
@@ -559,6 +648,7 @@ async function main() {
     return;
   }
   await backfillCandidateImages({ supabase, destinationSlug, force });
+  await propagateCandidateImagesToAiPlaces({ supabase });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

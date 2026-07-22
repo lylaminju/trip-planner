@@ -5,6 +5,7 @@ import {
   buildSearchQuery,
   extractImageCredit,
   extractPageSummary,
+  matchPlacesToCandidateImages,
   pickMatchingSearchTitle,
   slugToPlaceName,
   stripHtml,
@@ -191,6 +192,18 @@ describe("Wikimedia response parsing", () => {
     expect(slugToPlaceName(null)).toBe("");
   });
 
+  it("extracts the place name from a custom catalog key", () => {
+    expect(slugToPlaceName("custom-pt-lisbon-38.7,-9.1")).toBe("Lisbon");
+    // Multi-word name plus negative latitude (double dash before the coords).
+    expect(slugToPlaceName("custom-ar-buenos-aires--34.6,-58.4")).toBe(
+      "Buenos Aires",
+    );
+    // No coordinates recorded for the destination.
+    expect(slugToPlaceName("custom-xx-some-town-na")).toBe("Some Town");
+    // A non-Latin name normalizes to the "place" placeholder: no usable anchor.
+    expect(slugToPlaceName("custom-kr-place-37.6,127.0")).toBe("");
+  });
+
   it("accepts a resolved title that shares the candidate's distinctive words", () => {
     expect(titleMatchesCandidate("Banff Avenue", "Banff Avenue")).toBe(true);
     // Partial but clearly the same subject.
@@ -278,5 +291,58 @@ describe("Wikimedia response parsing", () => {
         "The National Museum of Iceland (Icelandic: Þjóðminjasafn Íslands [ˈθjouð]) is a museum.",
       ),
     ).toBe("The National Museum of Iceland is a museum.");
+  });
+});
+
+describe("candidate image propagation to AI places", () => {
+  const candidate = (overrides = {}) => ({
+    latitude: 49.3043,
+    longitude: -123.1443,
+    image_url: "https://example.supabase.co/candidate-images/vancouver/1.webp",
+    image_credit: "Jane Doe (CC BY-SA 4.0), via Wikimedia Commons",
+    ...overrides,
+  });
+
+  it("matches AI places to candidates by exact coordinates", () => {
+    const matches = matchPlacesToCandidateImages(
+      [
+        { id: 11, latitude: 49.3043, longitude: -123.1443 },
+        { id: 12, latitude: 49.2827, longitude: -123.1207 },
+      ],
+      [candidate()],
+    );
+
+    expect(matches).toEqual([
+      {
+        placeId: 11,
+        imageUrl: "https://example.supabase.co/candidate-images/vancouver/1.webp",
+        imageCredit: "Jane Doe (CC BY-SA 4.0), via Wikimedia Commons",
+      },
+    ]);
+  });
+
+  it("skips candidates without an image and defaults missing credit to null", () => {
+    const matches = matchPlacesToCandidateImages(
+      [
+        { id: 11, latitude: 49.3043, longitude: -123.1443 },
+        { id: 12, latitude: 49.2827, longitude: -123.1207 },
+      ],
+      [
+        candidate({ image_url: null }),
+        candidate({
+          latitude: 49.2827,
+          longitude: -123.1207,
+          image_credit: undefined,
+        }),
+      ],
+    );
+
+    expect(matches).toEqual([
+      {
+        placeId: 12,
+        imageUrl: "https://example.supabase.co/candidate-images/vancouver/1.webp",
+        imageCredit: null,
+      },
+    ]);
   });
 });
