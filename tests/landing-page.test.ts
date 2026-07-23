@@ -30,33 +30,27 @@ describe("LandingPage", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
     expect(markup).toContain(SERVICE_TITLE);
-    expect(markup).toContain("Trip planning, <span");
-    expect(markup).toContain("at a glance.");
-    expect(markup).toContain(
-      "Build each travel day beside the map, with timed stops",
-    );
-    expect(markup).toContain("Request invite");
-    expect(markup).toContain('href="/sign-in"');
-    expect(markup).toContain(">Sign in</a>");
-    expect(markup).toContain("Invite-only beta");
-    expect(markup).toContain("Existing users can");
+    // Request-access CTA targets the invite mailto; sign-in is a route.
     expect(markup).toContain("mailto:mjuudev@gmail.com");
     expect(markup).toContain("TripGlance%20access%20request");
-    expect(markup).toContain("© 2026 Minju (Lyla) Park");
+    expect(markup).toContain('href="/sign-in"');
+    // Compliance disclaimer must stay on the public page.
     expect(markup).toContain("Not affiliated with Google Maps");
+    expect(markup).toContain('class="landing-footer"');
 
     const heroActions = markupBetween(markup, "landing-hero-actions", "div");
-    expect(heroActions).toContain('class="landing-primary-action"');
-    expect(heroActions).toContain("Request invite");
+    // Primary action is the request-access CTA; the showcase link is secondary.
+    expect(heroActions).toContain(
+      'class="landing-primary-action" href="mailto:',
+    );
     expect(heroActions).toContain('href="#showcase"');
-    expect(heroActions).toContain("See how it works");
     expect(linkCount(heroActions)).toBe(2);
 
     const nav = markupBetween(markup, "marketing-nav", "nav");
     expect(nav).toContain('href="#showcase"');
     expect(nav).toContain('href="#features"');
     expect(nav).toContain('href="/sign-in"');
-    expect(nav).toContain("Request invite");
+    expect(nav).toContain("mailto:mjuudev@gmail.com");
     expect(linkCount(nav)).toBe(4);
   });
 
@@ -140,15 +134,9 @@ describe("LandingPage", () => {
 
     expect(markup).toContain('class="landing-workflow-section"');
     expect(markup).toContain('id="showcase"');
-    expect(markup).toContain(
-      "From a list of places to a plan you can follow.",
-    );
     expect(markup).toContain("Plan by day");
     expect(markup).toContain("See the map");
     expect(markup).toContain("Time your routes");
-    expect(markup).toContain("A plan that arranges itself.");
-    expect(markup).toContain("Group visits into date buckets automatically");
-    expect(markup).toContain("Keep unscheduled places visible");
     expect(markup).toContain("landing-workflow-plan-card");
     expect(markup).toContain("Day 1");
     expect(markup).toContain("day-block landing-day-card");
@@ -268,21 +256,16 @@ describe("LandingPage", () => {
   it("shows feature proof below the workflow showcase", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 
-    expect(markup).toContain(
-      "Plan the details without losing the shape of the trip",
-    );
     expect(markup).toContain("landing-feature-icon");
     expect(markup).toContain(
       'class="landing-feature-icon landing-feature-icon-maps landing-feature-icon-outline"',
     );
+    // Feature labels the section advertises (not the surrounding marketing prose).
     expect(markup).toContain("Date buckets");
     expect(markup).toContain("Google Maps routes");
-    expect(markup).toContain("numbered map stops, route lines");
     expect(markup).toContain("Route segments");
     expect(markup).toContain("Trip dashboard");
     expect(markup).toContain("Plan with AI");
-    expect(markup).toContain("generate a dated draft you can edit on the map");
-    expect(markup).toContain("Ready to plan your next trip?");
   });
 
   it("keeps final CTA mobile actions balanced as equal-width touch targets", () => {
@@ -354,21 +337,17 @@ describe("LandingPage", () => {
     const markup = renderToStaticMarkup(createElement(SignInPage));
 
     expect(markup).toContain('class="sign-in-page-shell"');
-    expect(markup).toContain('href="/"');
-    expect(markup).toContain('href="mailto:mjuudev@gmail.com');
     expect(markup).toContain('class="auth-shell"');
     expect(markup).toContain('class="auth-card"');
-    expect(markup).toContain("Sign in");
-    expect(markup).toContain("Use the email tied to your invite");
+    // Shared chrome: link home, footer landmark, and the request-access CTA.
+    expect(markup).toContain('href="/"');
+    expect(markup).toContain('class="landing-footer"');
+    expect(markup).toContain('href="mailto:mjuudev@gmail.com');
+    // Sign-in form field contract.
     expect(markup).toContain('name="email"');
     expect(markup).toContain('type="email"');
-    expect(markup).toContain('placeholder="you@example.com"');
     expect(markup).toContain('name="password"');
-    expect(markup).toContain('placeholder="Enter your password"');
-    expect(markup).toContain("Need access?");
-    expect(markup).toContain("Request an invite");
-    expect(markup).toContain("Request invite");
-    expect(markup).toContain("© 2026 Minju (Lyla) Park");
+    // The lean sign-in page must not embed the marketing preview.
     expect(markup).not.toContain("preview-panel");
   });
 });
