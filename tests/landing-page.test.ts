@@ -42,7 +42,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("Existing users can");
     expect(markup).toContain("mailto:mjuudev@gmail.com");
     expect(markup).toContain("TripGlance%20access%20request");
-    expect(markup).toContain("© 2026 TripGlance");
+    expect(markup).toContain("© 2026 Minju (Lyla) Park");
     expect(markup).toContain("Not affiliated with Google Maps");
 
     const heroActions = markupBetween(markup, "landing-hero-actions", "div");
@@ -368,7 +368,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("Need access?");
     expect(markup).toContain("Request an invite");
     expect(markup).toContain("Request invite");
-    expect(markup).toContain("© 2026 TripGlance");
+    expect(markup).toContain("© 2026 Minju (Lyla) Park");
     expect(markup).not.toContain("preview-panel");
   });
 });
