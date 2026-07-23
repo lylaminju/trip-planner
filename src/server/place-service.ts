@@ -11,6 +11,7 @@ import type {
   PlaceCreateInput,
   PlaceEditInput,
 } from "./place-inputs";
+import { isGuestPrincipalId } from "./principal";
 import * as supabasePlaceService from "./supabase-place-service";
 import { requireTripRole } from "./trip-access";
 import { listTripMembers } from "./trip-members";
@@ -53,6 +54,7 @@ export async function getTripPlannerInitialDataForRequest(
     role: membership.role,
     members: membersByTripId.get(tripId) ?? [],
     plannerSnapshot: await getPlannerSnapshot(tripId),
+    isGuest: isGuestPrincipalId(userId),
   };
 }
 

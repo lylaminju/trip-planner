@@ -4,6 +4,7 @@ import type { SubmitEvent } from "react";
 
 import { getTripCoverImage } from "@/lib/city-covers";
 import { countryLabelForDestination } from "@/lib/destination-options";
+import { GUEST_DESTINATION_SLUGS } from "@/lib/guest-mode";
 
 import { DestinationCombobox } from "./DestinationCombobox";
 import { CloseIcon, MapPinIcon } from "./Icons";
@@ -17,6 +18,7 @@ import type { TripFormState } from "./trip-form-types";
 
 type Props = {
   form: TripFormState;
+  isGuest?: boolean;
   error: string | null;
   isSaving: boolean;
   onChange: (form: TripFormState) => void;
@@ -116,12 +118,19 @@ export function EditTripModal(props: Props) {
               value={props.form.destination}
               leadingIcon={<MapPinIcon />}
               showPreview
+              allowedSlugs={props.isGuest ? GUEST_DESTINATION_SLUGS : undefined}
               onChange={(destination) =>
                 props.onChange(
                   tripDestinationFormChange(props.form, destination),
                 )
               }
             />
+            {props.isGuest && (
+              <p className="trip-create-field-note">
+                Guest trips use the curated destination list. Sign in with an
+                invite to plan anywhere.
+              </p>
+            )}
           </div>
 
           <div className="trip-create-field trip-create-dates-field">

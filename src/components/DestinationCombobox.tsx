@@ -22,18 +22,26 @@ export function DestinationCombobox(props: {
   inputId?: string;
   leadingIcon?: ReactNode;
   showPreview?: boolean;
+  // When set, only these preset slugs are offered and custom destinations are
+  // disabled (guest mode: destinations need a ready-made attraction catalog).
+  allowedSlugs?: readonly string[];
 }) {
   const generatedInputId = useId();
   const listId = useId();
   const inputId = props.inputId ?? generatedInputId;
   const [isOpen, setIsOpen] = useState(false);
-  const filteredOptions = useMemo(
-    () => filterDestinationOptions(props.value),
-    [props.value],
-  );
+  const allowedSlugs = props.allowedSlugs;
+  const filteredOptions = useMemo(() => {
+    const options = filterDestinationOptions(props.value);
+    return allowedSlugs
+      ? options.filter((option) => allowedSlugs.includes(option.slug))
+      : options;
+  }, [props.value, allowedSlugs]);
   const trimmedValue = props.value.trim();
   const matchedOption = findDestinationOption(trimmedValue);
-  const showCustomOption = Boolean(trimmedValue && !matchedOption);
+  const showCustomOption = Boolean(
+    trimmedValue && !matchedOption && !allowedSlugs,
+  );
 
   function closeOnBlur(event: FocusEvent<HTMLDivElement>) {
     const nextTarget = event.relatedTarget as Node | null;

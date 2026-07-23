@@ -34,6 +34,10 @@ const SEARCH_DEBOUNCE_MS = 400;
 // destination list, which does not exist in this flow.
 const SEARCH_UNAVAILABLE_MESSAGE =
   "Search is unavailable right now — paste a Google Maps link instead.";
+// Guests never fire billed Google searches; they browse the free curated
+// attraction list or paste a link.
+const GUEST_SEARCH_UNAVAILABLE_MESSAGE =
+  "Google search needs an invite — browse the suggested places or paste a Google Maps link.";
 
 export type PlaceSearchSelection = {
   google_place_id: string | null;
@@ -52,6 +56,7 @@ export type PlaceSearchSelection = {
 
 type Props = {
   tripId: number;
+  isGuest?: boolean;
   savedPlaces: Place[];
   destinationBias: PlaceSearchBias | null;
   // Restricts live search to the trip's destination country/countries so generic
@@ -63,6 +68,7 @@ type Props = {
 
 export function AddPlaceSearchStep({
   tripId,
+  isGuest = false,
   savedPlaces,
   destinationBias,
   destinationCountryCodes,
@@ -87,10 +93,13 @@ export function AddPlaceSearchStep({
 
   const trimmedQuery = query.trim();
   const isPastedUrl = isHttpUrl(trimmedQuery);
+  const searchUnavailableNotice = isGuest
+    ? GUEST_SEARCH_UNAVAILABLE_MESSAGE
+    : unavailableMessage;
   const isSearching =
     !isPastedUrl &&
     trimmedQuery.length >= MIN_QUERY_LENGTH &&
-    unavailableMessage === null;
+    searchUnavailableNotice === null;
   // Catalog attractions (curated or AI-generated) fill the popover before the
   // query is long enough for live Google search, starting with the full list
   // on focus. While the catalog is in flight, a pending row holds the popover
@@ -275,14 +284,18 @@ export function AddPlaceSearchStep({
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search Google Maps"
+          placeholder={
+            isGuest ? "Browse suggested places" : "Search Google Maps"
+          }
           autoFocus
           autoComplete="off"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={showPopover}
           aria-controls={listId}
-          aria-label="Search Google Maps"
+          aria-label={
+            isGuest ? "Browse suggested places" : "Search Google Maps"
+          }
         />
         <div className="place-search-popover" hidden={!showPopover}>
           {showsCandidates && (
@@ -378,9 +391,9 @@ export function AddPlaceSearchStep({
           </div>
         </div>
       </div>
-      {unavailableMessage && (
+      {searchUnavailableNotice && (
         <p className="place-search-note" role="status">
-          {unavailableMessage}
+          {searchUnavailableNotice}
         </p>
       )}
       {errorText && <p className="error-text">{errorText}</p>}

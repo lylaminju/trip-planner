@@ -323,6 +323,15 @@ async function runLoggedCatalogGeneration<T>(
     usage: { inputTokens: number | null; outputTokens: number | null };
   }>,
 ): Promise<T> {
+  // Guests only ever see curated destinations whose catalogs are already
+  // cached, so a missing catalog for a guest is out of contract; never spend
+  // a catalog generation on one.
+  if (guestIdFromPrincipalId(userId) !== null) {
+    throw new TripValidationError(
+      "Guest trips are limited to destinations with ready-made attraction catalogs.",
+    );
+  }
+
   const startedAt = Date.now();
   await assertAiGenerationQuota(userId);
 

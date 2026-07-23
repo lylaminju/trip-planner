@@ -18,6 +18,7 @@ import { VisitScheduleFields } from "./VisitScheduleFields";
 
 type Props = {
   tripId: number;
+  isGuest?: boolean;
   place: Place | null;
   savedPlaces: Place[];
   visitDateOptions: VisitDateOption[];
@@ -32,6 +33,7 @@ type Props = {
 
 export function AddEditPlaceModal({
   tripId,
+  isGuest = false,
   place,
   savedPlaces,
   visitDateOptions,
@@ -214,6 +216,7 @@ export function AddEditPlaceModal({
         {!isEditing && step === 1 ? (
           <AddPlaceSearchStep
             tripId={tripId}
+            isGuest={isGuest}
             savedPlaces={savedPlaces}
             destinationBias={destinationBias ?? null}
             destinationCountryCodes={destinationCountryCodes ?? null}

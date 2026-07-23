@@ -150,6 +150,13 @@
   text-transform: uppercase;
 }
 
+.trip-create-field-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
 .trip-create-modal .trip-create-name-input {
   background: transparent;
   border: 0;

@@ -21,11 +21,25 @@ describe("TripPlannerView", () => {
     expect(markup).toContain('role="status"');
     expect(markup).toContain(OPENING_HOURS_WARNING);
   });
+
+  it("shows the guest banner with an invite link only in guest mode", () => {
+    const guestMarkup = renderToStaticMarkup(
+      createElement(TripPlannerView, tripPlannerViewProps({ isGuest: true })),
+    );
+    expect(guestMarkup).toContain('class="guest-mode-banner"');
+    expect(guestMarkup).toContain('href="/"');
+
+    const memberMarkup = renderToStaticMarkup(
+      createElement(TripPlannerView, tripPlannerViewProps({ isGuest: false })),
+    );
+    expect(memberMarkup).not.toContain('class="guest-mode-banner"');
+  });
 });
 
 function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
   return {
     tripId: 1,
+    isGuest: false,
     mobileSheetState: "half" as const,
     isPlannerPanelExpanded: false,
     tripTitle: "New York City",

@@ -50,6 +50,7 @@ type AiPlanningWizardState = {
 
 type Props = {
   tripId: number;
+  isGuest: boolean;
   mobileSheetState: MobileSheetState;
   isPlannerPanelExpanded: boolean;
   tripTitle: string;
@@ -283,9 +284,19 @@ export function TripPlannerView(props: Props) {
           {props.aiGenerationToast}
         </div>
       )}
+      {props.isGuest && (
+        <div className="guest-mode-banner" role="note">
+          <span>
+            Guest mode — this demo trip expires after 48 hours.{" "}
+            <a href="/">Request an invite</a> to keep trips, use Google search,
+            and unlock AI web verification.
+          </span>
+        </div>
+      )}
       {(props.isAdding || props.editingPlace) && (
         <AddEditPlaceModal
           tripId={props.tripId}
+          isGuest={props.isGuest}
           place={props.editingPlace}
           savedPlaces={props.plannerSnapshot.places}
           visitDateOptions={props.visitDateOptions}
@@ -341,6 +352,7 @@ export function TripPlannerView(props: Props) {
       {props.editingTripForm && (
         <EditTripModal
           form={props.editingTripForm}
+          isGuest={props.isGuest}
           error={props.editTripError}
           isSaving={props.isSavingTrip}
           onChange={props.onSetEditingTripForm}

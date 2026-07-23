@@ -126,6 +126,9 @@ export type TripPlannerInitialData = {
   role: TripRole;
   members: TripMemberSummary[];
   plannerSnapshot: PlannerSnapshot;
+  // True when the viewer is an anonymous guest principal; gates member
+  // management, Google search, and other invite-only features in the UI.
+  isGuest?: boolean;
 };
 
 export type AiRegionDistanceTier = "central" | "nearby" | "day_trip";

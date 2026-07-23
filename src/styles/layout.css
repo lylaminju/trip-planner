@@ -288,6 +288,27 @@
   z-index: 20;
 }
 
+.guest-mode-banner {
+  background: var(--surface-inverse);
+  border-radius: 8px;
+  box-shadow: var(--shadow-floating-large);
+  color: var(--text-on-accent);
+  font-size: 12px;
+  line-height: 1.4;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 8px 12px;
+  position: fixed;
+  right: 20px;
+  top: 16px;
+  z-index: 20;
+}
+
+.guest-mode-banner a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .panel-expand-toggle {
   align-items: center;
   display: inline-flex;

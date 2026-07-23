@@ -96,6 +96,7 @@ export function TripPlannerApp({
   const [members, setMembers] = useState<TripMemberSummary[]>(
     () => initialData?.members ?? [],
   );
+  const [isGuest, setIsGuest] = useState(() => initialData?.isGuest ?? false);
   const [plannerSnapshot, setPlannerSnapshot] = useState<PlannerSnapshot>(
     () => initialData?.plannerSnapshot ?? EMPTY_SNAPSHOT,
   );
@@ -232,6 +233,7 @@ export function TripPlannerApp({
     setTrip(next.trip);
     setRole(next.role);
     setMembers(next.members);
+    setIsGuest(next.isGuest ?? false);
     setPlannerSnapshot(next.plannerSnapshot);
     setError(null);
   }, [tripId]);
@@ -443,6 +445,7 @@ export function TripPlannerApp({
       )}
       <TripPlannerView
         tripId={tripId}
+        isGuest={isGuest}
         mobileSheetState={mobileSheetState}
         isPlannerPanelExpanded={isPlannerPanelExpanded}
         tripTitle={tripTitle}
@@ -493,7 +496,9 @@ export function TripPlannerApp({
         onAddPlaceFromMap={openAddModalWithSelection}
         onOpenEditTripModal={openEditTripModal}
         onManageMembers={
-          canEditTripMetadata ? () => setIsMembersModalOpen(true) : undefined
+          canEditTripMetadata && !isGuest
+            ? () => setIsMembersModalOpen(true)
+            : undefined
         }
         onCopyMarkdownExport={copyMarkdownExport}
         onDownloadMarkdownExport={downloadMarkdownExport}
