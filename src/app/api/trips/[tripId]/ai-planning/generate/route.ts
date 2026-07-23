@@ -3,15 +3,16 @@ import { NextResponse } from "next/server";
 import {
   mapRouteError,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import { generateAiItineraryForRequest } from "@/server/ai-planning-service";
+import { hashedRequestIp } from "@/server/request-ip";
 
 import { readTripIdParam, type TripParams } from "../../_utils";
 
 export async function POST(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -31,8 +32,9 @@ export async function POST(request: Request, { params }: TripParams) {
       NextResponse.json(
         await generateAiItineraryForRequest(
           tripId,
-          auth.user.id,
+          auth.principal.principalId,
           parsedBody.body,
+          hashedRequestIp(request),
         ),
       ),
       auth.refreshedSession,

@@ -1,5 +1,10 @@
 import { fillPresetTripGeo } from "@/lib/destination-options";
 import {
+  exceedsGuestTripLength,
+  GUEST_TRIP_MAX_DAYS,
+  isGuestDestinationSlug,
+} from "@/lib/guest-mode";
+import {
   applyTripDateShift,
   planTripDateShift,
   type TripDateRange,
@@ -14,6 +19,7 @@ import {
   listScheduledVisits,
   reconcileRoutesForTrip,
 } from "./supabase-place-store";
+import { isGuestPrincipalId } from "./principal";
 import { requireTripRole } from "./trip-access";
 import { listTripMembers } from "./trip-members";
 
@@ -161,6 +167,7 @@ export async function updateTripForRequest(
       input.end_date !== undefined ? input.end_date : currentTrip.end_date,
   };
   validateTripDateRange(nextDates);
+  validateGuestTripUpdate(userId, currentTrip, input, nextDates);
 
   const { data, error } = await getSupabaseClient()
     .from("trips")
@@ -239,6 +246,35 @@ export async function deleteExpiredGuestTrips(): Promise<void> {
 
 function throwSupabaseError(error: { message: string }): never {
   throw new Error(`Supabase query failed: ${error.message}`);
+}
+
+// Guests keep their trips inside the demo envelope: curated destinations only
+// and at most GUEST_TRIP_MAX_DAYS days.
+function validateGuestTripUpdate(
+  principalId: string,
+  currentTrip: Trip,
+  input: TripUpdateInput,
+  nextDates: TripDateRange,
+): void {
+  if (!isGuestPrincipalId(principalId)) return;
+
+  const changesDestination =
+    input.destination !== undefined || input.destination_slug !== undefined;
+  const nextSlug =
+    input.destination_slug !== undefined
+      ? input.destination_slug
+      : currentTrip.destination_slug;
+  if (changesDestination && !isGuestDestinationSlug(nextSlug)) {
+    throw new TripValidationError(
+      "Guest trips are limited to the curated destination list.",
+    );
+  }
+
+  if (exceedsGuestTripLength(nextDates.start_date, nextDates.end_date)) {
+    throw new TripValidationError(
+      `Guest trips are limited to ${GUEST_TRIP_MAX_DAYS} days. Sign in with an invite to plan longer trips.`,
+    );
+  }
 }
 
 function validateTripDateRange(input: {

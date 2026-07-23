@@ -7,7 +7,7 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import {
@@ -18,7 +18,7 @@ import {
 import { readEntityParams, type TripEntityParams } from "../../_utils";
 
 export async function PATCH(request: Request, { params }: TripEntityParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -49,7 +49,7 @@ export async function PATCH(request: Request, { params }: TripEntityParams) {
       NextResponse.json(
         await editItineraryItemForRequest(
           parsedParams.tripId,
-          auth.user.id,
+          auth.principal.principalId,
           parsedParams.id,
           {
             visit_date: visitDate,
@@ -68,7 +68,7 @@ export async function PATCH(request: Request, { params }: TripEntityParams) {
 }
 
 export async function DELETE(request: Request, { params }: TripEntityParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -83,7 +83,7 @@ export async function DELETE(request: Request, { params }: TripEntityParams) {
       NextResponse.json(
         await removeItineraryItemForRequest(
           parsedParams.tripId,
-          auth.user.id,
+          auth.principal.principalId,
           parsedParams.id,
         ),
       ),

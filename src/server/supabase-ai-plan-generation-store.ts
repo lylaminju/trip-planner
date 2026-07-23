@@ -1,3 +1,5 @@
+import { GUEST_USAGE_KIND, recordGuestCall } from "./guest-usage-store";
+import { guestIdFromPrincipalId } from "./principal";
 import { getSupabaseClient } from "./supabase";
 
 type GenerationRecord = {
@@ -30,14 +32,18 @@ type GenerationUpdate = {
 
 export async function createAiPlanGeneration(
   tripId: number,
-  userId: string,
+  principalId: string,
   input: GenerationInsert,
+  ipHash: string | null = null,
 ): Promise<GenerationRecord> {
+  // Guest generations keep full cost logging here but carry no auth.users id;
+  // their per-guest quota accounting lives in guest_api_usage instead.
+  const guestId = guestIdFromPrincipalId(principalId);
   const { data, error } = await getSupabaseClient()
     .from("ai_plan_generations")
     .insert({
       trip_id: tripId,
-      created_by_user_id: userId,
+      created_by_user_id: guestId === null ? principalId : null,
       status: input.status ?? "running",
       prompt_version: input.prompt_version,
       preferences_snapshot: input.preferences_snapshot,
@@ -48,6 +54,11 @@ export async function createAiPlanGeneration(
     .single();
 
   if (error) throwSupabaseError(error);
+
+  if (guestId !== null) {
+    await recordGuestCall(guestId, GUEST_USAGE_KIND.AI_GENERATION, ipHash);
+  }
+
   return data as GenerationRecord;
 }
 

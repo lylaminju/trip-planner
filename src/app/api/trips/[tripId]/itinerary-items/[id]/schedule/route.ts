@@ -7,7 +7,7 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import { scheduleItineraryItemForRequest } from "@/server/place-service";
@@ -15,7 +15,7 @@ import { scheduleItineraryItemForRequest } from "@/server/place-service";
 import { readEntityParams, type TripEntityParams } from "../../../_utils";
 
 export async function PATCH(request: Request, { params }: TripEntityParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -46,7 +46,7 @@ export async function PATCH(request: Request, { params }: TripEntityParams) {
       NextResponse.json(
         await scheduleItineraryItemForRequest(
           parsedParams.tripId,
-          auth.user.id,
+          auth.principal.principalId,
           parsedParams.id,
           visitDate,
           visitTime,

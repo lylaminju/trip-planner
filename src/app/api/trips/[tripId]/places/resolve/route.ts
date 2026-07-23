@@ -5,7 +5,7 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import { resolvePlaceUrl } from "@/server/place-service";
@@ -14,7 +14,7 @@ import { requireTripRole } from "@/server/trip-access";
 import { readTripIdParam, type TripParams } from "../../_utils";
 
 export async function POST(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: TripParams) {
   }
 
   try {
-    await requireTripRole(tripId, auth.user.id, "owner");
+    await requireTripRole(tripId, auth.principal.principalId, "owner");
   } catch (error) {
     const response = mapRouteError(error);
     if (response) return response;

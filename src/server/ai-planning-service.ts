@@ -29,7 +29,6 @@ import {
   AiGenerationRateLimitError,
   AiPlannerConfigError,
   AiUpstreamRateLimitError,
-  GoogleRoutesRateLimitError,
   TripValidationError,
 } from "./errors";
 import {
@@ -39,9 +38,14 @@ import {
   updateAiPlanGeneration,
 } from "./supabase-ai-plan-application-service";
 import {
-  countUserGoogleRoutesCallsToday,
-  GOOGLE_ROUTES_DAILY_LIMIT,
-} from "./supabase-google-routes-usage-store";
+  countAllGuestCallsToday,
+  countGuestCallsToday,
+  GUEST_AI_GENERATION_DAILY_LIMIT,
+  GUEST_AI_GENERATION_GLOBAL_DAILY_CAP,
+  GUEST_USAGE_KIND,
+} from "./guest-usage-store";
+import { guestIdFromPrincipalId } from "./principal";
+import { assertGoogleRoutesQuota } from "./supabase-google-routes-usage-store";
 import {
   getPlanningPreferences,
   getPrimaryLodging,
@@ -79,6 +83,41 @@ const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v2";
 const AI_CATALOG_PROMPT_VERSION = "ai-destination-catalog-v3";
 const AI_HUBS_PROMPT_VERSION = "ai-destination-transit-hubs-v1";
 const AI_GENERATION_DAILY_LIMIT = 30;
+
+// Guests are bounded per cookie and by the demo-wide cap that bounds
+// worst-case OpenAI spend; invited users keep the per-account daily limit.
+async function assertAiGenerationQuota(principalId: string): Promise<void> {
+  const guestId = guestIdFromPrincipalId(principalId);
+
+  if (guestId === null) {
+    const todayCount = await countUserGenerationsToday(principalId);
+    if (todayCount >= AI_GENERATION_DAILY_LIMIT) {
+      throw new AiGenerationRateLimitError(
+        "Daily AI generation limit reached. Please try again tomorrow.",
+      );
+    }
+    return;
+  }
+
+  const guestCount = await countGuestCallsToday(
+    guestId,
+    GUEST_USAGE_KIND.AI_GENERATION,
+  );
+  if (guestCount >= GUEST_AI_GENERATION_DAILY_LIMIT) {
+    throw new AiGenerationRateLimitError(
+      "Daily AI generation limit reached for this guest session. Sign in with an invite for a higher limit.",
+    );
+  }
+
+  const globalCount = await countAllGuestCallsToday(
+    GUEST_USAGE_KIND.AI_GENERATION,
+  );
+  if (globalCount >= GUEST_AI_GENERATION_GLOBAL_DAILY_CAP) {
+    throw new AiGenerationRateLimitError(
+      "The guest demo's AI budget is used up for today. Sign in with an invite for full access.",
+    );
+  }
+}
 
 const DESTINATION_NOT_PLANNABLE_MESSAGE =
   "AI planning needs a trip destination first.";
@@ -285,12 +324,7 @@ async function runLoggedCatalogGeneration<T>(
   }>,
 ): Promise<T> {
   const startedAt = Date.now();
-  const todayCount = await countUserGenerationsToday(userId);
-  if (todayCount >= AI_GENERATION_DAILY_LIMIT) {
-    throw new AiGenerationRateLimitError(
-      "Daily AI generation limit reached. Please try again tomorrow.",
-    );
-  }
+  await assertAiGenerationQuota(userId);
 
   const config = openAiPlannerConfig();
   const generation = await createAiPlanGeneration(tripId, userId, {
@@ -363,23 +397,13 @@ export async function generateAiItineraryForRequest(
   tripId: number,
   userId: string,
   payload: unknown,
+  ipHash: string | null = null,
 ): Promise<{ generationId: number; plannerSnapshot: PlannerSnapshot }> {
   const startedAt = Date.now();
   await requireTripRole(tripId, userId, "owner");
 
-  const todayCount = await countUserGenerationsToday(userId);
-  if (todayCount >= AI_GENERATION_DAILY_LIMIT) {
-    throw new AiGenerationRateLimitError(
-      "Daily AI generation limit reached. Please try again tomorrow.",
-    );
-  }
-
-  const googleRoutesCount = await countUserGoogleRoutesCallsToday(userId);
-  if (googleRoutesCount >= GOOGLE_ROUTES_DAILY_LIMIT) {
-    throw new GoogleRoutesRateLimitError(
-      "Daily Google Routes limit reached. Please try again tomorrow.",
-    );
-  }
+  await assertAiGenerationQuota(userId);
+  await assertGoogleRoutesQuota(userId);
 
   const trip = await getTripById(tripId);
   const candidateKey = destinationCandidateKey(trip);
@@ -443,19 +467,26 @@ export async function generateAiItineraryForRequest(
     tripId,
     generationInput.preferences,
   );
-  const generation = await createAiPlanGeneration(tripId, userId, {
-    prompt_version: AI_PLANNER_PROMPT_VERSION,
-    preferences_snapshot: savedPreferences,
-    candidate_count: candidates.length,
-    must_see_count: savedPreferences.must_see_candidate_ids.length,
-  });
+  const generation = await createAiPlanGeneration(
+    tripId,
+    userId,
+    {
+      prompt_version: AI_PLANNER_PROMPT_VERSION,
+      preferences_snapshot: savedPreferences,
+      candidate_count: candidates.length,
+      must_see_count: savedPreferences.must_see_candidate_ids.length,
+    },
+    ipHash,
+  );
 
   try {
     const config = openAiPlannerConfig();
     const primary = await requestAiItineraryPlan({
       apiKey: config.apiKey,
       model: config.model,
-      enableWebSearch: true,
+      // Guests get model-knowledge-only generations; live web verification is
+      // reserved for invited accounts.
+      enableWebSearch: guestIdFromPrincipalId(userId) === null,
       context: promptContext({
         trip,
         lodging,

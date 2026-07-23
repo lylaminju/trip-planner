@@ -9,7 +9,7 @@ import {
   mapRouteError,
   nullableCountryCodes,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import {
@@ -22,7 +22,7 @@ import { findDestinationOption } from "@/lib/destination-options";
 import { readTripIdParam, type TripParams } from "./_utils";
 
 export async function PATCH(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -45,7 +45,7 @@ export async function PATCH(request: Request, { params }: TripParams) {
   try {
     return withRefreshedSession(
       NextResponse.json({
-        trip: await updateTripForRequest(tripId, auth.user.id, parsedInput),
+        trip: await updateTripForRequest(tripId, auth.principal.principalId, parsedInput),
       }),
       auth.refreshedSession,
     );
@@ -57,7 +57,7 @@ export async function PATCH(request: Request, { params }: TripParams) {
 }
 
 export async function DELETE(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -68,7 +68,7 @@ export async function DELETE(request: Request, { params }: TripParams) {
   }
 
   try {
-    await deleteTripForRequest(tripId, auth.user.id);
+    await deleteTripForRequest(tripId, auth.principal.principalId);
     return withRefreshedSession(
       NextResponse.json({ ok: true }),
       auth.refreshedSession,

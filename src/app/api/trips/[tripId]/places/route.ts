@@ -9,7 +9,7 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import { resolvePlaceImage } from "@/server/place-image-resolution";
@@ -23,7 +23,7 @@ import { requireTripRole } from "@/server/trip-access";
 import { readTripIdParam, type TripParams } from "../_utils";
 
 export async function POST(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -34,7 +34,7 @@ export async function POST(request: Request, { params }: TripParams) {
   }
 
   try {
-    await requireTripRole(tripId, auth.user.id, "owner");
+    await requireTripRole(tripId, auth.principal.principalId, "owner");
   } catch (error) {
     const response = mapRouteError(error);
     if (response) return response;
@@ -91,7 +91,7 @@ export async function POST(request: Request, { params }: TripParams) {
     // The photo data URL was fetched (and billed) once at preview time; here it
     // is only validated and stored, never re-fetched from Google.
     const image = await resolvePlaceImage({
-      userId: auth.user.id,
+      userId: auth.principal.principalId,
       photoDataUrl: stringOrNull(body.photo_data_url),
       photoAttribution: stringOrNull(body.photo_attribution),
       placeId,
@@ -99,7 +99,7 @@ export async function POST(request: Request, { params }: TripParams) {
 
     return withRefreshedSession(
       NextResponse.json(
-        await createPlaceForRequest(tripId, auth.user.id, {
+        await createPlaceForRequest(tripId, auth.principal.principalId, {
           name,
           address: stringOrNull(body.address),
           notes: stringOrNull(body.notes),
@@ -127,7 +127,7 @@ export async function POST(request: Request, { params }: TripParams) {
 }
 
 export async function DELETE(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -140,7 +140,7 @@ export async function DELETE(request: Request, { params }: TripParams) {
   try {
     return withRefreshedSession(
       NextResponse.json(
-        await removeAllPlacesForRequest(tripId, auth.user.id),
+        await removeAllPlacesForRequest(tripId, auth.principal.principalId),
       ),
       auth.refreshedSession,
     );

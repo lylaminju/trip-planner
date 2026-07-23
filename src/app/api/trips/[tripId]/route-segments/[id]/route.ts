@@ -5,7 +5,7 @@ import {
   jsonError,
   mapRouteError,
   readJsonBody,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import type { TravelMode } from "@/lib/types";
@@ -21,7 +21,7 @@ const MODES = new Set<TravelMode>([
 ]);
 
 export async function PATCH(request: Request, { params }: TripEntityParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -46,7 +46,7 @@ export async function PATCH(request: Request, { params }: TripEntityParams) {
       NextResponse.json(
         await setRouteSegmentModeForRequest(
           parsedParams.tripId,
-          auth.user.id,
+          auth.principal.principalId,
           parsedParams.id,
           body.mode as TravelMode,
         ),

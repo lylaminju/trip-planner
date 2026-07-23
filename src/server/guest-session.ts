@@ -65,6 +65,16 @@ export function readGuestIdFromCookieHeader(
   );
 }
 
+export function readGuestIdFromCookieStore(
+  cookieStore: { get(name: string): { value: string } | undefined },
+  secret: string,
+): string | null {
+  return verifyGuestCookieValue(
+    cookieStore.get(GUEST_ID_COOKIE)?.value ?? null,
+    secret,
+  );
+}
+
 export function setGuestCookie(
   response: NextResponse,
   guestId: string,

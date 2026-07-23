@@ -13,6 +13,7 @@ export async function getRouteGeometry(
   tripId: number,
   segmentId: number,
   userId?: string,
+  ipHash: string | null = null,
 ): Promise<RouteGeometry> {
   const apiKey = getRoutesApiKey();
   if (!apiKey) {
@@ -21,7 +22,7 @@ export async function getRouteGeometry(
     );
   }
 
-  return getSupabaseRouteGeometry(tripId, segmentId, apiKey, userId);
+  return getSupabaseRouteGeometry(tripId, segmentId, apiKey, userId, ipHash);
 }
 
 export async function getRouteDurationSeconds(input: {

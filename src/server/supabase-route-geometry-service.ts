@@ -2,7 +2,10 @@ import type { RouteGeometry, TravelMode } from "@/lib/types";
 import { RouteSegmentNotFoundError } from "@/server/errors";
 import { computeGoogleRoute } from "@/server/google-routes";
 import { getSupabaseClient } from "@/server/supabase";
-import { recordGoogleRoutesCall } from "@/server/supabase-google-routes-usage-store";
+import {
+  assertGoogleRoutesQuota,
+  recordGoogleRoutesCall,
+} from "@/server/supabase-google-routes-usage-store";
 
 type SegmentRouteRow = {
   segment_id: number;
@@ -103,6 +106,7 @@ export async function getRouteGeometry(
   segmentId: number,
   apiKey: string,
   userId?: string,
+  ipHash: string | null = null,
 ): Promise<RouteGeometry> {
   const segment = await getSegmentRouteRow(tripId, segmentId);
   const cacheKey = routeGeometryCacheKey(segment);
@@ -110,6 +114,12 @@ export async function getRouteGeometry(
 
   if (cached) {
     return toRouteGeometry(segmentId, cached);
+  }
+
+  // Quota is asserted only on a cache miss: serving cached geometry costs
+  // nothing, so it never burns a daily slot.
+  if (userId) {
+    await assertGoogleRoutesQuota(userId);
   }
 
   const computed = await computeGoogleRoute({
@@ -126,7 +136,7 @@ export async function getRouteGeometry(
   });
 
   if (userId) {
-    recordGoogleRoutesCall(userId).catch(() => {});
+    recordGoogleRoutesCall(userId, ipHash).catch(() => {});
   }
 
   await saveRouteGeometry(cacheKey, segment, computed);
@@ -250,7 +260,11 @@ function toRouteGeometry(
   };
 }
 
-function routeGeometryCacheKey(segment: SegmentRouteRow): string {
+// Also used by guest sample-trip cloning to re-key copied geometry rows for
+// the cloned place ids, so clones render routes without new Routes calls.
+export function routeGeometryCacheKey(
+  segment: Omit<SegmentRouteRow, "segment_id">,
+): string {
   return [
     segment.from_place_id,
     segment.to_place_id,

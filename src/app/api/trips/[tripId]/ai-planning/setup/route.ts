@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   mapRouteError,
-  requireAuthenticatedRequest,
+  requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
 import { getAiPlanningSetupForRequest } from "@/server/ai-planning-service";
@@ -10,7 +10,7 @@ import { getAiPlanningSetupForRequest } from "@/server/ai-planning-service";
 import { readTripIdParam, type TripParams } from "../../_utils";
 
 export async function GET(request: Request, { params }: TripParams) {
-  const auth = await requireAuthenticatedRequest(request);
+  const auth = await requireUserOrGuestRequest(request);
   if (!auth.ok) {
     return auth.response;
   }
@@ -23,7 +23,7 @@ export async function GET(request: Request, { params }: TripParams) {
   try {
     return withRefreshedSession(
       NextResponse.json(
-        await getAiPlanningSetupForRequest(tripId, auth.user.id),
+        await getAiPlanningSetupForRequest(tripId, auth.principal.principalId),
       ),
       auth.refreshedSession,
     );
