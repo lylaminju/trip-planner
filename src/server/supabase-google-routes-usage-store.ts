@@ -1,4 +1,5 @@
 import { GoogleRoutesRateLimitError } from "./errors";
+import { recordGuestEvent } from "./guest-events";
 import {
   countAllGuestCallsToday,
   countGuestCallsToday,
@@ -51,6 +52,10 @@ export async function assertGoogleRoutesQuota(
     GUEST_USAGE_KIND.GOOGLE_ROUTES,
   );
   if (guestCount >= GUEST_GOOGLE_ROUTES_DAILY_LIMIT) {
+    void recordGuestEvent(guestId, "limit_hit", {
+      kind: GUEST_USAGE_KIND.GOOGLE_ROUTES,
+      scope: "guest",
+    });
     throw new GoogleRoutesRateLimitError(
       "Daily route lookup limit reached for this guest session. Sign in with an invite for a higher limit.",
     );
@@ -60,6 +65,10 @@ export async function assertGoogleRoutesQuota(
     GUEST_USAGE_KIND.GOOGLE_ROUTES,
   );
   if (globalCount >= GUEST_GOOGLE_ROUTES_GLOBAL_DAILY_CAP) {
+    void recordGuestEvent(guestId, "limit_hit", {
+      kind: GUEST_USAGE_KIND.GOOGLE_ROUTES,
+      scope: "global",
+    });
     throw new GoogleRoutesRateLimitError(
       "The guest demo's route budget is used up for today. Sign in with an invite for full access.",
     );

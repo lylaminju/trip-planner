@@ -79,6 +79,18 @@ sign-in upsell instead of an error.
 - Guest API access requires a validly signed guest cookie; requests without one
   are rejected before reaching metered services.
 
+## Configuration
+
+- `GUEST_SESSION_SECRET` signs the guest cookie. Guest mode, the landing
+  demo CTAs, and `/try` stay disabled while it is unset.
+- `GUEST_SAMPLE_TRIP_ID` names the trip cloned by "Explore a sample trip".
+  Without it the landing page offers only the plan-your-own entry point.
+- Guest quota rows live in `guest_api_usage`. Guest AI generations are also
+  logged in `ai_plan_generations` with a null user id, keeping token cost
+  visibility unified; quota counting for guests uses `guest_api_usage` only.
+- Serving cached route geometry never consumes Routes quota, for guests or
+  members; quota is asserted only on a geometry cache miss.
+
 ## Analytics
 
 Guest actions are recorded in a `guest_events` table (`guest_id`,

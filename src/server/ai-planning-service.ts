@@ -37,6 +37,7 @@ import {
   replaceAiGeneratedBatch,
   updateAiPlanGeneration,
 } from "./supabase-ai-plan-application-service";
+import { recordGuestEvent } from "./guest-events";
 import {
   countAllGuestCallsToday,
   countGuestCallsToday,
@@ -104,6 +105,10 @@ async function assertAiGenerationQuota(principalId: string): Promise<void> {
     GUEST_USAGE_KIND.AI_GENERATION,
   );
   if (guestCount >= GUEST_AI_GENERATION_DAILY_LIMIT) {
+    void recordGuestEvent(guestId, "limit_hit", {
+      kind: GUEST_USAGE_KIND.AI_GENERATION,
+      scope: "guest",
+    });
     throw new AiGenerationRateLimitError(
       "Daily AI generation limit reached for this guest session. Sign in with an invite for a higher limit.",
     );
@@ -113,6 +118,10 @@ async function assertAiGenerationQuota(principalId: string): Promise<void> {
     GUEST_USAGE_KIND.AI_GENERATION,
   );
   if (globalCount >= GUEST_AI_GENERATION_GLOBAL_DAILY_CAP) {
+    void recordGuestEvent(guestId, "limit_hit", {
+      kind: GUEST_USAGE_KIND.AI_GENERATION,
+      scope: "global",
+    });
     throw new AiGenerationRateLimitError(
       "The guest demo's AI budget is used up for today. Sign in with an invite for full access.",
     );

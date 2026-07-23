@@ -54,6 +54,24 @@ describe("LandingPage", () => {
     expect(linkCount(nav)).toBe(4);
   });
 
+  it("leads with the guest demo CTAs when guest mode is configured", () => {
+    process.env.GUEST_SESSION_SECRET = "test-secret";
+    process.env.GUEST_SAMPLE_TRIP_ID = "1";
+    try {
+      const markup = renderToStaticMarkup(createElement(LandingPage));
+
+      const heroActions = markupBetween(markup, "landing-hero-actions", "div");
+      // Primary action clones the sample trip; planning your own is secondary.
+      expect(heroActions).toContain("landing-sample-trip-cta");
+      expect(heroActions).toContain('href="/try"');
+      // The invite request stays reachable from the hero access copy.
+      expect(markup).toContain("mailto:mjuudev@gmail.com");
+    } finally {
+      delete process.env.GUEST_SESSION_SECRET;
+      delete process.env.GUEST_SAMPLE_TRIP_ID;
+    }
+  });
+
   it("shows the browser-style planner preview with route segment rows", () => {
     const markup = renderToStaticMarkup(createElement(LandingPage));
 

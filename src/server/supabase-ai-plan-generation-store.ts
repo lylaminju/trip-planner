@@ -1,3 +1,4 @@
+import { recordGuestEvent } from "./guest-events";
 import { GUEST_USAGE_KIND, recordGuestCall } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
 import { getSupabaseClient } from "./supabase";
@@ -57,6 +58,7 @@ export async function createAiPlanGeneration(
 
   if (guestId !== null) {
     await recordGuestCall(guestId, GUEST_USAGE_KIND.AI_GENERATION, ipHash);
+    void recordGuestEvent(guestId, "generation_run", { trip_id: tripId });
   }
 
   return data as GenerationRecord;

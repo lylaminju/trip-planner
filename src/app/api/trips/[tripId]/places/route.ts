@@ -12,6 +12,7 @@ import {
   requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
+import { recordGuestEvent } from "@/server/guest-events";
 import { resolvePlaceImage } from "@/server/place-image-resolution";
 import {
   createPlaceForRequest,
@@ -97,28 +98,33 @@ export async function POST(request: Request, { params }: TripParams) {
       placeId,
     });
 
-    return withRefreshedSession(
-      NextResponse.json(
-        await createPlaceForRequest(tripId, auth.principal.principalId, {
-          name,
-          address: stringOrNull(body.address),
-          notes: stringOrNull(body.notes),
-          google_maps_url: resolved.google_maps_url,
-          google_place_id: placeId,
-          google_place_token: null,
-          google_internal_ids: null,
-          source_list_url: null,
-          latitude: resolved.latitude,
-          longitude: resolved.longitude,
-          links: stringArray(body.links),
-          image_url: image.image_url,
-          image_credit: image.image_credit,
-          visit_date: visitDate,
-          visit_time: visitTime,
-        }),
-      ),
-      auth.refreshedSession,
+    const snapshot = NextResponse.json(
+      await createPlaceForRequest(tripId, auth.principal.principalId, {
+        name,
+        address: stringOrNull(body.address),
+        notes: stringOrNull(body.notes),
+        google_maps_url: resolved.google_maps_url,
+        google_place_id: placeId,
+        google_place_token: null,
+        google_internal_ids: null,
+        source_list_url: null,
+        latitude: resolved.latitude,
+        longitude: resolved.longitude,
+        links: stringArray(body.links),
+        image_url: image.image_url,
+        image_credit: image.image_credit,
+        visit_date: visitDate,
+        visit_time: visitTime,
+      }),
     );
+
+    if (auth.principal.kind === "guest") {
+      void recordGuestEvent(auth.principal.guestId, "place_added", {
+        trip_id: tripId,
+      });
+    }
+
+    return withRefreshedSession(snapshot, auth.refreshedSession);
   } catch (error) {
     const response = mapRouteError(error);
     if (response) return response;

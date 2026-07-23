@@ -27,6 +27,7 @@ import type { PlaceSearchSelection } from "./AddPlaceSearchStep";
 import { AiPlanningWizard } from "./AiPlanningWizard";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { EditTripModal } from "./EditTripModal";
+import { GuestModeBanner } from "./GuestModeBanner";
 import { MapPanel } from "./MapPanel";
 import { PlannerPanel } from "./PlannerPanel";
 import { PlannerResizeHandle } from "./planner-panel/PlannerResizeHandle";
@@ -284,15 +285,7 @@ export function TripPlannerView(props: Props) {
           {props.aiGenerationToast}
         </div>
       )}
-      {props.isGuest && (
-        <div className="guest-mode-banner" role="note">
-          <span>
-            Guest mode — this demo trip expires after 48 hours.{" "}
-            <a href="/">Request an invite</a> to keep trips, use Google search,
-            and unlock AI web verification.
-          </span>
-        </div>
-      )}
+      {props.isGuest && <GuestModeBanner />}
       {(props.isAdding || props.editingPlace) && (
         <AddEditPlaceModal
           tripId={props.tripId}

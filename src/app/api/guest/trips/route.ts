@@ -13,6 +13,7 @@ import {
   readGuestIdFromCookieHeader,
   setGuestCookie,
 } from "@/server/guest-session";
+import { recordGuestEvent } from "@/server/guest-events";
 import {
   cloneSampleTripForGuest,
   createGuestTrip,
@@ -61,6 +62,12 @@ export async function POST(request: Request) {
       mode === "sample"
         ? await cloneSampleTripForGuest(guestId)
         : await createGuestTrip(guestId, readNewTripInput(body));
+
+    void recordGuestEvent(
+      guestId,
+      mode === "sample" ? "sample_cloned" : "trip_created",
+      { trip_id: created.tripId },
+    );
 
     return setGuestCookie(
       NextResponse.json({ tripId: created.tripId }, { status: 201 }),

@@ -111,6 +111,11 @@ export async function cloneSampleTripForGuest(
   return { tripId };
 }
 
+// Lets the landing page decide whether to render the sample-trip CTA.
+export function hasSampleTrip(): boolean {
+  return sampleTripId() !== null;
+}
+
 function guestTripExpiryIso(): string {
   return new Date(Date.now() + GUEST_TRIP_TTL_HOURS * MS_PER_HOUR).toISOString();
 }
