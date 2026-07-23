@@ -24,6 +24,11 @@ import {
   readAuthTokensFromCookieHeader,
   setAuthCookies,
 } from "@/server/auth-session";
+import {
+  guestSessionSecret,
+  readGuestIdFromCookieHeader,
+} from "@/server/guest-session";
+import { guestPrincipalId } from "@/server/principal";
 
 export type JsonObject = Record<string, unknown>;
 
@@ -108,6 +113,47 @@ export async function requireAuthenticatedRequest(
   }
 
   return { ok: true, refreshedSession: session, user };
+}
+
+export type RequestPrincipal =
+  | { kind: "user"; user: User; principalId: string }
+  | { kind: "guest"; guestId: string; principalId: string };
+
+// Accepts a signed-in user first, then falls back to a validly signed guest
+// cookie. Guest mode fails closed when GUEST_SESSION_SECRET is unset or the
+// cookie is missing, malformed, or tampered with.
+export async function requireUserOrGuestRequest(
+  request: Request,
+): Promise<
+  | { ok: true; refreshedSession: Session | null; principal: RequestPrincipal }
+  | { ok: false; response: NextResponse }
+> {
+  const { user, session } = await getAuthenticatedUser(
+    readAuthTokensFromCookieHeader(request.headers.get("cookie")),
+  );
+
+  if (user) {
+    return {
+      ok: true,
+      refreshedSession: session,
+      principal: { kind: "user", user, principalId: user.id },
+    };
+  }
+
+  const secret = guestSessionSecret();
+  const guestId = secret
+    ? readGuestIdFromCookieHeader(request.headers.get("cookie"), secret)
+    : null;
+
+  if (guestId) {
+    return {
+      ok: true,
+      refreshedSession: null,
+      principal: { kind: "guest", guestId, principalId: guestPrincipalId(guestId) },
+    };
+  }
+
+  return { ok: false, response: jsonError("Authentication required.", 401) };
 }
 
 export function withRefreshedSession(

@@ -38,14 +38,14 @@ export async function getAuthenticatedUser(
   return { user: null, session: null };
 }
 
-export function readAuthTokensFromCookieHeader(
+export function parseCookieHeader(
   cookieHeader: string | null,
-): TokenPair {
+): Map<string, string> {
+  const cookies = new Map<string, string>();
   if (!cookieHeader) {
-    return { accessToken: null, refreshToken: null };
+    return cookies;
   }
 
-  const cookies = new Map<string, string>();
   for (const chunk of cookieHeader.split(";")) {
     const [rawName, ...rawValue] = chunk.trim().split("=");
     if (!rawName || rawValue.length === 0) continue;
@@ -53,6 +53,14 @@ export function readAuthTokensFromCookieHeader(
     if (decodedValue === null) continue;
     cookies.set(rawName, decodedValue);
   }
+
+  return cookies;
+}
+
+export function readAuthTokensFromCookieHeader(
+  cookieHeader: string | null,
+): TokenPair {
+  const cookies = parseCookieHeader(cookieHeader);
 
   return {
     accessToken: cookies.get(ACCESS_TOKEN_COOKIE) ?? null,

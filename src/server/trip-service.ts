@@ -224,6 +224,19 @@ export async function deleteTripForRequest(
   if (error) throwSupabaseError(error);
 }
 
+// Guest trips are ephemeral: hard-delete (cascading places, items, segments)
+// once expired. Called opportunistically from guest entry points so cleanup
+// needs no scheduler.
+export async function deleteExpiredGuestTrips(): Promise<void> {
+  const { error } = await getSupabaseClient()
+    .from("trips")
+    .delete()
+    .not("guest_owner_id", "is", null)
+    .lt("expires_at", new Date().toISOString());
+
+  if (error) throwSupabaseError(error);
+}
+
 function throwSupabaseError(error: { message: string }): never {
   throw new Error(`Supabase query failed: ${error.message}`);
 }
