@@ -18,7 +18,6 @@ import {
   cloneSampleTripForGuest,
   createGuestTrip,
 } from "@/server/guest-trip-service";
-import { deleteExpiredGuestTrips } from "@/server/trip-service";
 
 const GUEST_TRIP_MODES = ["new", "sample"] as const;
 const MAX_TRIP_NAME_LENGTH = 120;
@@ -52,10 +51,6 @@ export async function POST(request: Request) {
   const guestId =
     readGuestIdFromCookieHeader(request.headers.get("cookie"), secret) ??
     mintGuestId();
-
-  // Opportunistic cleanup keeps expired demo trips from accumulating without
-  // needing a scheduler; failures never block trip creation.
-  deleteExpiredGuestTrips().catch(() => {});
 
   try {
     const created =

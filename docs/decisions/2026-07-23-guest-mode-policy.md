@@ -7,8 +7,12 @@ in the full planner UI, backed by server-side ephemeral trips owned by an
 anonymous guest principal.
 
 - Guest identity is a signed, httpOnly guest cookie minted by the landing page.
-- Guest trips are stored in Supabase like member trips and are deleted 48 hours
-  after creation.
+- Guest trips are stored in Supabase like member trips and become unreachable
+  48 hours after creation: guest access requires `expires_at > now`, so expired
+  trips return 404 on every page and API route.
+- Expired guest trip rows are retained, not deleted. Retained trips are the
+  behavioral analytics record: they show what guests actually planned. There is
+  no cleanup job; revisit retention if guest volume grows.
 - Guest trips are reachable only with the same guest cookie; guest trip links
   are not shareable.
 - Guests never see other users' trips, members, or profiles, and members never

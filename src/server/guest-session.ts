@@ -7,7 +7,8 @@ const GUEST_ID_COOKIE = "trip-planner-guest-id";
 // Long-lived so per-guest daily quotas follow the same browser across visits,
 // even though each guest trip expires much sooner.
 const GUEST_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-// Guest trips are ephemeral demos; expired ones are deleted outright.
+// Guest trips are ephemeral demos: access checks reject them once expired.
+// Rows are retained for analytics; see the guest mode policy doc.
 export const GUEST_TRIP_TTL_HOURS = 48;
 
 const GUEST_ID_PATTERN =
