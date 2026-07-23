@@ -54,8 +54,9 @@ export function SampleTripPreview() {
               </h3>
               <LandingItineraryStop
                 time="10:00"
-                name="Brunch cafe"
-                note="Late breakfast and coffee"
+                name="Airport"
+                note="Arrive and collect bags"
+                emoji="✈️"
                 markerLabel="1"
                 markerColor="var(--accent)"
                 active
@@ -63,16 +64,18 @@ export function SampleTripPreview() {
               <LandingRouteSegment mode="walking" duration="18 min" />
               <LandingItineraryStop
                 time="11:50"
-                name="Museum"
-                note="Exhibits and a short gallery loop"
+                name="Hotel"
+                note="Check in and drop your bags"
+                emoji="🏨"
                 markerLabel="2"
                 markerColor="var(--accent)"
               />
               <LandingRouteSegment mode="transit" duration="22 min" />
               <LandingItineraryStop
                 time="16:30"
-                name="Bookstore"
-                note="New releases and a few slow laps"
+                name="Park"
+                note="Golden-hour stroll and views"
+                emoji="🌳"
                 markerLabel="3"
                 markerColor="var(--accent)"
               />

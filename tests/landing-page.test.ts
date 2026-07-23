@@ -62,12 +62,16 @@ describe("LandingPage", () => {
     expect(markup).toContain('aria-label="Sample planner preview"');
     expect(markup).toContain("landing-browser-dot");
     expect(markup).toContain("Day 1");
-    expect(markup).toContain("10:00 Brunch cafe");
-    expect(markup).toContain("11:50 Museum");
-    expect(markup).toContain("16:30 Bookstore");
-    expect(markup).toContain("Late breakfast and coffee");
-    expect(markup).toContain("Exhibits and a short gallery loop");
-    expect(markup).toContain("New releases and a few slow laps");
+    expect(markup).toContain("10:00 Airport");
+    expect(markup).toContain("11:50 Hotel");
+    expect(markup).toContain("16:30 Park");
+    expect(markup).toContain("Arrive and collect bags");
+    expect(markup).toContain("Check in and drop your bags");
+    expect(markup).toContain("Golden-hour stroll and views");
+    // Each preview visit carries an emoji thumbnail affordance.
+    expect(markup).toContain("landing-stop-thumb");
+    // Time sits in its own column (like the real planner), not inline in the title.
+    expect(markup).toContain("landing-stop-time");
     expect(markup).toContain("landing-route-segment");
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain("landing-preview-sheet-handle");
@@ -79,8 +83,8 @@ describe("LandingPage", () => {
     expect(markup).toContain('aria-label="Travel mode: Transit"');
     expect(markup).toContain("18 min");
     expect(markup).toContain("22 min");
-    expect(markup).toContain('aria-label="Edit Brunch cafe"');
-    expect(markup).toContain('aria-label="Delete Brunch cafe"');
+    expect(markup).toContain('aria-label="Edit Airport"');
+    expect(markup).toContain('aria-label="Delete Airport"');
   });
 
   it("places the AI planner demo between the planner preview and the showcase", () => {
@@ -121,11 +125,12 @@ describe("LandingPage", () => {
     const markup = renderToStaticMarkup(createElement(LandingAiDemo));
 
     expect(markup).toContain("Fri, Apr 3");
-    expect(markup).toContain("09:00 Central Park");
-    expect(markup).toContain("11:30 Museum of Modern Art");
-    expect(markup).toContain("15:00 The High Line");
-    expect(markup).toContain('aria-label="Edit The High Line"');
-    expect(markup).toContain('aria-label="Delete The High Line"');
+    expect(markup).toContain("09:00 Airport");
+    expect(markup).toContain("11:30 Hotel");
+    expect(markup).toContain("15:00 Park");
+    expect(markup).toContain('aria-label="Edit Park"');
+    expect(markup).toContain('aria-label="Delete Park"');
+    expect(markup).toContain("landing-stop-thumb");
     expect(markup).toContain('aria-label="Travel mode: Transit"');
   });
 
@@ -183,12 +188,13 @@ describe("LandingPage", () => {
     expect(markup).toContain("day-heading-prefix");
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain("09:30");
-    expect(markup).toContain("Museum");
+    expect(markup).toContain("Airport");
     expect(markup).toContain("11:00");
-    expect(markup).toContain("Bakery");
+    expect(markup).toContain("Hotel");
     expect(markup).toContain("unscheduled-block");
     expect(markup).toContain("Unscheduled");
     expect(markup).toContain("Park");
+    expect(markup).toContain("landing-stop-thumb");
     expect(markup).not.toContain("Exhibits and a short gallery loop");
     expect(markup).not.toContain("Coffee and a short break");
     expect(markup).not.toContain("No date yet");
@@ -211,7 +217,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("landing-workflow-route-card");
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain(
-      'class="place-row landing-itinerary-stop" aria-label="09:30 Museum"',
+      'class="place-row landing-itinerary-stop" aria-label="09:30 Airport"',
     );
     expect(markup).toContain("segment-row landing-route-segment");
     expect(markup).toContain("landing-workflow-open-route-segment");
@@ -227,7 +233,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("12 min");
     expect(markup).toContain("route-segment-map-link");
     expect(markup).toContain("Open route in Google Maps");
-    expect(markup).toContain("Lunch spot");
+    expect(markup).toContain("Hotel");
 
   });
 
@@ -251,6 +257,18 @@ describe("LandingPage", () => {
     expect(markerRule).toContain("justify-content: center;");
     expect(markerRule).toContain("margin-right: 6px;");
     expect(markerRule).toContain("width: 18px;");
+  });
+
+  it("removes divider lines between preview visits to match the real planner", () => {
+    const css = fs.readFileSync(
+      "src/styles/components/landing-preview.css",
+      "utf8",
+    );
+    // The combined class must outrank the later-imported base `.place-row`
+    // border-top, so the fix cannot be silently lost to stylesheet order.
+    const stopRule = cssRule(css, ".place-row.landing-itinerary-stop");
+
+    expect(stopRule).toContain("border-top: 0;");
   });
 
   it("shows feature proof below the workflow showcase", () => {

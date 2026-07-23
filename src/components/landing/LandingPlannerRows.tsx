@@ -14,6 +14,7 @@ type LandingItineraryStopProps = {
   time: string;
   name: string;
   note?: string;
+  emoji?: string;
   markerLabel: string;
   markerColor: string;
   active?: boolean;
@@ -23,6 +24,7 @@ export function LandingItineraryStop({
   time,
   name,
   note,
+  emoji,
   markerLabel,
   markerColor,
   active = false,
@@ -36,6 +38,14 @@ export function LandingItineraryStop({
       <span className="drag-handle" aria-hidden="true">
         ::
       </span>
+      <span className="landing-stop-time" aria-hidden="true">
+        {time}
+      </span>
+      {emoji ? (
+        <span className="landing-stop-thumb" aria-hidden="true">
+          {emoji}
+        </span>
+      ) : null}
       <div className="place-main">
         <strong className="place-title">
           <span
@@ -46,7 +56,6 @@ export function LandingItineraryStop({
             {markerLabel}
           </span>
           <span className="place-title-text">
-            <span className="place-time">{time}</span>
             <span className="place-name">{name}</span>
           </span>
         </strong>
@@ -70,14 +79,21 @@ type LandingRouteSegmentProps = {
 type LandingPlaceListRowProps = {
   name: string;
   detail?: string;
+  emoji?: string;
 };
 
 export function LandingPlaceListRow({
   name,
   detail,
+  emoji,
 }: LandingPlaceListRowProps) {
   return (
     <div className="place-row landing-itinerary-stop" aria-label={name}>
+      {emoji ? (
+        <span className="landing-stop-thumb" aria-hidden="true">
+          {emoji}
+        </span>
+      ) : null}
       <div className="place-main">
         <strong className="place-title">
           <span className="place-title-text">

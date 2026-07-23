@@ -82,6 +82,15 @@
   background: var(--surface-panel);
 }
 
+/*
+ * Match the real planner: visits are separated by spacing, not divider lines.
+ * Uses the combined class so it outranks the base `.place-row` border-top
+ * regardless of stylesheet import order.
+ */
+.place-row.landing-itinerary-stop {
+  border-top: 0;
+}
+
 .landing-product-frame .landing-itinerary-stop,
 .landing-workflow-product-frame .landing-itinerary-stop {
   pointer-events: none;
@@ -116,9 +125,38 @@
   width: 18px;
 }
 
+/*
+ * Match the real planner row: a fixed-width time column sits before the
+ * thumbnail so times align into a scannable rail (like `.visit-time-slot`).
+ */
+.landing-stop-time {
+  align-items: center;
+  color: var(--active-line);
+  display: inline-flex;
+  flex: 0 0 40px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.landing-stop-thumb {
+  align-items: center;
+  background: var(--surface-subtle);
+  border-radius: 6px;
+  display: inline-flex;
+  flex: 0 0 22px;
+  font-size: 13px;
+  height: 22px;
+  justify-content: center;
+  line-height: 1;
+  width: 22px;
+}
+
+/* Notes wrap like the real planner rather than clipping in the narrower column. */
 .landing-itinerary-stop .place-main > span {
   font-size: 12px;
-  white-space: nowrap;
 }
 
 .landing-route-segment {

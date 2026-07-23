@@ -146,14 +146,16 @@ export function LandingWorkflowPlanByDayVisual() {
         </h3>
         <LandingItineraryStop
           time="09:30"
-          name="Museum"
+          name="Airport"
+          emoji="✈️"
           markerLabel="1"
           markerColor="var(--accent)"
           active
         />
         <LandingItineraryStop
           time="11:00"
-          name="Bakery"
+          name="Hotel"
+          emoji="🏨"
           markerLabel="2"
           markerColor="var(--accent)"
         />
@@ -169,7 +171,7 @@ export function LandingWorkflowPlanByDayVisual() {
           </span>
           <h3>Unscheduled</h3>
         </div>
-        <LandingPlaceListRow name="Park" />
+        <LandingPlaceListRow name="Park" emoji="🌳" />
       </div>
     </div>
   );
@@ -300,8 +302,9 @@ export function LandingWorkflowRouteTimeVisual() {
     <div className="landing-workflow-product-frame landing-workflow-route-card">
       <LandingItineraryStop
         time="09:30"
-        name="Museum"
-        note="Exhibits and a short gallery loop"
+        name="Airport"
+        note="Arrive and collect bags"
+        emoji="✈️"
         markerLabel="1"
         markerColor="var(--accent)"
       />
@@ -340,8 +343,9 @@ export function LandingWorkflowRouteTimeVisual() {
       </div>
       <LandingItineraryStop
         time="11:00"
-        name="Lunch spot"
-        note="Reservation nearby"
+        name="Hotel"
+        note="Check in and drop your bags"
+        emoji="🏨"
         markerLabel="2"
         markerColor="var(--accent)"
       />

@@ -179,21 +179,24 @@ function LandingAiDraftCard() {
 
         <LandingItineraryStop
           time="09:00"
-          name="Central Park"
+          name="Airport"
+          emoji="✈️"
           markerLabel="1"
           markerColor="var(--accent)"
         />
         <LandingRouteSegment mode="walking" duration="12 min" />
         <LandingItineraryStop
           time="11:30"
-          name="Museum of Modern Art"
+          name="Hotel"
+          emoji="🏨"
           markerLabel="2"
           markerColor="var(--accent)"
         />
         <LandingRouteSegment mode="transit" duration="18 min" />
         <LandingItineraryStop
           time="15:00"
-          name="The High Line"
+          name="Park"
+          emoji="🌳"
           markerLabel="3"
           markerColor="var(--accent)"
         />
