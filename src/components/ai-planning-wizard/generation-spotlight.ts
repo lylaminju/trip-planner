@@ -5,7 +5,7 @@ import type { AiDestinationCandidate } from "@/lib/types";
 // the traveler's own must-sees — or, when they picked none, the destination's
 // top spots — with no extra Places/OpenAI calls.
 export const SPOTLIGHT_MAX_CARDS = 6;
-export const SPOTLIGHT_ROTATE_MS = 5000;
+export const SPOTLIGHT_ROTATE_MS = 7000;
 
 export type GenerationSpotlight = {
   items: AiDestinationCandidate[];

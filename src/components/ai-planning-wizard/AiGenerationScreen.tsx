@@ -1,5 +1,6 @@
 import type { AiDestinationCandidate } from "@/lib/types";
 
+import { AiGenerationProgress } from "./AiGenerationProgress";
 import { AiGenerationSpotlight } from "./AiGenerationSpotlight";
 
 export function AiGenerationScreen({
@@ -22,6 +23,7 @@ export function AiGenerationScreen({
           Building your {destination} itinerary
         </h2>
       </div>
+      <AiGenerationProgress />
       <AiGenerationSpotlight
         candidates={candidates}
         selectedIds={selectedIds}

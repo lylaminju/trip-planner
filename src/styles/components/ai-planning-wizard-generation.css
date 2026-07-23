@@ -17,6 +17,26 @@
   margin: 0 0 6px;
 }
 
+/* Time-based "trickle" bar: JS sets the fill width; it eases toward a ceiling
+   and never fills, so it never implies completion before the plan is ready. */
+.ai-generation-progress {
+  background: var(--surface-subtle);
+  border-radius: 999px;
+  height: 6px;
+  max-width: 80%;
+  overflow: hidden;
+  width: 300px;
+}
+
+.ai-generation-progress-fill {
+  background: var(--accent);
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+  transition: width 250ms linear;
+  width: 0;
+}
+
 @keyframes ai-generation-icon-pulse {
   0%,
   100% {
@@ -163,6 +183,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ai-generation-progress-fill {
+    transition: none;
+  }
+
   .ai-spotlight-card {
     animation: none;
   }
