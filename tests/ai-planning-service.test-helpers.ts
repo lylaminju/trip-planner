@@ -80,6 +80,7 @@ export async function withMockedAiPlanningService(
   }));
   vi.doMock("@/server/supabase-google-routes-usage-store", () => ({
     GOOGLE_ROUTES_DAILY_LIMIT: 200,
+    assertGoogleRoutesQuota: vi.fn().mockResolvedValue(undefined),
     countUserGoogleRoutesCallsToday: vi.fn().mockResolvedValue(0),
     recordGoogleRoutesCall: vi.fn().mockResolvedValue(undefined),
   }));

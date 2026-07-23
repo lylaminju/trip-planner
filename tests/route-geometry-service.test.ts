@@ -71,6 +71,7 @@ describe("route-geometry-service", () => {
         12,
         "test-routes-key",
         undefined,
+        null,
       );
     } finally {
       vi.doUnmock("@/server/supabase-route-geometry-service");

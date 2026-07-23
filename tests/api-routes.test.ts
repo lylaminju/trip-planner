@@ -607,10 +607,13 @@ describe("API routes transport behavior", () => {
 
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual(result);
+      // The trailing null is the hashed request IP: absent headers hash to
+      // null, and the value is recorded on guest usage rows only.
       expect(service.generateAiItineraryForRequest).toHaveBeenCalledWith(
         1,
         "user-1",
         input,
+        null,
       );
     });
   });

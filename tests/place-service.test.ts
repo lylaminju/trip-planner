@@ -123,6 +123,7 @@ describe("place-service request boundary", () => {
           role: "viewer",
           members: [],
           plannerSnapshot,
+          isGuest: false,
         });
       },
     );
