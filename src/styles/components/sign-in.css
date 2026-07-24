@@ -12,10 +12,6 @@
   position: static;
 }
 
-.sign-in-page-shell .marketing-header-inner {
-  padding: 18px 24px;
-}
-
 .sign-in-page-shell .tripglance-logo-lockup span {
   letter-spacing: 0;
 }
@@ -193,7 +189,6 @@
 @media (max-width: 640px) {
   .sign-in-page-shell .marketing-header-inner {
     align-items: flex-start;
-    padding: 16px;
   }
 
   .sign-in-page-shell .marketing-nav {
