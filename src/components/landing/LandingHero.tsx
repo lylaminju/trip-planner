@@ -50,7 +50,6 @@ export function LandingHero() {
           <p className="landing-access-copy">
             {guestModeEnabled ? (
               <>
-                Free demo, no sign-up — demo trips expire after 48 hours.{" "}
                 <a href={requestAccessHref}>Request an invite</a> for full
                 access, or <a href="/sign-in">sign in</a>
               </>
