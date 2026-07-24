@@ -4,7 +4,10 @@ import type { SubmitEvent } from "react";
 
 import { getTripCoverImage } from "@/lib/city-covers";
 import { countryLabelForDestination } from "@/lib/destination-options";
-import { GUEST_DESTINATION_SLUGS } from "@/lib/guest-mode";
+import {
+  GUEST_DESTINATION_SLUGS,
+  GUEST_TRIP_MAX_DAYS,
+} from "@/lib/guest-mode";
 
 import { DestinationCombobox } from "./DestinationCombobox";
 import { CloseIcon, MapPinIcon } from "./Icons";
@@ -125,12 +128,6 @@ export function EditTripModal(props: Props) {
                 )
               }
             />
-            {props.isGuest && (
-              <p className="trip-create-field-note">
-                Guest trips use the curated destination list.{" "}
-                <a href="/sign-in">Sign in</a> to plan anywhere.
-              </p>
-            )}
           </div>
 
           <div className="trip-create-field trip-create-dates-field">
@@ -145,6 +142,15 @@ export function EditTripModal(props: Props) {
                 })
               }
             />
+            {props.isGuest && (
+              <p className="trip-create-field-note">
+                Guest trips use the curated destination list and are limited
+                to {GUEST_TRIP_MAX_DAYS} days.
+                <br />
+                <a href="/sign-in">Sign in</a> to plan anywhere, for longer
+                trips.
+              </p>
+            )}
           </div>
         </div>
 

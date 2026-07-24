@@ -161,10 +161,6 @@ export function GuestTripForm() {
               allowedSlugs={GUEST_DESTINATION_SLUGS}
               onChange={setDestination}
             />
-            <p className="trip-create-field-note">
-              The free demo uses curated destinations with ready-made
-              attraction lists. Trips up to {GUEST_TRIP_MAX_DAYS} days.
-            </p>
           </div>
 
           <div className="trip-create-field trip-create-dates-field">
@@ -176,10 +172,18 @@ export function GuestTripForm() {
                 setEndDate(range.endDate);
               }}
             />
-            {exceedsLength && (
+            {exceedsLength ? (
               <p className="error-text trip-create-date-limit" role="alert">
                 Guest trips are limited to {GUEST_TRIP_MAX_DAYS} days.{" "}
                 <a href="/sign-in">Sign in</a> to plan longer trips.
+              </p>
+            ) : (
+              <p className="trip-create-field-note">
+                Guest trips use the curated destination list and are limited to{" "}
+                {GUEST_TRIP_MAX_DAYS} days.
+                <br />
+                <a href="/sign-in">Sign in</a> to plan anywhere, for longer
+                trips.
               </p>
             )}
           </div>
