@@ -281,6 +281,10 @@
   opacity: 0.45;
 }
 
+.trip-create-footer .trip-form-submit:disabled:hover {
+  background: var(--accent);
+}
+
 .trip-form-actions {
   align-items: center;
   display: flex;

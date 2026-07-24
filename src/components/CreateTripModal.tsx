@@ -172,7 +172,7 @@ export function CreateTripModal(props: Props) {
           <button
             type="submit"
             className="trip-form-submit"
-            disabled={props.isSaving}
+            disabled={props.isSaving || !hasDestination}
           >
             {props.isSaving ? "Creating..." : "Create trip"}
           </button>

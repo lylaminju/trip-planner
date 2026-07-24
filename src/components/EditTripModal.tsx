@@ -166,7 +166,7 @@ export function EditTripModal(props: Props) {
           <button
             type="submit"
             className="trip-form-submit"
-            disabled={props.isSaving}
+            disabled={props.isSaving || !hasDestination}
           >
             {props.isSaving ? "Saving..." : "Save changes"}
           </button>

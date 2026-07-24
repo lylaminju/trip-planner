@@ -201,7 +201,7 @@ export function GuestTripForm() {
           <button
             type="submit"
             className="trip-form-submit"
-            disabled={isSaving || exceedsLength}
+            disabled={isSaving || exceedsLength || !hasDestination}
           >
             {isSaving ? "Creating..." : "Start planning"}
           </button>
