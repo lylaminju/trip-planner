@@ -181,6 +181,7 @@ export function TripPlannerView(props: Props) {
         error={props.error}
         exportFeedback={props.exportFeedback}
         isExpanded={props.isPlannerPanelExpanded}
+        isGuest={props.isGuest}
         mobileSheetState={props.mobileSheetState}
         canEdit={props.canEdit}
         canAddVisits={props.canAddVisits}

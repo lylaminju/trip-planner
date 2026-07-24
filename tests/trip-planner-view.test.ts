@@ -34,6 +34,24 @@ describe("TripPlannerView", () => {
     );
     expect(memberMarkup).not.toContain('class="guest-mode-banner"');
   });
+
+  it("points the header back-link home for guests and to the dashboard for members", () => {
+    const guestMarkup = renderToStaticMarkup(
+      createElement(TripPlannerView, tripPlannerViewProps({ isGuest: true })),
+    );
+    expect(guestMarkup).toContain(
+      '<a class="app-header-dashboard-link" href="/"',
+    );
+    expect(guestMarkup).toContain("<span>Home</span>");
+
+    const memberMarkup = renderToStaticMarkup(
+      createElement(TripPlannerView, tripPlannerViewProps({ isGuest: false })),
+    );
+    expect(memberMarkup).toContain(
+      '<a class="app-header-dashboard-link" href="/trips"',
+    );
+    expect(memberMarkup).toContain("<span>Trips</span>");
+  });
 });
 
 function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {

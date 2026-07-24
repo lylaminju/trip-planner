@@ -82,6 +82,7 @@ function plannerPanelProps(overrides: {
     error: null,
     exportFeedback: null,
     isExpanded: overrides.isExpanded,
+    isGuest: false,
     mobileSheetState: "half" as const,
     canEdit: true,
     canAddVisits: true,

@@ -54,6 +54,7 @@ type Props = {
     label: string;
   } | null;
   isExpanded: boolean;
+  isGuest: boolean;
   mobileSheetState: MobileSheetState;
   canEdit: boolean;
   canAddVisits: boolean;
@@ -194,9 +195,12 @@ export function PlannerPanel(props: Props) {
         <header className="app-header">
           <div className="app-header-title-row">
             <div className="app-header-title-stack">
-              <Link className="app-header-dashboard-link" href="/trips">
+              <Link
+                className="app-header-dashboard-link"
+                href={props.isGuest ? "/" : "/trips"}
+              >
                 <ChevronLeftIcon />
-                <span>Trips</span>
+                <span>{props.isGuest ? "Home" : "Trips"}</span>
               </Link>
               <div className="app-header-name-row">
                 <h1>{props.title}</h1>
