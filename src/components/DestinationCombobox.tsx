@@ -87,7 +87,7 @@ export function DestinationCombobox(props: {
         }}
         onFocus={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
-        placeholder="Search or type destination"
+        placeholder="Search destinations"
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
