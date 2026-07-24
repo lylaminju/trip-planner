@@ -68,6 +68,12 @@ export async function createGuestTrip(
 // points, lodgings, and cached route geometry — into a fresh guest-owned
 // ephemeral trip. Copied geometry is re-keyed to the cloned place ids so the
 // clone renders its routes with zero Google Routes calls.
+//
+// Cloned rows keep the source's created_by_source, so the sample's AI-generated
+// content stays tagged 'ai' in the clone and the guest's first regeneration
+// replaces it instead of stacking a second itinerary beside it. ai_generation_id
+// is deliberately left null: the source ids belong to the sample trip's
+// generations, and null is the shape deletePreviousAiBatch already sweeps.
 export async function cloneSampleTripForGuest(
   guestId: string,
 ): Promise<{ tripId: number }> {
@@ -135,7 +141,7 @@ async function clonePlaces(
   const { data, error } = await supabase
     .from("places")
     .select(
-      "id, name, address, google_maps_url, google_place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, image_url, image_credit",
+      "id, name, address, google_maps_url, google_place_id, google_place_token, google_internal_ids, source_list_url, latitude, longitude, notes, links, image_url, image_credit, fallback_emoji, created_by_source",
     )
     .eq("trip_id", sourceTripId)
     .order("id", { ascending: true });
@@ -176,7 +182,7 @@ async function cloneItineraryItems(
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("itinerary_items")
-    .select("id, place_id, visit_date, visit_time, notes")
+    .select("id, place_id, visit_date, visit_time, notes, created_by_source")
     .eq("trip_id", sourceTripId)
     .order("id", { ascending: true });
   if (error) throwSupabaseError(error);
@@ -187,6 +193,7 @@ async function cloneItineraryItems(
     visit_date: string | null;
     visit_time: string | null;
     notes: string | null;
+    created_by_source: string;
   }>;
   const itemIdMap = new Map<number, number>();
   const placeIdByItemId = new Map<number, number>();
@@ -201,6 +208,7 @@ async function cloneItineraryItems(
         visit_date: row.visit_date,
         visit_time: row.visit_time,
         notes: row.notes,
+        created_by_source: row.created_by_source,
       })),
     )
     .select("id");
@@ -222,7 +230,7 @@ async function cloneRouteSegments(
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("route_segments")
-    .select("from_item_id, to_item_id, mode")
+    .select("from_item_id, to_item_id, mode, created_by_source")
     .eq("trip_id", sourceTripId);
   if (error) throwSupabaseError(error);
 
@@ -230,6 +238,7 @@ async function cloneRouteSegments(
     from_item_id: number;
     to_item_id: number;
     mode: TravelMode;
+    created_by_source: string;
   }>;
   if (rows.length === 0) return;
 
@@ -239,6 +248,7 @@ async function cloneRouteSegments(
       from_item_id: itemIdMap.get(row.from_item_id),
       to_item_id: itemIdMap.get(row.to_item_id),
       mode: row.mode,
+      created_by_source: row.created_by_source,
     })),
   );
   if (insertError) throwSupabaseError(insertError);
