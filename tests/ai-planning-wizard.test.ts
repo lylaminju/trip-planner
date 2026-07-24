@@ -172,6 +172,31 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Pod Times Square");
   });
 
+  it("makes the start-of-day field paste-only for guests who can't run live search", () => {
+    const markup = renderToStaticMarkup(
+      createElement(LogisticsStep, {
+        draft: preferenceDraft(),
+        dailyStartTime: "08:30",
+        destinationBias: null,
+        destinationCountryCodes: null,
+        lodgingGoogleMapsUrl: "",
+        currentLodging: null,
+        tripId: 1,
+        isGuest: true,
+        onChange: vi.fn(),
+        onDailyStartTimeChange: vi.fn(),
+        onLodgingGoogleMapsUrlChange: vi.fn(),
+      }),
+    );
+
+    // Guests can't reach live Google search, so the field must not advertise a
+    // search box that dead-ends; it steers them to pasting a link and says how
+    // live search is unlocked.
+    expect(markup).toContain('placeholder="Paste a Google Maps link"');
+    expect(markup).toContain("Google search needs a sign-in");
+    expect(markup).not.toContain("Search a place");
+  });
+
   it("renders hub chips and hides the saved stop note the selected chip duplicates", () => {
     const markup = renderToStaticMarkup(
       createElement(TransitStopsStep, {

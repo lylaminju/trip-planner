@@ -53,6 +53,9 @@ type Props = {
   onRetryCatalogPrepare: () => void;
   error: string | null;
   isGenerating: boolean;
+  // Guests can't run live place search (the places routes are user-only), so
+  // the location fields fall back to pasting a Google Maps link.
+  isGuest?: boolean;
   onCancel: () => void;
   onCreateItinerary: (draft: AiPlanningGenerationInput) => void | Promise<void>;
   onRetryLoad: () => void;
@@ -444,6 +447,7 @@ export function AiPlanningWizard(props: Props) {
                       destinationBias={destinationBias}
                       destinationCountryCodes={destinationCountryCodes}
                       draft={draft}
+                      isGuest={props.isGuest ?? false}
                       lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
                       onChange={setDraft}
                       onDailyStartTimeChange={setDailyStartTime}
@@ -458,6 +462,7 @@ export function AiPlanningWizard(props: Props) {
                       destinationBias={destinationBias}
                       destinationCountryCodes={destinationCountryCodes}
                       hubsStatus={props.hubsStatus}
+                      isGuest={props.isGuest ?? false}
                       onRetryPrepare={props.onRetryCatalogPrepare}
                       onTransitDraftChange={setTransitDraft}
                       transitDraft={transitDraft}

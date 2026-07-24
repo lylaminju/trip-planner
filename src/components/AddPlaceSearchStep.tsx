@@ -37,7 +37,7 @@ const SEARCH_UNAVAILABLE_MESSAGE =
 // Guests never fire billed Google searches; they browse the free curated
 // attraction list or paste a link.
 const GUEST_SEARCH_UNAVAILABLE_MESSAGE =
-  "Google search needs an invite — browse the suggested places or paste a Google Maps link.";
+  "Google search needs a sign-in — browse the suggested places or paste a Google Maps link.";
 
 export type PlaceSearchSelection = {
   google_place_id: string | null;

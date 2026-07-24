@@ -363,6 +363,7 @@ export function TripPlannerView(props: Props) {
           onRetryCatalogPrepare={props.onRetryAiCatalogPrepare}
           error={props.aiPlanningWizard.error}
           isGenerating={props.aiPlanningWizard.isGenerating}
+          isGuest={props.isGuest}
           onCancel={props.onCloseAiPlanningWizard}
           onCreateItinerary={props.onCreateAiItinerary}
           onRetryLoad={props.onRetryAiPlanningLoad}

@@ -28,6 +28,12 @@ const POPOVER_MAX_HEIGHT = 260;
 const POPOVER_MIN_HEIGHT = 140;
 const POPOVER_VIEWPORT_MARGIN = 8;
 
+// Guests can't run live Google search (the places routes are user-only), so the
+// field is paste-only for them and says so up front instead of offering a
+// search box that dead-ends on an empty result list.
+const GUEST_SEARCH_SIGN_IN_HINT =
+  "Google search needs a sign-in — paste a Google Maps link instead.";
+
 // useLayoutEffect on the server logs a warning; the fields render to static
 // markup in tests, so fall back to useEffect where there is no window.
 const useIsomorphicLayoutEffect =
@@ -42,7 +48,8 @@ type PopoverPosition = {
 // of day, arrival, departure): type a name (e.g. "hotel") to pick from Google
 // Places, or paste a Google Maps link. Both paths commit a Google Maps URL to
 // `value`, so the rest of the wizard and the generation request keep their
-// existing URL contract.
+// existing URL contract. Guests can't reach live search (the places routes are
+// user-only), so `isGuest` makes the field paste-only.
 export function PlaceSearchField({
   tripId,
   value,
@@ -50,6 +57,7 @@ export function PlaceSearchField({
   countryCodes,
   ariaLabel,
   idleHint,
+  isGuest = false,
   onChange,
 }: {
   tripId: number;
@@ -58,6 +66,7 @@ export function PlaceSearchField({
   countryCodes: string[] | null;
   ariaLabel: string;
   idleHint: string;
+  isGuest?: boolean;
   onChange: (googleMapsUrl: string) => void;
 }) {
   const listId = useId();
@@ -82,7 +91,7 @@ export function PlaceSearchField({
   const { suggestions, isLoading, isUnavailable, resolvePlace } = usePlaceSearch(
     {
       query,
-      active: isOpen && isSearchMode,
+      active: isOpen && isSearchMode && !isGuest,
       bias,
       countryCodes,
     },
@@ -91,6 +100,7 @@ export function PlaceSearchField({
   const showPopover =
     isOpen &&
     isSearchMode &&
+    !isGuest &&
     !isUnavailable &&
     trimmedQuery.length >= MIN_PLACE_QUERY_LENGTH;
 
@@ -214,7 +224,11 @@ export function PlaceSearchField({
           aria-controls={listId}
           aria-label={ariaLabel}
           autoComplete="off"
-          placeholder="Search a place or paste a Google Maps link"
+          placeholder={
+            isGuest
+              ? "Paste a Google Maps link"
+              : "Search a place or paste a Google Maps link"
+          }
           onChange={(event) => handleChange(event.currentTarget.value)}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
@@ -274,7 +288,11 @@ export function PlaceSearchField({
           {error}
         </span>
       ) : (
-        <UrlPreviewHint tripId={tripId} url={value} idleHint={idleHint} />
+        <UrlPreviewHint
+          tripId={tripId}
+          url={value}
+          idleHint={isGuest ? GUEST_SEARCH_SIGN_IN_HINT : idleHint}
+        />
       )}
     </div>
   );

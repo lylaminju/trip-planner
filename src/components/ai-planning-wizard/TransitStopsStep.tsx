@@ -20,6 +20,7 @@ export function TransitStopsStep({
   destinationBias,
   destinationCountryCodes,
   hubsStatus,
+  isGuest = false,
   onRetryPrepare,
   onTransitDraftChange,
   transitDraft,
@@ -31,6 +32,7 @@ export function TransitStopsStep({
   destinationBias: PlaceSearchBias | null;
   destinationCountryCodes: string[] | null;
   hubsStatus: AiCatalogPrepStatus;
+  isGuest?: boolean;
   onRetryPrepare: () => void;
   onTransitDraftChange: (draft: TransitStopDraft) => void;
   transitDraft: TransitStopDraft;
@@ -71,6 +73,7 @@ export function TransitStopsStep({
         tripId={tripId}
         destinationBias={destinationBias}
         destinationCountryCodes={destinationCountryCodes}
+        isGuest={isGuest}
         onChoiceChange={(arrivalChoice) =>
           onTransitDraftChange({
             ...transitDraft,
@@ -99,6 +102,7 @@ export function TransitStopsStep({
         tripId={tripId}
         destinationBias={destinationBias}
         destinationCountryCodes={destinationCountryCodes}
+        isGuest={isGuest}
         allowSameAsArrival
         onChoiceChange={(departureChoice) =>
           onTransitDraftChange({ ...transitDraft, departureChoice })
@@ -128,6 +132,7 @@ function TransitStopField({
   tripId,
   destinationBias,
   destinationCountryCodes,
+  isGuest,
   allowSameAsArrival = false,
   onChoiceChange,
   onUrlChange,
@@ -146,6 +151,7 @@ function TransitStopField({
   tripId: number;
   destinationBias: PlaceSearchBias | null;
   destinationCountryCodes: string[] | null;
+  isGuest: boolean;
   allowSameAsArrival?: boolean;
   onChoiceChange: (choice: TransitDepartureChoice) => void;
   onUrlChange: (url: string) => void;
@@ -222,6 +228,7 @@ function TransitStopField({
               countryCodes={destinationCountryCodes}
               ariaLabel={label}
               idleHint={idleHint}
+              isGuest={isGuest}
               onChange={onUrlChange}
             />
           )}

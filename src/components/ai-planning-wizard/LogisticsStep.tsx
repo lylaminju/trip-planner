@@ -14,6 +14,7 @@ export function LogisticsStep({
   destinationBias,
   destinationCountryCodes,
   draft,
+  isGuest = false,
   lodgingGoogleMapsUrl,
   onChange,
   onDailyStartTimeChange,
@@ -25,6 +26,7 @@ export function LogisticsStep({
   destinationBias: PlaceSearchBias | null;
   destinationCountryCodes: string[] | null;
   draft: AiPlanningPreferenceInput;
+  isGuest?: boolean;
   lodgingGoogleMapsUrl: string;
   onChange: (draft: AiPlanningPreferenceInput) => void;
   onDailyStartTimeChange: (value: string) => void;
@@ -83,6 +85,7 @@ export function LogisticsStep({
             countryCodes={destinationCountryCodes}
             ariaLabel="Where your days begin"
             idleHint="We route each day out from here and back."
+            isGuest={isGuest}
             onChange={onLodgingGoogleMapsUrlChange}
           />
         </div>

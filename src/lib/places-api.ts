@@ -15,8 +15,10 @@ export type DestinationDetails = {
   photo_attribution: string | null;
 };
 
-// Thrown when live search is blocked (budget exhausted or per-user cap), so the
-// caller can fall back to the free curated destination list.
+// Thrown when live search is blocked (budget exhausted, per-user cap, or the
+// request is unauthenticated — e.g. guest mode, where the places routes are
+// user-only), so the caller can fall back to pasting a Google Maps link or the
+// free curated destination list.
 export class DestinationSearchUnavailableError extends Error {
   constructor(message: string) {
     super(message);
@@ -117,7 +119,10 @@ async function postPlaces(
 
   const data = await readJson(response);
 
-  if (response.status === 429) {
+  // 429 (budget/cap exhausted) and 401 (unauthenticated — e.g. guest mode) both
+  // mean live search can't run, so the caller falls back to pasting a link
+  // instead of surfacing a dead "No matching places" state.
+  if (response.status === 429 || response.status === 401) {
     throw new DestinationSearchUnavailableError(
       typeof data.error === "string"
         ? data.error
