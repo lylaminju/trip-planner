@@ -57,7 +57,7 @@ export async function assertGoogleRoutesQuota(
       scope: "guest",
     });
     throw new GoogleRoutesRateLimitError(
-      "Daily route lookup limit reached for this guest session. Sign in with an invite for a higher limit.",
+      "Daily route lookup limit reached for this guest session. Sign in for a higher limit.",
     );
   }
 
@@ -70,7 +70,7 @@ export async function assertGoogleRoutesQuota(
       scope: "global",
     });
     throw new GoogleRoutesRateLimitError(
-      "The guest demo's route budget is used up for today. Sign in with an invite for full access.",
+      "The guest demo's route budget is used up for today. Sign in for full access.",
     );
   }
 }

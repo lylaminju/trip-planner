@@ -31,7 +31,7 @@ export async function createGuestTrip(
   }
   if (exceedsGuestTripLength(input.start_date, input.end_date)) {
     throw new TripValidationError(
-      `Guest trips are limited to ${GUEST_TRIP_MAX_DAYS} days. Sign in with an invite to plan longer trips.`,
+      `Guest trips are limited to ${GUEST_TRIP_MAX_DAYS} days. Sign in to plan longer trips.`,
     );
   }
 

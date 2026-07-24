@@ -110,7 +110,7 @@ async function assertAiGenerationQuota(principalId: string): Promise<void> {
       scope: "guest",
     });
     throw new AiGenerationRateLimitError(
-      "Daily AI generation limit reached for this guest session. Sign in with an invite for a higher limit.",
+      "Daily AI generation limit reached for this guest session. Sign in for a higher limit.",
     );
   }
 
@@ -123,7 +123,7 @@ async function assertAiGenerationQuota(principalId: string): Promise<void> {
       scope: "global",
     });
     throw new AiGenerationRateLimitError(
-      "The guest demo's AI budget is used up for today. Sign in with an invite for full access.",
+      "The guest demo's AI budget is used up for today. Sign in for full access.",
     );
   }
 }
