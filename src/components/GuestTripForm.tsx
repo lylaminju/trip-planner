@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type SubmitEvent } from "react";
+import { useState, type ReactNode, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { getTripCoverImage } from "@/lib/city-covers";
@@ -28,7 +28,8 @@ export function GuestTripForm() {
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  // ReactNode so validation messages can carry a sign-in link.
+  const [error, setError] = useState<ReactNode>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const matchedOption = findDestinationOption(destination);
@@ -51,7 +52,10 @@ export function GuestTripForm() {
     }
     if (exceedsGuestTripLength(startDate || null, endDate || null)) {
       setError(
-        `Guest trips are limited to ${GUEST_TRIP_MAX_DAYS} days. Sign in to plan longer trips.`,
+        <>
+          Guest trips are limited to {GUEST_TRIP_MAX_DAYS} days.{" "}
+          <a href="/sign-in">Sign in</a> to plan longer trips.
+        </>,
       );
       return;
     }
