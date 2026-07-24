@@ -163,9 +163,16 @@
   text-decoration: none;
 }
 
+.trip-create-date-limit {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
 /* Links inside error text keep the error color; the underline carries the
    affordance so the message stays readable as one sentence. */
-.trip-create-error a {
+.trip-create-error a,
+.trip-create-date-limit a {
   color: inherit;
   font-weight: 700;
   text-decoration: underline;

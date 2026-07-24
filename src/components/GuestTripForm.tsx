@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { getTripCoverImage } from "@/lib/city-covers";
@@ -28,8 +28,7 @@ export function GuestTripForm() {
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  // ReactNode so validation messages can carry a sign-in link.
-  const [error, setError] = useState<ReactNode>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const matchedOption = findDestinationOption(destination);
@@ -43,6 +42,13 @@ export function GuestTripForm() {
     destination,
     destinationSlug,
   });
+  // Surfaced under the date picker the moment the range is too long; the
+  // submit button stays disabled until the dates fit, and the server enforces
+  // the same cap regardless.
+  const exceedsLength = exceedsGuestTripLength(
+    startDate || null,
+    endDate || null,
+  );
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,13 +56,7 @@ export function GuestTripForm() {
       setError("Pick one of the curated destinations to try the demo.");
       return;
     }
-    if (exceedsGuestTripLength(startDate || null, endDate || null)) {
-      setError(
-        <>
-          Guest trips are limited to {GUEST_TRIP_MAX_DAYS} days.{" "}
-          <a href="/sign-in">Sign in</a> to plan longer trips.
-        </>,
-      );
+    if (exceedsLength) {
       return;
     }
 
@@ -176,6 +176,12 @@ export function GuestTripForm() {
                 setEndDate(range.endDate);
               }}
             />
+            {exceedsLength && (
+              <p className="error-text trip-create-date-limit" role="alert">
+                Guest trips are limited to {GUEST_TRIP_MAX_DAYS} days.{" "}
+                <a href="/sign-in">Sign in</a> to plan longer trips.
+              </p>
+            )}
           </div>
         </div>
 
@@ -191,7 +197,7 @@ export function GuestTripForm() {
           <button
             type="submit"
             className="trip-form-submit"
-            disabled={isSaving}
+            disabled={isSaving || exceedsLength}
           >
             {isSaving ? "Creating..." : "Start planning"}
           </button>
