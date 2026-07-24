@@ -127,8 +127,8 @@ export function EditTripModal(props: Props) {
             />
             {props.isGuest && (
               <p className="trip-create-field-note">
-                Guest trips use the curated destination list. Sign in with an
-                invite to plan anywhere.
+                Guest trips use the curated destination list.{" "}
+                <a href="/sign-in">Sign in</a> to plan anywhere.
               </p>
             )}
           </div>

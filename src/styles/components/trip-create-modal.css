@@ -157,6 +157,12 @@
   margin: 4px 0 0;
 }
 
+.trip-create-field-note a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
 .trip-create-modal .trip-create-name-input {
   background: transparent;
   border: 0;
