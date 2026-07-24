@@ -46,7 +46,6 @@ describe("attachPoiClickListener", () => {
       placeId: "poi-123",
       latitude: 37.7,
       longitude: -122.4,
-      name: null,
     });
     expect(onClear).not.toHaveBeenCalled();
   });
@@ -78,39 +77,28 @@ describe("attachPoiClickListener", () => {
 });
 
 describe("buildPoiPlaceSelection", () => {
-  it("builds a savable selection from a named poi", () => {
+  // A POI click yields only a place id and coordinates — Google's card renders
+  // its name in a closed shadow root — so the selection always carries an empty
+  // name and the modal resolves it from the place id.
+  it("builds a savable selection with no name from a poi click", () => {
     const selection = buildPoiPlaceSelection({
       placeId: "poi-123",
       latitude: 37.7,
       longitude: -122.4,
-      name: "Blue Bottle Coffee",
     });
 
     expect(selection).toEqual({
       google_place_id: "poi-123",
-      name: "Blue Bottle Coffee",
+      name: "",
       latitude: 37.7,
       longitude: -122.4,
       google_maps_url: "https://www.google.com/maps/place/?q=place_id%3Apoi-123",
-      // POI clicks skip the details call; the modal resolves the photo from
-      // the place id instead.
+      // The modal's lookup resolves the photo from the place id too.
       photo_name: null,
       photo_attribution: null,
       image_url: null,
       image_credit: null,
     });
-  });
-
-  it("keeps the selection savable when no name could be read", () => {
-    const selection = buildPoiPlaceSelection({
-      placeId: "poi-123",
-      latitude: 37.7,
-      longitude: -122.4,
-      name: null,
-    });
-
-    expect(selection.name).toBe("");
-    expect(selection.google_place_id).toBe("poi-123");
   });
 });
 

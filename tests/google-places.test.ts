@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchDestinationSuggestions,
+  fetchPlaceNameAndPhotoReference,
   fetchPlacePhotoReference,
   parseDetails,
+  parseNameAndPhotoReference,
   parsePhotoReference,
   parseSuggestions,
   searchPlaceId,
@@ -121,6 +123,56 @@ describe("fetchPlacePhotoReference", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain("/places/ChIJabc");
     expect(init.headers["X-Goog-FieldMask"]).toBe("id,photos");
+  });
+});
+
+describe("fetchPlaceNameAndPhotoReference", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  // `displayName` puts this lookup in the billed Place Details Pro tier. The
+  // free IDs-Only fields ride along in the same mask so one billed call covers
+  // both the name and the photo reference — adding a second call would double
+  // the cost of every map POI pick.
+  it("requests the name and photo reference in one Pro-tier call", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({}), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchPlaceNameAndPhotoReference({
+      apiKey: "key",
+      placeId: "ChIJabc",
+    });
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/places/ChIJabc");
+    expect(init.headers["X-Goog-FieldMask"]).toBe("id,displayName,photos");
+  });
+});
+
+describe("parseNameAndPhotoReference", () => {
+  it("extracts the display name alongside the photo reference", () => {
+    expect(
+      parseNameAndPhotoReference({
+        displayName: { text: "Empire State Building" },
+        photos: [
+          {
+            name: "places/ChIJabc/photos/ref-1",
+            authorAttributions: [{ displayName: "Jane Doe" }],
+          },
+        ],
+      }),
+    ).toEqual({
+      name: "Empire State Building",
+      photo_name: "places/ChIJabc/photos/ref-1",
+      photo_attribution: "Jane Doe",
+    });
+  });
+
+  it("fails closed to a null name when the payload has none", () => {
+    expect(parseNameAndPhotoReference({ photos: [] }).name).toBeNull();
   });
 });
 

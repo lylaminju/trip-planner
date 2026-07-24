@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 
-import { usePlacePhotoPreview } from "@/hooks/usePlacePhotoPreview";
+import { usePlacePreview } from "@/hooks/usePlacePreview";
 import type { PlaceSearchBias } from "@/lib/places-api";
 import type { ResolvedPlace } from "@/lib/planner-api";
 import type { Place, VisitDateOption } from "@/lib/types";
@@ -59,6 +59,12 @@ export function AddEditPlaceModal({
     place?.google_maps_url ?? initialSelection?.google_maps_url ?? "",
   );
   const [name, setName] = useState(place?.name ?? initialSelection?.name ?? "");
+  // Google's name for the place, tracked apart from `name` so the user editing
+  // their own label never rewrites it. Stored once at create time and reused by
+  // later map-POI picks of the same place, sparing a billed Details lookup.
+  const [canonicalName, setCanonicalName] = useState<string | null>(
+    isEditing ? null : (initialSelection?.name || null),
+  );
   const [hasResolvedName, setHasResolvedName] = useState(
     isEditing || Boolean(initialSelection && initialSelection.name !== ""),
   );
@@ -78,9 +84,21 @@ export function AddEditPlaceModal({
   const [error, setError] = useState<string | null>(null);
 
   // Fetches the place photo once for the hero preview; the same data URL is
-  // sent back on save, so the billed Place Photo call never repeats.
-  const photo = usePlacePhotoPreview(isEditing ? null : searchPlace);
-  const heroImageUrl = isEditing ? place.image_url : photo.imageUrl;
+  // sent back on save, so the billed Place Photo call never repeats. Map POI
+  // picks arrive with no name, so it resolves that in the same request.
+  const preview = usePlacePreview(isEditing ? null : searchPlace);
+  const heroImageUrl = isEditing ? place.image_url : preview.imageUrl;
+
+  // A map POI pick opens the modal before its name is known. Fill it in when it
+  // lands, but never over anything already in the field — the user may have
+  // started typing while the lookup was in flight.
+  const { resolvedName } = preview;
+  useEffect(() => {
+    if (!resolvedName) return;
+    setName((current) => (current.trim() ? current : resolvedName));
+    setCanonicalName(resolvedName);
+    setHasResolvedName(true);
+  }, [resolvedName]);
   // In edit mode the photo is known up front and never loads, so a missing
   // image should hide the hero rather than show an empty placeholder. The add
   // flow keeps the hero to hold stable height while the photo is fetched.
@@ -93,6 +111,8 @@ export function AddEditPlaceModal({
     setUrl(googleMapsUrl);
     setCanonicalUrl(resolved.google_maps_url);
     setName(resolved.name ?? "");
+    // Parsed out of the Google Maps link, so still Google's name, not the user's.
+    setCanonicalName(resolved.name);
     setHasResolvedName(resolved.name !== null);
     setError(null);
     setStep(2);
@@ -103,6 +123,8 @@ export function AddEditPlaceModal({
     setUrl(selection.google_maps_url);
     setCanonicalUrl(selection.google_maps_url);
     setName(selection.name);
+    // Came from Place Details, so it is canonical.
+    setCanonicalName(selection.name || null);
     setHasResolvedName(true);
     setError(null);
     setStep(2);
@@ -113,6 +135,9 @@ export function AddEditPlaceModal({
   function backToSearchStep() {
     setStep(1);
     setSearchPlace(null);
+    // Whatever is picked next owns the canonical name; a leftover one would
+    // otherwise be stored against a different place.
+    setCanonicalName(null);
     setError(null);
   }
 
@@ -133,7 +158,7 @@ export function AddEditPlaceModal({
 
     // Awaits any in-flight photo fetch so a fast save still carries the
     // already-billed preview image. Candidate images resolve server-side.
-    const photoPayload = isEditing ? null : await photo.getPhotoPayload();
+    const photoPayload = isEditing ? null : await preview.getPhotoPayload();
 
     const trimmedLinks = links.map((link) => link.trim()).filter(Boolean);
     const payload: Record<string, unknown> = isEditing
@@ -157,6 +182,7 @@ export function AddEditPlaceModal({
                 longitude: searchPlace.longitude,
               }
             : {}),
+          ...(canonicalName ? { google_place_name: canonicalName } : {}),
           ...(photoPayload ?? {}),
         };
 
@@ -228,7 +254,7 @@ export function AddEditPlaceModal({
             {showPhotoHero && (
               <PlacePhotoHero
                 imageUrl={heroImageUrl}
-                isLoading={!isEditing && photo.isLoading}
+                isLoading={!isEditing && preview.isLoading}
               />
             )}
             <div className="place-resolved">

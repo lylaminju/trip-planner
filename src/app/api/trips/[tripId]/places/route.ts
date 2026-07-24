@@ -89,6 +89,14 @@ export async function POST(request: Request, { params }: TripParams) {
     }
 
     const placeId = coordinates ? stringOrNull(body.google_place_id) : null;
+    // Google's canonical name, which the reuse lookup later serves to other
+    // accounts that pick the same place id. It arrives from the client like
+    // every other field here, so it is only stored when it is tied to a place
+    // id and within a plausible length; anything else is dropped rather than
+    // rejected, since it is an optimisation and never required to save.
+    const googlePlaceName = placeId
+      ? clampedName(stringOrNull(body.google_place_name))
+      : null;
     // The photo data URL was fetched (and billed) once at preview time; here it
     // is only validated and stored, never re-fetched from Google.
     const image = await resolvePlaceImage({
@@ -105,6 +113,7 @@ export async function POST(request: Request, { params }: TripParams) {
         notes: stringOrNull(body.notes),
         google_maps_url: resolved.google_maps_url,
         google_place_id: placeId,
+        google_place_name: googlePlaceName,
         google_place_token: null,
         google_internal_ids: null,
         source_list_url: null,
@@ -159,6 +168,14 @@ export async function DELETE(request: Request, { params }: TripParams) {
 
 function stringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+// Longest Google display name we will store. Real place names sit far under
+// this; anything longer is not a name we want to serve back to other accounts.
+const MAX_GOOGLE_PLACE_NAME_LENGTH = 200;
+
+function clampedName(value: string | null): string | null {
+  return value && value.length <= MAX_GOOGLE_PLACE_NAME_LENGTH ? value : null;
 }
 
 // Coordinates are optional (URL-only bodies resolve them server-side), but if

@@ -60,6 +60,11 @@ const DETAILS_FIELD_MASK =
 // Every field here is Essentials IDs-Only, so this lookup is free. It exists to
 // resolve a photo reference for places picked without a details call (map POIs).
 const PHOTO_REFERENCE_FIELD_MASK = "id,photos";
+// `displayName` is a Place Details Pro field, so this lookup IS billed, unlike
+// the IDs-Only mask above. `id` and `photos` ride along for free because a
+// field mask bills at its highest tier — one Pro call yields both the name and
+// the photo reference, instead of a free lookup plus a separate Pro one.
+const NAME_AND_PHOTO_FIELD_MASK = "id,displayName,photos";
 // Text Search masked to the place id alone stays in the free IDs-Only SKU;
 // any richer field would escalate the whole request to a billed tier.
 const SEARCH_TEXT_FIELD_MASK = "places.id";
@@ -205,6 +210,30 @@ export async function fetchPlacePhotoReference(input: {
   });
 
   return parsePhotoReference(payload);
+}
+
+export type PlaceNameAndPhotoReference = PlacePhotoReference & {
+  name: string | null;
+};
+
+/**
+ * Resolves a place's display name alongside its photo reference. Google's map
+ * POI card renders inside a closed shadow root, so the name a POI click shows
+ * on screen is unreadable from the DOM and must come from here. Billed at the
+ * Place Details Pro tier — callers must budget-gate and record it.
+ */
+export async function fetchPlaceNameAndPhotoReference(input: {
+  apiKey: string;
+  placeId: string;
+}): Promise<PlaceNameAndPhotoReference> {
+  const payload = await placesFetch({
+    url: `${DETAILS_ENDPOINT}/${encodeURIComponent(input.placeId)}`,
+    apiKey: input.apiKey,
+    fieldMask: NAME_AND_PHOTO_FIELD_MASK,
+    method: "GET",
+  });
+
+  return parseNameAndPhotoReference(payload);
 }
 
 export async function fetchPlacePhoto(input: {
@@ -376,6 +405,15 @@ export function parsePhotoReference(payload: unknown): PlacePhotoReference {
   return {
     photo_name: photoName,
     photo_attribution: photoName ? parseFirstPhotoAttribution(photos) : null,
+  };
+}
+
+export function parseNameAndPhotoReference(
+  payload: unknown,
+): PlaceNameAndPhotoReference {
+  return {
+    ...parsePhotoReference(payload),
+    name: asString(asRecord(asRecord(payload).displayName).text),
   };
 }
 

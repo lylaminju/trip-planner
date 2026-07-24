@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import type { TripRole } from "@/lib/types";
 import type { PlaceCreateInput } from "@/server/place-inputs";
 
+// Mirrors the real NO_REUSABLE_PLACE: nothing already known for a place id.
+const NO_REUSE = { name: null, image_url: null, image_credit: null };
+
 const baseInput: PlaceCreateInput = {
   name: "Museum",
   address: "123 Main St",
@@ -934,19 +937,21 @@ describe("API routes transport behavior", () => {
     });
   });
 
-  it("resolves a place photo by place id through the photo route", async () => {
+  // A map POI pick carries no name, so the route resolves name and photo
+  // together in the one billed Place Details Pro lookup.
+  it("resolves a place name and photo by place id through the photo route", async () => {
     await withFreshTestEnv(async () => {
       vi.doMock("@/server/google-places-search-service", () => ({
-        getPlacePhotoForPlaceId: vi.fn().mockResolvedValue({
+        getPlaceNameAndPhoto: vi.fn().mockResolvedValue({
+          name: "Empire State Building",
           data_url: "data:image/jpeg;base64,abc",
           attribution: "Jane Doe",
         }),
         isValidPlacePhotoName: vi.fn(),
       }));
       vi.doMock("@/server/place-image-resolution", () => ({
-        findReusablePlaceImage: vi
-          .fn()
-          .mockResolvedValue({ image_url: null, image_credit: null }),
+        NO_REUSABLE_PLACE: NO_REUSE,
+        findReusablePlace: vi.fn().mockResolvedValue(NO_REUSE),
       }));
 
       const { POST } = await import("@/app/api/places/photo/route");
@@ -955,25 +960,110 @@ describe("API routes transport behavior", () => {
 
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual({
+        name: "Empire State Building",
         data_url: "data:image/jpeg;base64,abc",
         attribution: "Jane Doe",
+        image_url: null,
+        image_credit: null,
       });
-      expect(service.getPlacePhotoForPlaceId).toHaveBeenCalledWith(
+      expect(service.getPlaceNameAndPhoto).toHaveBeenCalledWith(
         "user-1",
         "ChIJabc",
+        { skipPhoto: false },
       );
     });
   });
 
-  it("reuses an already-stored place image without calling Google", async () => {
+  // A stored image answers the photo question but never the name question —
+  // places.name is user-authored, so it is not reusable. The name still costs a
+  // Place Details Pro call; the Place Photo call on top of it would buy nothing.
+  it("pays for the name but reuses a stored image on a poi pick", async () => {
     await withFreshTestEnv(async () => {
       vi.doMock("@/server/google-places-search-service", () => ({
         getDestinationPhoto: vi.fn(),
-        getPlacePhotoForPlaceId: vi.fn(),
+        getPlaceNameAndPhoto: vi.fn().mockResolvedValue({
+          name: "Empire State Building",
+          data_url: null,
+          attribution: null,
+        }),
+        isValidPlacePhotoName: vi.fn(),
+      }));
+      vi.doMock("@/server/place-image-resolution", () => ({
+        NO_REUSABLE_PLACE: NO_REUSE,
+        findReusablePlace: vi.fn().mockResolvedValue({
+          name: null,
+          image_url: "https://cdn.example.com/place-photos/saved.jpg",
+          image_credit: "Saved Credit",
+        }),
+      }));
+
+      const { POST } = await import("@/app/api/places/photo/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(jsonRequest("POST", { place_id: "ChIJabc" }));
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        name: "Empire State Building",
+        data_url: null,
+        attribution: null,
+        image_url: "https://cdn.example.com/place-photos/saved.jpg",
+        image_credit: "Saved Credit",
+      });
+      expect(service.getPlaceNameAndPhoto).toHaveBeenCalledWith(
+        "user-1",
+        "ChIJabc",
+        { skipPhoto: true },
+      );
+      expect(service.getDestinationPhoto).not.toHaveBeenCalled();
+    });
+  });
+
+  // A curated candidate row carries a name that is safe to reuse, so it answers
+  // both questions with no Google call at all.
+  it("reuses a curated candidate name and image without calling Google", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        getDestinationPhoto: vi.fn(),
+        getPlaceNameAndPhoto: vi.fn(),
+        isValidPlacePhotoName: vi.fn(),
+      }));
+      vi.doMock("@/server/place-image-resolution", () => ({
+        NO_REUSABLE_PLACE: NO_REUSE,
+        findReusablePlace: vi.fn().mockResolvedValue({
+          name: "Empire State Building",
+          image_url: "https://cdn.example.com/candidates/esb.jpg",
+          image_credit: "Curated",
+        }),
+      }));
+
+      const { POST } = await import("@/app/api/places/photo/route");
+      const service = await import("@/server/google-places-search-service");
+      const response = await POST(jsonRequest("POST", { place_id: "ChIJabc" }));
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual({
+        name: "Empire State Building",
+        image_url: "https://cdn.example.com/candidates/esb.jpg",
+        image_credit: "Curated",
+      });
+      expect(service.getPlaceNameAndPhoto).not.toHaveBeenCalled();
+      expect(service.getDestinationPhoto).not.toHaveBeenCalled();
+    });
+  });
+
+  // The stored row answers both questions, so a repeat pick of a place we
+  // already hold costs neither a Place Photo nor a Place Details Pro call.
+  it("reuses a stored place name and image without calling Google", async () => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/google-places-search-service", () => ({
+        getDestinationPhoto: vi.fn(),
+        getPlaceNameAndPhoto: vi.fn(),
         isValidPlacePhotoName: vi.fn().mockReturnValue(true),
       }));
       vi.doMock("@/server/place-image-resolution", () => ({
-        findReusablePlaceImage: vi.fn().mockResolvedValue({
+        NO_REUSABLE_PLACE: NO_REUSE,
+        findReusablePlace: vi.fn().mockResolvedValue({
+          name: "Empire State Building",
           image_url: "https://cdn.example.com/place-photos/saved.jpg",
           image_credit: "Saved Credit",
         }),
@@ -990,11 +1080,12 @@ describe("API routes transport behavior", () => {
 
       expect(response.status).toBe(200);
       await expect(response.json()).resolves.toEqual({
+        name: "Empire State Building",
         image_url: "https://cdn.example.com/place-photos/saved.jpg",
         image_credit: "Saved Credit",
       });
       expect(service.getDestinationPhoto).not.toHaveBeenCalled();
-      expect(service.getPlacePhotoForPlaceId).not.toHaveBeenCalled();
+      expect(service.getPlaceNameAndPhoto).not.toHaveBeenCalled();
     });
   });
 
@@ -1004,7 +1095,7 @@ describe("API routes transport behavior", () => {
     async (placeId) => {
       await withFreshTestEnv(async () => {
         vi.doMock("@/server/google-places-search-service", () => ({
-          getPlacePhotoForPlaceId: vi.fn(),
+          getPlaceNameAndPhoto: vi.fn(),
           isValidPlacePhotoName: vi.fn(),
         }));
 
@@ -1016,7 +1107,7 @@ describe("API routes transport behavior", () => {
         await expect(response.json()).resolves.toEqual({
           error: "A valid place id is required.",
         });
-        expect(service.getPlacePhotoForPlaceId).not.toHaveBeenCalled();
+        expect(service.getPlaceNameAndPhoto).not.toHaveBeenCalled();
       });
     },
   );
@@ -1060,6 +1151,55 @@ describe("API routes transport behavior", () => {
         photoAttribution: "Jane Doe",
         placeId: "google-place-1",
       });
+    });
+  });
+
+  // The canonical name is client-supplied, and the reuse lookup later serves it
+  // to other accounts that pick the same place id, so the route stores it only
+  // when it is tied to a place id and is plausibly a name. Implausible values
+  // are dropped rather than rejected: it is an optimisation, never required to
+  // save a place.
+  it.each([
+    ["Empire State Building", "Empire State Building"],
+    ["  Empire State Building  ", "Empire State Building"],
+    ["x".repeat(201), null],
+    ["   ", null],
+    [42, null],
+  ])("stores a canonical place name only when plausible: %s", async (supplied, stored) => {
+    await withFreshTestEnv(async () => {
+      vi.doMock("@/server/place-image-resolution", () => ({
+        resolvePlaceImage: vi
+          .fn()
+          .mockResolvedValue({ image_url: null, image_credit: null }),
+      }));
+      const createPlaceForRequest = vi.fn().mockResolvedValue({ places: [] });
+      vi.doMock("@/server/place-service", () => ({
+        createPlaceForRequest,
+        removeAllPlacesForRequest: vi.fn(),
+        resolvePlaceUrl: vi.fn(),
+      }));
+
+      const { POST } = await import("@/app/api/trips/[tripId]/places/route");
+      await POST(
+        jsonRequest("POST", {
+          name: "My own label",
+          google_maps_url: "https://maps.google.com/?cid=42",
+          google_place_id: "google-place-1",
+          google_place_name: supplied,
+          latitude: 48.8606,
+          longitude: 2.3376,
+        }),
+        tripParams(),
+      );
+
+      expect(createPlaceForRequest).toHaveBeenCalledWith(
+        1,
+        "user-1",
+        expect.objectContaining({
+          name: "My own label",
+          google_place_name: stored,
+        }),
+      );
     });
   });
 

@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPlacePhotoSessionCache } from "@/lib/place-photo-session-cache";
 import {
   fetchDestinationPhoto,
-  fetchPlacePhotoForPlace,
-  type PlacePhoto,
+  fetchPlaceNameAndPhoto,
+  type PlaceNameAndPhoto,
 } from "@/lib/places-api";
 
 type SelectionPhotoSource = {
@@ -22,10 +22,13 @@ export type PlacePhotoPayload = {
   photo_attribution: string | null;
 };
 
-export type PlacePhotoPreview = {
+export type PlacePreview = {
   // Displayable image: a candidate's stored URL, a reused stored photo, or the
   // freshly fetched data URL.
   imageUrl: string | null;
+  // Name the server resolved for a selection that arrived without one (a map
+  // POI pick). Null until it lands, and whenever the selection already had one.
+  resolvedName: string | null;
   isLoading: boolean;
   // Awaits any in-flight fetch so a fast save still carries the photo that was
   // already fetched (and billed) for the preview. Null when nothing to send —
@@ -35,20 +38,23 @@ export type PlacePhotoPreview = {
 
 // Module-level: repeated picks of the same place anywhere in the session share
 // one fetch, so re-opening the modal on the same POI never re-bills Google.
-const sessionCache = createPlacePhotoSessionCache<PlacePhoto | null>();
+const sessionCache = createPlacePhotoSessionCache<PlaceNameAndPhoto | null>();
 
 /**
- * Resolves the photo for a place selection at most once: the image shown in
- * the modal hero is the same one handed back at save time, so adding a place
- * costs at most one billed Place Photo call — and none when we already have
- * an image for the place.
+ * Resolves the photo — and, for map POI picks, the name — for a place selection
+ * at most once. The image shown in the modal hero is the same one handed back
+ * at save time, and the name rides along in the same request, so adding a place
+ * costs at most one billed Place Photo call plus one Place Details Pro call,
+ * and neither when we already have the place stored.
  */
-export function usePlacePhotoPreview(
+export function usePlacePreview(
   selection: SelectionPhotoSource | null,
-): PlacePhotoPreview {
-  const [fetched, setFetched] = useState<PlacePhoto | null>(null);
+): PlacePreview {
+  const [fetched, setFetched] = useState<PlaceNameAndPhoto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const photoPromiseRef = useRef<Promise<PlacePhoto | null> | null>(null);
+  const photoPromiseRef = useRef<Promise<PlaceNameAndPhoto | null> | null>(
+    null,
+  );
 
   const placeId = selection?.google_place_id ?? null;
   const photoName = selection?.photo_name ?? null;
@@ -71,9 +77,10 @@ export function usePlacePhotoPreview(
     const promise = (
       placeId
         ? sessionCache.getOrFetch(placeId, () =>
-            fetchPlacePhotoForPlace({ placeId, photoName }),
+            fetchPlaceNameAndPhoto({ placeId, photoName }),
           )
         : fetchDestinationPhoto(photoName as string).then((dataUrl) => ({
+            name: null,
             data_url: dataUrl,
             attribution: photoAttribution,
             image_url: null,
@@ -106,6 +113,7 @@ export function usePlacePhotoPreview(
   return {
     imageUrl:
       selection?.image_url ?? fetched?.image_url ?? fetched?.data_url ?? null,
+    resolvedName: fetched?.name ?? null,
     isLoading,
     getPhotoPayload,
   };

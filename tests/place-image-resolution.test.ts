@@ -8,18 +8,28 @@ vi.mock("@/server/supabase", () => ({
 }));
 
 import { storePlacePhoto } from "@/server/destination-photo-service";
-import { resolvePlaceImage } from "@/server/place-image-resolution";
+import {
+  findReusablePlace,
+  resolvePlaceImage,
+} from "@/server/place-image-resolution";
 import { getSupabaseClient } from "@/server/supabase";
 
 const NO_IMAGE = { image_url: null, image_credit: null };
 
-type ImageRow = { image_url: string | null; image_credit: string | null };
+type ImageRow = {
+  // `name` only ever appears on curated candidate rows; saved places expose
+  // `google_place_name` instead.
+  name?: string | null;
+  google_place_name?: string | null;
+  image_url: string | null;
+  image_credit: string | null;
+};
 type TableResult = { data?: ImageRow[]; error?: { message: string } };
 
 function stubImageQueries(resultsByTable: Record<string, TableResult>) {
   const queriesByTable: Record<
     string,
-    { eq: ReturnType<typeof vi.fn> }
+    { eq: ReturnType<typeof vi.fn>; select: ReturnType<typeof vi.fn> }
   > = {};
   const from = vi.fn((table: string) => {
     const result = resultsByTable[table] ?? {};
@@ -27,6 +37,7 @@ function stubImageQueries(resultsByTable: Record<string, TableResult>) {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       not: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({
         data: result.data ?? null,
         error: result.error ?? null,
@@ -184,5 +195,84 @@ describe("resolvePlaceImage", () => {
       }),
     ).resolves.toEqual(NO_IMAGE);
     expect(getSupabaseClient).not.toHaveBeenCalled();
+  });
+});
+
+describe("findReusablePlace", () => {
+  beforeEach(() => {
+    vi.mocked(getSupabaseClient).mockReset();
+  });
+
+  // `places.name` is user-authored and this lookup has no trip or account
+  // scope, so a saved row must never hand it to whoever picks the same place
+  // id. Only `google_place_name`, which holds Google's canonical name, and the
+  // image may be shared from that table.
+  it("reuses a saved place's canonical name, never the user's own", async () => {
+    const { queriesByTable } = stubImageQueries({
+      places: {
+        data: [
+          {
+            google_place_name: "Empire State Building",
+            image_url: "https://cdn.example.com/place-photos/saved.jpg",
+            image_credit: "Jane Doe",
+          } as ImageRow,
+        ],
+      },
+    });
+
+    await expect(findReusablePlace("ChIJabc")).resolves.toEqual({
+      name: "Empire State Building",
+      image_url: "https://cdn.example.com/place-photos/saved.jpg",
+      image_credit: "Jane Doe",
+    });
+    // `name` is not even requested, so a future edit here cannot leak it.
+    expect(queriesByTable.places.select).toHaveBeenCalledWith(
+      "google_place_name, image_url, image_credit",
+    );
+  });
+
+  // Rows saved before the canonical name existed still spare the Place Photo
+  // call; only the name falls back to a billed lookup.
+  it("returns the image with no name when the canonical name is unknown", async () => {
+    stubImageQueries({
+      places: {
+        data: [
+          {
+            google_place_name: null,
+            image_url: "https://cdn.example.com/place-photos/saved.jpg",
+            image_credit: "Jane Doe",
+          } as ImageRow,
+        ],
+      },
+    });
+
+    await expect(findReusablePlace("ChIJabc")).resolves.toEqual({
+      name: null,
+      image_url: "https://cdn.example.com/place-photos/saved.jpg",
+      image_credit: "Jane Doe",
+    });
+  });
+
+  // Curated candidates are seeded content, not user text, so their name is safe
+  // and spares a billed Place Details lookup.
+  it("reuses a curated candidate's name", async () => {
+    stubImageQueries({
+      places: { data: [] },
+      ai_destination_candidates: {
+        data: [
+          {
+            name: "Empire State Building",
+            image_url: "https://cdn.example.com/candidates/esb.jpg",
+            image_credit: "Curated",
+          } as ImageRow,
+        ],
+      },
+    });
+
+    await expect(findReusablePlace("ChIJabc")).resolves.toEqual({
+      name: "Empire State Building",
+      image_url: "https://cdn.example.com/candidates/esb.jpg",
+      image_credit: "Curated",
+    });
   });
 });

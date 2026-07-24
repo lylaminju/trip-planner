@@ -1,27 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  observePoiInfoWindow,
-  POI_INFO_WINDOW_SELECTOR,
-  POI_INFO_WINDOW_TITLE_SELECTOR,
-  POI_NAME_READ_TIMEOUT_MS,
-  POI_NAME_SOURCES,
-  readPoiInfoWindowName,
-} from "@/components/map-panel/poi-info-window-dom";
+import { observePoiInfoWindowClose } from "@/components/map-panel/poi-info-window-dom";
 
 // Simulates the map container: `boxPresent` mirrors Google's native POI info
-// window existing in the DOM, `title` its name text.
+// window existing in the DOM. Only its presence is observable — the card's
+// contents live in a closed shadow root.
 class FakeMapContainer {
   boxPresent = false;
-  title = "";
 
   querySelector(selector: string): unknown {
     if (!this.boxPresent) return null;
-    if (selector === POI_INFO_WINDOW_SELECTOR) return {};
-    if (selector === POI_INFO_WINDOW_TITLE_SELECTOR) {
-      return { textContent: this.title };
-    }
-    return null;
+    return selector === ".poi-info-window" ? {} : null;
   }
 
   asElement(): HTMLElement {
@@ -54,129 +43,22 @@ function lastObserver(): FakeMutationObserver {
   return observer!;
 }
 
-describe("readPoiInfoWindowName", () => {
-  it("returns the trimmed native box title", () => {
-    const container = new FakeMapContainer();
-    container.boxPresent = true;
-    container.title = "  Blue Bottle Coffee  ";
-
-    expect(readPoiInfoWindowName(container.asElement())).toBe(
-      "Blue Bottle Coffee",
-    );
-  });
-
-  it("fails closed when the box or title is missing", () => {
-    const container = new FakeMapContainer();
-    expect(readPoiInfoWindowName(container.asElement())).toBeNull();
-
-    container.boxPresent = true;
-    container.title = "";
-    expect(readPoiInfoWindowName(container.asElement())).toBeNull();
-  });
-
-  it("falls back to the info window header when classic markup is gone", () => {
-    const headerSource = POI_NAME_SOURCES.find((source) =>
-      source.selector.includes("gm-style-iw-ch"),
-    )!;
-    const container = fakeContainer({
-      [headerSource.selector]: { text: "Blue Bottle Coffee" },
-    });
-
-    expect(readPoiInfoWindowName(container)).toBe("Blue Bottle Coffee");
-  });
-
-  it("falls back to the dialog aria-label as a last resort", () => {
-    const ariaSource = POI_NAME_SOURCES.find(
-      (source) => source.attribute === "aria-label",
-    )!;
-    const container = fakeContainer({
-      [ariaSource.selector]: { ariaLabel: "Blue Bottle Coffee" },
-    });
-
-    expect(readPoiInfoWindowName(container)).toBe("Blue Bottle Coffee");
-  });
-});
-
-function fakeContainer(
-  nodes: Record<string, { text?: string; ariaLabel?: string }>,
-): HTMLElement {
-  return {
-    querySelector(selector: string) {
-      const node = nodes[selector];
-      if (!node) return null;
-      return {
-        textContent: node.text ?? null,
-        getAttribute: (name: string) =>
-          name === "aria-label" ? (node.ariaLabel ?? null) : null,
-      };
-    },
-  } as unknown as HTMLElement;
-}
-
-describe("observePoiInfoWindow", () => {
+describe("observePoiInfoWindowClose", () => {
   beforeEach(() => {
     FakeMutationObserver.instances = [];
     vi.stubGlobal("MutationObserver", FakeMutationObserver);
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    vi.useRealTimers();
-  });
-
-  it("reports the name once when the box renders after the click", () => {
-    const container = new FakeMapContainer();
-    const onName = vi.fn();
-    observePoiInfoWindow(container.asElement(), { onName, onClosed: vi.fn() });
-
-    container.boxPresent = true;
-    container.title = "Blue Bottle Coffee";
-    lastObserver().emit();
-    lastObserver().emit();
-
-    expect(onName).toHaveBeenCalledTimes(1);
-    expect(onName).toHaveBeenCalledWith("Blue Bottle Coffee");
-  });
-
-  it("ignores the stale title of a previously open box until it changes", () => {
-    const container = new FakeMapContainer();
-    container.boxPresent = true;
-    container.title = "Previous place";
-    const onName = vi.fn();
-    observePoiInfoWindow(container.asElement(), { onName, onClosed: vi.fn() });
-
-    // Map tile mutation fires before Google swaps the box content in.
-    lastObserver().emit();
-    expect(onName).not.toHaveBeenCalled();
-
-    container.title = "Next place";
-    lastObserver().emit();
-    expect(onName).toHaveBeenCalledWith("Next place");
-  });
-
-  it("accepts the unchanged title after the timeout for a re-clicked poi", () => {
-    const container = new FakeMapContainer();
-    container.boxPresent = true;
-    container.title = "Same place";
-    const onName = vi.fn();
-    observePoiInfoWindow(container.asElement(), { onName, onClosed: vi.fn() });
-
-    vi.advanceTimersByTime(POI_NAME_READ_TIMEOUT_MS);
-
-    expect(onName).toHaveBeenCalledWith("Same place");
   });
 
   it("fires onClosed once when the box is removed", () => {
     const container = new FakeMapContainer();
     const onClosed = vi.fn();
-    observePoiInfoWindow(container.asElement(), {
-      onName: vi.fn(),
-      onClosed,
-    });
+    observePoiInfoWindowClose(container.asElement(), onClosed);
 
     container.boxPresent = true;
-    container.title = "Blue Bottle Coffee";
     lastObserver().emit();
     container.boxPresent = false;
     lastObserver().emit();
@@ -185,20 +67,35 @@ describe("observePoiInfoWindow", () => {
     expect(onClosed).toHaveBeenCalledTimes(1);
   });
 
-  it("stops observing and cancels the timeout on cleanup", () => {
+  // Clicking a second POI tears the first card down before the new one renders.
+  // Treating that gap as a close would dismiss the chip for the POI just
+  // clicked, which is the bug this guards.
+  it("ignores the boxless gap while google swaps one card for another", () => {
     const container = new FakeMapContainer();
     container.boxPresent = true;
-    container.title = "Blue Bottle Coffee";
-    const onName = vi.fn();
-    const cleanup = observePoiInfoWindow(container.asElement(), {
-      onName,
-      onClosed: vi.fn(),
-    });
+    const onClosed = vi.fn();
+    observePoiInfoWindowClose(container.asElement(), onClosed);
 
+    container.boxPresent = false;
+    lastObserver().emit();
+    expect(onClosed).not.toHaveBeenCalled();
+
+    // The replacement card arrives and can then close normally.
+    container.boxPresent = true;
+    lastObserver().emit();
+    container.boxPresent = false;
+    lastObserver().emit();
+
+    expect(onClosed).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops observing on cleanup", () => {
+    const container = new FakeMapContainer();
+    const cleanup = observePoiInfoWindowClose(container.asElement(), vi.fn());
+
+    expect(lastObserver().disconnected).toBe(false);
     cleanup();
-    vi.advanceTimersByTime(POI_NAME_READ_TIMEOUT_MS);
 
     expect(lastObserver().disconnected).toBe(true);
-    expect(onName).not.toHaveBeenCalled();
   });
 });

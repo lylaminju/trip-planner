@@ -4,7 +4,7 @@ import { buildGoogleMapsPlaceIdUrl } from "@/lib/maps-url";
 
 import type { PlaceSearchSelection } from "../AddPlaceSearchStep";
 import { poiAddChipContent } from "./map-marker-dom";
-import { observePoiInfoWindow } from "./poi-info-window-dom";
+import { observePoiInfoWindowClose } from "./poi-info-window-dom";
 
 // Above the active place marker (1000) and the current-location marker (900).
 const POI_CHIP_Z_INDEX = 1100;
@@ -13,7 +13,6 @@ export type ActivePoi = {
   placeId: string;
   latitude: number;
   longitude: number;
-  name: string | null;
 };
 
 type PoiClickCallbacks = {
@@ -40,7 +39,6 @@ export function attachPoiClickListener(
         placeId,
         latitude: event.latLng.lat(),
         longitude: event.latLng.lng(),
-        name: null,
       });
     },
   );
@@ -50,18 +48,19 @@ export function attachPoiClickListener(
   };
 }
 
-// Coordinates come from the click event and the URL from the place id, so a
-// missing name (Google DOM changed, or the box never rendered) still yields a
-// savable selection — the modal asks the user to type the name.
+// A POI click exposes only a place id and coordinates — Google renders the
+// card's name inside a closed shadow root, so it cannot be read here. The
+// selection therefore always leaves the name empty; the modal resolves it from
+// the place id (from our own stored places when we have them, otherwise a Place
+// Details lookup) and falls back to asking the user to type it.
 export function buildPoiPlaceSelection(poi: ActivePoi): PlaceSearchSelection {
   return {
     google_place_id: poi.placeId,
-    name: poi.name ?? "",
+    name: "",
     latitude: poi.latitude,
     longitude: poi.longitude,
     google_maps_url: buildGoogleMapsPlaceIdUrl(poi.placeId),
-    // No details call happens for POI clicks; the modal resolves the photo
-    // from the place id instead.
+    // The same modal lookup that resolves the name resolves the photo.
     photo_name: null,
     photo_attribution: null,
     image_url: null,
@@ -106,16 +105,9 @@ export function useMapPoiPicker(input: {
   onAddPlace: (selection: PlaceSearchSelection) => void;
 }): void {
   const [activePoi, setActivePoi] = useState<ActivePoi | null>(null);
-  // The chip marker's click handler outlives name updates, so it reads the
-  // latest poi (including the async-read name) through this ref.
-  const activePoiRef = useRef<ActivePoi | null>(null);
   const stopObserverRef = useRef<(() => void) | null>(null);
   const { apiKey, isMapReady, loadFailed, mapInstanceRef, mapContainerRef, enabled } =
     input;
-
-  useEffect(() => {
-    activePoiRef.current = activePoi;
-  }, [activePoi]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -134,16 +126,11 @@ export function useMapPoiPicker(input: {
         setActivePoi(poi);
         const container = mapContainerRef.current;
         if (!container) return;
-        stopObserverRef.current = observePoiInfoWindow(container, {
-          onName: (name) =>
-            setActivePoi((current) =>
-              current?.placeId === poi.placeId ? { ...current, name } : current,
-            ),
-          onClosed: () =>
-            setActivePoi((current) =>
-              current?.placeId === poi.placeId ? null : current,
-            ),
-        });
+        stopObserverRef.current = observePoiInfoWindowClose(container, () =>
+          setActivePoi((current) =>
+            current?.placeId === poi.placeId ? null : current,
+          ),
+        );
       },
       onClear: () => {
         stopObserver();
@@ -162,8 +149,8 @@ export function useMapPoiPicker(input: {
   const activeLatitude = activePoi?.latitude ?? null;
   const activeLongitude = activePoi?.longitude ?? null;
 
-  // Keyed on the poi identity, not the whole object: the async name read must
-  // not recreate the marker.
+  // Keyed on the poi's fields rather than the object so an unrelated re-render
+  // never tears down and rebuilds the chip marker.
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (activePlaceId === null || activeLatitude === null || activeLongitude === null || !map) {
@@ -174,12 +161,16 @@ export function useMapPoiPicker(input: {
       map,
       { latitude: activeLatitude, longitude: activeLongitude },
       () => {
-        const poi = activePoiRef.current;
-        if (!poi) return;
         stopObserverRef.current?.();
         stopObserverRef.current = null;
         setActivePoi(null);
-        input.onAddPlace(buildPoiPlaceSelection(poi));
+        input.onAddPlace(
+          buildPoiPlaceSelection({
+            placeId: activePlaceId,
+            latitude: activeLatitude,
+            longitude: activeLongitude,
+          }),
+        );
       },
     );
   }, [activePlaceId, activeLatitude, activeLongitude, mapInstanceRef]);

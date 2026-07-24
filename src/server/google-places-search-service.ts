@@ -2,8 +2,8 @@ import { GooglePlacesRateLimitError } from "@/server/errors";
 import {
   fetchDestinationDetails,
   fetchDestinationSuggestions,
+  fetchPlaceNameAndPhotoReference,
   fetchPlacePhoto,
-  fetchPlacePhotoReference,
   requirePlacesApiKey,
   type AutocompleteLocationBias,
   type DestinationDetails,
@@ -104,30 +104,44 @@ export async function getDestinationPhoto(
   return `data:${photo.contentType};base64,${base64}`;
 }
 
-export type PlacePhotoResult = {
+export type PlaceNameAndPhotoResult = {
+  name: string | null;
   data_url: string | null;
   attribution: string | null;
 };
 
 /**
- * Resolves a photo for a place picked without a details call (a map POI click).
- * The reference lookup uses only free IDs-Only fields, so it is neither
- * budget-gated nor recorded; the single billed call is the photo fetch itself,
- * and its data URL is reused for both the preview and the stored image.
+ * Resolves the display name and photo for a place picked without a details call
+ * (a map POI click). The name only exists in Place Details Pro, so unlike the
+ * old IDs-Only reference lookup this call is billed and is therefore gated and
+ * recorded under the details SKU. The photo reference rides along in the same
+ * field mask, so it costs nothing beyond the name.
+ *
+ * Callers reaching a budget ceiling get a GooglePlacesRateLimitError and fall
+ * back to the free behaviour: the user types the name in the modal.
+ *
+ * `skipPhoto` is for places we already hold an image for: the name still needs
+ * this lookup, but the Place Photo call on top of it would buy nothing.
  */
-export async function getPlacePhotoForPlaceId(
+export async function getPlaceNameAndPhoto(
   userId: string,
   placeId: string,
-): Promise<PlacePhotoResult> {
-  const reference = await fetchPlacePhotoReference({
+  options: { skipPhoto?: boolean } = {},
+): Promise<PlaceNameAndPhotoResult> {
+  await assertPlacesBudget(userId, PLACES_SKU.DETAILS);
+
+  const reference = await fetchPlaceNameAndPhotoReference({
     apiKey: requirePlacesApiKey(),
     placeId,
   });
-  if (!reference.photo_name) {
-    return { data_url: null, attribution: null };
+  await recordPlacesCall(userId, PLACES_SKU.DETAILS);
+
+  if (options.skipPhoto || !reference.photo_name) {
+    return { name: reference.name, data_url: null, attribution: null };
   }
 
   return {
+    name: reference.name,
     data_url: await getDestinationPhoto(userId, reference.photo_name),
     attribution: reference.photo_attribution,
   };

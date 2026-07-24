@@ -296,9 +296,13 @@ function toPlaceInsert(tripId: number, input: PlaceCreateInput): PlaceInsert {
     links: input.links,
     image_url: input.image_url ?? null,
     image_credit: input.image_credit ?? null,
+    google_place_name: input.google_place_name ?? null,
   };
 }
 
+// Deliberately omits google_place_name: it holds Google's canonical name, is
+// shared across accounts by the reuse lookup, and must not follow a user's
+// rename of their own copy of the place.
 function toPlaceUpdate(input: PlaceEditInput): PlaceUpdate {
   return {
     name: input.name,

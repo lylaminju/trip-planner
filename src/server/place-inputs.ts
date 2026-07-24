@@ -13,6 +13,10 @@ export type PlaceInsert = {
   longitude: number;
   notes: string | null;
   links: string[];
+  // Google's canonical name, kept apart from the user-editable `name` so a
+  // repeat map-POI pick can reuse it without a billed Place Details lookup.
+  // Write-once at create time: PlaceEditInput must never carry it.
+  google_place_name?: string | null;
   image_url?: string | null;
   image_credit?: string | null;
   visit_date?: string | null;
@@ -37,7 +41,11 @@ export type PlaceCreateInput = Omit<PlaceInsert, "trip_id"> & {
   itinerary_notes?: string | null;
 };
 
-export type PlaceEditInput = Omit<PlaceUpdate, "trip_id"> &
+// `google_place_name` is excluded, not merely omitted by convention: it holds
+// Google's canonical name, is shared across accounts by the reuse lookup, and
+// must never follow a user renaming their own copy of the place. Excluding it
+// here makes that a compile error rather than something a mapper can regress.
+export type PlaceEditInput = Omit<PlaceUpdate, "trip_id" | "google_place_name"> &
   Partial<Pick<ItineraryItem, "visit_date" | "visit_time">> & {
     itinerary_notes?: string | null;
   };

@@ -74,7 +74,12 @@ export async function fetchDestinationPhoto(
   return data.data_url as string;
 }
 
-export type PlacePhoto = {
+export type PlaceNameAndPhoto = {
+  // Display name resolved server-side. Only map POI picks need it — Google's
+  // POI card is a closed shadow root, so the name it shows cannot be read from
+  // the DOM. Null when the place was already known by name, when the lookup
+  // returned nothing, or when the Places budget blocked it.
+  name: string | null;
   // Freshly fetched from Google (the single billed Place Photo call); the
   // same data URL is previewed and sent back at save time.
   data_url: string | null;
@@ -85,19 +90,20 @@ export type PlacePhoto = {
   image_credit: string | null;
 };
 
-// Resolves the preview photo for a place selection. The server first reuses an
-// image we already stored for the place id (no Google call), then fetches via
-// the known photo reference, then falls back to a free IDs-Only reference
-// lookup for map POI picks.
-export async function fetchPlacePhotoForPlace(input: {
+// Resolves the preview photo, and for map POI picks the name, for a place
+// selection. The server first reuses what we already stored for the place id
+// (no Google call), then fetches via the known photo reference, then falls back
+// to a billed Place Details Pro lookup that returns name and photo together.
+export async function fetchPlaceNameAndPhoto(input: {
   placeId: string;
   photoName: string | null;
-}): Promise<PlacePhoto> {
+}): Promise<PlaceNameAndPhoto> {
   const data = await postPlaces("/api/places/photo", {
     place_id: input.placeId,
     ...(input.photoName ? { photo_name: input.photoName } : {}),
   });
   return {
+    name: typeof data.name === "string" ? data.name : null,
     data_url: typeof data.data_url === "string" ? data.data_url : null,
     attribution:
       typeof data.attribution === "string" ? data.attribution : null,
