@@ -1,3 +1,4 @@
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { SERVICE_TITLE } from "@/lib/service-brand";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -21,7 +22,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <GoogleAnalytics />
+      </body>
     </html>
   );
 }
