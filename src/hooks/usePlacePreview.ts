@@ -4,17 +4,18 @@ import { useEffect, useRef, useState } from "react";
 
 import { createPlacePhotoSessionCache } from "@/lib/place-photo-session-cache";
 import {
-  fetchDestinationPhoto,
   fetchPlaceNameAndPhoto,
   type PlaceNameAndPhoto,
 } from "@/lib/places-api";
 
+// Only the fields this hook actually reads. Every selection that reaches it
+// carries a place id: map POI picks and curated candidates set `photo_name` to
+// null, and a search pick sets both, so there is no photo-only case to serve.
 type SelectionPhotoSource = {
   google_place_id: string | null;
   photo_name: string | null;
   photo_attribution: string | null;
   image_url: string | null;
-  image_credit: string | null;
 };
 
 export type PlacePhotoPayload = {
@@ -66,7 +67,7 @@ export function usePlacePreview(
     photoPromiseRef.current = null;
 
     // Candidate selections already carry a stored image; nothing to fetch.
-    if (hasStoredImage || (!photoName && !placeId)) {
+    if (hasStoredImage || !placeId) {
       setIsLoading(false);
       return;
     }
@@ -74,19 +75,9 @@ export function usePlacePreview(
     let isCurrent = true;
     setIsLoading(true);
 
-    const promise = (
-      placeId
-        ? sessionCache.getOrFetch(placeId, () =>
-            fetchPlaceNameAndPhoto({ placeId, photoName }),
-          )
-        : fetchDestinationPhoto(photoName as string).then((dataUrl) => ({
-            name: null,
-            data_url: dataUrl,
-            attribution: photoAttribution,
-            image_url: null,
-            image_credit: null,
-          }))
-    ).catch(() => null);
+    const promise = sessionCache
+      .getOrFetch(placeId, () => fetchPlaceNameAndPhoto({ placeId, photoName }))
+      .catch(() => null);
 
     photoPromiseRef.current = promise;
     promise.then((photo) => {
@@ -98,7 +89,7 @@ export function usePlacePreview(
     return () => {
       isCurrent = false;
     };
-  }, [hasStoredImage, photoName, photoAttribution, placeId]);
+  }, [hasStoredImage, photoName, placeId]);
 
   async function getPhotoPayload(): Promise<PlacePhotoPayload | null> {
     const photo = await (photoPromiseRef.current ?? Promise.resolve(null));

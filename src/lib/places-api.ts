@@ -85,9 +85,10 @@ export type PlaceNameAndPhoto = {
   data_url: string | null;
   attribution: string | null;
   // Already stored in our own bucket for this place id; previewed as-is and
-  // never re-uploaded — the save path re-resolves it server-side.
+  // never re-uploaded. Its credit is deliberately absent: the save path
+  // re-resolves the stored image and its credit server-side, so nothing on the
+  // client ever reads one.
   image_url: string | null;
-  image_credit: string | null;
 };
 
 // Resolves the preview photo, and for map POI picks the name, for a place
@@ -108,8 +109,6 @@ export async function fetchPlaceNameAndPhoto(input: {
     attribution:
       typeof data.attribution === "string" ? data.attribution : null,
     image_url: typeof data.image_url === "string" ? data.image_url : null,
-    image_credit:
-      typeof data.image_credit === "string" ? data.image_credit : null,
   };
 }
 
