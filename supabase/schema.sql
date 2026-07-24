@@ -506,6 +506,11 @@ create table if not exists public.guest_events (
 create index if not exists guest_events_guest_idx
   on public.guest_events (guest_id, created_at);
 
+grant all on public.guest_api_usage to service_role;
+grant usage, select on sequence public.guest_api_usage_id_seq to service_role;
+grant all on public.guest_events to service_role;
+grant usage, select on sequence public.guest_events_id_seq to service_role;
+
 alter table public.places enable row level security;
 alter table public.itinerary_items enable row level security;
 alter table public.route_segments enable row level security;
