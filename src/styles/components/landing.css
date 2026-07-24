@@ -192,7 +192,9 @@ body:has(.sign-in-page-shell) {
 }
 
 /* The sample-trip CTA is a button (it fires a POST), styled as the primary
-   action anchor. */
+   action anchor. The combined selector outranks the generic button rules in
+   buttons.css (imported after this file), which would otherwise repaint the
+   hover and disabled states with the muted panel surface. */
 button.landing-primary-action {
   border: 0;
   cursor: pointer;
@@ -201,7 +203,13 @@ button.landing-primary-action {
   font-weight: 600;
 }
 
-button.landing-primary-action:disabled {
+button.landing-primary-action:hover {
+  background: var(--accent-hover);
+}
+
+button.landing-primary-action:disabled,
+button.landing-primary-action:disabled:hover {
+  background: var(--accent);
   cursor: default;
   opacity: 0.7;
 }
