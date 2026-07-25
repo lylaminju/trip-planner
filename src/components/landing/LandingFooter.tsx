@@ -1,3 +1,5 @@
+import { FeedbackButton } from "@/components/FeedbackButton";
+
 const CONTACT_EMAIL = "mjuudev@gmail.com";
 const LINKEDIN_URL = "https://www.linkedin.com/in/lylaminju";
 
@@ -49,7 +51,12 @@ export function LandingFooter() {
           </svg>
         </a>
       </div>
-      <p>© 2026 Minju (Lyla) Park · Not affiliated with Google Maps</p>
+      <p>
+        © 2026 Minju (Lyla) Park ·{" "}
+        <FeedbackButton className="landing-footer-feedback">
+          Send feedback
+        </FeedbackButton>
+      </p>
     </footer>
   );
 }

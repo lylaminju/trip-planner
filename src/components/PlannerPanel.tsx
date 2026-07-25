@@ -23,7 +23,9 @@ import type {
 } from "@/lib/types";
 
 import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
+import { FeedbackButton } from "./FeedbackButton";
 import {
+  ChatIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MagicWandIcon,
@@ -244,6 +246,13 @@ export function PlannerPanel(props: Props) {
               )}
             </div>
             <div className="app-header-controls">
+              <FeedbackButton
+                className="icon-button app-header-feedback-button"
+                ariaLabel="Send feedback"
+                title="Send feedback"
+              >
+                <ChatIcon />
+              </FeedbackButton>
               {props.onPlanWithAi && (
                 <button
                   type="button"

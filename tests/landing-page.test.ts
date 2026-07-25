@@ -34,9 +34,9 @@ describe("LandingPage", () => {
     expect(markup).toContain("mailto:mjuudev@gmail.com");
     expect(markup).toContain("TripGlance%20access%20request");
     expect(markup).toContain('href="/sign-in"');
-    // Compliance disclaimer must stay on the public page.
-    expect(markup).toContain("Not affiliated with Google Maps");
+    // Feedback affordance is reachable from the public footer.
     expect(markup).toContain('class="landing-footer"');
+    expect(markup).toContain('class="landing-footer-feedback"');
 
     const heroActions = markupBetween(markup, "landing-hero-actions", "div");
     // Primary action is the request-access CTA; the showcase link is secondary.

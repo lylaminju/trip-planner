@@ -246,6 +246,16 @@ export function MenuIcon() {
   );
 }
 
+export function ChatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 5.5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z" />
+      <path d="M8 10h8" />
+      <path d="M8 13h5" />
+    </svg>
+  );
+}
+
 export function ExternalLinkIcon() {
   return (
     <svg

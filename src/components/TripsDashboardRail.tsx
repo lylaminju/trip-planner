@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { openFeedbackForm } from "@/lib/tally";
+
 import { CloseIcon, MenuIcon } from "./Icons";
 
 const MOBILE_NAV_DRAWER_ID = "trips-mobile-nav-drawer";
@@ -73,6 +75,15 @@ function RailLogoutIcon() {
   );
 }
 
+function RailFeedbackIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M2.5 3h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6l-3 2.2V11H2.5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M5 6h6M5 8.2h3.5" />
+    </svg>
+  );
+}
+
 export function TripsDashboardRail(props: {
   displayName: string;
   userEmail?: string;
@@ -113,6 +124,11 @@ export function TripsDashboardRail(props: {
   function logout() {
     closeMobileNav();
     props.onLogout();
+  }
+
+  function openFeedback() {
+    closeMobileNav();
+    void openFeedbackForm();
   }
 
   return (
@@ -198,6 +214,17 @@ export function TripsDashboardRail(props: {
             <span className="trips-rail-nav-label">Settings</span>
             <span className="trips-rail-nav-soon">Soon</span>
           </span>
+          <span className="trips-rail-nav-divider" aria-hidden="true" />
+          <button
+            type="button"
+            className="trips-rail-nav-item"
+            onClick={openFeedback}
+          >
+            <span className="trips-rail-nav-icon" aria-hidden="true">
+              <RailFeedbackIcon />
+            </span>
+            <span className="trips-rail-nav-label">Feedback</span>
+          </button>
 
           {props.isAdmin && (
             <>

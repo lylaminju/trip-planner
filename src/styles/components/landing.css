@@ -421,6 +421,21 @@ button.landing-primary-action:disabled:hover {
   color: var(--landing-text);
 }
 
+.landing-footer-feedback {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.landing-footer-feedback:hover {
+  color: var(--landing-text);
+}
+
 .sr-only {
   clip: rect(0, 0, 0, 0);
   border: 0;
