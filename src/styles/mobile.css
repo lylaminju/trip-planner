@@ -218,19 +218,7 @@
   }
 
   .app-header-title-row {
-    gap: 10px;
     padding-bottom: 10px;
-    position: relative;
-  }
-
-  .app-header-controls {
-    position: absolute;
-    right: var(--panel-inline-pad);
-    top: 0;
-  }
-
-  .app-header-title-row:has(.ai-plan-button) .app-header-dashboard-link {
-    min-height: 34px;
   }
 
   .app-header h1 {

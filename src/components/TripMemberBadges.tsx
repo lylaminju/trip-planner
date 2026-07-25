@@ -31,14 +31,14 @@ export function TripMemberBadges(props: {
       {visibleMembers.map((member) => (
         <span
           key={member.user_id}
-          className="trip-member-badge"
+          className="trip-member-badge tooltip-anchor"
           aria-hidden="true"
           style={{
             background: member.profile_color ?? DEFAULT_PROFILE_COLOR,
           }}
         >
           {memberDisplayName(member).slice(0, 1).toUpperCase()}
-          <span className="trip-member-badge-tooltip">
+          <span className="tooltip tooltip-top tooltip-stack trip-member-badge-tooltip">
             <strong className="trip-member-badge-tooltip-name">
               {memberDisplayName(member)}
             </strong>
@@ -50,11 +50,11 @@ export function TripMemberBadges(props: {
       ))}
       {hiddenMembers.length > 0 && (
         <span
-          className="trip-member-badge trip-member-badge-overflow"
+          className="trip-member-badge trip-member-badge-overflow tooltip-anchor"
           aria-hidden="true"
         >
           +{hiddenMembers.length}
-          <span className="trip-member-badge-tooltip">
+          <span className="tooltip tooltip-top tooltip-stack trip-member-badge-tooltip">
             <strong className="trip-member-badge-tooltip-name">
               {hiddenMembers.length} more
             </strong>

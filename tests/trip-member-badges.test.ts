@@ -65,7 +65,7 @@ describe("TripMemberBadges", () => {
       { maxVisible: 2 },
     );
 
-    expect(markup).toContain('class="trip-member-badge trip-member-badge-overflow"');
+    expect(markup).toContain("trip-member-badge-overflow");
     expect(markup).toContain(">+2<");
     expect(markup).toContain('aria-label="Shared with Mina, Jun and 2 more"');
   });

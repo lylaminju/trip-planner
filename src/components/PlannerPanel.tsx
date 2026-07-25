@@ -195,15 +195,59 @@ export function PlannerPanel(props: Props) {
         onClick={clearSelectionOnBackgroundClick}
       >
         <header className="app-header">
+          <div className="app-header-top-row">
+            <Link
+              className="app-header-dashboard-link"
+              href={props.isGuest ? "/" : "/trips"}
+            >
+              <ChevronLeftIcon />
+              <span>{props.isGuest ? "Home" : "Trips"}</span>
+            </Link>
+            <div className="app-header-controls">
+              <FeedbackButton
+                className="icon-button app-header-feedback-button tooltip-anchor"
+                ariaLabel="Send feedback"
+              >
+                <ChatIcon />
+                <span className="tooltip tooltip-bottom" aria-hidden="true">
+                  Feedback
+                </span>
+              </FeedbackButton>
+              {props.onPlanWithAi && (
+                <button
+                  type="button"
+                  className="ai-plan-button"
+                  onClick={props.onPlanWithAi}
+                >
+                  <MagicWandIcon />
+                  <span>Plan with AI</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className="panel-expand-toggle"
+                aria-label={viewToggleDescription}
+                title={viewToggleDescription}
+                onClick={props.onToggleExpanded}
+              >
+                {props.isExpanded && (
+                  <span className="panel-expand-toggle-icon" aria-hidden="true">
+                    <ChevronLeftIcon />
+                    <ChevronLeftIcon />
+                  </span>
+                )}
+                <span>{viewToggleLabel}</span>
+                {!props.isExpanded && (
+                  <span className="panel-expand-toggle-icon" aria-hidden="true">
+                    <ChevronRightIcon />
+                    <ChevronRightIcon />
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
           <div className="app-header-title-row">
             <div className="app-header-title-stack">
-              <Link
-                className="app-header-dashboard-link"
-                href={props.isGuest ? "/" : "/trips"}
-              >
-                <ChevronLeftIcon />
-                <span>{props.isGuest ? "Home" : "Trips"}</span>
-              </Link>
               <div className="app-header-name-row">
                 <h1>{props.title}</h1>
                 {props.onEditTrip && (
@@ -244,46 +288,6 @@ export function PlannerPanel(props: Props) {
                   )}
                 </div>
               )}
-            </div>
-            <div className="app-header-controls">
-              <FeedbackButton
-                className="icon-button app-header-feedback-button"
-                ariaLabel="Send feedback"
-                title="Send feedback"
-              >
-                <ChatIcon />
-              </FeedbackButton>
-              {props.onPlanWithAi && (
-                <button
-                  type="button"
-                  className="ai-plan-button"
-                  onClick={props.onPlanWithAi}
-                >
-                  <MagicWandIcon />
-                  <span>Plan with AI</span>
-                </button>
-              )}
-              <button
-                type="button"
-                className="panel-expand-toggle"
-                aria-label={viewToggleDescription}
-                title={viewToggleDescription}
-                onClick={props.onToggleExpanded}
-              >
-                {props.isExpanded && (
-                  <span className="panel-expand-toggle-icon" aria-hidden="true">
-                    <ChevronLeftIcon />
-                    <ChevronLeftIcon />
-                  </span>
-                )}
-                <span>{viewToggleLabel}</span>
-                {!props.isExpanded && (
-                  <span className="panel-expand-toggle-icon" aria-hidden="true">
-                    <ChevronRightIcon />
-                    <ChevronRightIcon />
-                  </span>
-                )}
-              </button>
             </div>
           </div>
         </header>

@@ -107,12 +107,17 @@
   text-wrap: balance;
 }
 
+.app-header-top-row {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
 .app-header-title-row {
   align-items: flex-start;
   border-bottom: 1px solid var(--line);
   display: flex;
-  gap: 12px;
-  justify-content: space-between;
   margin: 0 calc(-1 * var(--panel-inline-pad));
   padding: 0 var(--panel-inline-pad) 12px;
 }
