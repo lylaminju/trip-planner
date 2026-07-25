@@ -5,7 +5,9 @@ const FEEDBACK_FORM_ID = "eqjbGO";
 
 const TALLY_EMBED_SRC = "https://tally.so/widgets/embed.js";
 const FEEDBACK_FORM_URL = `https://tally.so/r/${FEEDBACK_FORM_ID}`;
-const FEEDBACK_POPUP_WIDTH = 540;
+// The longest question needs 528px of content width; Tally adds 20px of page
+// padding per side, so the popup wraps it below 568px.
+const FEEDBACK_POPUP_WIDTH = 600;
 const FEEDBACK_AUTO_CLOSE_MS = 3000;
 
 type TallyPopupOptions = {
