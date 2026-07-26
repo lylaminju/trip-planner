@@ -129,7 +129,7 @@ describe("TripPlannerApp", () => {
     expect(withPlaces).toContain("Plan with AI");
   });
 
-  it("hides AI planning for trips without a destination, non-owners, or invalid dates", () => {
+  it("hides AI planning for trips without a destination and for non-owners", () => {
     const unsupported = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
@@ -152,6 +152,14 @@ describe("TripPlannerApp", () => {
         }),
       }),
     );
+
+    // Neither gate is one the viewer can resolve, so the control stays absent
+    // rather than pointing at a fix that does not exist for them.
+    expect(unsupported).not.toContain("Plan with AI");
+    expect(editor).not.toContain("Plan with AI");
+  });
+
+  it("offers AI planning as a muted, self-explaining control when only dates are missing", () => {
     const missingDates = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
@@ -168,6 +176,8 @@ describe("TripPlannerApp", () => {
         }),
       }),
     );
+    // Places present, so the map empty state is gone and only the planner
+    // header can satisfy these assertions.
     const reversedDates = renderToStaticMarkup(
       createElement(TripPlannerApp, {
         tripId: 1,
@@ -179,14 +189,23 @@ describe("TripPlannerApp", () => {
             start_date: "2026-05-30",
             end_date: "2026-05-29",
           }),
+          plannerSnapshot: {
+            places: [buildPlace({ name: "Central Park" })],
+            itineraryItems: [],
+            routeSegments: [],
+          },
         }),
       }),
     );
 
-    expect(unsupported).not.toContain("Plan with AI");
-    expect(editor).not.toContain("Plan with AI");
-    expect(missingDates).not.toContain("Plan with AI");
-    expect(reversedDates).not.toContain("Plan with AI");
+    for (const markup of [missingDates, reversedDates]) {
+      expect(markup).toContain("Plan with AI");
+      expect(markup).toContain("Add trip dates to plan with AI");
+      // aria-disabled rather than disabled keeps it focusable and tappable,
+      // which is the only way keyboard and touch users reach the reason.
+      expect(markup).toContain('aria-disabled="true"');
+      expect(markup).not.toContain('disabled=""');
+    }
   });
 
   it("renders current location as a map control instead of a planner header button", () => {

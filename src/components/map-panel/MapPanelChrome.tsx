@@ -1,6 +1,6 @@
 "use client";
 
-import { MagicWandIcon } from "../Icons";
+import { PlanWithAiButton } from "../PlanWithAiButton";
 
 type Props = {
   hasPlaces: boolean;
@@ -12,6 +12,7 @@ type Props = {
   onToggleCurrentLocation: () => void;
   onAddPlace: () => void;
   onPlanWithAi?: () => void;
+  aiPlanNeedsDates?: boolean;
 };
 
 export function MapPanelChrome(props: Props) {
@@ -20,23 +21,18 @@ export function MapPanelChrome(props: Props) {
       {!props.hasPlaces && (
         <div className="map-empty-state">
           <p>Add your first place to start building the map.</p>
-          {(props.canEdit || props.onPlanWithAi) && (
+          {(props.canEdit || props.onPlanWithAi || props.aiPlanNeedsDates) && (
             <div className="map-empty-state-actions">
               {props.canEdit && (
                 <button type="button" onClick={props.onAddPlace}>
                   Add place
                 </button>
               )}
-              {props.onPlanWithAi && (
-                <button
-                  type="button"
-                  className="map-empty-state-ai-button"
-                  onClick={props.onPlanWithAi}
-                >
-                  <MagicWandIcon />
-                  <span>Plan with AI</span>
-                </button>
-              )}
+              <PlanWithAiButton
+                className="map-empty-state-ai-button"
+                onPlanWithAi={props.onPlanWithAi}
+                needsDates={props.aiPlanNeedsDates}
+              />
             </div>
           )}
         </div>

@@ -1,0 +1,27 @@
+/* Muted state for the shared Plan with AI control, used when the trip is
+   AI-plannable except for its date range. The variant belongs to the control,
+   so it targets the exact combined class on each surface rather than relying on
+   import order against layout.css and map.css. */
+.ai-plan-button.plan-with-ai-needs-dates,
+.map-empty-state-ai-button.plan-with-ai-needs-dates {
+  background: var(--surface-subtle);
+  border-color: var(--border-muted);
+  color: var(--text-soft);
+  cursor: default;
+}
+
+/* Hover must not read as actionable, since the control does not act. */
+.ai-plan-button.plan-with-ai-needs-dates:hover,
+.map-empty-state-ai-button.plan-with-ai-needs-dates:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-muted);
+  box-shadow: none;
+  color: var(--text-soft);
+}
+
+/* It stays focusable, so it still needs a visible focus ring. */
+.ai-plan-button.plan-with-ai-needs-dates:focus-visible,
+.map-empty-state-ai-button.plan-with-ai-needs-dates:focus-visible {
+  border-color: var(--border-strong);
+  box-shadow: var(--focus-ring-strong);
+}

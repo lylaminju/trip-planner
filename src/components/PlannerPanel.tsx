@@ -28,12 +28,12 @@ import {
   ChatIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  MagicWandIcon,
   PencilIcon,
   UserPlusIcon,
 } from "./Icons";
 import { ItinerarySection } from "./planner-panel/ItinerarySection";
 import { PlacesSection } from "./planner-panel/PlacesSection";
+import { PlanWithAiButton } from "./PlanWithAiButton";
 import { TripMemberBadges } from "./TripMemberBadges";
 
 type Props = {
@@ -64,6 +64,7 @@ type Props = {
   deletingItineraryItemIds: ReadonlySet<number>;
   onToggleExpanded: () => void;
   onPlanWithAi?: () => void;
+  aiPlanNeedsDates?: boolean;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onAdd: (visitDate?: string | null) => void;
   onEditTrip?: () => void;
@@ -213,16 +214,11 @@ export function PlannerPanel(props: Props) {
                   Feedback
                 </span>
               </FeedbackButton>
-              {props.onPlanWithAi && (
-                <button
-                  type="button"
-                  className="ai-plan-button"
-                  onClick={props.onPlanWithAi}
-                >
-                  <MagicWandIcon />
-                  <span>Plan with AI</span>
-                </button>
-              )}
+              <PlanWithAiButton
+                className="ai-plan-button"
+                onPlanWithAi={props.onPlanWithAi}
+                needsDates={props.aiPlanNeedsDates}
+              />
               <button
                 type="button"
                 className="panel-expand-toggle"

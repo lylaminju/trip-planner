@@ -162,10 +162,13 @@ export function TripPlannerApp({
   );
   const canEdit = role !== "viewer";
   const canEditTripMetadata = role === "owner";
+  const isAiPlanningSupported = canEditTripMetadata && canPlanTripWithAi(trip);
   const canPlanWithAi =
-    canEditTripMetadata &&
-    canPlanTripWithAi(trip) &&
-    hasAiPlanningDateRange(trip);
+    isAiPlanningSupported && hasAiPlanningDateRange(trip);
+  // The only gate the viewer can resolve themselves: non-owners cannot edit
+  // trip metadata either, and an unkeyable destination is not fixed by dates,
+  // so those stay hidden rather than advertising a blocked action.
+  const aiPlanNeedsDates = isAiPlanningSupported && !canPlanWithAi;
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
   const tripDays = trip ? tripDurationDays(trip) : null;
@@ -491,6 +494,7 @@ export function TripPlannerApp({
         setIsPlannerPanelExpanded((value) => !value)
         }
         onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
+        aiPlanNeedsDates={aiPlanNeedsDates}
         onMobileSheetStateChange={setMobileSheetState}
         onOpenAddModal={openAddModal}
         onAddPlaceFromMap={openAddModalWithSelection}

@@ -63,6 +63,7 @@ type Props = {
   onAddPlace: () => void;
   onAddPlaceFromMap: (selection: PlaceSearchSelection) => void;
   onPlanWithAi?: () => void;
+  aiPlanNeedsDates?: boolean;
   onSelectPlace: (id: number) => void;
   onSelectSegment: (id: number) => void;
   onEditItem: (item: ItineraryItem) => void;
@@ -331,6 +332,7 @@ export function MapPanel(props: Props) {
         onToggleCurrentLocation={props.onToggleCurrentLocation}
         onAddPlace={props.onAddPlace}
         onPlanWithAi={props.onPlanWithAi}
+        aiPlanNeedsDates={props.aiPlanNeedsDates}
       />
     </section>
   );
