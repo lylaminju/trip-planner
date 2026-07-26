@@ -24,12 +24,19 @@ export function MapPanelChrome(props: Props) {
           {(props.canEdit || props.onPlanWithAi || props.aiPlanNeedsDates) && (
             <div className="map-empty-state-actions">
               {props.canEdit && (
-                <button type="button" onClick={props.onAddPlace}>
+                <button
+                  type="button"
+                  className="map-empty-state-add-button"
+                  onClick={props.onAddPlace}
+                >
                   Add place
                 </button>
               )}
+              {/* Same class as the planner header so the two surfaces render
+                  one identical control, plus a size variant for the card's
+                  roomier type scale. */}
               <PlanWithAiButton
-                className="map-empty-state-ai-button"
+                className="ai-plan-button plan-with-ai-large"
                 onPlanWithAi={props.onPlanWithAi}
                 needsDates={props.aiPlanNeedsDates}
               />

@@ -150,15 +150,15 @@
 .map-empty-state {
   background: var(--surface-floating);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: var(--shadow-map-empty);
   color: var(--muted);
   display: grid;
-  gap: 8px;
+  gap: 14px;
   left: 50%;
   margin: 0;
-  max-width: min(320px, calc(100% - 32px));
-  padding: 14px;
+  max-width: min(400px, calc(100% - 32px));
+  padding: 24px;
   position: absolute;
   text-align: center;
   top: 50%;
@@ -168,8 +168,8 @@
 }
 
 .map-empty-state p {
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -179,19 +179,16 @@
   justify-content: center;
 }
 
-.map-empty-state-ai-button {
-  align-items: center;
-  display: inline-flex;
-  gap: 6px;
-  justify-content: center;
+/* Secondary partner to the accent .ai-plan-button beside it: same height and
+   type scale so the pair reads as one row, without a second accent fill
+   competing for the primary action. */
+.map-empty-state-add-button {
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 36px;
+  padding-left: 14px;
+  padding-right: 14px;
   white-space: nowrap;
-}
-
-.map-empty-state-ai-button svg {
-  display: block;
-  flex: 0 0 16px;
-  height: 16px;
-  width: 16px;
 }
 
 .map-fallback {
