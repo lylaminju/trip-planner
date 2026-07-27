@@ -5,7 +5,20 @@ import {
   LandingRouteDetailsToggle,
   LandingRouteSegment,
 } from "@/components/landing/LandingPlannerRows";
-import { LandingAbstractMap } from "@/components/landing/LandingAbstractMap";
+import {
+  LANDING_MAP_GRID_TRANSFORM,
+  LANDING_MAP_UPRIGHT_TRANSFORM,
+  LANDING_MAP_VIEW_BOX,
+  LandingAbstractMap,
+} from "@/components/landing/LandingAbstractMap";
+
+const PREVIEW_ROUTE_LEGS = ["M208 80 V180 H280", "M280 180 V240 H208"];
+
+const PREVIEW_ROUTE_STOPS = [
+  { x: 208, y: 80, label: "1", focused: true },
+  { x: 280, y: 180, label: "2" },
+  { x: 208, y: 240, label: "3" },
+];
 
 export function SampleTripPreview() {
   return (
@@ -86,21 +99,30 @@ export function SampleTripPreview() {
             <svg
               className="landing-map-lines"
               preserveAspectRatio="xMidYMid slice"
-              viewBox="-100 -80 560 420"
+              viewBox={LANDING_MAP_VIEW_BOX}
               role="img"
             >
-              <g className="landing-map-plane" transform="rotate(-2 180 130)">
-                <LandingAbstractMap />
-                <path className="landing-map-route-halo" d="M56 44 V146 H177" />
-                <path
-                  className="landing-map-route-halo"
-                  d="M177 146 H281 V242"
-                />
-                <path className="landing-map-route" d="M56 44 V146 H177" />
-                <path className="landing-map-route" d="M177 146 H281 V242" />
-                <MapPreviewMarker x={56} y={44} label="1" focused />
-                <MapPreviewMarker x={177} y={146} label="2" />
-                <MapPreviewMarker x={281} y={242} label="3" />
+              <LandingAbstractMap />
+              <g transform={LANDING_MAP_GRID_TRANSFORM}>
+                {PREVIEW_ROUTE_LEGS.map((leg) => (
+                  <path
+                    className="landing-map-route-halo"
+                    d={leg}
+                    key={`${leg}-halo`}
+                  />
+                ))}
+                {PREVIEW_ROUTE_LEGS.map((leg) => (
+                  <path className="landing-map-route" d={leg} key={leg} />
+                ))}
+                {PREVIEW_ROUTE_STOPS.map((stop) => (
+                  <MapPreviewMarker
+                    focused={stop.focused}
+                    key={stop.label}
+                    label={stop.label}
+                    x={stop.x}
+                    y={stop.y}
+                  />
+                ))}
               </g>
             </svg>
           </div>
@@ -124,7 +146,7 @@ function MapPreviewMarker({
   return (
     <g
       className={focused ? "landing-map-marker is-focused" : "landing-map-marker"}
-      transform={`translate(${x} ${y})`}
+      transform={`translate(${x} ${y}) ${LANDING_MAP_UPRIGHT_TRANSFORM}`}
     >
       {focused ? <circle className="landing-map-marker-halo" r="16" /> : null}
       <circle className="landing-map-marker-circle" r={focused ? 12 : 10} />

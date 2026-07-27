@@ -264,69 +264,62 @@
   z-index: 1;
 }
 
-.landing-abstract-map-ground {
-  fill: var(--surface-map);
+.landing-abstract-map-water {
+  fill: var(--map-city-water);
+}
+
+.landing-abstract-map-land {
+  fill: var(--map-city-land);
+}
+
+.landing-abstract-map-park {
+  fill: var(--map-city-park);
 }
 
 .landing-abstract-map-block {
-  fill: var(--map-block-bg);
-  stroke: var(--map-block-stroke);
-  stroke-width: 0.8;
+  fill: var(--map-city-building);
 }
 
-.landing-abstract-map-block.is-muted {
-  fill: var(--map-block-muted-bg);
-}
-
-.landing-abstract-map-block.is-soft {
-  fill: var(--map-block-soft-bg);
-}
-
-.landing-abstract-map-block.is-park {
-  fill: var(--map-park-bg);
-  stroke: var(--map-park-border);
-}
-
-.landing-abstract-map-water {
-  fill: var(--map-water-bg);
-}
-
-.landing-abstract-map-road,
-.landing-abstract-map-road-casing {
+.landing-abstract-map-street,
+.landing-abstract-map-street-casing,
+.landing-abstract-map-highway,
+.landing-abstract-map-highway-casing {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.landing-abstract-map-road-casing {
-  stroke: var(--map-road-casing);
+.landing-abstract-map-street {
+  stroke: var(--map-city-street);
+  stroke-width: 1.6;
 }
 
-.landing-abstract-map-road-casing.is-primary {
-  stroke-width: 10;
+.landing-abstract-map-street.is-major {
+  stroke-width: 2.4;
 }
 
-.landing-abstract-map-road-casing.is-secondary {
-  stroke-width: 7;
+.landing-abstract-map-street.is-avenue {
+  stroke-width: 3.2;
 }
 
-.landing-abstract-map-road-casing.is-minor {
+.landing-abstract-map-street.is-outer {
+  stroke-opacity: 0.85;
+  stroke-width: 1.3;
+}
+
+.landing-abstract-map-street-casing {
+  stroke: var(--map-city-street-casing);
+  stroke-width: 4.4;
+}
+
+.landing-abstract-map-highway {
+  stroke: var(--map-city-highway);
+  stroke-width: 3.6;
+}
+
+.landing-abstract-map-highway-casing {
+  stroke: var(--map-city-highway-casing);
   stroke-width: 5;
-}
-
-.landing-abstract-map-road.is-primary {
-  stroke: var(--map-road-primary);
-  stroke-width: 7;
-}
-
-.landing-abstract-map-road.is-secondary {
-  stroke: var(--map-road-secondary);
-  stroke-width: 4.5;
-}
-
-.landing-abstract-map-road.is-minor {
-  stroke: var(--map-road-minor);
-  stroke-width: 3;
 }
 
 .landing-map-route,
