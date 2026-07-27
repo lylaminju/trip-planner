@@ -319,6 +319,10 @@
   z-index: 20;
 }
 
+.guest-mode-banner-line {
+  margin: 0;
+}
+
 .guest-mode-banner a {
   color: inherit;
   font-weight: 700;

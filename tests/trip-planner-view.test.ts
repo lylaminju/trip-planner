@@ -22,12 +22,13 @@ describe("TripPlannerView", () => {
     expect(markup).toContain(OPENING_HOURS_WARNING);
   });
 
-  it("shows the guest banner with an invite link only in guest mode", () => {
+  it("shows the guest banner with sign-in and invite links only in guest mode", () => {
     const guestMarkup = renderToStaticMarkup(
       createElement(TripPlannerView, tripPlannerViewProps({ isGuest: true })),
     );
     expect(guestMarkup).toContain('class="guest-mode-banner"');
-    expect(guestMarkup).toContain('href="/"');
+    expect(guestMarkup).toContain('href="/sign-in"');
+    expect(guestMarkup).toContain("mailto:");
 
     const memberMarkup = renderToStaticMarkup(
       createElement(TripPlannerView, tripPlannerViewProps({ isGuest: false })),
