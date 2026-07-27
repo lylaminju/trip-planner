@@ -47,11 +47,12 @@ describe("LandingPage", () => {
     expect(linkCount(heroActions)).toBe(2);
 
     const nav = markupBetween(markup, "marketing-nav", "nav");
+    expect(nav).toContain('href="#ai-planner"');
     expect(nav).toContain('href="#showcase"');
     expect(nav).toContain('href="#features"');
     expect(nav).toContain('href="/sign-in"');
     expect(nav).toContain("mailto:mjuudev@gmail.com");
-    expect(linkCount(nav)).toBe(4);
+    expect(linkCount(nav)).toBe(5);
   });
 
   it("leads with the guest demo CTAs when guest mode is configured", () => {

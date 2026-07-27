@@ -488,6 +488,12 @@ button.landing-primary-action:disabled:hover {
     gap: 8px;
   }
 
+  /* Phone headers only fit the sign-in link and the invite CTA next to the
+     brand; the AI planner section stays one scroll away in the hero. */
+  .marketing-nav-link[href="#ai-planner"] {
+    display: none;
+  }
+
   .marketing-nav-cta {
     padding-inline: 12px;
   }

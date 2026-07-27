@@ -17,6 +17,9 @@ export function MarketingHeader({ context }: MarketingHeaderProps) {
         <nav className="marketing-nav" aria-label="Primary">
           {isLanding ? (
             <>
+              <a className="marketing-nav-link" href="#ai-planner">
+                AI planner
+              </a>
               <a className="marketing-nav-link" href="#showcase">
                 How it works
               </a>
