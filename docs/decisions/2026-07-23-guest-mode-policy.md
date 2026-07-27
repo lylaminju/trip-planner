@@ -101,3 +101,10 @@ Guest actions are recorded in a `guest_events` table (`guest_id`,
 `event_name`, `metadata`, `created_at`): trip created, sample cloned, place
 added, generation run, limit hit, upsell shown, upsell clicked. Raw IP
 addresses are never stored.
+
+Developer-owned guest cookie UUIDs are listed in `internal_guests` and
+excluded from guest activity analytics; their rows in `guest_events`,
+`guest_api_usage`, and `trips` are retained, and quota enforcement still
+counts them. Guest activity before 2026-07-26 21:00 America/Toronto was
+developer testing and was backfilled into `internal_guests`, along with the
+owner of trip 74.

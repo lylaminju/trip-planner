@@ -24,12 +24,15 @@ export type GuestActivityStats = {
 
 // Pure aggregation, exported so tests exercise the production logic without a
 // Supabase client. Rows with unknown event names still count as guest activity
-// but get no chart of their own.
+// but get no chart of their own. Internal guests (developer browsers listed in
+// internal_guests) are excluded before any counting.
 export function aggregateGuestActivity(
-  rows: GuestEventRow[],
+  allRows: GuestEventRow[],
   dates: string[],
   timeZone: string,
+  internalGuestIds: ReadonlySet<string> = new Set(),
 ): GuestActivityStats {
+  const rows = allRows.filter((row) => !internalGuestIds.has(row.guest_id));
   const toDayKey = dayKeyFormatter(timeZone);
   const guestsByDate = new Map<string, Set<string>>();
   for (const row of rows) {
@@ -60,12 +63,29 @@ export async function getGuestActivityStats(
 ): Promise<GuestActivityStats> {
   const dates = lastDatesInTimeZone(GUEST_ACTIVITY_HISTORY_DAYS, timeZone);
 
-  const { data, error } = await getSupabaseClient()
-    .from("guest_events")
-    .select("guest_id, event_name, created_at")
-    .gte("created_at", historyQueryStart(dates[0]).toISOString());
+  const [events, internal] = await Promise.all([
+    getSupabaseClient()
+      .from("guest_events")
+      .select("guest_id, event_name, created_at")
+      .gte("created_at", historyQueryStart(dates[0]).toISOString()),
+    getSupabaseClient().from("internal_guests").select("guest_id"),
+  ]);
 
-  if (error) throw new Error(`Failed to load guest events: ${error.message}`);
+  if (events.error) {
+    throw new Error(`Failed to load guest events: ${events.error.message}`);
+  }
+  if (internal.error) {
+    throw new Error(`Failed to load internal guests: ${internal.error.message}`);
+  }
 
-  return aggregateGuestActivity((data ?? []) as GuestEventRow[], dates, timeZone);
+  const internalGuestIds = new Set(
+    ((internal.data ?? []) as { guest_id: string }[]).map((row) => row.guest_id),
+  );
+
+  return aggregateGuestActivity(
+    (events.data ?? []) as GuestEventRow[],
+    dates,
+    timeZone,
+    internalGuestIds,
+  );
 }

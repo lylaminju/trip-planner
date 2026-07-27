@@ -91,6 +91,32 @@ describe("aggregateGuestActivity", () => {
     }
   });
 
+  it("excludes internal guests from active counts and event charts", () => {
+    const stats = aggregateGuestActivity(
+      [
+        row(GUEST_A, "trip_created", "2026-07-24T09:00:00.000Z"),
+        row(GUEST_A, "place_added", "2026-07-25T09:00:00.000Z"),
+        row(GUEST_B, "place_added", "2026-07-25T10:00:00.000Z"),
+      ],
+      DATES,
+      UTC,
+      new Set([GUEST_A]),
+    );
+
+    expect(stats.activeGuestsByDay).toEqual([
+      { date: "2026-07-24", count: 0 },
+      { date: "2026-07-25", count: 1 },
+      { date: "2026-07-26", count: 0 },
+    ]);
+    const byName = new Map(stats.eventCharts.map((c) => [c.eventName, c.byDay]));
+    expect(byName.get("trip_created")?.every((d) => d.count === 0)).toBe(true);
+    expect(byName.get("place_added")).toEqual([
+      { date: "2026-07-24", count: 0 },
+      { date: "2026-07-25", count: 1 },
+      { date: "2026-07-26", count: 0 },
+    ]);
+  });
+
   it("buckets by the viewer's timezone, not UTC", () => {
     // 01:00 UTC on Jul 27 is still 9pm Jul 26 in Toronto (UTC-4 in summer).
     const rows = [row(GUEST_A, "place_added", "2026-07-27T01:00:00.000Z")];

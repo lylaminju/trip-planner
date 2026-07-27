@@ -511,6 +511,17 @@ grant usage, select on sequence public.guest_api_usage_id_seq to service_role;
 grant all on public.guest_events to service_role;
 grant usage, select on sequence public.guest_events_id_seq to service_role;
 
+-- Internal guests: guest cookie UUIDs belonging to the developer's own
+-- browsers. Their rows stay in guest_events / guest_api_usage / trips, but
+-- guest activity analytics exclude them so dashboards reflect real guests.
+create table if not exists public.internal_guests (
+  guest_id uuid primary key,
+  note text,
+  created_at timestamptz not null default now()
+);
+
+grant all on public.internal_guests to service_role;
+
 alter table public.places enable row level security;
 alter table public.itinerary_items enable row level security;
 alter table public.route_segments enable row level security;
@@ -520,3 +531,4 @@ alter table public.trip_memberships enable row level security;
 alter table public.profiles enable row level security;
 alter table public.guest_api_usage enable row level security;
 alter table public.guest_events enable row level security;
+alter table public.internal_guests enable row level security;
