@@ -34,7 +34,7 @@ export function LandingHero() {
               </a>
             ) : (
               <a className="landing-primary-action" href={requestAccessHref}>
-                Request invite
+                Email for an invite
               </a>
             )}
             {sampleTripEnabled ? (
@@ -50,8 +50,8 @@ export function LandingHero() {
           <p className="landing-access-copy">
             {guestModeEnabled ? (
               <>
-                <a href={requestAccessHref}>Request an invite</a> for full
-                access, or <a href="/sign-in">sign in</a>
+                <a href={requestAccessHref}>Email for an invite</a> to get
+                full access, or <a href="/sign-in">sign in</a>
               </>
             ) : (
               <>

@@ -88,7 +88,7 @@ export function LandingFeatureProof() {
           <h2 id="landing-cta-title">Ready to plan your next trip?</h2>
           <div className="landing-hero-actions">
             <a className="landing-primary-action" href={requestAccessHref}>
-              Request invite
+              Email for an invite
             </a>
             <a className="landing-secondary-action" href="/sign-in">
               Sign in

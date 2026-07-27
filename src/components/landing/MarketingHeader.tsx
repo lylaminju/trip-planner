@@ -33,7 +33,7 @@ export function MarketingHeader({ context }: MarketingHeaderProps) {
             </a>
           )}
           <a className="marketing-nav-cta" href={requestAccessHref}>
-            Request invite
+            Email for invite
           </a>
         </nav>
       </div>

@@ -74,8 +74,8 @@ export function SignInForm() {
         </button>
       </form>
       <p className="access-row">
-        Need access? <a href={requestAccessHref}>Request an invite</a> and we
-        will follow up.
+        Need access? <a href={requestAccessHref}>Email for an invite</a> and
+        we will follow up.
       </p>
     </>
   );
