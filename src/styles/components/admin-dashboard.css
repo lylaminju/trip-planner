@@ -71,7 +71,8 @@
   opacity: 0.6;
 }
 
-.admin-user-card {
+.admin-user-card,
+.admin-guest-card {
   background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -88,7 +89,8 @@
   justify-content: space-between;
 }
 
-.admin-user-email {
+.admin-user-email,
+.admin-guest-title {
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
@@ -99,7 +101,8 @@
   white-space: nowrap;
 }
 
-.admin-user-last-login {
+.admin-user-last-login,
+.admin-guest-subtitle {
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
@@ -147,11 +150,13 @@
 
   .admin-page-back,
   .admin-refresh-button,
-  .admin-user-email {
+  .admin-user-email,
+  .admin-guest-title {
     font-size: 15px;
   }
 
   .admin-user-last-login,
+  .admin-guest-subtitle,
   .admin-chart-label {
     font-size: 14px;
   }

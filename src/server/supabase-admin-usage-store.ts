@@ -1,9 +1,16 @@
+import {
+  aggregateByDay,
+  generateDateRange,
+  historyWindowStart,
+  type DailyCount,
+} from "@/lib/daily-counts";
+
 import { getSupabaseClient } from "./supabase";
 import { PLACES_SKU } from "./supabase-google-places-usage-store";
 
 const USAGE_HISTORY_DAYS = 14;
 
-export type DailyCount = { date: string; count: number };
+export type { DailyCount };
 
 export type UserUsageStats = {
   userId: string;
@@ -16,9 +23,7 @@ export type UserUsageStats = {
 };
 
 export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
-  const startDate = new Date();
-  startDate.setUTCDate(startDate.getUTCDate() - USAGE_HISTORY_DAYS + 1);
-  startDate.setUTCHours(0, 0, 0, 0);
+  const startDate = historyWindowStart(USAGE_HISTORY_DAYS);
   const start = startDate.toISOString();
 
   const [usersResult, routesResult, placesResult, genResult] = await Promise.all([
@@ -69,23 +74,4 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
       dates,
     ),
   }));
-}
-
-function generateDateRange(start: Date, days: number): string[] {
-  const dates: string[] = [];
-  const current = new Date(start);
-  for (let i = 0; i < days; i++) {
-    dates.push(current.toISOString().slice(0, 10));
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
-  return dates;
-}
-
-function aggregateByDay(timestamps: string[], dates: string[]): DailyCount[] {
-  const countByDate = new Map<string, number>();
-  for (const ts of timestamps) {
-    const date = ts.slice(0, 10);
-    countByDate.set(date, (countByDate.get(date) ?? 0) + 1);
-  }
-  return dates.map((date) => ({ date, count: countByDate.get(date) ?? 0 }));
 }
