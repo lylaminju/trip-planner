@@ -203,96 +203,12 @@
   max-width: 332px;
 }
 
-.landing-workflow-map-card svg {
+.landing-workflow-map-image {
   display: block;
   height: 100%;
+  object-fit: cover;
+  object-position: center;
   width: 100%;
-}
-
-.landing-workflow-map-ground {
-  fill: var(--surface-map);
-}
-
-.landing-workflow-map-water {
-  fill: var(--map-water-bg);
-}
-
-.landing-workflow-map-park {
-  fill: var(--map-park-bg);
-}
-
-.landing-workflow-map-block {
-  fill: var(--surface-panel);
-  stroke: var(--map-block-stroke);
-  stroke-width: 0.8;
-}
-
-.landing-workflow-map-block.is-muted {
-  fill: var(--surface-map-muted);
-}
-
-.landing-workflow-map-block.is-park {
-  fill: var(--map-park-bg);
-  stroke: var(--map-park-border);
-}
-
-.landing-workflow-map-place-card {
-  fill: var(--surface-floating);
-  stroke: var(--landing-border);
-  stroke-width: 0.8;
-}
-
-.landing-workflow-map-road {
-  fill: none;
-  stroke: var(--surface-panel);
-  stroke-width: 2.6;
-}
-
-.landing-workflow-map-road.is-thin {
-  stroke-width: 1.8;
-}
-
-.landing-workflow-map-road.is-angled {
-  stroke-width: 2.1;
-}
-
-.landing-workflow-map-route-halo {
-  fill: none;
-  stroke: var(--map-route-halo);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 5.5;
-}
-
-.landing-workflow-map-route {
-  fill: none;
-  stroke: var(--accent);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.4;
-}
-
-.landing-workflow-map-marker circle,
-.landing-workflow-map-dot {
-  fill: var(--accent);
-  stroke: var(--surface-panel);
-  stroke-width: 0.9;
-}
-
-.landing-workflow-map-marker text {
-  dominant-baseline: central;
-  fill: var(--text-on-accent);
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
-  font-size: 3px;
-  font-weight: 700;
-  text-anchor: middle;
-}
-
-.landing-workflow-map-muted-dot {
-  fill: var(--landing-text-soft);
-  opacity: 0.7;
-  stroke: var(--surface-panel);
-  stroke-width: 0.8;
 }
 
 .landing-workflow-open-route-segment {

@@ -80,12 +80,12 @@ describe("LandingPage", () => {
     expect(markup).toContain('aria-label="Sample planner preview"');
     expect(markup).toContain("landing-browser-dot");
     expect(markup).toContain("Day 1");
-    expect(markup).toContain("10:00 Airport");
-    expect(markup).toContain("11:50 Hotel");
-    expect(markup).toContain("16:30 Park");
-    expect(markup).toContain("Arrive and collect bags");
-    expect(markup).toContain("Check in and drop your bags");
-    expect(markup).toContain("Golden-hour stroll and views");
+    expect(markup).toContain("09:20 Bryant Park");
+    expect(markup).toContain("10:20 Times Square");
+    expect(markup).toContain("11:20 Grand Central Terminal");
+    expect(markup).toContain("Easy first stop in Midtown");
+    expect(markup).toContain("Short walk from the park");
+    expect(markup).toContain("Open 24/7 as a terminal");
     // Each preview visit carries an emoji thumbnail affordance.
     expect(markup).toContain("landing-stop-thumb");
     // Time sits in its own column (like the real planner), not inline in the title.
@@ -94,15 +94,14 @@ describe("LandingPage", () => {
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain("landing-preview-sheet-handle");
     expect(markup).toContain("route-mode-trigger");
-    expect(markup).toContain("landing-abstract-map-block");
-    expect(markup).toContain("landing-map-marker-label");
-    expect(markup).toContain("landing-map-route-halo");
+    // The map half is a product screenshot, decorative beside the itinerary rows.
+    expect(markup).toContain('class="landing-map-image"');
+    expect(markup).toContain('src="/landing-preview-map.webp"');
     expect(markup).toContain('aria-label="Travel mode: Walking"');
-    expect(markup).toContain('aria-label="Travel mode: Transit"');
-    expect(markup).toContain("18 min");
-    expect(markup).toContain("22 min");
-    expect(markup).toContain('aria-label="Edit Airport"');
-    expect(markup).toContain('aria-label="Delete Airport"');
+    expect(markup).toContain("10 min");
+    expect(markup).toContain("15 min");
+    expect(markup).toContain('aria-label="Edit Bryant Park"');
+    expect(markup).toContain('aria-label="Delete Bryant Park"');
   });
 
   it("places the AI planner demo between the planner preview and the showcase", () => {
@@ -143,11 +142,11 @@ describe("LandingPage", () => {
     const markup = renderToStaticMarkup(createElement(LandingAiDemo));
 
     expect(markup).toContain("Fri, Apr 3");
-    expect(markup).toContain("09:00 Airport");
-    expect(markup).toContain("11:30 Hotel");
-    expect(markup).toContain("15:00 Park");
-    expect(markup).toContain('aria-label="Edit Park"');
-    expect(markup).toContain('aria-label="Delete Park"');
+    expect(markup).toContain("09:00 Times Square");
+    expect(markup).toContain("11:30 MoMA");
+    expect(markup).toContain("15:00 Central Park");
+    expect(markup).toContain('aria-label="Edit Central Park"');
+    expect(markup).toContain('aria-label="Delete Central Park"');
     expect(markup).toContain("landing-stop-thumb");
     expect(markup).toContain('aria-label="Travel mode: Transit"');
   });
@@ -174,23 +173,13 @@ describe("LandingPage", () => {
     );
   });
 
-  it("renders the workflow map without the date legend overlay", () => {
+  it("renders the workflow map as a product screenshot", () => {
     const markup = renderToStaticMarkup(createElement(LandingWorkflowMapVisual));
 
     expect(markup).toContain('class="landing-workflow-map-card"');
-    expect(markup).toContain('preserveAspectRatio="xMidYMid slice"');
-    expect(markup).toContain("landing-workflow-map-block");
-    expect(markup).toContain("landing-workflow-map-route-halo");
-    expect(markup).toContain("landing-workflow-map-route");
-    expect(markup).toContain("M18 48 H30 V25 H56 V48 H78");
-    expect(markup).toContain("landing-workflow-map-marker");
-    expect(markup.match(/class="landing-workflow-map-muted-dot"/g)).toHaveLength(
-      2,
-    );
-    expect(markup.match(/r="2.7"/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
-    expect(markup).toContain('dominant-baseline="central"');
-    expect(markup).not.toContain("landing-workflow-map-legend");
-    expect(markup).not.toContain("Fri Jun 12");
+    expect(markup).toContain('class="landing-workflow-map-image"');
+    expect(markup).toContain('src="/landing-workflow-map.webp"');
+    expect(markup).toContain('alt="Map preview"');
   });
 
   it("renders the workflow day preview with current planner rows", () => {
@@ -206,12 +195,12 @@ describe("LandingPage", () => {
     expect(markup).toContain("day-heading-prefix");
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain("09:30");
-    expect(markup).toContain("Airport");
+    expect(markup).toContain("Times Square");
     expect(markup).toContain("11:00");
-    expect(markup).toContain("Hotel");
+    expect(markup).toContain("Bryant Park");
     expect(markup).toContain("unscheduled-block");
     expect(markup).toContain("Unscheduled");
-    expect(markup).toContain("Park");
+    expect(markup).toContain("Central Park");
     expect(markup).toContain("landing-stop-thumb");
     expect(markup).not.toContain("Exhibits and a short gallery loop");
     expect(markup).not.toContain("Coffee and a short break");
@@ -235,7 +224,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("landing-workflow-route-card");
     expect(markup).toContain("place-row landing-itinerary-stop");
     expect(markup).toContain(
-      'class="place-row landing-itinerary-stop" aria-label="09:30 Airport"',
+      'class="place-row landing-itinerary-stop" aria-label="09:30 Bryant Park"',
     );
     expect(markup).toContain("segment-row landing-route-segment");
     expect(markup).toContain("landing-workflow-open-route-segment");
@@ -251,7 +240,7 @@ describe("LandingPage", () => {
     expect(markup).toContain("12 min");
     expect(markup).toContain("route-segment-map-link");
     expect(markup).toContain("Open route in Google Maps");
-    expect(markup).toContain("Hotel");
+    expect(markup).toContain("Grand Central");
 
   });
 

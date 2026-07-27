@@ -5,20 +5,10 @@ import {
   LandingRouteDetailsToggle,
   LandingRouteSegment,
 } from "@/components/landing/LandingPlannerRows";
-import {
-  LANDING_MAP_GRID_TRANSFORM,
-  LANDING_MAP_UPRIGHT_TRANSFORM,
-  LANDING_MAP_VIEW_BOX,
-  LandingAbstractMap,
-} from "@/components/landing/LandingAbstractMap";
-
-const PREVIEW_ROUTE_LEGS = ["M208 80 V180 H280", "M280 180 V240 H208"];
-
-const PREVIEW_ROUTE_STOPS = [
-  { x: 208, y: 80, label: "1", focused: true },
-  { x: 280, y: 180, label: "2" },
-  { x: 208, y: 240, label: "3" },
-];
+import { LANDING_PLACE_PHOTOS } from "@/components/landing/preview-place-photos";
+const PREVIEW_MAP_SRC = "/landing-preview-map.webp";
+const PREVIEW_MAP_WIDTH = 1400;
+const PREVIEW_MAP_HEIGHT = 1030;
 
 export function SampleTripPreview() {
   return (
@@ -66,29 +56,29 @@ export function SampleTripPreview() {
                 </span>
               </h3>
               <LandingItineraryStop
-                time="10:00"
-                name="Airport"
-                note="Arrive and collect bags"
-                emoji="✈️"
+                time="09:20"
+                name="Bryant Park"
+                note="Easy first stop in Midtown"
+                photo={LANDING_PLACE_PHOTOS.bryantPark}
                 markerLabel="1"
                 markerColor="var(--accent)"
                 active
               />
-              <LandingRouteSegment mode="walking" duration="18 min" />
+              <LandingRouteSegment mode="walking" duration="10 min" />
               <LandingItineraryStop
-                time="11:50"
-                name="Hotel"
-                note="Check in and drop your bags"
-                emoji="🏨"
+                time="10:20"
+                name="Times Square"
+                note="Short walk from the park"
+                photo={LANDING_PLACE_PHOTOS.timesSquare}
                 markerLabel="2"
                 markerColor="var(--accent)"
               />
-              <LandingRouteSegment mode="transit" duration="22 min" />
+              <LandingRouteSegment mode="walking" duration="15 min" />
               <LandingItineraryStop
-                time="16:30"
-                name="Park"
-                note="Golden-hour stroll and views"
-                emoji="🌳"
+                time="11:20"
+                name="Grand Central Terminal"
+                note="Open 24/7 as a terminal"
+                photo={LANDING_PLACE_PHOTOS.grandCentral}
                 markerLabel="3"
                 markerColor="var(--accent)"
               />
@@ -96,63 +86,16 @@ export function SampleTripPreview() {
           </div>
 
           <div className="landing-map-panel" aria-hidden="true">
-            <svg
-              className="landing-map-lines"
-              preserveAspectRatio="xMidYMid slice"
-              viewBox={LANDING_MAP_VIEW_BOX}
-              role="img"
-            >
-              <LandingAbstractMap />
-              <g transform={LANDING_MAP_GRID_TRANSFORM}>
-                {PREVIEW_ROUTE_LEGS.map((leg) => (
-                  <path
-                    className="landing-map-route-halo"
-                    d={leg}
-                    key={`${leg}-halo`}
-                  />
-                ))}
-                {PREVIEW_ROUTE_LEGS.map((leg) => (
-                  <path className="landing-map-route" d={leg} key={leg} />
-                ))}
-                {PREVIEW_ROUTE_STOPS.map((stop) => (
-                  <MapPreviewMarker
-                    focused={stop.focused}
-                    key={stop.label}
-                    label={stop.label}
-                    x={stop.x}
-                    y={stop.y}
-                  />
-                ))}
-              </g>
-            </svg>
+            <img
+              className="landing-map-image"
+              src={PREVIEW_MAP_SRC}
+              alt=""
+              width={PREVIEW_MAP_WIDTH}
+              height={PREVIEW_MAP_HEIGHT}
+            />
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function MapPreviewMarker({
-  focused = false,
-  x,
-  y,
-  label,
-}: {
-  focused?: boolean;
-  x: number;
-  y: number;
-  label: string;
-}) {
-  return (
-    <g
-      className={focused ? "landing-map-marker is-focused" : "landing-map-marker"}
-      transform={`translate(${x} ${y}) ${LANDING_MAP_UPRIGHT_TRANSFORM}`}
-    >
-      {focused ? <circle className="landing-map-marker-halo" r="16" /> : null}
-      <circle className="landing-map-marker-circle" r={focused ? 12 : 10} />
-      <text className="landing-map-marker-label" y="0.5">
-        {label}
-      </text>
-    </g>
   );
 }

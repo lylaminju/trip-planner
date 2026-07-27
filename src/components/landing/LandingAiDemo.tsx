@@ -3,6 +3,7 @@ import {
   LandingItineraryStop,
   LandingRouteSegment,
 } from "@/components/landing/LandingPlannerRows";
+import { LANDING_PLACE_PHOTOS } from "@/components/landing/preview-place-photos";
 import {
   AI_CREATE_ITINERARY_LABEL,
   AI_INTEREST_TAG_OPTIONS,
@@ -179,24 +180,24 @@ function LandingAiDraftCard() {
 
         <LandingItineraryStop
           time="09:00"
-          name="Airport"
-          emoji="✈️"
+          name="Times Square"
+          photo={LANDING_PLACE_PHOTOS.timesSquare}
           markerLabel="1"
           markerColor="var(--accent)"
         />
         <LandingRouteSegment mode="walking" duration="12 min" />
         <LandingItineraryStop
           time="11:30"
-          name="Hotel"
-          emoji="🏨"
+          name="MoMA"
+          photo={LANDING_PLACE_PHOTOS.moma}
           markerLabel="2"
           markerColor="var(--accent)"
         />
         <LandingRouteSegment mode="transit" duration="18 min" />
         <LandingItineraryStop
           time="15:00"
-          name="Park"
-          emoji="🌳"
+          name="Central Park"
+          photo={LANDING_PLACE_PHOTOS.centralPark}
           markerLabel="3"
           markerColor="var(--accent)"
         />

@@ -14,7 +14,7 @@ type LandingItineraryStopProps = {
   time: string;
   name: string;
   note?: string;
-  emoji?: string;
+  photo?: string;
   markerLabel: string;
   markerColor: string;
   active?: boolean;
@@ -24,7 +24,7 @@ export function LandingItineraryStop({
   time,
   name,
   note,
-  emoji,
+  photo,
   markerLabel,
   markerColor,
   active = false,
@@ -41,9 +41,9 @@ export function LandingItineraryStop({
       <span className="landing-stop-time" aria-hidden="true">
         {time}
       </span>
-      {emoji ? (
+      {photo ? (
         <span className="landing-stop-thumb" aria-hidden="true">
-          {emoji}
+          <img className="landing-stop-thumb-image" src={photo} alt="" />
         </span>
       ) : null}
       <div className="place-main">
@@ -79,19 +79,19 @@ type LandingRouteSegmentProps = {
 type LandingPlaceListRowProps = {
   name: string;
   detail?: string;
-  emoji?: string;
+  photo?: string;
 };
 
 export function LandingPlaceListRow({
   name,
   detail,
-  emoji,
+  photo,
 }: LandingPlaceListRowProps) {
   return (
     <div className="place-row landing-itinerary-stop" aria-label={name}>
-      {emoji ? (
+      {photo ? (
         <span className="landing-stop-thumb" aria-hidden="true">
-          {emoji}
+          <img className="landing-stop-thumb-image" src={photo} alt="" />
         </span>
       ) : null}
       <div className="place-main">

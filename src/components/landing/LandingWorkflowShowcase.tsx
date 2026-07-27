@@ -14,6 +14,11 @@ import {
   LandingItineraryStop,
   LandingPlaceListRow,
 } from "@/components/landing/LandingPlannerRows";
+import { LANDING_PLACE_PHOTOS } from "@/components/landing/preview-place-photos";
+
+const WORKFLOW_MAP_SRC = "/landing-workflow-map.webp";
+const WORKFLOW_MAP_WIDTH = 900;
+const WORKFLOW_MAP_HEIGHT = 880;
 
 type WorkflowStep = {
   id: "plan" | "map" | "route";
@@ -146,16 +151,16 @@ export function LandingWorkflowPlanByDayVisual() {
         </h3>
         <LandingItineraryStop
           time="09:30"
-          name="Airport"
-          emoji="✈️"
+          name="Times Square"
+          photo={LANDING_PLACE_PHOTOS.timesSquare}
           markerLabel="1"
           markerColor="var(--accent)"
           active
         />
         <LandingItineraryStop
           time="11:00"
-          name="Hotel"
-          emoji="🏨"
+          name="Bryant Park"
+          photo={LANDING_PLACE_PHOTOS.bryantPark}
           markerLabel="2"
           markerColor="var(--accent)"
         />
@@ -171,7 +176,10 @@ export function LandingWorkflowPlanByDayVisual() {
           </span>
           <h3>Unscheduled</h3>
         </div>
-        <LandingPlaceListRow name="Park" emoji="🌳" />
+        <LandingPlaceListRow
+          name="Central Park"
+          photo={LANDING_PLACE_PHOTOS.centralPark}
+        />
       </div>
     </div>
   );
@@ -180,120 +188,14 @@ export function LandingWorkflowPlanByDayVisual() {
 export function LandingWorkflowMapVisual() {
   return (
     <div className="landing-workflow-map-card">
-      <svg
-        viewBox="0 0 100 78"
-        preserveAspectRatio="xMidYMid slice"
-        role="img"
-        aria-label="Map preview"
-      >
-        <rect className="landing-workflow-map-ground" width="100" height="78" />
-        <path
-          className="landing-workflow-map-water"
-          d="M0 60 C20 56 36 64 55 60 C72 56 84 57 100 62 L100 78 L0 78 Z"
-        />
-        <g className="landing-workflow-map-blocks">
-          <rect
-            className="landing-workflow-map-block is-muted"
-            x="5"
-            y="7"
-            width="20"
-            height="13"
-            rx="2.4"
-          />
-          <rect
-            className="landing-workflow-map-block"
-            x="33"
-            y="5"
-            width="17"
-            height="15"
-            rx="2.4"
-          />
-          <rect
-            className="landing-workflow-map-block is-park"
-            x="58"
-            y="8"
-            width="25"
-            height="18"
-            rx="3"
-          />
-          <rect
-            className="landing-workflow-map-block"
-            x="10"
-            y="30"
-            width="18"
-            height="14"
-            rx="2.4"
-          />
-          <rect
-            className="landing-workflow-map-block is-muted"
-            x="39"
-            y="35"
-            width="16"
-            height="12"
-            rx="2.4"
-          />
-          <rect
-            className="landing-workflow-map-block is-park"
-            x="72"
-            y="39"
-            width="18"
-            height="15"
-            rx="3"
-          />
-        </g>
-        <path className="landing-workflow-map-road" d="M0 25 H100" />
-        <path className="landing-workflow-map-road is-thin" d="M0 48 H100" />
-        <path className="landing-workflow-map-road" d="M30 0 V64" />
-        <path className="landing-workflow-map-road is-thin" d="M56 0 V64" />
-        <path className="landing-workflow-map-road is-thin" d="M86 0 V64" />
-        <path
-          className="landing-workflow-map-road is-angled"
-          d="M-4 58 C18 45 31 39 43 27 C54 16 70 10 104 9"
-        />
-        <rect
-          className="landing-workflow-map-place-card"
-          x="63"
-          y="28"
-          width="21"
-          height="9"
-          rx="3"
-        />
-        <path
-          className="landing-workflow-map-route-halo"
-          d="M18 48 H30 V25 H56 V48 H78"
-        />
-        <path
-          className="landing-workflow-map-route"
-          d="M18 48 H30 V25 H56 V48 H78"
-        />
-        <MapMarker x={18} y={48} label="1" />
-        <MapMarker x={56} y={25} label="2" />
-        <MapMarker x={78} y={48} label="3" />
-        <circle
-          className="landing-workflow-map-muted-dot"
-          cx="69"
-          cy="17"
-          r="2.7"
-        />
-        <circle
-          className="landing-workflow-map-muted-dot"
-          cx="21"
-          cy="15"
-          r="2.7"
-        />
-      </svg>
+      <img
+        className="landing-workflow-map-image"
+        src={WORKFLOW_MAP_SRC}
+        alt="Map preview"
+        width={WORKFLOW_MAP_WIDTH}
+        height={WORKFLOW_MAP_HEIGHT}
+      />
     </div>
-  );
-}
-
-function MapMarker({ x, y, label }: { x: number; y: number; label: string }) {
-  return (
-    <g className="landing-workflow-map-marker">
-      <circle cx={x} cy={y} r="3.2" />
-      <text dominantBaseline="central" textAnchor="middle" x={x} y={y}>
-        {label}
-      </text>
-    </g>
   );
 }
 
@@ -302,9 +204,9 @@ export function LandingWorkflowRouteTimeVisual() {
     <div className="landing-workflow-product-frame landing-workflow-route-card">
       <LandingItineraryStop
         time="09:30"
-        name="Airport"
-        note="Arrive and collect bags"
-        emoji="✈️"
+        name="Bryant Park"
+        note="Easy first stop in Midtown"
+        photo={LANDING_PLACE_PHOTOS.bryantPark}
         markerLabel="1"
         markerColor="var(--accent)"
       />
@@ -343,9 +245,9 @@ export function LandingWorkflowRouteTimeVisual() {
       </div>
       <LandingItineraryStop
         time="11:00"
-        name="Hotel"
-        note="Check in and drop your bags"
-        emoji="🏨"
+        name="Grand Central"
+        note="Open 24/7 as a terminal"
+        photo={LANDING_PLACE_PHOTOS.grandCentral}
         markerLabel="2"
         markerColor="var(--accent)"
       />
