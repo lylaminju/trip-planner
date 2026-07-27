@@ -1,7 +1,7 @@
 import {
   aggregateByDay,
-  generateDateRange,
-  historyWindowStart,
+  historyQueryStart,
+  lastDatesInTimeZone,
   type DailyCount,
 } from "@/lib/daily-counts";
 
@@ -22,9 +22,11 @@ export type UserUsageStats = {
   aiGenerationsByDay: DailyCount[];
 };
 
-export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
-  const startDate = historyWindowStart(USAGE_HISTORY_DAYS);
-  const start = startDate.toISOString();
+export async function getAllUsersUsageStats(
+  timeZone: string,
+): Promise<UserUsageStats[]> {
+  const dates = lastDatesInTimeZone(USAGE_HISTORY_DAYS, timeZone);
+  const start = historyQueryStart(dates[0]).toISOString();
 
   const [usersResult, routesResult, placesResult, genResult] = await Promise.all([
     getSupabaseClient().auth.admin.listUsers({ perPage: 1000 }),
@@ -47,8 +49,6 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
   if (placesResult.error) throw new Error(`Failed to load places usage: ${placesResult.error.message}`);
   if (genResult.error) throw new Error(`Failed to load generation usage: ${genResult.error.message}`);
 
-  const dates = generateDateRange(startDate, USAGE_HISTORY_DAYS);
-
   return usersResult.data.users.map((u) => ({
     userId: u.id,
     email: u.email ?? u.id,
@@ -56,22 +56,26 @@ export async function getAllUsersUsageStats(): Promise<UserUsageStats[]> {
     googleRoutesByDay: aggregateByDay(
       (routesResult.data ?? []).filter((r) => r.user_id === u.id).map((r) => r.called_at as string),
       dates,
+      timeZone,
     ),
     placesAutocompleteByDay: aggregateByDay(
       (placesResult.data ?? [])
         .filter((p) => p.user_id === u.id && p.sku === PLACES_SKU.AUTOCOMPLETE)
         .map((p) => p.called_at as string),
       dates,
+      timeZone,
     ),
     placesDetailsByDay: aggregateByDay(
       (placesResult.data ?? [])
         .filter((p) => p.user_id === u.id && p.sku === PLACES_SKU.DETAILS)
         .map((p) => p.called_at as string),
       dates,
+      timeZone,
     ),
     aiGenerationsByDay: aggregateByDay(
       (genResult.data ?? []).filter((g) => g.created_by_user_id === u.id).map((g) => g.created_at as string),
       dates,
+      timeZone,
     ),
   }));
 }

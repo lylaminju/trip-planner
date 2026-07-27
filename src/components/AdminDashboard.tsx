@@ -39,7 +39,9 @@ export function AdminDashboard() {
   const loadStats = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch("/api/admin/usage", { cache: "no-store" })
+    // Charts bucket by calendar days in the viewer's timezone.
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    fetch(`/api/admin/usage?tz=${encodeURIComponent(timeZone)}`, { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json() as Promise<UserUsageStats[]>;

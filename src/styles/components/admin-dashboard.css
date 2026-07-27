@@ -139,36 +139,53 @@
 /* Desktop-only: larger type and wider chart columns. Mobile keeps the compact
    base sizes above. */
 @media (min-width: 641px) {
+  /* Fills a 15" MacBook Air even at its "More Space" scaled resolution
+     (1920px-wide viewport), minus the page's 32px side padding. */
   .admin-page-header,
   .admin-page-content {
-    max-width: 1200px;
+    max-width: 1920px;
   }
 
   .admin-page-header h1 {
-    font-size: 26px;
+    font-size: 28px;
   }
 
   .admin-page-back,
   .admin-refresh-button,
   .admin-user-email,
   .admin-guest-title {
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .admin-user-last-login,
   .admin-guest-subtitle,
   .admin-chart-label {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .admin-usage-tooltip {
-    font-size: 13px;
+    font-size: 15px;
+  }
+
+  /* Wider minimum chart columns so the extra card width grows each chart
+     instead of packing in more columns per row. */
+  .admin-charts-row {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  /* The guest card holds 8 charts; fix 4 per row so they fill two even rows
+     and line up with the 4-chart user cards. */
+  .admin-guest-charts-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 .admin-chart-block {
+  border: 1px solid var(--line);
+  border-radius: 8px;
   display: grid;
   gap: 6px;
+  padding: 8px 12px 12px;
 }
 
 .admin-chart-label {

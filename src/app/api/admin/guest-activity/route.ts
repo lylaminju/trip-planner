@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { jsonError, requireAuthenticatedRequest } from "@/app/api/_utils";
+import { resolveTimeZone } from "@/lib/daily-counts";
 import { getGuestActivityStats } from "@/server/supabase-admin-guest-activity-store";
 
 export async function GET(request: Request) {
@@ -12,8 +13,10 @@ export async function GET(request: Request) {
     return jsonError("Forbidden.", 403);
   }
 
+  const timeZone = resolveTimeZone(new URL(request.url).searchParams.get("tz"));
+
   try {
-    const stats = await getGuestActivityStats();
+    const stats = await getGuestActivityStats(timeZone);
     return NextResponse.json(stats);
   } catch (error) {
     return jsonError(

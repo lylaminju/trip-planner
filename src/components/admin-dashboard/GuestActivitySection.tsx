@@ -34,7 +34,11 @@ export function GuestActivitySection({ refreshToken }: { refreshToken: number })
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    fetch("/api/admin/guest-activity", { cache: "no-store" })
+    // Charts bucket by calendar days in the viewer's timezone.
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    fetch(`/api/admin/guest-activity?tz=${encodeURIComponent(timeZone)}`, {
+      cache: "no-store",
+    })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json() as Promise<GuestActivityStats>;
@@ -63,7 +67,7 @@ export function GuestActivitySection({ refreshToken }: { refreshToken: number })
       {!stats && !error && <p className="trip-empty-text">Loading guest activity...</p>}
 
       {stats && (
-        <div className="admin-charts-row">
+        <div className="admin-charts-row admin-guest-charts-row">
           <div className="admin-chart-block">
             <p className="admin-chart-label">
               Active guests <span>unique per day</span>

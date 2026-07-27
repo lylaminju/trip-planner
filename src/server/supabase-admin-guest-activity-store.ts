@@ -1,7 +1,8 @@
 import {
   aggregateByDay,
-  generateDateRange,
-  historyWindowStart,
+  dayKeyFormatter,
+  historyQueryStart,
+  lastDatesInTimeZone,
   type DailyCount,
 } from "@/lib/daily-counts";
 
@@ -27,10 +28,12 @@ export type GuestActivityStats = {
 export function aggregateGuestActivity(
   rows: GuestEventRow[],
   dates: string[],
+  timeZone: string,
 ): GuestActivityStats {
+  const toDayKey = dayKeyFormatter(timeZone);
   const guestsByDate = new Map<string, Set<string>>();
   for (const row of rows) {
-    const date = row.created_at.slice(0, 10);
+    const date = toDayKey(new Date(row.created_at));
     const guests = guestsByDate.get(date) ?? new Set<string>();
     guests.add(row.guest_id);
     guestsByDate.set(date, guests);
@@ -46,23 +49,23 @@ export function aggregateGuestActivity(
       byDay: aggregateByDay(
         rows.filter((row) => row.event_name === eventName).map((row) => row.created_at),
         dates,
+        timeZone,
       ),
     })),
   };
 }
 
-export async function getGuestActivityStats(): Promise<GuestActivityStats> {
-  const startDate = historyWindowStart(GUEST_ACTIVITY_HISTORY_DAYS);
+export async function getGuestActivityStats(
+  timeZone: string,
+): Promise<GuestActivityStats> {
+  const dates = lastDatesInTimeZone(GUEST_ACTIVITY_HISTORY_DAYS, timeZone);
 
   const { data, error } = await getSupabaseClient()
     .from("guest_events")
     .select("guest_id, event_name, created_at")
-    .gte("created_at", startDate.toISOString());
+    .gte("created_at", historyQueryStart(dates[0]).toISOString());
 
   if (error) throw new Error(`Failed to load guest events: ${error.message}`);
 
-  return aggregateGuestActivity(
-    (data ?? []) as GuestEventRow[],
-    generateDateRange(startDate, GUEST_ACTIVITY_HISTORY_DAYS),
-  );
+  return aggregateGuestActivity((data ?? []) as GuestEventRow[], dates, timeZone);
 }

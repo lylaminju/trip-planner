@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-import type { DailyCount } from "@/lib/daily-counts";
+import { dayKeyFormatter, type DailyCount } from "@/lib/daily-counts";
 
 const CHART_WIDTH = 280;
 const CHART_BAR_AREA_HEIGHT = 64;
@@ -23,6 +23,12 @@ function niceCeil(value: number): number {
   const step = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
   return step * magnitude;
 }
+
+// Date labels: every Nth bar plus the last one. A periodic label closer than
+// the minimum gap to the last bar is skipped, otherwise the two labels render
+// on adjacent columns and overlap (e.g. "07/25""07/26" on a 14-day series).
+const CHART_LABEL_INTERVAL = 4;
+const CHART_LABEL_MIN_GAP_FROM_LAST = 2;
 
 type Tooltip = { left: number; top: number; text: string };
 
@@ -61,7 +67,10 @@ export function UsageChart({ data, limit }: { data: DailyCount[]; limit?: number
   const maxCount = pinnedLimit ?? niceCeil(dataMax * CHART_AXIS_HEADROOM);
   const barCount = data.length;
   const barWidth = (CHART_WIDTH - BAR_GAP * (barCount - 1)) / barCount;
-  const today = new Date().toISOString().slice(0, 10);
+  // Buckets are viewer-local days, so highlight the viewer's local today.
+  const today = dayKeyFormatter(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  )(new Date());
   const limitY =
     pinnedLimit !== null
       ? CHART_BAR_AREA_HEIGHT - (pinnedLimit / maxCount) * CHART_BAR_AREA_HEIGHT
@@ -101,8 +110,17 @@ export function UsageChart({ data, limit }: { data: DailyCount[]; limit?: number
         const y = CHART_BAR_AREA_HEIGHT - barH;
         const isToday = d.date === today;
         const isHovered = i === hoveredIndex;
-        const showLabel = i === 0 || i === data.length - 1 || i % 4 === 0;
+        const isLast = i === data.length - 1;
+        const showLabel =
+          isLast ||
+          (i % CHART_LABEL_INTERVAL === 0 &&
+            data.length - 1 - i >= CHART_LABEL_MIN_GAP_FROM_LAST);
         const labelDate = d.date.slice(5).replace("-", "/");
+        // Centered labels on the outermost bars would spill past the viewBox
+        // and get clipped, so pin the first label to the chart's left edge and
+        // the last to its right edge.
+        const labelAnchor = i === 0 ? "start" : isLast ? "end" : "middle";
+        const labelX = i === 0 ? x : isLast ? x + barWidth : x + barWidth / 2;
 
         return (
           <g key={d.date}>
@@ -117,9 +135,9 @@ export function UsageChart({ data, limit }: { data: DailyCount[]; limit?: number
             />
             {showLabel && (
               <text
-                x={x + barWidth / 2}
+                x={labelX}
                 y={CHART_HEIGHT - 2}
-                textAnchor="middle"
+                textAnchor={labelAnchor}
                 fontSize="8"
                 fill="var(--text-secondary)"
               >
