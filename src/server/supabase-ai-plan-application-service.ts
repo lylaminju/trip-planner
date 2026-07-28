@@ -190,6 +190,11 @@ async function buildFirstVisitRoutePlansByDate(input: {
     null,
   );
 
+  const measuredLegs: Array<{
+    date: string;
+    origin: Coordinates;
+    destination: Coordinates;
+  }> = [];
   for (const day of input.plan.days) {
     const dayStartsAtArrival = day.date === firstDate && arrivalPoint !== null;
     const origin = dayStartsAtArrival ? arrivalPoint : input.lodging;
@@ -213,13 +218,24 @@ async function buildFirstVisitRoutePlansByDate(input: {
       destination = candidate;
     }
 
-    const routePlan = await resolveTravelPlan(
-      origin,
-      destination,
-      input.preferredModes,
-      input.userId,
-    );
-    plansByDate.set(day.date, routePlan);
+    measuredLegs.push({ date: day.date, origin, destination });
+  }
+
+  // Each day's leg is independent, so resolve them concurrently instead of
+  // serializing one Google Routes round-trip per trip day.
+  const resolvedLegs = await Promise.all(
+    measuredLegs.map(async (leg) => ({
+      date: leg.date,
+      routePlan: await resolveTravelPlan(
+        leg.origin,
+        leg.destination,
+        input.preferredModes,
+        input.userId,
+      ),
+    })),
+  );
+  for (const { date, routePlan } of resolvedLegs) {
+    plansByDate.set(date, routePlan);
   }
 
   return plansByDate;
@@ -303,7 +319,9 @@ async function tagGeneratedRouteSegments(
   );
   let walkingProbeCount = 0;
   const taggedSegments: TaggedGeneratedRouteSegment[] = [];
+  const modeBySegmentId = new Map<number, TravelMode>();
 
+  // Mode selection stays sequential: probes share the walking-probe budget.
   for (const routePair of routePairs) {
     const segment = segmentByPair.get(
       routePairKey(routePair.from.itemId, routePair.to.itemId),
@@ -329,9 +347,17 @@ async function tagGeneratedRouteSegments(
         },
       }));
 
-    await updateGeneratedRouteSegment(tripId, generationId, segment.id, mode);
+    modeBySegmentId.set(segment.id, mode);
     taggedSegments.push({ segmentId: segment.id, routePair });
   }
+
+  // The per-segment writes are independent of each other; flush them
+  // concurrently instead of one round-trip per segment.
+  await Promise.all(
+    Array.from(modeBySegmentId, ([segmentId, mode]) =>
+      updateGeneratedRouteSegment(tripId, generationId, segmentId, mode),
+    ),
+  );
 
   return taggedSegments;
 }
