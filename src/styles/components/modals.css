@@ -43,23 +43,6 @@
   margin: -4px 0 0;
 }
 
-.modal-note-block {
-  background: var(--surface-muted);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  display: grid;
-  gap: 6px;
-  padding: 10px 12px;
-}
-
-.modal-note-label {
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
 .modal-note-text {
   color: var(--text);
   margin: 0;
@@ -79,8 +62,7 @@
   padding: 0 6px;
 }
 
-.modal-links-list,
-.modal-links-readonly {
+.modal-links-list {
   display: grid;
   gap: 8px;
 }
@@ -90,18 +72,6 @@
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.modal-links-readonly a {
-  color: var(--accent);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-decoration: underline;
-  white-space: nowrap;
-}
-
-.modal-links-readonly a:hover {
-  text-decoration-thickness: 2px;
 }
 
 .modal input,

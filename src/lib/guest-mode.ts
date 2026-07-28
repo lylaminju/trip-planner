@@ -1,8 +1,3 @@
-import {
-  DESTINATION_OPTIONS,
-  type DestinationOption,
-} from "./destination-options";
-
 // Guests may only plan destinations whose AI catalogs are already cached in
 // ai_destination_candidates, so a guest session never triggers catalog
 // generation, Google Places search, or transit-hub generation.
@@ -26,12 +21,6 @@ export function isGuestDestinationSlug(
   slug: string | null | undefined,
 ): boolean {
   return typeof slug === "string" && GUEST_DESTINATION_SLUGS.includes(slug);
-}
-
-export function guestDestinationOptions(): DestinationOption[] {
-  return DESTINATION_OPTIONS.filter((option) =>
-    GUEST_DESTINATION_SLUGS.includes(option.slug),
-  );
 }
 
 // Inclusive day count; null when either date is missing.

@@ -1,4 +1,4 @@
-export type ParsedGoogleMapsUrl = {
+type ParsedGoogleMapsUrl = {
   name: string | null;
   latitude: number | null;
   longitude: number | null;
