@@ -772,6 +772,89 @@ describe("ai-planning-service request boundary", () => {
     );
   });
 
+  it("fails the generation when the repaired plan still starts inside the airport arrival buffer", async () => {
+    const hub = transitHubRecord(71, "John F. Kennedy International Airport");
+    const arrivalPoint = transitPointRecord("arrival", "15:00", "airport");
+    const planWithVisitAt = (startTime: string) => ({
+      plan: {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: startTime,
+                duration_minutes: 90,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      usage: { inputTokens: 10, outputTokens: 20 },
+    });
+    const requestAiItineraryPlan = vi
+      .fn()
+      // Landing time itself, then a repair that is after the raw landing time
+      // but still inside the 60-minute airport egress buffer.
+      .mockResolvedValueOnce(planWithVisitAt("15:00"))
+      .mockResolvedValueOnce(planWithVisitAt("15:30"));
+    const updateAiPlanGeneration = vi.fn();
+    const replaceAiGeneratedBatch = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi.fn().mockResolvedValue(
+          tripRecord({ start_date: "2026-05-27", end_date: "2026-05-27" }),
+        ),
+        supabaseAiPlanningService: {
+          listDestinationCandidates: vi
+            .fn()
+            .mockResolvedValue([candidateRecord(10)]),
+          listDestinationTransitHubs: vi.fn().mockResolvedValue([hub]),
+          upsertPlanningPreferences: vi.fn().mockResolvedValue(
+            savedPreferenceRecord({ must_see_candidate_ids: [10] }),
+          ),
+          upsertTransitPointFromHub: vi.fn().mockResolvedValue(arrivalPoint),
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration: vi.fn().mockResolvedValue({ id: 55 }),
+          updateAiPlanGeneration,
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [10],
+            arrival_hub_id: 71,
+            arrival_time: "15:00",
+          }),
+        ).rejects.toThrow(
+          "The AI planner couldn't create an itinerary with your current preferences.",
+        );
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(replaceAiGeneratedBatch).not.toHaveBeenCalled();
+    expect(updateAiPlanGeneration).toHaveBeenLastCalledWith(
+      55,
+      expect.objectContaining({
+        status: "failed",
+        repair_attempted: true,
+        repair_validation_status: "invalid",
+        repair_validation_errors: expect.arrayContaining([
+          "Day 2026-05-27 has a visit before 16:00.",
+        ]),
+      }),
+    );
+  });
+
   it("requires an explicit OpenAI planner model before requesting an itinerary", async () => {
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const getTripById = vi.fn().mockResolvedValue(tripRecord());

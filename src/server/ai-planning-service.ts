@@ -540,6 +540,8 @@ export async function generateAiItineraryForRequest(
       const repair = await requestAiItineraryPlan({
         apiKey: config.apiKey,
         model: config.model,
+        // Repairs intentionally skip web search: only the primary call spends
+        // web-search budget, and the repair only reshuffles validated data.
         context: promptContext({
           trip,
           lodging,
@@ -559,8 +561,8 @@ export async function generateAiItineraryForRequest(
         visitsPerDayMax: savedPreferences.visits_per_day_max,
         mustSeeCandidateIds: savedPreferences.must_see_candidate_ids,
         earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
-        firstDayEarliestStartTime: arrivalPoint?.event_time ?? null,
-        lastDayLatestEndTime: departurePoint?.event_time ?? null,
+        firstDayEarliestStartTime,
+        lastDayLatestEndTime,
       });
       repairValidationStatus = repairValidation.status;
       repairValidationErrors = repairValidation.errors;
