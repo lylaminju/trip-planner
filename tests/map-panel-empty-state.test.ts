@@ -16,31 +16,7 @@ describe("MapPanel empty state", () => {
     const itinerary: ItineraryView = { days: [], unscheduled: [] };
 
     const markup = renderToStaticMarkup(
-      createElement(MapPanel, {
-        itinerary,
-        destinationFocus: null,
-        routeSegments: [],
-        activePlaceId: null,
-        activeCanonicalPlaceId: null,
-        activeSegmentId: null,
-        activeDate: null,
-        mobileSheetState: "half",
-        routeGeometries: new Map(),
-        routeGeometryError: null,
-        currentLocationPosition: null,
-        currentLocationToast: null,
-        canShowCurrentLocation: false,
-        isCurrentLocationActive: false,
-        canEdit: true,
-        onToggleCurrentLocation: vi.fn(),
-        onAddPlace: vi.fn(),
-        onAddPlaceFromMap: vi.fn(),
-        onSelectPlace: vi.fn(),
-        onSelectSegment: vi.fn(),
-        onEditItem: vi.fn(),
-        onEditPlace: vi.fn(),
-        onClearSelection: vi.fn(),
-      }),
+      createElement(MapPanel, mapPanelProps(itinerary)),
     );
 
     const css = readFileSync("src/styles/components/map.css", "utf8");
@@ -57,30 +33,8 @@ describe("MapPanel empty state", () => {
 
     const markup = renderToStaticMarkup(
       createElement(MapPanel, {
-        itinerary,
-        destinationFocus: null,
-        routeSegments: [],
-        activePlaceId: null,
-        activeCanonicalPlaceId: null,
-        activeSegmentId: null,
-        activeDate: null,
-        mobileSheetState: "half",
-        routeGeometries: new Map(),
-        routeGeometryError: null,
-        currentLocationPosition: null,
-        currentLocationToast: null,
-        canShowCurrentLocation: false,
-        isCurrentLocationActive: false,
-        canEdit: true,
-        onToggleCurrentLocation: vi.fn(),
-        onAddPlace: vi.fn(),
-        onAddPlaceFromMap: vi.fn(),
+        ...mapPanelProps(itinerary),
         onPlanWithAi: vi.fn(),
-        onSelectPlace: vi.fn(),
-        onSelectSegment: vi.fn(),
-        onEditItem: vi.fn(),
-        onEditPlace: vi.fn(),
-        onClearSelection: vi.fn(),
       }),
     );
     const actions = markupBetween(markup, "map-empty-state-actions", "div");
@@ -94,6 +48,40 @@ describe("MapPanel empty state", () => {
     expect(rule).toContain("justify-content: center;");
   });
 });
+
+function mapPanelProps(itinerary: ItineraryView) {
+  return {
+    itinerary,
+    destinationFocus: null,
+    routeSegments: [],
+    selection: {
+      activeItemId: null,
+      activeCanonicalPlaceId: null,
+      activeSegmentId: null,
+      activeDate: null,
+      selectItem: vi.fn(),
+      toggleSegmentSelection: vi.fn(),
+      clearSelection: vi.fn(),
+    },
+    modals: {
+      openAddModal: vi.fn(),
+      openAddModalWithSelection: vi.fn(),
+      openEditModal: vi.fn(),
+      openEditItemModal: vi.fn(),
+    },
+    mobileSheetState: "half" as const,
+    routeGeometries: new Map(),
+    routeGeometryError: null,
+    currentLocation: {
+      currentLocationPosition: null,
+      currentLocationToast: null,
+      isCurrentLocationEnabled: false,
+      toggleCurrentLocation: vi.fn(),
+    },
+    canShowCurrentLocation: false,
+    canEdit: true,
+  };
+}
 
 function markupBetween(markup: string, className: string, tag: string) {
   const start = markup.indexOf(className);

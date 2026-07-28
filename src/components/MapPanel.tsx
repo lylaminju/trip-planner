@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import type { CurrentLocationControl } from "@/hooks/useCurrentLocationControl";
+import type { TripPlannerModals } from "@/hooks/useTripPlannerModals";
+import type { TripPlannerSelection } from "@/hooks/useTripPlannerSelection";
 import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
-import type { CurrentLocationPosition } from "@/lib/current-location";
 import type { DestinationFocus } from "@/lib/destination-options";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
@@ -12,9 +14,7 @@ import {
   getSelectedSegmentPositions,
 } from "@/lib/map-viewport";
 import type {
-  ItineraryItem,
   ItineraryView,
-  Place,
   RouteGeometry,
   RouteSegment,
 } from "@/lib/types";
@@ -37,38 +37,44 @@ import {
 import { useGoogleMapInstance } from "./map-panel/useGoogleMapInstance";
 import { useMapOverlays } from "./map-panel/useMapOverlays";
 import { useMapPoiPicker } from "./map-panel/useMapPoiPicker";
-import type { PlaceSearchSelection } from "./AddPlaceSearchStep";
 
 const DATE_FOCUS_BOUNDS_PADDING = 48;
 const SEGMENT_FOCUS_BOUNDS_PADDING = 64;
+
+type MapSelectionProps = Pick<
+  TripPlannerSelection,
+  | "activeItemId"
+  | "activeCanonicalPlaceId"
+  | "activeSegmentId"
+  | "activeDate"
+  | "selectItem"
+  | "toggleSegmentSelection"
+  | "clearSelection"
+>;
+
+type MapModalsProps = Pick<
+  TripPlannerModals,
+  | "openAddModal"
+  | "openAddModalWithSelection"
+  | "openEditModal"
+  | "openEditItemModal"
+>;
 
 type Props = {
   itinerary: ItineraryView;
   destinationFocus: DestinationFocus | null;
   routeSegments: RouteSegment[];
-  activePlaceId: number | null;
-  activeCanonicalPlaceId: number | null;
-  activeSegmentId: number | null;
-  activeDate: string | null;
+  selection: MapSelectionProps;
+  modals: MapModalsProps;
   mobileSheetState: MobileSheetState;
   routeGeometries: Map<number, RouteGeometry>;
   routeGeometryError: string | null;
-  currentLocationPosition: CurrentLocationPosition | null;
-  currentLocationToast: string | null;
+  currentLocation: CurrentLocationControl;
   canShowCurrentLocation: boolean;
-  isCurrentLocationActive: boolean;
   hidden?: boolean;
   canEdit: boolean;
-  onToggleCurrentLocation: () => void;
-  onAddPlace: () => void;
-  onAddPlaceFromMap: (selection: PlaceSearchSelection) => void;
   onPlanWithAi?: () => void;
   aiPlanNeedsDates?: boolean;
-  onSelectPlace: (id: number) => void;
-  onSelectSegment: (id: number) => void;
-  onEditItem: (item: ItineraryItem) => void;
-  onEditPlace: (place: Place) => void;
-  onClearSelection: () => void;
 };
 
 export function MapPanel(props: Props) {
@@ -104,10 +110,14 @@ export function MapPanel(props: Props) {
     () =>
       findSelectedMapTarget(
         props.itinerary,
-        props.activePlaceId,
-        props.activeCanonicalPlaceId,
+        props.selection.activeItemId,
+        props.selection.activeCanonicalPlaceId,
       ),
-    [props.itinerary, props.activePlaceId, props.activeCanonicalPlaceId],
+    [
+      props.itinerary,
+      props.selection.activeItemId,
+      props.selection.activeCanonicalPlaceId,
+    ],
   );
 
   const { mapRef, mapInstanceRef, isMapReady, loadFailed } =
@@ -126,7 +136,7 @@ export function MapPanel(props: Props) {
     mapInstanceRef,
     mapContainerRef: mapRef,
     enabled: props.canEdit,
-    onAddPlace: props.onAddPlaceFromMap,
+    onAddPlace: props.modals.openAddModalWithSelection,
   });
 
   useMapOverlays({
@@ -144,13 +154,13 @@ export function MapPanel(props: Props) {
     itemColors,
     markerLabels,
     mobileSheetState: props.mobileSheetState,
-    currentLocationPosition: props.currentLocationPosition,
-    activePlaceId: props.activePlaceId,
-    activeCanonicalPlaceId: props.activeCanonicalPlaceId,
-    activeSegmentId: props.activeSegmentId,
-    activeDate: props.activeDate,
-    onSelectPlace: props.onSelectPlace,
-    onSelectSegment: props.onSelectSegment,
+    currentLocationPosition: props.currentLocation.currentLocationPosition,
+    activePlaceId: props.selection.activeItemId,
+    activeCanonicalPlaceId: props.selection.activeCanonicalPlaceId,
+    activeSegmentId: props.selection.activeSegmentId,
+    activeDate: props.selection.activeDate,
+    onSelectPlace: props.selection.selectItem,
+    onSelectSegment: props.selection.toggleSegmentSelection,
   });
 
   useEffect(() => {
@@ -173,8 +183,8 @@ export function MapPanel(props: Props) {
     const position = getSelectedPlacePosition(
       itineraryItems,
       props.itinerary.unscheduled,
-      props.activePlaceId,
-      props.activeCanonicalPlaceId,
+      props.selection.activeItemId,
+      props.selection.activeCanonicalPlaceId,
     );
     if (position) {
       focusMapOnPositions(map, [position], props.mobileSheetState);
@@ -184,8 +194,8 @@ export function MapPanel(props: Props) {
     isMapReady,
     itineraryItemsSignature,
     loadFailed,
-    props.activeCanonicalPlaceId,
-    props.activePlaceId,
+    props.selection.activeCanonicalPlaceId,
+    props.selection.activeItemId,
     props.hidden,
     props.mobileSheetState,
     unscheduledPlacesSignature,
@@ -206,7 +216,7 @@ export function MapPanel(props: Props) {
 
     const positions = getSelectedDatePositions(
       itineraryItems,
-      props.activeDate,
+      props.selection.activeDate,
     );
     return focusMapOnPositions(
       map,
@@ -219,7 +229,7 @@ export function MapPanel(props: Props) {
     isMapReady,
     itineraryItemsSignature,
     loadFailed,
-    props.activeDate,
+    props.selection.activeDate,
     props.hidden,
     props.mobileSheetState,
   ]);
@@ -240,7 +250,7 @@ export function MapPanel(props: Props) {
     const positions = getSelectedSegmentPositions(
       itineraryItems,
       props.routeSegments,
-      props.activeSegmentId,
+      props.selection.activeSegmentId,
     );
     if (positions.length !== 2) {
       return;
@@ -257,7 +267,7 @@ export function MapPanel(props: Props) {
     isMapReady,
     itineraryItemsSignature,
     loadFailed,
-    props.activeSegmentId,
+    props.selection.activeSegmentId,
     props.hidden,
     props.mobileSheetState,
     routeSegmentsSignature,
@@ -317,20 +327,20 @@ export function MapPanel(props: Props) {
         <SelectedPlaceCard
           target={selectedTarget}
           canEdit={props.canEdit}
-          onEditVisit={props.onEditItem}
-          onEditPlace={props.onEditPlace}
-          onClose={props.onClearSelection}
+          onEditVisit={props.modals.openEditItemModal}
+          onEditPlace={props.modals.openEditModal}
+          onClose={props.selection.clearSelection}
         />
       )}
       <MapPanelChrome
         hasPlaces={hasPlaces}
         routeGeometryError={props.routeGeometryError}
-        currentLocationToast={props.currentLocationToast}
+        currentLocationToast={props.currentLocation.currentLocationToast}
         canShowCurrentLocation={props.canShowCurrentLocation}
-        isCurrentLocationActive={props.isCurrentLocationActive}
+        isCurrentLocationActive={props.currentLocation.isCurrentLocationEnabled}
         canEdit={props.canEdit}
-        onToggleCurrentLocation={props.onToggleCurrentLocation}
-        onAddPlace={props.onAddPlace}
+        onToggleCurrentLocation={props.currentLocation.toggleCurrentLocation}
+        onAddPlace={props.modals.openAddModal}
         onPlanWithAi={props.onPlanWithAi}
         aiPlanNeedsDates={props.aiPlanNeedsDates}
       />

@@ -5,7 +5,7 @@ import {
   type CurrentLocationPosition,
 } from "@/lib/current-location";
 
-type CurrentLocationControl = {
+export type CurrentLocationControl = {
   currentLocationPosition: CurrentLocationPosition | null;
   currentLocationToast: string | null;
   isCurrentLocationEnabled: boolean;

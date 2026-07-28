@@ -183,32 +183,8 @@ export function TripPlannerApp({
   const { exportFeedback, copyMarkdownExport, downloadMarkdownExport } =
     useItineraryExport(tripTitle, itinerary);
   const canShowCurrentLocation = trip ? isTripOngoing(trip) : false;
-  const {
-    currentLocationPosition,
-    currentLocationToast,
-    isCurrentLocationEnabled,
-    toggleCurrentLocation,
-  } = useCurrentLocationControl(canShowCurrentLocation);
-  const {
-    addPlaceSelection,
-    addPlaceVisitDate,
-    addingVisitPlace,
-    closeModal,
-    editingItem,
-    duplicatingItem,
-    editingPlace,
-    editingTripForm,
-    isAdding,
-    openAddModal,
-    openAddModalWithSelection,
-    openAddVisitModal,
-    openEditItemModal,
-    openDuplicateItemModal,
-    openEditModal,
-    openEditTripModal,
-    setEditingItem,
-    setEditingTripForm,
-  } = useTripPlannerModals({
+  const currentLocation = useCurrentLocationControl(canShowCurrentLocation);
+  const modals = useTripPlannerModals({
     canEdit,
     canEditTripMetadata,
     trip,
@@ -223,8 +199,8 @@ export function TripPlannerApp({
     plannerSnapshot,
     setPlannerSnapshot,
     setError,
-    closeModal,
-    setEditingItem,
+    closeModal: modals.closeModal,
+    setEditingItem: modals.setEditingItem,
     clearActiveCanonicalPlace: selection.clearActiveCanonicalPlace,
     clearDeletedPlaceSelection: selection.clearDeletedPlaceSelection,
     clearDeletedItineraryItemSelection:
@@ -256,7 +232,7 @@ export function TripPlannerApp({
 
   async function submitEditTrip(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!editingTripForm || !canEditTripMetadata) return;
+    if (!modals.editingTripForm || !canEditTripMetadata) return;
 
     setIsSavingTrip(true);
     setEditTripError(null);
@@ -264,10 +240,10 @@ export function TripPlannerApp({
     try {
       const updatedTrip = await updateTrip(
         tripId,
-        formPayload(editingTripForm),
+        formPayload(modals.editingTripForm),
       );
       setTrip(updatedTrip);
-      setEditingTripForm(null);
+      modals.setEditingTripForm(null);
       setEditTripError(null);
     } catch (reason) {
       setEditTripError(errorMessage(reason, "Failed to update trip."));
@@ -459,33 +435,18 @@ export function TripPlannerApp({
         destinationCountryCodes={trip?.destination_country_codes ?? null}
         itinerary={itinerary}
         plannerSnapshot={plannerSnapshot}
-        activeItemId={selection.activeItemId}
-        activeCanonicalPlaceId={selection.activeCanonicalPlaceId}
-        activeSegmentId={selection.activeSegmentId}
-        activeDate={selection.activeDate}
+        selection={selection}
+        mutations={plannerMutations}
+        modals={modals}
+        permissions={{ canEdit, canEditTripMetadata, canAddVisits }}
+        currentLocation={currentLocation}
+        canShowCurrentLocation={canShowCurrentLocation}
         collapsedDates={collapsedDates}
         routeGeometries={routeGeometries}
         routeGeometryError={routeGeometryError}
         error={error}
         aiGenerationToast={aiGenerationToast}
         exportFeedback={exportFeedback}
-        canEdit={canEdit}
-        canEditTripMetadata={canEditTripMetadata}
-        canAddVisits={canAddVisits}
-        deletingPlaceIds={plannerMutations.deletingPlaceIds}
-        deletingItineraryItemIds={plannerMutations.deletingItineraryItemIds}
-        currentLocationPosition={currentLocationPosition}
-        currentLocationToast={currentLocationToast}
-        canShowCurrentLocation={canShowCurrentLocation}
-        isCurrentLocationEnabled={isCurrentLocationEnabled}
-        isAdding={isAdding}
-        editingPlace={editingPlace}
-        editingItem={editingItem}
-        duplicatingItem={duplicatingItem}
-        addingVisitPlace={addingVisitPlace}
-        addPlaceVisitDate={addPlaceVisitDate}
-        addPlaceSelection={addPlaceSelection}
-        editingTripForm={editingTripForm}
         editTripError={editTripError}
         isSavingTrip={isSavingTrip}
         aiPlanningWizard={aiPlanningWizard}
@@ -496,9 +457,6 @@ export function TripPlannerApp({
         onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
         aiPlanNeedsDates={aiPlanNeedsDates}
         onMobileSheetStateChange={setMobileSheetState}
-        onOpenAddModal={openAddModal}
-        onAddPlaceFromMap={openAddModalWithSelection}
-        onOpenEditTripModal={openEditTripModal}
         onManageMembers={
           canEditTripMetadata && !isGuest
             ? () => setIsMembersModalOpen(true)
@@ -506,32 +464,8 @@ export function TripPlannerApp({
         }
         onCopyMarkdownExport={copyMarkdownExport}
         onDownloadMarkdownExport={downloadMarkdownExport}
-        onOpenAddVisitModal={openAddVisitModal}
-        onOpenEditModal={openEditModal}
-        onOpenEditItemModal={openEditItemModal}
-        onOpenDuplicateItemModal={openDuplicateItemModal}
-        onDeletePlace={plannerMutations.deletePlace}
-        onDeleteAllPlaces={plannerMutations.deleteAllPlaces}
-        onSelectItem={selection.selectItem}
-        onSelectCanonicalPlace={selection.selectCanonicalPlace}
-        onToggleSegmentSelection={selection.toggleSegmentSelection}
         onToggleDateCollapsed={toggleDateCollapsed}
-        onSelectDate={selection.selectDate}
-        onClearSelection={selection.clearSelection}
-        onSchedulePlace={plannerMutations.schedulePlace}
-        onScheduleItineraryItem={plannerMutations.scheduleItineraryItem}
-        onDeleteItineraryItem={plannerMutations.deleteItineraryItem}
-        onDeleteAllItineraryItems={plannerMutations.deleteAllItineraryItems}
-        onUpdateSegmentMode={plannerMutations.updateSegmentMode}
-        onToggleCurrentLocation={toggleCurrentLocation}
-        onCloseModal={closeModal}
-        onResolvePlaceUrl={plannerMutations.resolvePlace}
-        onSavePlace={plannerMutations.savePlace}
-        onSaveItineraryItem={plannerMutations.saveItineraryItem}
-        onCreateItineraryItem={plannerMutations.createItineraryItem}
-        onSetEditingTripForm={setEditingTripForm}
         onSubmitEditTrip={submitEditTrip}
-        onSetError={setError}
         onCloseAiPlanningWizard={closeAiPlanningWizard}
         onRetryAiPlanningLoad={openAiPlanningSetup}
         onRetryAiCatalogPrepare={retryAiCatalogPreparation}

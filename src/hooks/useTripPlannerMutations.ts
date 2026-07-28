@@ -280,3 +280,5 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     updateSegmentMode,
   };
 }
+
+export type TripPlannerMutations = ReturnType<typeof useTripPlannerMutations>;

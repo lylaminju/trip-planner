@@ -11,14 +11,15 @@ import {
 import { createPortal } from "react-dom";
 
 import { useMobileSheetDrag } from "@/hooks/useMobileSheetDrag";
+import type { TripPlannerModals } from "@/hooks/useTripPlannerModals";
+import type { TripPlannerMutations } from "@/hooks/useTripPlannerMutations";
+import type { TripPlannerSelection } from "@/hooks/useTripPlannerSelection";
 import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
-  ItineraryItem,
   ItineraryView,
   Place,
   RouteGeometry,
-  TravelMode,
   TripMemberSummary,
 } from "@/lib/types";
 
@@ -36,6 +37,41 @@ import { PlacesSection } from "./planner-panel/PlacesSection";
 import { PlanWithAiButton } from "./PlanWithAiButton";
 import { TripMemberBadges } from "./TripMemberBadges";
 
+type PlannerSelectionProps = Pick<
+  TripPlannerSelection,
+  | "activeItemId"
+  | "activeCanonicalPlaceId"
+  | "activeSegmentId"
+  | "activeDate"
+  | "selectItem"
+  | "selectCanonicalPlace"
+  | "toggleSegmentSelection"
+  | "selectDate"
+  | "clearSelection"
+>;
+
+type PlannerMutationsProps = Pick<
+  TripPlannerMutations,
+  | "deletingPlaceIds"
+  | "deletingItineraryItemIds"
+  | "deletePlace"
+  | "deleteAllPlaces"
+  | "schedulePlace"
+  | "scheduleItineraryItem"
+  | "deleteItineraryItem"
+  | "deleteAllItineraryItems"
+  | "updateSegmentMode"
+>;
+
+type PlannerModalsProps = Pick<
+  TripPlannerModals,
+  | "openAddModal"
+  | "openAddVisitModal"
+  | "openEditModal"
+  | "openEditItemModal"
+  | "openDuplicateItemModal"
+>;
+
 type Props = {
   title: string;
   tripPeriodLabel: string | null;
@@ -43,10 +79,9 @@ type Props = {
   currentUserId: string;
   itinerary: ItineraryView;
   places: Place[];
-  activePlaceId: number | null;
-  activeCanonicalPlaceId: number | null;
-  activeSegmentId: number | null;
-  activeDate: string | null;
+  selection: PlannerSelectionProps;
+  mutations: PlannerMutationsProps;
+  modals: PlannerModalsProps;
   collapsedDates: ReadonlySet<string>;
   routeGeometries: Map<number, RouteGeometry>;
   error: string | null;
@@ -60,42 +95,15 @@ type Props = {
   mobileSheetState: MobileSheetState;
   canEdit: boolean;
   canAddVisits: boolean;
-  deletingPlaceIds: ReadonlySet<number>;
-  deletingItineraryItemIds: ReadonlySet<number>;
   onToggleExpanded: () => void;
   onPlanWithAi?: () => void;
   aiPlanNeedsDates?: boolean;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
-  onAdd: (visitDate?: string | null) => void;
   onEditTrip?: () => void;
   onManageMembers?: () => void;
   onCopyExport: () => void;
   onDownloadExport: () => void;
-  onAddVisit: (place: Place) => void;
-  onEdit: (place: Place) => void;
-  onDuplicateItem: (item: ItineraryItem) => void;
-  onEditItem: (item: ItineraryItem) => void;
-  onDelete: (id: number) => void;
-  onDeleteAllPlaces: () => void;
-  onSelectPlace: (id: number | null) => void;
-  onSelectCanonicalPlace: (id: number | null) => void;
-  onSelectSegment: (id: number | null) => void;
   onToggleDateCollapsed: (date: string) => void;
-  onSelectDate: (date: string) => void;
-  onClearSelection: () => void;
-  onSchedulePlace: (
-    id: number,
-    visitDate: string | null,
-    visitTime: string | null,
-  ) => void;
-  onScheduleItem: (
-    id: number,
-    visitDate: string | null,
-    visitTime: string | null,
-  ) => void;
-  onModeChange: (id: number, mode: TravelMode) => void;
-  onDeleteItem: (id: number) => void;
-  onDeleteAllItems: () => void;
   resizeHandle?: ReactNode;
 };
 
@@ -153,7 +161,7 @@ export function PlannerPanel(props: Props) {
       return;
     }
 
-    props.onClearSelection();
+    props.selection.clearSelection();
   }
 
   function confirmDeletion(targetLabel: string, note?: string): boolean {
@@ -293,17 +301,17 @@ export function PlannerPanel(props: Props) {
         <div className="planner-scroll">
           <ItinerarySection
             itinerary={props.itinerary}
-            activePlaceId={props.activePlaceId}
-            activeCanonicalPlaceId={props.activeCanonicalPlaceId}
-            activeSegmentId={props.activeSegmentId}
-            activeDate={props.activeDate}
+            activePlaceId={props.selection.activeItemId}
+            activeCanonicalPlaceId={props.selection.activeCanonicalPlaceId}
+            activeSegmentId={props.selection.activeSegmentId}
+            activeDate={props.selection.activeDate}
             collapsedDates={props.collapsedDates}
             routeGeometries={props.routeGeometries}
             markerLabels={markerLabels}
             canEdit={props.canEdit}
             canAddVisits={props.canAddVisits}
-            deletingPlaceIds={props.deletingPlaceIds}
-            deletingItineraryItemIds={props.deletingItineraryItemIds}
+            deletingPlaceIds={props.mutations.deletingPlaceIds}
+            deletingItineraryItemIds={props.mutations.deletingItineraryItemIds}
             isExpanded={props.isExpanded}
             isOpen={isItinerariesOpen}
             isUnscheduledOpen={isUnscheduledOpen}
@@ -321,20 +329,20 @@ export function PlannerPanel(props: Props) {
             onCopyExport={props.onCopyExport}
             onDownloadExport={props.onDownloadExport}
             onToggleDatePlacePicker={toggleDatePlacePicker}
-            onSelectPlace={props.onSelectPlace}
-            onSelectCanonicalPlace={props.onSelectCanonicalPlace}
-            onSelectSegment={props.onSelectSegment}
+            onSelectPlace={props.selection.selectItem}
+            onSelectCanonicalPlace={props.selection.selectCanonicalPlace}
+            onSelectSegment={props.selection.toggleSegmentSelection}
             onToggleDateCollapsed={props.onToggleDateCollapsed}
-            onSelectDate={props.onSelectDate}
-            onAddVisit={props.onAddVisit}
-            onEdit={props.onEdit}
-            onDuplicateItem={props.onDuplicateItem}
-            onEditItem={props.onEditItem}
-            onDelete={props.onDelete}
-            onDeleteItem={props.onDeleteItem}
-            onDeleteAllItems={props.onDeleteAllItems}
-            onScheduleItem={props.onScheduleItem}
-            onModeChange={props.onModeChange}
+            onSelectDate={props.selection.selectDate}
+            onAddVisit={props.modals.openAddVisitModal}
+            onEdit={props.modals.openEditModal}
+            onDuplicateItem={props.modals.openDuplicateItemModal}
+            onEditItem={props.modals.openEditItemModal}
+            onDelete={props.mutations.deletePlace}
+            onDeleteItem={props.mutations.deleteItineraryItem}
+            onDeleteAllItems={props.mutations.deleteAllItineraryItems}
+            onScheduleItem={props.mutations.scheduleItineraryItem}
+            onModeChange={props.mutations.updateSegmentMode}
             onConfirmDeletion={confirmDeletion}
           />
         </div>
@@ -342,22 +350,22 @@ export function PlannerPanel(props: Props) {
         <PlacesSection
           places={props.places}
           itinerary={props.itinerary}
-          activePlaceId={props.activePlaceId}
-          activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+          activePlaceId={props.selection.activeItemId}
+          activeCanonicalPlaceId={props.selection.activeCanonicalPlaceId}
           canEdit={props.canEdit}
           canAddVisits={props.canAddVisits}
-          deletingPlaceIds={props.deletingPlaceIds}
+          deletingPlaceIds={props.mutations.deletingPlaceIds}
           isExpanded={props.isExpanded}
           isOpen={isPlacesOpen}
           onToggleOpen={() => setIsPlacesOpen((value) => !value)}
-          onAddPlace={() => props.onAdd()}
-          onSelectPlace={props.onSelectPlace}
-          onSelectCanonicalPlace={props.onSelectCanonicalPlace}
-          onSelectSegment={props.onSelectSegment}
-          onAddVisit={props.onAddVisit}
-          onEdit={props.onEdit}
-          onDelete={props.onDelete}
-          onDeleteAll={props.onDeleteAllPlaces}
+          onAddPlace={() => props.modals.openAddModal()}
+          onSelectPlace={props.selection.selectItem}
+          onSelectCanonicalPlace={props.selection.selectCanonicalPlace}
+          onSelectSegment={props.selection.toggleSegmentSelection}
+          onAddVisit={props.modals.openAddVisitModal}
+          onEdit={props.modals.openEditModal}
+          onDelete={props.mutations.deletePlace}
+          onDeleteAll={props.mutations.deleteAllPlaces}
           onConfirmDeletion={confirmDeletion}
         />
 
@@ -371,11 +379,11 @@ export function PlannerPanel(props: Props) {
               style={{ left: picker.left, top: picker.top }}
               onClose={() => setPicker(null)}
               onCreatePlace={() => {
-                props.onAdd(picker.date);
+                props.modals.openAddModal(picker.date);
                 setPicker(null);
               }}
               onSelect={(place) => {
-                props.onSchedulePlace(place.id, picker.date, null);
+                void props.mutations.schedulePlace(place.id, picker.date, null);
                 setPicker(null);
               }}
             />,

@@ -69,3 +69,5 @@ export function useTripPlannerSelection() {
     clearDeletedItineraryItemSelection,
   };
 }
+
+export type TripPlannerSelection = ReturnType<typeof useTripPlannerSelection>;

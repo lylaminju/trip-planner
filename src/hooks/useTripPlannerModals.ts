@@ -5,7 +5,7 @@ import type { PlaceSearchSelection } from "@/components/AddPlaceSearchStep";
 import type { TripFormState } from "@/components/trip-form-types";
 import { formFromTrip } from "@/components/trip-planner-app-utils";
 
-type TripPlannerModals = {
+export type TripPlannerModals = {
   addPlaceSelection: PlaceSearchSelection | null;
   addPlaceVisitDate: string | null;
   addingVisitPlace: Place | null;
