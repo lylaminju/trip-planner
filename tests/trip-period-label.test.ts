@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
 import type { Trip } from "@/lib/types";
 
+import { buildTrip as buildTripFixture } from "./helpers/fixtures";
+
 describe("formatTripPeriodLabel", () => {
   it("formats a same-month trip range compactly", () => {
     expect(formatTripPeriodLabel(buildTrip("2026-04-01", "2026-04-07"))).toBe(
@@ -30,21 +32,8 @@ describe("formatTripPeriodLabel", () => {
   });
 });
 
+// The shared fixture's `??` fallbacks replace null dates with defaults, so
+// spread explicit nulls on top instead of passing them as overrides.
 function buildTrip(startDate: string | null, endDate: string | null): Trip {
-  return {
-    id: 1,
-    created_by: "user-1",
-    name: "Tokyo Spring",
-    destination: "Toronto",
-    destination_slug: "toronto",
-    destination_latitude: null,
-    destination_longitude: null,
-    destination_country_codes: null,
-    destination_photo_url: null,
-    destination_photo_attribution: null,
-    start_date: startDate,
-    end_date: endDate,
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-  };
+  return { ...buildTripFixture(), start_date: startDate, end_date: endDate };
 }

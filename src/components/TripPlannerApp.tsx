@@ -20,6 +20,7 @@ import {
   canPlanTripWithAi,
 } from "@/lib/ai-planning";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
+import { isValidIsoDate } from "@/lib/date-validation";
 import {
   DEFAULT_DESTINATION_ZOOM,
   findDestinationFocus,
@@ -153,7 +154,9 @@ export function TripPlannerApp({
   ]);
   const visitDateOptions = useMemo(
     () => buildVisitDateOptions(toTripDateRange(trip)),
-    [trip],
+    // toTripDateRange only reads the trip's date fields; other trip metadata
+    // edits should not rebuild the options.
+    [trip?.start_date, trip?.end_date],
   );
   const canAddVisits = visitDateOptions.length > 0;
   const { routeGeometries, routeGeometryError } = useRouteGeometries(
@@ -484,23 +487,5 @@ function hasAiPlanningDateRange(trip: Trip | null): boolean {
     isValidIsoDate(trip.start_date) &&
     isValidIsoDate(trip.end_date) &&
     trip.start_date <= trip.end_date
-  );
-}
-
-function isValidIsoDate(value: string): boolean {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) {
-    return false;
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const date = new Date(Date.UTC(year, month - 1, day));
-
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
   );
 }

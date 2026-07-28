@@ -3,11 +3,7 @@ import { GoogleRoutesConfigError } from "@/server/errors";
 import { computeGoogleRoute } from "@/server/google-routes";
 import { getRouteGeometry as getSupabaseRouteGeometry } from "@/server/supabase-route-geometry-service";
 import { recordGoogleRoutesCall } from "@/server/supabase-google-routes-usage-store";
-
-type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
+import type { Coordinates } from "@/lib/geo-distance";
 
 export async function getRouteGeometry(
   tripId: number,

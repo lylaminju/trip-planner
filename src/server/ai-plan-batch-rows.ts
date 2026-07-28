@@ -16,11 +16,9 @@ import {
   roundVisitMinutesUpToGrid,
 } from "@/lib/visit-time";
 import type { AiItineraryPlan } from "./openai-ai-planner";
+import type { Coordinates } from "@/lib/geo-distance";
 
-export type Coordinates = {
-  latitude: number;
-  longitude: number;
-};
+export type { Coordinates };
 
 export type GeneratedScheduleEntry = {
   date: string;
