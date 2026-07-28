@@ -103,6 +103,8 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
         options.plannerSnapshot.itineraryItems,
       );
       options.setError(null);
+    } catch (reason) {
+      options.setError(errorMessage(reason, "Failed to delete place."));
     } finally {
       setDeletingPlaceIds((current) => {
         const next = new Set(current);
@@ -118,10 +120,14 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
     visitTime: string | null,
   ) {
     if (!options.canEdit) return;
-    options.setPlannerSnapshot(
-      await schedulePlaceRequest(options.tripId, id, visitDate, visitTime),
-    );
-    options.setError(null);
+    try {
+      options.setPlannerSnapshot(
+        await schedulePlaceRequest(options.tripId, id, visitDate, visitTime),
+      );
+      options.setError(null);
+    } catch (reason) {
+      options.setError(errorMessage(reason, "Failed to schedule place."));
+    }
   }
 
   async function createItineraryItem(
@@ -179,7 +185,9 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
       options.setError(null);
     } catch (reason) {
       options.setPlannerSnapshot(previousSnapshot);
-      throw reason;
+      options.setError(
+        errorMessage(reason, "Failed to schedule itinerary item."),
+      );
     }
   }
 
@@ -194,6 +202,8 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
       );
       options.clearDeletedItineraryItemSelection(id);
       options.setError(null);
+    } catch (reason) {
+      options.setError(errorMessage(reason, "Failed to delete itinerary item."));
     } finally {
       setDeletingItineraryItemIds((current) => {
         const next = new Set(current);
@@ -214,6 +224,10 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
       );
       options.clearSelection();
       options.setError(null);
+    } catch (reason) {
+      options.setError(
+        errorMessage(reason, "Failed to delete itinerary items."),
+      );
     } finally {
       setIsDeletingAllItineraryItems(false);
     }
@@ -228,6 +242,8 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
       options.setPlannerSnapshot(await deleteAllPlacesRequest(options.tripId));
       options.clearSelection();
       options.setError(null);
+    } catch (reason) {
+      options.setError(errorMessage(reason, "Failed to delete places."));
     } finally {
       setIsDeletingAllPlaces(false);
     }
@@ -236,10 +252,14 @@ export function useTripPlannerMutations(options: TripPlannerMutationOptions) {
   async function updateSegmentMode(id: number, mode: TravelMode) {
     if (!options.canEdit) return;
     if (isOptimisticSegmentId(id)) return;
-    options.setPlannerSnapshot(
-      await updateSegmentModeRequest(options.tripId, id, mode),
-    );
-    options.setError(null);
+    try {
+      options.setPlannerSnapshot(
+        await updateSegmentModeRequest(options.tripId, id, mode),
+      );
+      options.setError(null);
+    } catch (reason) {
+      options.setError(errorMessage(reason, "Failed to update route mode."));
+    }
   }
 
   return {
