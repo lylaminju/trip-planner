@@ -319,6 +319,15 @@
   z-index: 20;
 }
 
+/* Expanding the planner moves its header controls under the fixed banner, which
+   would swallow clicks on the collapse toggle. The toggle is hidden on mobile,
+   so the expanded class stays inert there and the banner keeps showing. */
+@media (min-width: 901px) {
+  .app-shell.planner-panel-expanded .guest-mode-banner {
+    display: none;
+  }
+}
+
 .guest-mode-banner-line {
   margin: 0;
 }

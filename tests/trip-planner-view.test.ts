@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -34,6 +35,14 @@ describe("TripPlannerView", () => {
       createElement(TripPlannerView, tripPlannerViewProps({ isGuest: false })),
     );
     expect(memberMarkup).not.toContain('class="guest-mode-banner"');
+  });
+
+  it("hides the guest banner while the expanded planner puts its controls underneath", () => {
+    const layoutCss = readFileSync("src/styles/layout.css", "utf8");
+
+    expect(layoutCss).toMatch(
+      /\.app-shell\.planner-panel-expanded \.guest-mode-banner \{\s*display: none;/,
+    );
   });
 
   it("points the header back-link home for guests and to the dashboard for members", () => {
