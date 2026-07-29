@@ -4,10 +4,7 @@ import type {
   RouteSegment,
   TravelMode,
 } from "@/lib/types";
-import type {
-  ScheduledVisit,
-  VisitDateChange,
-} from "@/lib/trip-date-shift";
+import type { ScheduledVisit } from "@/lib/trip-date-shift";
 import {
   ItineraryItemNotFoundError,
   PlaceNotFoundError,
@@ -278,32 +275,6 @@ export async function listScheduledVisits(
 
   if (error) throwSupabaseError(error);
   return (data ?? []) as ScheduledVisit[];
-}
-
-/** Groups by target date so a trip costs one update per day, not per visit. */
-export async function applyVisitDateChanges(
-  tripId: number,
-  changes: readonly VisitDateChange[],
-): Promise<void> {
-  const idsByDate = new Map<string | null, number[]>();
-
-  for (const change of changes) {
-    const ids = idsByDate.get(change.visit_date) ?? [];
-    ids.push(change.id);
-    idsByDate.set(change.visit_date, ids);
-  }
-
-  const updatedAt = new Date().toISOString();
-
-  for (const [visitDate, ids] of idsByDate) {
-    const { error } = await getSupabaseClient()
-      .from("itinerary_items")
-      .update({ visit_date: visitDate, updated_at: updatedAt })
-      .eq("trip_id", tripId)
-      .in("id", ids);
-
-    if (error) throwSupabaseError(error);
-  }
 }
 
 async function getItineraryItemById(

@@ -14,11 +14,7 @@ import type { Trip, TripMembership, TripSummary } from "@/lib/types";
 import { storeDestinationPhoto } from "./destination-photo-service";
 import { TripValidationError } from "./errors";
 import { getSupabaseClient } from "./supabase";
-import {
-  applyVisitDateChanges,
-  listScheduledVisits,
-  reconcileRoutesForTrip,
-} from "./supabase-place-store";
+import { listScheduledVisits } from "./supabase-place-store";
 import { isGuestPrincipalId } from "./principal";
 import { requireTripRole } from "./trip-access";
 import { listTripMembers } from "./trip-members";
@@ -158,31 +154,37 @@ export async function updateTripForRequest(
 ): Promise<TripSummary> {
   const membership = await requireTripRole(tripId, userId, "owner");
   const currentTrip = await getTripById(tripId);
+  const { start_date, end_date, ...fieldInput } = input;
+  const datesTouched = start_date !== undefined || end_date !== undefined;
   const nextDates: TripDateRange = {
-    start_date:
-      input.start_date !== undefined
-        ? input.start_date
-        : currentTrip.start_date,
-    end_date:
-      input.end_date !== undefined ? input.end_date : currentTrip.end_date,
+    start_date: start_date !== undefined ? start_date : currentTrip.start_date,
+    end_date: end_date !== undefined ? end_date : currentTrip.end_date,
   };
   validateTripDateRange(nextDates);
   validateGuestTripUpdate(userId, currentTrip, input, nextDates);
 
-  const { data, error } = await getSupabaseClient()
-    .from("trips")
-    .update({ ...input, updated_at: new Date().toISOString() })
-    .eq("id", tripId)
-    .select(TRIP_SELECT_FIELDS)
-    .single();
+  // Date columns never go through this update: they must commit atomically
+  // with the visit realignment below, or a failure in between strands the
+  // itinerary on dates the trip no longer covers.
+  if (Object.keys(fieldInput).length > 0 || !datesTouched) {
+    const { error } = await getSupabaseClient()
+      .from("trips")
+      .update({ ...fieldInput, updated_at: new Date().toISOString() })
+      .eq("id", tripId);
 
-  if (error) throwSupabaseError(error);
+    if (error) throwSupabaseError(error);
+  }
 
-  await realignScheduledVisits(tripId, currentTrip, nextDates);
+  if (datesTouched) {
+    await commitTripDatesAndRealignVisits(tripId, currentTrip, nextDates);
+  }
 
-  const membersByTripId = await listTripMembers([tripId]);
+  const [trip, membersByTripId] = await Promise.all([
+    getTripById(tripId),
+    listTripMembers([tripId]),
+  ]);
   return {
-    ...(data as Trip),
+    ...trip,
     role: membership.role,
     members: membersByTripId.get(tripId) ?? [],
   };
@@ -191,30 +193,35 @@ export async function updateTripForRequest(
 /**
  * Keeps a trip's scheduled visits on the days they were planned for when its
  * dates move, so an existing itinerary follows the trip instead of stranding
- * itself on the old calendar dates.
+ * itself on the old calendar dates. The trip's new dates and every visit-date
+ * change commit in a single database transaction, and the previous dates are
+ * sent along so a shift computed against stale dates aborts instead of
+ * corrupting the itinerary.
  */
-async function realignScheduledVisits(
+async function commitTripDatesAndRealignVisits(
   tripId: number,
-  previousDates: TripDateRange,
+  currentTrip: Trip,
   nextDates: TripDateRange,
 ): Promise<void> {
-  const plan = planTripDateShift(previousDates, nextDates);
-  if (plan === null) {
-    return;
-  }
+  const plan = planTripDateShift(currentTrip, nextDates);
+  const changes =
+    plan === null
+      ? []
+      : applyTripDateShift(await listScheduledVisits(tripId), plan);
 
-  const changes = applyTripDateShift(await listScheduledVisits(tripId), plan);
-  if (changes.length === 0) {
-    return;
-  }
+  const { error } = await getSupabaseClient().rpc(
+    "update_trip_dates_and_realign_visits",
+    {
+      p_trip_id: tripId,
+      p_prev_start_date: currentTrip.start_date,
+      p_prev_end_date: currentTrip.end_date,
+      p_next_start_date: nextDates.start_date,
+      p_next_end_date: nextDates.end_date,
+      p_visit_changes: changes,
+    },
+  );
 
-  await applyVisitDateChanges(tripId, changes);
-
-  // Shifting every visit by one delta preserves each day's grouping and order,
-  // so only an unscheduled visit can leave a segment dangling.
-  if (changes.some((change) => change.visit_date === null)) {
-    await reconcileRoutesForTrip(tripId);
-  }
+  if (error) throwSupabaseError(error);
 }
 
 export async function deleteTripForRequest(

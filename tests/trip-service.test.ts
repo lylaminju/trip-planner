@@ -76,8 +76,8 @@ describe("trip-service", () => {
     }
   });
 
-  it("moves scheduled visits with the trip when its dates change", async () => {
-    const recorded = { visitUpdates: [], rpcCalls: [] } as Recorded;
+  it("commits date changes and the visit shift through one atomic RPC", async () => {
+    const recorded = { tripUpdates: [], rpcCalls: [] } as Recorded;
     await withDateShiftClient(recorded, async (updateTripForRequest) => {
       await updateTripForRequest(1, "user-1", {
         start_date: "2027-08-01",
@@ -85,32 +85,90 @@ describe("trip-service", () => {
       });
     });
 
-    expect(recorded.visitUpdates).toEqual([
-      { visit_date: "2027-08-01", ids: [1] },
-      { visit_date: "2027-08-07", ids: [2] },
+    // Date columns must never travel through a plain row update: the trip row
+    // and its visit dates have to commit or roll back together.
+    expect(recorded.tripUpdates).toEqual([]);
+    expect(recorded.rpcCalls).toEqual([
+      {
+        name: "update_trip_dates_and_realign_visits",
+        args: {
+          p_trip_id: 1,
+          p_prev_start_date: "2027-07-12",
+          p_prev_end_date: "2027-07-18",
+          p_next_start_date: "2027-08-01",
+          p_next_end_date: "2027-08-07",
+          p_visit_changes: [
+            { id: 1, visit_date: "2027-08-01" },
+            { id: 2, visit_date: "2027-08-07" },
+          ],
+        },
+      },
     ]);
-    // A whole-trip slide keeps each day intact, so routes need no reconciling.
-    expect(recorded.rpcCalls).toEqual([]);
   });
 
-  it("unschedules visits left outside a shortened trip and reconciles routes", async () => {
-    const recorded = { visitUpdates: [], rpcCalls: [] } as Recorded;
+  it("unschedules visits left outside a shortened trip in the same commit", async () => {
+    const recorded = { tripUpdates: [], rpcCalls: [] } as Recorded;
     await withDateShiftClient(recorded, async (updateTripForRequest) => {
       await updateTripForRequest(1, "user-1", { end_date: "2027-07-16" });
     });
 
-    expect(recorded.visitUpdates).toEqual([{ visit_date: null, ids: [2] }]);
-    expect(recorded.rpcCalls).toEqual(["reconcile_route_segments_for_trip"]);
+    // Route reconciliation for the unscheduled visit happens inside the RPC's
+    // transaction; the service's contract is that the unschedule rides along.
+    expect(recorded.tripUpdates).toEqual([]);
+    expect(recorded.rpcCalls).toEqual([
+      {
+        name: "update_trip_dates_and_realign_visits",
+        args: {
+          p_trip_id: 1,
+          p_prev_start_date: "2027-07-12",
+          p_prev_end_date: "2027-07-18",
+          p_next_start_date: "2027-07-12",
+          p_next_end_date: "2027-07-16",
+          p_visit_changes: [{ id: 2, visit_date: null }],
+        },
+      },
+    ]);
   });
 
-  it("leaves visits untouched when a trip only gains days at the end", async () => {
-    const recorded = { visitUpdates: [], rpcCalls: [] } as Recorded;
+  it("still persists the dates when a trip only gains days at the end", async () => {
+    const recorded = { tripUpdates: [], rpcCalls: [] } as Recorded;
     await withDateShiftClient(recorded, async (updateTripForRequest) => {
       await updateTripForRequest(1, "user-1", { end_date: "2027-07-25" });
     });
 
-    expect(recorded.visitUpdates).toEqual([]);
-    expect(recorded.rpcCalls).toEqual([]);
+    expect(recorded.tripUpdates).toEqual([]);
+    expect(recorded.rpcCalls).toEqual([
+      {
+        name: "update_trip_dates_and_realign_visits",
+        args: {
+          p_trip_id: 1,
+          p_prev_start_date: "2027-07-12",
+          p_prev_end_date: "2027-07-18",
+          p_next_start_date: "2027-07-12",
+          p_next_end_date: "2027-07-25",
+          p_visit_changes: [],
+        },
+      },
+    ]);
+  });
+
+  it("routes non-date fields through the plain update, dates through the RPC", async () => {
+    const recorded = { tripUpdates: [], rpcCalls: [] } as Recorded;
+    await withDateShiftClient(recorded, async (updateTripForRequest) => {
+      await updateTripForRequest(1, "user-1", {
+        name: "Iceland encore",
+        end_date: "2027-07-25",
+      });
+    });
+
+    expect(recorded.tripUpdates).toHaveLength(1);
+    expect(recorded.tripUpdates[0]).toMatchObject({ name: "Iceland encore" });
+    expect(recorded.tripUpdates[0]).not.toHaveProperty("start_date");
+    expect(recorded.tripUpdates[0]).not.toHaveProperty("end_date");
+    expect(recorded.rpcCalls).toHaveLength(1);
+    expect(recorded.rpcCalls[0].args).toMatchObject({
+      p_next_end_date: "2027-07-25",
+    });
   });
 
   it("soft-deletes trips instead of removing the row", async () => {
@@ -151,8 +209,8 @@ describe("trip-service", () => {
 });
 
 type Recorded = {
-  visitUpdates: Array<{ visit_date: string | null; ids: number[] }>;
-  rpcCalls: string[];
+  tripUpdates: Record<string, unknown>[];
+  rpcCalls: Array<{ name: string; args: Record<string, unknown> }>;
 };
 
 /**
@@ -224,17 +282,16 @@ function dateShiftClient(recorded: Recorded) {
             }),
           }),
           update: (input: Record<string, unknown>) => ({
-            eq: () => ({
-              select: () => ({
-                async single() {
-                  return { data: { ...storedTrip, ...input }, error: null };
-                },
-              }),
-            }),
+            async eq() {
+              recorded.tripUpdates.push(input);
+              return { error: null };
+            },
           }),
         };
       }
 
+      // Visit dates are only ever written through the realign RPC; a direct
+      // itinerary_items update here would be the non-atomic path regressing.
       if (table === "itinerary_items") {
         return {
           select: () => ({
@@ -244,24 +301,13 @@ function dateShiftClient(recorded: Recorded) {
               },
             }),
           }),
-          update: (input: Record<string, unknown>) => ({
-            eq: () => ({
-              async in(_column: string, ids: number[]) {
-                recorded.visitUpdates.push({
-                  visit_date: input.visit_date as string | null,
-                  ids,
-                });
-                return { error: null };
-              },
-            }),
-          }),
         };
       }
 
       throw new Error(`Unexpected table ${table}`);
     },
-    async rpc(name: string) {
-      recorded.rpcCalls.push(name);
+    async rpc(name: string, args: Record<string, unknown>) {
+      recorded.rpcCalls.push({ name, args });
       return { error: null };
     },
   };

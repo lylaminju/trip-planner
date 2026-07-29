@@ -35,6 +35,28 @@ describe("supabase route segment reconciliation schema", () => {
     );
   });
 
+  it("commits trip dates and visit realignment in one guarded RPC", () => {
+    expect(schema).toMatch(
+      /create or replace function public\.update_trip_dates_and_realign_visits\(/,
+    );
+    // The stale-shift guard: the transaction aborts unless the trip still has
+    // the dates the visit changes were computed from.
+    expect(schema).toMatch(/start_date is not distinct from p_prev_start_date/);
+    expect(schema).toMatch(/end_date is not distinct from p_prev_end_date/);
+    expect(schema).toMatch(
+      /perform public\.reconcile_route_segments_for_trip\(p_trip_id\)/,
+    );
+  });
+
+  it("limits the trip date realignment RPC to the service role", () => {
+    expect(schema).toMatch(
+      /revoke all on function public\.update_trip_dates_and_realign_visits\([^)]*\) from public/,
+    );
+    expect(schema).toMatch(
+      /grant execute on function public\.update_trip_dates_and_realign_visits\([^)]*\) to service_role/,
+    );
+  });
+
   it("limits the route reconciliation RPC to the service role", () => {
     expect(schema).toMatch(
       /revoke all on function public\.reconcile_route_segments_for_trip\(bigint\) from public/,
