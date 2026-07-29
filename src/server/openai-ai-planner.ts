@@ -71,6 +71,12 @@ export type AiPlannerPromptContext = {
 // actual trip dates), so the budget stays small and the run bounded.
 export const AI_ITINERARY_MAX_WEB_SEARCHES = 6;
 
+// gpt-5.4-mini defaults to reasoning effort "none", which cannot track the
+// trip-wide constraints (no repeated candidates, every must-see exactly once,
+// total visits bounded by catalog size) on long trips. "low" buys that
+// bookkeeping for a modest reasoning-token cost.
+export const AI_ITINERARY_REASONING_EFFORT = "low";
+
 type RequestOptions = {
   apiKey: string;
   model: string;
@@ -94,6 +100,8 @@ const SYSTEM_PROMPT = [
   "Do not add restaurants, meals, or places outside the candidate list.",
   "Use only candidate IDs in the response.",
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
+  "Schedule each candidate at most once across the entire trip; never plan a return visit to a place already scheduled on another day.",
+  "Every must-see ID must appear in the plan exactly once.",
   "When lodging is provided, use it as the daily start anchor and do not schedule it as an attraction.",
   "Use the provided daily_start_time as the time each day starts from lodging; the first attraction should account for realistic travel time from lodging to the first attraction.",
   "When trip_start_point is provided, the first trip day begins at trip_start_point rather than starting the day at lodging; when it has no time, start from daily_start_time and treat that as the moment you leave the start point.",
@@ -126,6 +134,7 @@ export async function requestAiItineraryPlan({
     },
     body: JSON.stringify({
       model,
+      reasoning: { effort: AI_ITINERARY_REASONING_EFFORT },
       ...(enableWebSearch
         ? {
             tools: [{ type: "web_search" }],

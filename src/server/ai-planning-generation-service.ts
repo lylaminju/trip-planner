@@ -45,7 +45,7 @@ import { requireTripRole } from "./trip-access";
 import { getTripById } from "./trip-service";
 
 // v2: web search verifies scheduled places' operation and opening days.
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v2";
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v3";
 
 const CATALOG_NOT_READY_MESSAGE =
   "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";
