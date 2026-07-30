@@ -22,10 +22,11 @@ anonymous guest principal.
 
 - **Explore a sample trip**: clones a pre-made template trip into a fresh
   guest-owned copy. Viewing the clone makes zero metered API calls: the geometry
-  cache is keyed by route rather than by place row, so the clone's segments read
-  the rows the source trip already populated. Non-transit rows are shared
-  outright; transit rows are shared per weekday-hour departure bucket, so a clone
-  whose dates fall in an uncached bucket pays for those segments once.
+  cache is keyed by route rather than by place row, and clones copy the sample's
+  visit dates and times verbatim, so every clone resolves to the same transit
+  departure buckets and reads rows an earlier viewer already populated.
+  Rescheduling a visit to a different day or hour moves that segment into a new
+  bucket, which is paid for once and then shared onward.
 - **Plan a trip**: a create form limited to the curated destination list, then
   the planner. Guests do not get a dashboard.
 
@@ -100,7 +101,8 @@ is exhausted, the feature degrades with a sign-in upsell instead of an error.
 - Serving cached route geometry never consumes Routes quota, for guests or
   members; quota is asserted only on a geometry cache miss. Cached rows are
   shared across all trips travelling the same route, so one guest's lookup also
-  spares the next guest's.
+  spares the next guest's. Transit rows expire after 7 days and other modes after
+  30, so a long-lived sample trip repopulates its transit segments about weekly.
 - AI generation asserts the AI generation budget only. Route lookups inside a
   generation are asserted per call, and an exhausted routes budget degrades the
   plan — fallback travel modes, no first-visit realignment — instead of blocking
