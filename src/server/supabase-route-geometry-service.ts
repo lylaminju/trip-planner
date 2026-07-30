@@ -60,11 +60,11 @@ type RouteGeometryCacheRow = {
   duration_seconds: number | null;
 };
 
-// Walking, cycling and driving geometry does not move with the clock, so it
-// stays valid for a month. Transit rows are pinned to a weekday-hour bucket and
-// expire sooner because agency schedules change on service updates.
+// One expiry for every mode. Transit varies by time of day, but that is handled
+// by the departure bucket in the cache key, not by expiring rows sooner: a
+// Saturday-10:00 row is only ever read for Saturday-10:00 departures. Expiry
+// covers the slower concern of agencies republishing timetables.
 const CACHE_MAX_AGE_DAYS = 30;
-const TRANSIT_CACHE_MAX_AGE_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export async function getRouteGeometry(
@@ -76,7 +76,7 @@ export async function getRouteGeometry(
 ): Promise<RouteGeometry> {
   const segment = await getSegmentRouteRow(tripId, segmentId);
   const cacheKey = routeGeometryCacheKey(segment);
-  const cached = await getCachedRouteGeometry(cacheKey, segment.mode);
+  const cached = await getCachedRouteGeometry(cacheKey);
 
   if (cached) {
     return toRouteGeometry(segmentId, cached);
@@ -182,11 +182,10 @@ function segmentDeparture(
 
 async function getCachedRouteGeometry(
   cacheKey: string,
-  mode: TravelMode,
 ): Promise<RouteGeometryCacheRow | null> {
-  const maxAgeDays =
-    mode === "transit" ? TRANSIT_CACHE_MAX_AGE_DAYS : CACHE_MAX_AGE_DAYS;
-  const cutoff = new Date(Date.now() - maxAgeDays * MS_PER_DAY).toISOString();
+  const cutoff = new Date(
+    Date.now() - CACHE_MAX_AGE_DAYS * MS_PER_DAY,
+  ).toISOString();
   const { data, error } = await getSupabaseClient()
     .from("route_geometry_cache")
     .select("status, encoded_polyline, duration_seconds")
@@ -275,10 +274,7 @@ export function routeGeometryCacheKey(route: CacheableRoute): string {
 export async function cachedRouteDurationSeconds(
   route: CacheableRoute,
 ): Promise<number | null> {
-  const cached = await getCachedRouteGeometry(
-    routeGeometryCacheKey(route),
-    route.mode,
-  );
+  const cached = await getCachedRouteGeometry(routeGeometryCacheKey(route));
   return cached?.status === "ok" ? (cached.duration_seconds ?? null) : null;
 }
 

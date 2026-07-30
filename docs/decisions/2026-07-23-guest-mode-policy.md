@@ -101,8 +101,10 @@ is exhausted, the feature degrades with a sign-in upsell instead of an error.
 - Serving cached route geometry never consumes Routes quota, for guests or
   members; quota is asserted only on a geometry cache miss. Cached rows are
   shared across all trips travelling the same route, so one guest's lookup also
-  spares the next guest's. Transit rows expire after 7 days and other modes after
-  30, so a long-lived sample trip repopulates its transit segments about weekly.
+  spares the next guest's. Rows expire after 30 days for every mode, transit
+  included: transit's time-of-day variation is handled by the departure bucket in
+  the cache key, so a Saturday-10:00 row is only ever read for Saturday-10:00
+  departures. Expiry covers timetable republishing, not time of day.
 - AI generation asserts the AI generation budget only. Route lookups inside a
   generation are asserted per call, and an exhausted routes budget degrades the
   plan — fallback travel modes, no first-visit realignment — instead of blocking
