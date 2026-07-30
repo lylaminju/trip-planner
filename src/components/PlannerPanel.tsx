@@ -10,6 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { useItineraryDrag } from "@/hooks/useItineraryDrag";
 import { useMobileSheetDrag } from "@/hooks/useMobileSheetDrag";
 import type { TripPlannerModals } from "@/hooks/useTripPlannerModals";
 import type { TripPlannerMutations } from "@/hooks/useTripPlannerMutations";
@@ -17,6 +18,7 @@ import type { TripPlannerSelection } from "@/hooks/useTripPlannerSelection";
 import { buildTimedMarkerLabels } from "@/lib/map-marker-labels";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
 import type {
+  ItineraryItem,
   ItineraryView,
   Place,
   RouteGeometry,
@@ -24,6 +26,7 @@ import type {
 } from "@/lib/types";
 
 import { DatePlacePicker } from "./planner-panel/DatePlacePicker";
+import { DragFloater } from "./planner-panel/DragFloater";
 import { FeedbackButton } from "./FeedbackButton";
 import {
   ChatIcon,
@@ -117,7 +120,12 @@ export function PlannerPanel(props: Props) {
   const [isUnscheduledOpen, setIsUnscheduledOpen] = useState(false);
   const [isPlacesOpen, setIsPlacesOpen] = useState(false);
   const [showRouteSegments, setShowRouteSegments] = useState(true);
-  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const itineraryDrag = useItineraryDrag({
+    itinerary: props.itinerary,
+    canEdit: props.canEdit,
+    onScheduleItem: props.mutations.scheduleItineraryItem,
+  });
+  const activeDrag = itineraryDrag.drag;
   const [picker, setPicker] = useState<PickerState | null>(null);
   const mobileSheetDrag = useMobileSheetDrag({
     state: props.mobileSheetState,
@@ -314,9 +322,11 @@ export function PlannerPanel(props: Props) {
             isExpanded={props.isExpanded}
             isUnscheduledOpen={isUnscheduledOpen}
             showRouteSegments={showRouteSegments}
-            dropTargetKey={dropTargetKey}
+            dragPreview={activeDrag?.preview ?? null}
+            draggingItem={activeDrag?.item ?? null}
+            dragRowHeight={activeDrag?.geometry.height ?? 0}
             exportFeedback={props.exportFeedback}
-            onDropTargetChange={setDropTargetKey}
+            onStartItemDrag={itineraryDrag.startItemDrag}
             onToggleUnscheduledOpen={() =>
               setIsUnscheduledOpen((value) => !value)
             }
@@ -386,8 +396,32 @@ export function PlannerPanel(props: Props) {
             />,
             document.body,
           )}
+
+        {activeDrag &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <DragFloater
+              item={activeDrag.item}
+              preview={activeDrag.preview}
+              markerColor={dayColorForItem(props.itinerary, activeDrag.item)}
+              geometry={activeDrag.geometry}
+              floaterRef={itineraryDrag.floaterRef}
+            />,
+            document.body,
+          )}
       </div>
       {props.resizeHandle}
     </section>
+  );
+}
+
+function dayColorForItem(
+  itinerary: ItineraryView,
+  item: ItineraryItem,
+): string {
+  return (
+    itinerary.days.find((day) =>
+      day.items.some((dayItem) => dayItem.id === item.id),
+    )?.color ?? "var(--accent)"
   );
 }

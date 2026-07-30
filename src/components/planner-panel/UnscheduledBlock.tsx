@@ -1,21 +1,15 @@
 "use client";
 
-import type { DragEvent } from "react";
-
 import type { ItineraryView, Place } from "@/lib/types";
 
 import { PlaceListRow } from "./PlaceRows";
 import { SectionToggle } from "./SectionToggle";
-import { UNSCHEDULED_DROP_TARGET, getDraggedItem } from "./drag-schedule";
 
 type Props = {
   itinerary: ItineraryView;
   activeCanonicalPlaceId: number | null;
-  dropTargetKey: string | null;
+  isDropTarget: boolean;
   isOpen: boolean;
-  activateDropTarget: (event: DragEvent<HTMLElement>, key: string) => void;
-  leaveDropTarget: (event: DragEvent<HTMLElement>) => void;
-  onDropTargetChange: (key: string | null) => void;
   onToggleOpen: () => void;
   onSelectPlace: (id: number | null) => void;
   onSelectCanonicalPlace: (id: number | null) => void;
@@ -26,40 +20,14 @@ type Props = {
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
   onDelete: (id: number) => void;
-  onScheduleItem: (
-    id: number,
-    visitDate: string | null,
-    visitTime: string | null,
-  ) => void;
   onConfirmDeletion: (targetLabel: string) => boolean;
 };
 
 export function UnscheduledBlock(props: Props) {
   return (
     <div
-      className={`unscheduled-block ${
-        props.dropTargetKey === UNSCHEDULED_DROP_TARGET ? "drop-target" : ""
-      }`}
-      onDragEnter={
-        props.canEdit
-          ? (event) => props.activateDropTarget(event, UNSCHEDULED_DROP_TARGET)
-          : undefined
-      }
-      onDragOver={
-        props.canEdit
-          ? (event) => props.activateDropTarget(event, UNSCHEDULED_DROP_TARGET)
-          : undefined
-      }
-      onDragLeave={props.canEdit ? props.leaveDropTarget : undefined}
-      onDrop={(event) => {
-        if (!props.canEdit) return;
-        event.preventDefault();
-        props.onDropTargetChange(null);
-        const item = getDraggedItem(event, props.itinerary);
-        if (item) {
-          props.onScheduleItem(item.id, null, null);
-        }
-      }}
+      className={`unscheduled-block ${props.isDropTarget ? "drop-target" : ""}`}
+      data-unscheduled-drop
     >
       <div className="unscheduled-heading-row">
         <SectionToggle

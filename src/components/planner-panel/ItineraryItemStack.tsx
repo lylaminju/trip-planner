@@ -1,50 +1,35 @@
 "use client";
 
-import type { DragEvent } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 
 import type {
   ItineraryItem,
-  ItineraryView,
   RouteGeometry,
   SegmentView,
   TravelMode,
 } from "@/lib/types";
 
 import { SegmentRow } from "../SegmentRow";
-import { EndInsertionDropZone, InsertionDropZone } from "./DropZones";
 import { ItineraryItemRow } from "./PlaceRows";
-import {
-  endDropTargetKey,
-  hasVisitTime,
-  inferEndVisitTime,
-  inferInsertedVisitTime,
-  inferStartVisitTime,
-  insertionDropTargetKey,
-  scheduleDraggedSource,
-  startDropTargetKey,
-} from "./drag-schedule";
+import { hasVisitTime } from "./drag-schedule";
 
 type Props = {
   item: ItineraryItem;
-  itemIndex: number;
   previousItem: ItineraryItem | null;
   nextItem: ItineraryItem | null;
-  dayItems: ItineraryItem[];
   segmentView: SegmentView | null;
   date: string;
   dayColor: string;
-  itinerary: ItineraryView;
   activePlaceId: number | null;
   activeSegmentId: number | null;
   routeGeometries: Map<number, RouteGeometry>;
   markerLabel: string | null;
   canEdit: boolean;
   isDeleting: boolean;
+  isDragSource: boolean;
+  isSegmentStale: boolean;
   showRouteSegments: boolean;
-  dropTargetKey: string | null;
-  activateDropTarget: (event: DragEvent<HTMLElement>, key: string) => void;
-  leaveDropTarget: (event: DragEvent<HTMLElement>) => void;
-  onDropTargetChange: (key: string | null) => void;
+  onStartDrag: (event: ReactPointerEvent<HTMLElement>) => void;
   onSelectPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
   onDuplicateItem: (item: ItineraryItem) => void;
@@ -65,62 +50,12 @@ export function ItineraryItemStack(props: Props) {
     previousItem !== null &&
     !hasVisitTime(props.item) &&
     hasVisitTime(previousItem);
-  const showEndTimedDropZone =
-    hasVisitTime(props.item) && !hasVisitTime(props.nextItem);
-  const showStartTimedDropZone =
-    props.itemIndex === 0 && hasVisitTime(props.item);
-  const insertionKey =
-    previousItem === null
-      ? null
-      : insertionDropTargetKey(props.date, props.itemIndex);
-  const endInsertionKey = endDropTargetKey(props.date);
-  const startInsertionKey = startDropTargetKey(props.date);
   const routeSegment = props.segmentView?.segment ?? null;
 
   return (
-    <div className="itinerary-item-stack">
-      {props.canEdit && previousItem && insertionKey && (
-        <InsertionDropZone
-          active={props.dropTargetKey === insertionKey}
-          onDragEnter={(event) => props.activateDropTarget(event, insertionKey)}
-          onDragOver={(event) => props.activateDropTarget(event, insertionKey)}
-          onDragLeave={props.leaveDropTarget}
-          onDrop={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            props.onDropTargetChange(null);
-            scheduleDraggedSource(event, {
-              itinerary: props.itinerary,
-              date: props.date,
-              visitTime: inferInsertedVisitTime(previousItem, props.item),
-              onScheduleItem: props.onScheduleItem,
-            });
-          }}
-        />
-      )}
-      {props.canEdit && showStartTimedDropZone && (
-        <InsertionDropZone
-          active={props.dropTargetKey === startInsertionKey}
-          onDragEnter={(event) =>
-            props.activateDropTarget(event, startInsertionKey)
-          }
-          onDragOver={(event) =>
-            props.activateDropTarget(event, startInsertionKey)
-          }
-          onDragLeave={props.leaveDropTarget}
-          onDrop={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            props.onDropTargetChange(null);
-            scheduleDraggedSource(event, {
-              itinerary: props.itinerary,
-              date: props.date,
-              visitTime: inferStartVisitTime(props.dayItems),
-              onScheduleItem: props.onScheduleItem,
-            });
-          }}
-        />
-      )}
+    <div
+      className={`itinerary-item-stack ${props.isDragSource ? "drag-source" : ""}`}
+    >
       {showUntimedDivider && (
         <div className="itinerary-divider" aria-hidden="true" />
       )}
@@ -129,9 +64,9 @@ export function ItineraryItemStack(props: Props) {
         active={props.activePlaceId === props.item.id}
         markerLabel={props.markerLabel}
         markerColor={props.dayColor}
-        onDragEnd={() => props.onDropTargetChange(null)}
         canEdit={props.canEdit}
         isDeleting={props.isDeleting}
+        onHandlePointerDown={props.onStartDrag}
         onSelect={() =>
           props.onSelectPlace(
             props.activePlaceId === props.item.id ? null : props.item.id,
@@ -171,31 +106,9 @@ export function ItineraryItemStack(props: Props) {
             props.routeGeometries.get(routeSegment.id)?.duration_seconds
           }
           canEdit={props.canEdit}
+          stale={props.isSegmentStale}
           onSelect={() => props.onSelectSegment(routeSegment.id)}
           onModeChange={(mode) => props.onModeChange(routeSegment.id, mode)}
-        />
-      )}
-      {props.canEdit && showEndTimedDropZone && (
-        <EndInsertionDropZone
-          active={props.dropTargetKey === endInsertionKey}
-          onDragEnter={(event) =>
-            props.activateDropTarget(event, endInsertionKey)
-          }
-          onDragOver={(event) =>
-            props.activateDropTarget(event, endInsertionKey)
-          }
-          onDragLeave={props.leaveDropTarget}
-          onDrop={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            props.onDropTargetChange(null);
-            scheduleDraggedSource(event, {
-              itinerary: props.itinerary,
-              date: props.date,
-              visitTime: inferEndVisitTime(props.dayItems),
-              onScheduleItem: props.onScheduleItem,
-            });
-          }}
         />
       )}
     </div>

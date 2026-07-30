@@ -207,47 +207,43 @@
   margin: 10px 0 8px;
 }
 
-.itinerary-item-stack {
+/* The dragged visit's stack lifts out of the list while its drag is in
+   flight; the ghost slot below stands in for it. */
+.itinerary-item-stack.drag-source {
+  display: none;
+}
+
+/* In-flow gap marking where a dragged visit will land, sized to the row that
+   was lifted out. It must take its full height immediately and never
+   animate: the hovered slot is resolved by measuring the live rows, so a gap
+   whose height is still moving would resolve differently frame to frame and
+   cycle between two slots. */
+.itinerary-slot-gap {
+  background: var(--surface-muted);
+  border: 1px dashed var(--border-muted);
+  border-radius: 8px;
+}
+
+/* Stand-ins for the route legs the drop will create, echoing the real
+   segment-row silhouette. */
+.itinerary-slot-segment-placeholder {
+  padding: 3px 6px 3px 66px;
   position: relative;
 }
 
-.itinerary-insertion-zone,
-.itinerary-end-insertion-zone {
-  align-items: center;
-  display: flex;
-  height: 20px;
-  left: 0;
-  margin: 0;
-  padding: 0;
+.itinerary-slot-segment-placeholder::before {
+  border-top: 1px dashed var(--border-muted);
+  content: "";
+  left: 44px;
   position: absolute;
-  right: 0;
-  top: -10px;
-  z-index: 3;
+  top: 50%;
+  width: 16px;
 }
 
-.itinerary-insertion-zone span,
-.itinerary-end-insertion-zone span {
-  background: var(--active-line);
+.itinerary-slot-leg-chip {
+  border: 1px dashed var(--border-muted);
   border-radius: 999px;
   display: block;
-  height: 2px;
-  opacity: 0;
-  position: absolute;
-  top: 9px;
-  transition: opacity 120ms ease;
-  width: 100%;
-}
-
-.itinerary-insertion-zone.active span,
-.itinerary-end-insertion-zone.active span {
-  opacity: 1;
-}
-
-.itinerary-end-insertion-zone {
-  bottom: -10px;
-  top: auto;
-}
-
-.itinerary-end-insertion-zone span {
-  top: 9px;
+  height: 20px;
+  width: 44px;
 }

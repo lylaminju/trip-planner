@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 
-import {
-  formatPlaceRow,
-  formatSchedule,
-  placeThumbGlyph,
-} from "@/lib/place-display";
+import { formatPlaceRow, placeThumbGlyph } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
@@ -25,7 +22,7 @@ export function ItineraryItemRow(props: {
   markerLabel: string | null;
   markerColor: string;
   canEdit: boolean;
-  onDragEnd?: () => void;
+  onHandlePointerDown?: (event: ReactPointerEvent<HTMLElement>) => void;
   onSelect: () => void;
   onDuplicate: () => void;
   onEdit: () => void;
@@ -84,22 +81,10 @@ export function ItineraryItemRow(props: {
         <button
           type="button"
           className="drag-handle"
-          draggable
           aria-label={dragLabel}
           title={dragLabel}
           onClick={(event) => event.preventDefault()}
-          onDragStart={(event) => {
-            event.dataTransfer.effectAllowed = "move";
-            event.dataTransfer.setData(
-              "text/itinerary-item-id",
-              String(props.item.id),
-            );
-            const dragPreview = createDragPreview(props.item);
-            document.body.appendChild(dragPreview);
-            event.dataTransfer.setDragImage(dragPreview, 16, 16);
-            window.setTimeout(() => dragPreview.remove(), 0);
-          }}
-          onDragEnd={props.onDragEnd}
+          onPointerDown={props.onHandlePointerDown}
         >
           ::
         </button>
@@ -306,17 +291,3 @@ export function PlaceListRow(props: {
   );
 }
 
-function createDragPreview(source: ItineraryItem): HTMLElement {
-  const place = source.place;
-  const preview = document.createElement("div");
-  preview.className = "place-drag-preview";
-
-  const name = document.createElement("strong");
-  name.textContent = place.name;
-
-  const schedule = document.createElement("span");
-  schedule.textContent = formatSchedule(source);
-
-  preview.append(name, schedule);
-  return preview;
-}

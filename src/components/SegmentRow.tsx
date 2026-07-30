@@ -46,6 +46,9 @@ type Props = {
   active: boolean;
   durationSeconds?: number;
   canEdit: boolean;
+  // A leg a pending drop will replace; the preview renders its own stand-in
+  // legs in its place.
+  stale?: boolean;
   onSelect: () => void;
   onModeChange: (mode: TravelMode) => void;
 };
@@ -57,6 +60,7 @@ export function SegmentRow({
   active,
   durationSeconds,
   canEdit,
+  stale,
   onSelect,
   onModeChange,
 }: Props) {
@@ -75,7 +79,9 @@ export function SegmentRow({
 
   return (
     <div
-      className={`segment-row ${active ? "active" : ""}`}
+      className={["segment-row", active ? "active" : "", stale ? "stale" : ""]
+        .filter(Boolean)
+        .join(" ")}
       data-planner-select
       onClick={onSelect}
     >

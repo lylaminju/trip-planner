@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Dispatch, DragEvent, MouseEvent, SetStateAction } from "react";
+import type { MouseEvent, PointerEvent as ReactPointerEvent } from "react";
 
 import type {
   ItineraryItem,
@@ -14,7 +14,7 @@ import type {
 import { TrashIcon } from "../Icons";
 import { ItineraryDayBlock } from "./ItineraryDayBlock";
 import { UnscheduledBlock } from "./UnscheduledBlock";
-import { hasScheduleDragData, isLeavingCurrentTarget } from "./drag-schedule";
+import type { DragPreview } from "./drag-schedule";
 
 type Props = {
   itinerary: ItineraryView;
@@ -32,13 +32,18 @@ type Props = {
   isExpanded: boolean;
   isUnscheduledOpen: boolean;
   showRouteSegments: boolean;
-  dropTargetKey: string | null;
+  dragPreview: DragPreview | null;
+  draggingItem: ItineraryItem | null;
+  dragRowHeight: number;
   exportFeedback: {
     action: "copy" | "download";
     kind: "error" | "success";
     label: string;
   } | null;
-  onDropTargetChange: Dispatch<SetStateAction<string | null>>;
+  onStartItemDrag: (
+    item: ItineraryItem,
+    event: ReactPointerEvent<HTMLElement>,
+  ) => void;
   onToggleUnscheduledOpen: () => void;
   onToggleRouteSegments: () => void;
   onCopyExport: () => void;
@@ -94,20 +99,6 @@ export function ItinerarySection(props: Props) {
       );
     };
   }, []);
-
-  function activateDropTarget(event: DragEvent<HTMLElement>, key: string) {
-    if (!props.canEdit || !hasScheduleDragData(event)) return;
-
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-    props.onDropTargetChange(key);
-  }
-
-  function leaveDropTarget(event: DragEvent<HTMLElement>) {
-    if (isLeavingCurrentTarget(event)) {
-      props.onDropTargetChange(null);
-    }
-  }
 
   function deleteAllItems() {
     if (
@@ -196,7 +187,6 @@ export function ItinerarySection(props: Props) {
             key={day.date}
             day={day}
             dayIndex={dayIndex}
-            itinerary={props.itinerary}
             collapsed={props.collapsedDates.has(day.date)}
             activePlaceId={props.activePlaceId}
             activeSegmentId={props.activeSegmentId}
@@ -206,10 +196,10 @@ export function ItinerarySection(props: Props) {
             canEdit={props.canEdit}
             deletingItineraryItemIds={props.deletingItineraryItemIds}
             showRouteSegments={props.showRouteSegments}
-            dropTargetKey={props.dropTargetKey}
-            activateDropTarget={activateDropTarget}
-            leaveDropTarget={leaveDropTarget}
-            onDropTargetChange={props.onDropTargetChange}
+            dragPreview={props.dragPreview}
+            draggingItem={props.draggingItem}
+            dragRowHeight={props.dragRowHeight}
+            onStartItemDrag={props.onStartItemDrag}
             onToggleDatePlacePicker={props.onToggleDatePlacePicker}
             onSelectPlace={props.onSelectPlace}
             onSelectSegment={props.onSelectSegment}
@@ -227,11 +217,8 @@ export function ItinerarySection(props: Props) {
         <UnscheduledBlock
           itinerary={props.itinerary}
           activeCanonicalPlaceId={props.activeCanonicalPlaceId}
-          dropTargetKey={props.dropTargetKey}
+          isDropTarget={props.dragPreview?.kind === "unscheduled"}
           isOpen={props.isUnscheduledOpen}
-          activateDropTarget={activateDropTarget}
-          leaveDropTarget={leaveDropTarget}
-          onDropTargetChange={props.onDropTargetChange}
           onToggleOpen={props.onToggleUnscheduledOpen}
           onSelectPlace={props.onSelectPlace}
           onSelectCanonicalPlace={props.onSelectCanonicalPlace}
@@ -242,7 +229,6 @@ export function ItinerarySection(props: Props) {
           onAddVisit={props.onAddVisit}
           onEdit={props.onEdit}
           onDelete={props.onDelete}
-          onScheduleItem={props.onScheduleItem}
           onConfirmDeletion={props.onConfirmDeletion}
         />
       </div>

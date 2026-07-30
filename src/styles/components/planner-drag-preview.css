@@ -1,24 +1,23 @@
-/* Floating drag preview shown while dragging itinerary rows. */
-.place-drag-preview {
+/* The dragged row, lifted out of the list and tracking the pointer. Its left
+   and width stay fixed to the column it was picked up from, so it only ever
+   travels vertically. */
+.itinerary-drag-floater {
   background: var(--surface-panel);
-  border: 1px solid var(--accent);
   border-radius: 8px;
   box-shadow: var(--shadow-drag-preview);
-  color: var(--text);
-  display: grid;
-  gap: 2px;
-  left: -9999px;
-  max-width: 320px;
-  padding: 8px 10px;
   pointer-events: none;
   position: fixed;
-  top: -9999px;
-  width: max-content;
   z-index: 9999;
 }
 
-.place-drag-preview span {
-  color: var(--muted);
-  font-size: 12px;
-  overflow-wrap: anywhere;
+/* While a drag is in flight the grabbing cursor has to win over every
+   control's own cursor, and text must not select as the pointer sweeps
+   across the list. */
+body.visit-drag-active,
+body.visit-drag-active * {
+  cursor: grabbing !important;
+}
+
+body.visit-drag-active {
+  user-select: none;
 }

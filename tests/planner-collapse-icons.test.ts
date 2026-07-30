@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import { ItinerarySection } from "@/components/planner-panel/ItinerarySection";
 import { SectionToggle } from "@/components/planner-panel/SectionToggle";
 import type { ItineraryView } from "@/lib/types";
 import {
@@ -11,6 +10,7 @@ import {
   buildPlace,
   buildRouteSegment,
 } from "./helpers/fixtures";
+import { renderItinerarySection } from "./helpers/itinerary-section-markup";
 
 describe("planner collapse controls", () => {
   it("renders section toggles with an svg chevron instead of text glyphs", () => {
@@ -125,51 +125,9 @@ function dayCollapseButtonMarkup(collapsedDates: ReadonlySet<string>) {
 
 function itinerarySectionMarkup(
   collapsedDates: ReadonlySet<string>,
-  overrides: Partial<Parameters<typeof ItinerarySection>[0]> = {},
+  overrides: Partial<Parameters<typeof renderItinerarySection>[0]> = {},
 ) {
-  return renderToStaticMarkup(
-    createElement(ItinerarySection, {
-      itinerary: itinerary(),
-      activePlaceId: null,
-      activeCanonicalPlaceId: null,
-      activeSegmentId: null,
-      activeDate: null,
-      collapsedDates,
-      routeGeometries: new Map(),
-      markerLabels: new Map(),
-      canEdit: true,
-      canAddVisits: true,
-      deletingPlaceIds: new Set<number>(),
-      deletingItineraryItemIds: new Set<number>(),
-      isExpanded: false,
-      isUnscheduledOpen: true,
-      showRouteSegments: true,
-      dropTargetKey: null,
-      exportFeedback: null,
-      onDropTargetChange: vi.fn(),
-      onToggleUnscheduledOpen: vi.fn(),
-      onToggleRouteSegments: vi.fn(),
-      onCopyExport: vi.fn(),
-      onDownloadExport: vi.fn(),
-      onToggleDatePlacePicker: vi.fn(),
-      onSelectPlace: vi.fn(),
-      onSelectCanonicalPlace: vi.fn(),
-      onSelectSegment: vi.fn(),
-      onToggleDateCollapsed: vi.fn(),
-      onSelectDate: vi.fn(),
-      onAddVisit: vi.fn(),
-      onEdit: vi.fn(),
-      onDuplicateItem: vi.fn(),
-      onEditItem: vi.fn(),
-      onDelete: vi.fn(),
-      onDeleteItem: vi.fn(),
-      onDeleteAllItems: vi.fn(),
-      onScheduleItem: vi.fn(),
-      onModeChange: vi.fn(),
-      onConfirmDeletion: vi.fn(),
-      ...overrides,
-    }),
-  );
+  return renderItinerarySection({ collapsedDates, ...overrides });
 }
 
 function markupBetween(markup: string, className: string, tag: string) {
@@ -190,20 +148,6 @@ function cssRule(css: string, selector: string) {
   expect(end).toBeGreaterThanOrEqual(0);
 
   return css.slice(start, end + 2);
-}
-
-function itinerary(): ItineraryView {
-  return {
-    days: [
-      {
-        date: "2026-06-01",
-        color: "var(--accent)",
-        items: [],
-        segments: [],
-      },
-    ],
-    unscheduled: [buildPlace()],
-  };
 }
 
 function itineraryWithSegment(): ItineraryView {

@@ -93,6 +93,12 @@
   background: var(--surface-muted);
 }
 
+/* A leg the previewed drop replaces: taken out of the flow so its slot does
+   not sit empty above the preview's own leg stand-in. */
+.segment-row.stale {
+  display: none;
+}
+
 .segment-row.active::before {
   border-top-color: var(--accent-selected-border);
 }
