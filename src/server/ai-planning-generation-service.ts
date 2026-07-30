@@ -36,7 +36,6 @@ import {
   upsertPrimaryLodgingFromGoogleMapsUrl,
   upsertPlanningPreferences,
 } from "./supabase-ai-planning-service";
-import { assertGoogleRoutesQuota } from "./supabase-google-routes-usage-store";
 import {
   requestAiItineraryPlan,
   type AiItineraryPlan,
@@ -59,8 +58,12 @@ export async function generateAiItineraryForRequest(
   const startedAt = Date.now();
   await requireTripRole(tripId, userId, "owner");
 
+  // Only the AI budget gates a run. Route lookups are asserted per call on a
+  // geometry cache miss, and every route-dependent refinement here (walking-mode
+  // probes, first-visit realignment) falls back when that assertion fails, so an
+  // exhausted routes budget degrades the plan instead of blocking a generation
+  // that still has AI budget left.
   await assertAiGenerationQuota(userId);
-  await assertGoogleRoutesQuota(userId);
 
   const trip = await getTripById(tripId);
   const candidateKey = destinationCandidateKey(trip);

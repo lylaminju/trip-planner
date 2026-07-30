@@ -11,12 +11,12 @@ export type GuestUsageKind =
 
 // Friendly per-browser limits; honest guests should never notice them.
 export const GUEST_AI_GENERATION_DAILY_LIMIT = 5;
-export const GUEST_GOOGLE_ROUTES_DAILY_LIMIT = 30;
+export const GUEST_GOOGLE_ROUTES_DAILY_LIMIT = 100;
 
 // Demo-wide caps across all guests: the hard bound on worst-case daily spend
 // no matter how many cookies or networks an abuser rotates through.
 export const GUEST_AI_GENERATION_GLOBAL_DAILY_CAP = 50;
-export const GUEST_GOOGLE_ROUTES_GLOBAL_DAILY_CAP = 150;
+export const GUEST_GOOGLE_ROUTES_GLOBAL_DAILY_CAP = 300;
 
 export async function countGuestCallsToday(
   guestId: string,

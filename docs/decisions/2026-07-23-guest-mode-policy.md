@@ -65,14 +65,16 @@ Limits:
 | Guest trip length | 5 days |
 | AI generations per guest per day | 5 |
 | AI generations, global guest cap per day | 50 |
-| Routes calls per guest per day | 30 |
-| Routes calls, global guest cap per day | 150 |
+| Routes calls per guest per day | 100 |
+| Routes calls, global guest cap per day | 300 |
 | Guest trip TTL | 48 hours |
 
-The global caps bound worst-case spend at roughly $1 per day for OpenAI and $0
-for Google Routes (4,500 guest calls per month plus member usage stays inside
-the free tier). When a global cap is exhausted, the feature degrades with a
-sign-in upsell instead of an error.
+The global caps bound worst-case spend at roughly $1 per day for OpenAI. For
+Google Routes the worst case is 9,300 guest calls in a 31-day month; added to
+member usage at the measured 346 per 30 days, that stays inside the 10,000-call
+free tier with roughly 350 calls of headroom. Sustained cap-saturating traffic
+would therefore be the point at which Routes stops being free. When a global cap
+is exhausted, the feature degrades with a sign-in upsell instead of an error.
 
 ## Abuse posture
 
@@ -94,6 +96,16 @@ sign-in upsell instead of an error.
   visibility unified; quota counting for guests uses `guest_api_usage` only.
 - Serving cached route geometry never consumes Routes quota, for guests or
   members; quota is asserted only on a geometry cache miss.
+- AI generation asserts the AI generation budget only. Route lookups inside a
+  generation are asserted per call, and an exhausted routes budget degrades the
+  plan — fallback travel modes, no first-visit realignment — instead of blocking
+  the run.
+- Raised the per-guest routes limit from 30 to 100 and the global guest routes
+  cap from 150 to 300 on 2026-07-29. One guest reached the previous per-guest
+  limit of 30 in 16 minutes of normal planner editing and was then unable to
+  generate a plan with all 5 AI generations still unused. Beta-period guests are
+  sized as one-off visitors rather than daily returners, so the per-guest limit
+  covers a single long editing session.
 
 ## Analytics
 
