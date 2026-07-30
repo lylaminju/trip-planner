@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AiPlanningWizard } from "@/components/AiPlanningWizard";
 import {
   MustSeeStep,
+  PaceStep,
   ReviewStep,
 } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
 import { LogisticsStep } from "@/components/ai-planning-wizard/LogisticsStep";
@@ -60,12 +61,45 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Relaxed");
     expect(markup).toContain("Balanced");
     expect(markup).toContain("Packed");
-    // 2026-05-27 to 2026-05-29 inclusive = 3 days; ~((2+3)/2)*3 = 8 stops.
+    // 3 trip days at the default 2-3/day pace exceed the 2-candidate catalog,
+    // so the estimate shows coverage copy: catalog-sized stops plus free days.
     expect(markup).toContain("May 27 – May 29");
     expect(markup).toContain("3 days");
+    expect(markup).toContain("2 stops");
+    expect(markup).toContain("with free days in between");
+    expect(markup).toContain("Next");
+  });
+
+  it("shows the full-trip stop estimate when the catalog can fill every day", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PaceStep, {
+        draft: preferenceDraft(),
+        onChange: vi.fn(),
+        days: 3,
+        candidateCount: 40,
+      }),
+    );
+
+    // 3 days at 2-3/day: ~((2+3)/2)*3 = 8 stops.
     expect(markup).toContain("8 stops");
     expect(markup).toContain("across your 3 days");
-    expect(markup).toContain("Next");
+    expect(markup).not.toContain("free days");
+  });
+
+  it("shows sightseeing days plus free days when the trip outgrows the catalog", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PaceStep, {
+        draft: preferenceDraft(),
+        onChange: vi.fn(),
+        days: 90,
+        candidateCount: 40,
+      }),
+    );
+
+    // 40 candidates at 2-3/day: ceil(40/3)=14 to floor(40/2)=20 sightseeing days.
+    expect(markup).toContain("40 stops");
+    expect(markup).toContain("about 14–20 sightseeing days");
+    expect(markup).toContain("with free days in between");
   });
 
   it("replaces wizard body with the generation screen while generating", () => {

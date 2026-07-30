@@ -19,6 +19,10 @@ import {
   AI_OPENING_HOURS_WARNING,
   canPlanTripWithAi,
 } from "@/lib/ai-planning";
+import {
+  AI_PLANNING_MAX_TRIP_DAYS,
+  countTripDays,
+} from "@/lib/ai-planning-preferences";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
 import { isValidIsoDate } from "@/lib/date-validation";
 import {
@@ -56,6 +60,10 @@ import {
   formPayload,
   toTripDateRange,
 } from "./trip-planner-app-utils";
+import {
+  AI_PLAN_NEEDS_DATES_HINT,
+  AI_PLAN_TRIP_TOO_LONG_HINT,
+} from "./PlanWithAiButton";
 import { TripMembersModal } from "./TripMembersModal";
 import { TripPlannerView } from "./TripPlannerView";
 
@@ -167,11 +175,20 @@ export function TripPlannerApp({
   const canEditTripMetadata = role === "owner";
   const isAiPlanningSupported = canEditTripMetadata && canPlanTripWithAi(trip);
   const canPlanWithAi =
-    isAiPlanningSupported && hasAiPlanningDateRange(trip);
-  // The only gate the viewer can resolve themselves: non-owners cannot edit
-  // trip metadata either, and an unkeyable destination is not fixed by dates,
-  // so those stay hidden rather than advertising a blocked action.
-  const aiPlanNeedsDates = isAiPlanningSupported && !canPlanWithAi;
+    isAiPlanningSupported &&
+    hasAiPlanningDateRange(trip) &&
+    !exceedsAiPlanningTripLength(trip);
+  // Gates the owner can resolve themselves surface as a muted hint: missing
+  // dates, or a date range past the AI planning cap. Non-owners cannot edit
+  // trip metadata, and an unkeyable destination is not fixed by dates, so
+  // those stay hidden rather than advertising a blocked action.
+  const aiPlanMutedHint = !isAiPlanningSupported
+    ? null
+    : !hasAiPlanningDateRange(trip)
+      ? AI_PLAN_NEEDS_DATES_HINT
+      : exceedsAiPlanningTripLength(trip)
+        ? AI_PLAN_TRIP_TOO_LONG_HINT
+        : null;
   const tripTitle = trip?.name ?? SERVICE_TITLE;
   const tripPeriodLabel = formatTripPeriodLabel(trip);
   const tripDays = trip ? tripDurationDays(trip) : null;
@@ -458,7 +475,7 @@ export function TripPlannerApp({
         setIsPlannerPanelExpanded((value) => !value)
         }
         onPlanWithAi={canPlanWithAi ? openAiPlanningSetup : undefined}
-        aiPlanNeedsDates={aiPlanNeedsDates}
+        aiPlanMutedHint={aiPlanMutedHint}
         onMobileSheetStateChange={setMobileSheetState}
         onManageMembers={
           canEditTripMetadata && !isGuest
@@ -487,5 +504,17 @@ function hasAiPlanningDateRange(trip: Trip | null): boolean {
     isValidIsoDate(trip.start_date) &&
     isValidIsoDate(trip.end_date) &&
     trip.start_date <= trip.end_date
+  );
+}
+
+// The cap gates AI generation only; the trip itself may be longer. Mirrors the
+// server-side check in tripDateRange so the muted hint and the API agree.
+function exceedsAiPlanningTripLength(trip: Trip | null): boolean {
+  if (!hasAiPlanningDateRange(trip) || !trip?.start_date || !trip.end_date) {
+    return false;
+  }
+
+  return (
+    countTripDays(trip.start_date, trip.end_date) > AI_PLANNING_MAX_TRIP_DAYS
   );
 }

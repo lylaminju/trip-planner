@@ -353,6 +353,102 @@ describe("ai-planning-service request boundary", () => {
     );
   });
 
+  it("rejects AI generation for trips longer than the planning cap before any spend", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    // 2026-01-01 to 2026-06-30 inclusive is 181 days, one past the cap.
+    const getTripById = vi.fn().mockResolvedValue(
+      tripRecord({ start_date: "2026-01-01", end_date: "2026-06-30" }),
+    );
+    const requestAiItineraryPlan = vi.fn();
+    const createAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        getTripById,
+        requireTripRole,
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: { createAiPlanGeneration },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {}),
+        ).rejects.toThrow("AI planning supports trips up to 180 days");
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiItineraryPlan).not.toHaveBeenCalled();
+    expect(createAiPlanGeneration).not.toHaveBeenCalled();
+  });
+
+  it("plans coverage trips with free days when the catalog cannot fill every day", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    // 5 days at minimum pace 1 exceed the 2-candidate catalog, so the plan may
+    // leave free days once it schedules the coverage floor.
+    const getTripById = vi.fn().mockResolvedValue(
+      tripRecord({ start_date: "2026-05-27", end_date: "2026-05-31" }),
+    );
+    const listDestinationCandidates = vi
+      .fn()
+      .mockResolvedValue([candidateRecord(10), candidateRecord(11)]);
+    const upsertPlanningPreferences = vi.fn().mockResolvedValue(
+      savedPreferenceRecord({
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        must_see_candidate_ids: [],
+      }),
+    );
+    const requestAiItineraryPlan = vi
+      .fn()
+      .mockResolvedValue(aiPlannerResult(10, 10, 20));
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 56 });
+    const updateAiPlanGeneration = vi.fn();
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+    const replaceAiGeneratedBatch = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById,
+        requireTripRole,
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          getPrimaryLodging: vi.fn().mockResolvedValue(null),
+          upsertPlanningPreferences,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration,
+          updateAiPlanGeneration,
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+          }),
+        ).resolves.toEqual({ generationId: 56, plannerSnapshot });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    // A single-day plan over a five-day trip is valid in coverage mode, so no
+    // repair call happens and the prompt context carries the coverage floor.
+    expect(requestAiItineraryPlan).toHaveBeenCalledTimes(1);
+    expect(requestAiItineraryPlan.mock.calls[0][0].context.coverage).toEqual({
+      min_total_visits: 1,
+    });
+    expect(updateAiPlanGeneration).toHaveBeenLastCalledWith(
+      56,
+      expect.objectContaining({
+        status: "completed",
+        primary_validation_status: "valid",
+        repair_attempted: false,
+      }),
+    );
+  });
+
   it("uses a submitted lodging Google Maps URL as the AI planning start anchor", async () => {
     const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
     const getTripById = vi.fn().mockResolvedValue(

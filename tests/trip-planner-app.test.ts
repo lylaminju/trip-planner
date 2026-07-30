@@ -208,6 +208,34 @@ describe("TripPlannerApp", () => {
     }
   });
 
+  it("mutes Plan with AI with a cap hint for trips past the AI planning limit", () => {
+    // 2026-01-01 to 2026-06-30 inclusive is 181 days, one past the cap.
+    const markup = renderToStaticMarkup(
+      createElement(TripPlannerApp, {
+        tripId: 1,
+        currentUserId: "user-1",
+        initialData: buildTripPlannerInitialData({
+          trip: buildTrip({
+            destination: "New York City",
+            destination_slug: "new-york-city",
+            start_date: "2026-01-01",
+            end_date: "2026-06-30",
+          }),
+          plannerSnapshot: {
+            places: [buildPlace({ name: "Central Park" })],
+            itineraryItems: [],
+            routeSegments: [],
+          },
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Plan with AI");
+    expect(markup).toContain("AI planning supports trips up to 6 months");
+    expect(markup).toContain('aria-disabled="true"');
+    expect(markup).not.toContain('disabled=""');
+  });
+
   it("renders current location as a map control instead of a planner header button", () => {
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = "test-key";
     const today = localIsoDate(DEFAULT_VIEWER_TIMEZONE);

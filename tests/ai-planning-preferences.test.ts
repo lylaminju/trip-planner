@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   AI_DEFAULT_PLANNING_PREFERENCES,
+  aiCoverageMinTotalVisits,
+  aiCoverageSightseeingDayRange,
   buildAiPlanningPreferenceDraft,
+  isAiCoverageTrip,
 } from "@/lib/ai-planning-preferences";
 import { parseAiPlanningGenerationInput } from "@/server/ai-planning-preferences";
 import type { AiPlanningSetup } from "@/lib/types";
@@ -216,6 +219,41 @@ describe("ai planning preference defaults", () => {
         new Set([10]),
       ),
     ).toThrow("Daily start time must be HH:MM.");
+  });
+});
+
+describe("ai coverage planning helpers", () => {
+  it("detects coverage trips when the minimum pace outgrows the catalog", () => {
+    expect(isAiCoverageTrip(90, 2, 40)).toBe(true);
+    expect(isAiCoverageTrip(21, 2, 40)).toBe(true);
+    expect(isAiCoverageTrip(20, 2, 40)).toBe(false);
+    expect(isAiCoverageTrip(0, 2, 40)).toBe(false);
+  });
+
+  it("floors coverage visits at the catalog fraction", () => {
+    expect(aiCoverageMinTotalVisits(40)).toBe(32);
+    expect(aiCoverageMinTotalVisits(12)).toBe(9);
+  });
+
+  it("sizes the sightseeing-day range from catalog size and pace", () => {
+    expect(aiCoverageSightseeingDayRange(40, 2, 3)).toEqual({
+      minDays: 14,
+      maxDays: 20,
+    });
+    expect(aiCoverageSightseeingDayRange(40, 3, 5)).toEqual({
+      minDays: 8,
+      maxDays: 13,
+    });
+    // A fixed pace clamps the packed bound to the stretched bound: the final
+    // partial day would fall below the minimum pace, so it is not counted.
+    expect(aiCoverageSightseeingDayRange(40, 3, 3)).toEqual({
+      minDays: 13,
+      maxDays: 13,
+    });
+    expect(aiCoverageSightseeingDayRange(2, 3, 5)).toEqual({
+      minDays: 1,
+      maxDays: 1,
+    });
   });
 });
 

@@ -74,7 +74,7 @@ type Props = {
   hidden?: boolean;
   canEdit: boolean;
   onPlanWithAi?: () => void;
-  aiPlanNeedsDates?: boolean;
+  aiPlanMutedHint?: string | null;
 };
 
 export function MapPanel(props: Props) {
@@ -342,7 +342,7 @@ export function MapPanel(props: Props) {
         onToggleCurrentLocation={props.currentLocation.toggleCurrentLocation}
         onAddPlace={props.modals.openAddModal}
         onPlanWithAi={props.onPlanWithAi}
-        aiPlanNeedsDates={props.aiPlanNeedsDates}
+        aiPlanMutedHint={props.aiPlanMutedHint}
       />
     </section>
   );

@@ -27,6 +27,46 @@ export const AI_TRAVEL_MODE_OPTIONS: {
 export const AI_VISITS_PER_DAY_MIN = 1;
 export const AI_VISITS_PER_DAY_MAX = 5;
 
+// Cap for AI generation only; trips themselves may be longer. 180 days covers
+// visa-length long stays (90-day Schengen, 180-day visitor stays, semesters)
+// while bounding the date grid the planner model has to track.
+export const AI_PLANNING_MAX_TRIP_DAYS = 180;
+
+// On a coverage trip the plan cannot fill every day, but it must still use
+// most of the catalog; below this share it reads as underfilled, not paced.
+export const AI_COVERAGE_MIN_CATALOG_FRACTION = 0.8;
+
+// A trip needs coverage mode (sightseeing days plus free days) when even the
+// minimum pace across every day would exceed the curated catalog.
+export function isAiCoverageTrip(
+  days: number,
+  visitsPerDayMin: number,
+  candidateCount: number,
+): boolean {
+  return days * visitsPerDayMin > candidateCount;
+}
+
+export function aiCoverageMinTotalVisits(candidateCount: number): number {
+  return Math.floor(candidateCount * AI_COVERAGE_MIN_CATALOG_FRACTION);
+}
+
+// How many sightseeing days the catalog supports at the given pace. The upper
+// bound comes from stretching the catalog at minimum pace; the lower bound from
+// packing it at maximum pace, clamped because a final partial day below the
+// minimum pace is not a valid sightseeing day.
+export function aiCoverageSightseeingDayRange(
+  candidateCount: number,
+  visitsPerDayMin: number,
+  visitsPerDayMax: number,
+): { minDays: number; maxDays: number } {
+  const maxDays = Math.max(1, Math.floor(candidateCount / visitsPerDayMin));
+  const minDays = Math.min(
+    Math.max(1, Math.ceil(candidateCount / visitsPerDayMax)),
+    maxDays,
+  );
+  return { minDays, maxDays };
+}
+
 export const AI_CREATE_ITINERARY_LABEL = "Create itinerary";
 
 export const AI_PACE_PRESETS = [

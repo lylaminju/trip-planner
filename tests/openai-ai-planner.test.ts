@@ -234,6 +234,7 @@ function promptContext(): AiPlannerPromptContext {
       },
     ],
     tripDates: ["2026-05-27"],
+    coverage: null,
     validationErrors: [],
   };
 }

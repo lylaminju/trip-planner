@@ -435,7 +435,12 @@ export function AiPlanningWizard(props: Props) {
                   </p>
 
                   {stepIndex === 0 && (
-                    <PaceStep draft={draft} onChange={setDraft} days={days} />
+                    <PaceStep
+                      draft={draft}
+                      onChange={setDraft}
+                      days={days}
+                      candidateCount={props.setup.candidates.length}
+                    />
                   )}
                   {stepIndex === 1 && (
                     <InterestStep draft={draft} onChange={setDraft} />

@@ -12,7 +12,7 @@ type Props = {
   onToggleCurrentLocation: () => void;
   onAddPlace: () => void;
   onPlanWithAi?: () => void;
-  aiPlanNeedsDates?: boolean;
+  aiPlanMutedHint?: string | null;
 };
 
 export function MapPanelChrome(props: Props) {
@@ -21,7 +21,7 @@ export function MapPanelChrome(props: Props) {
       {!props.hasPlaces && (
         <div className="map-empty-state">
           <p>Add your first place to start building the map.</p>
-          {(props.canEdit || props.onPlanWithAi || props.aiPlanNeedsDates) && (
+          {(props.canEdit || props.onPlanWithAi || props.aiPlanMutedHint) && (
             <div className="map-empty-state-actions">
               {props.canEdit && (
                 <button
@@ -38,7 +38,7 @@ export function MapPanelChrome(props: Props) {
               <PlanWithAiButton
                 className="ai-plan-button plan-with-ai-large"
                 onPlanWithAi={props.onPlanWithAi}
-                needsDates={props.aiPlanNeedsDates}
+                mutedHint={props.aiPlanMutedHint}
               />
             </div>
           )}

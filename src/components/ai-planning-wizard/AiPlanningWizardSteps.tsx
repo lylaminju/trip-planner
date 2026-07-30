@@ -2,7 +2,9 @@ import {
   AI_INTEREST_TAG_OPTIONS,
   AI_PACE_PRESETS,
   AI_TRAVEL_MODE_OPTIONS,
+  aiCoverageSightseeingDayRange,
   estimateStopCount,
+  isAiCoverageTrip,
 } from "@/lib/ai-planning-preferences";
 import type {
   AiCatalogPrepStatus,
@@ -45,11 +47,17 @@ export function PaceStep({
   draft,
   onChange,
   days,
-}: StepProps & { days: number }) {
+  candidateCount,
+}: StepProps & { days: number; candidateCount: number }) {
   const stopsEstimate = estimateStopCount(
     draft.visits_per_day_min,
     draft.visits_per_day_max,
     days,
+  );
+  const isCoverageTrip = isAiCoverageTrip(
+    days,
+    draft.visits_per_day_min,
+    candidateCount,
   );
 
   return (
@@ -101,11 +109,35 @@ export function PaceStep({
         })}
       </div>
       <p className="ai-pace-estimate">
-        That&apos;s roughly <strong>{stopsEstimate} stops</strong> across your{" "}
-        {days} days.
+        {isCoverageTrip ? (
+          <>
+            That&apos;s about <strong>{candidateCount} stops</strong> over{" "}
+            {sightseeingDaysLabel(draft, candidateCount)} across your {days}{" "}
+            days, with free days in between.
+          </>
+        ) : (
+          <>
+            That&apos;s roughly <strong>{stopsEstimate} stops</strong> across
+            your {days} days.
+          </>
+        )}
       </p>
     </div>
   );
+}
+
+function sightseeingDaysLabel(
+  draft: AiPlanningPreferenceInput,
+  candidateCount: number,
+): string {
+  const { minDays, maxDays } = aiCoverageSightseeingDayRange(
+    candidateCount,
+    draft.visits_per_day_min,
+    draft.visits_per_day_max,
+  );
+  return minDays === maxDays
+    ? `about ${maxDays} sightseeing ${maxDays === 1 ? "day" : "days"}`
+    : `about ${minDays}–${maxDays} sightseeing days`;
 }
 
 export function InterestStep({ draft, onChange }: StepProps) {
@@ -319,6 +351,11 @@ export function ReviewStep({
     draft.visits_per_day_max,
     days,
   );
+  const isCoverageTrip = isAiCoverageTrip(
+    days,
+    draft.visits_per_day_min,
+    candidates.length,
+  );
   const pacePerDay =
     draft.visits_per_day_min === draft.visits_per_day_max
       ? `${draft.visits_per_day_max}`
@@ -326,7 +363,9 @@ export function ReviewStep({
   const rows = [
     {
       label: "Pace",
-      value: `${pacePerDay} / day · ~${stopsEstimate} stops total`,
+      value: isCoverageTrip
+        ? `${pacePerDay} / day · ~${candidates.length} stops + free days`
+        : `${pacePerDay} / day · ~${stopsEstimate} stops total`,
       step: 0,
     },
     {

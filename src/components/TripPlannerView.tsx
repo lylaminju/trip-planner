@@ -82,7 +82,7 @@ type Props = {
   visitDateOptions: VisitDateOption[];
   onTogglePlannerExpanded: () => void;
   onPlanWithAi?: () => void;
-  aiPlanNeedsDates?: boolean;
+  aiPlanMutedHint?: string | null;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onManageMembers?: () => void;
   onCopyMarkdownExport: () => void;
@@ -132,7 +132,7 @@ export function TripPlannerView(props: Props) {
         canAddVisits={permissions.canAddVisits}
         onToggleExpanded={props.onTogglePlannerExpanded}
         onPlanWithAi={props.onPlanWithAi}
-        aiPlanNeedsDates={props.aiPlanNeedsDates}
+        aiPlanMutedHint={props.aiPlanMutedHint}
         onMobileSheetStateChange={props.onMobileSheetStateChange}
         onEditTrip={
           permissions.canEditTripMetadata ? modals.openEditTripModal : undefined
@@ -159,7 +159,7 @@ export function TripPlannerView(props: Props) {
         hidden={props.isPlannerPanelExpanded}
         canEdit={permissions.canEdit}
         onPlanWithAi={props.onPlanWithAi}
-        aiPlanNeedsDates={props.aiPlanNeedsDates}
+        aiPlanMutedHint={props.aiPlanMutedHint}
       />
       {props.aiGenerationToast && (
         <div className="ai-generation-toast" role="status">

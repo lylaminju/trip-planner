@@ -1,4 +1,10 @@
 import { destinationCandidateKey } from "@/lib/ai-planning";
+import {
+  AI_PLANNING_MAX_TRIP_DAYS,
+  aiCoverageMinTotalVisits,
+  countTripDays,
+  isAiCoverageTrip,
+} from "@/lib/ai-planning-preferences";
 import type { PlannerSnapshot, Trip } from "@/lib/types";
 import { isValidIsoDate } from "@/app/api/_utils";
 
@@ -43,11 +49,15 @@ import {
 import { requireTripRole } from "./trip-access";
 import { getTripById } from "./trip-service";
 
-// v2: web search verifies scheduled places' operation and opening days.
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v3";
+// v3: no-repeat and must-see-exactly-once rules; low reasoning effort.
+// v4: coverage mode plans sightseeing days plus free days on long trips.
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v4";
 
 const CATALOG_NOT_READY_MESSAGE =
   "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";
+
+// The cap applies to AI generation only; the trip itself may be longer.
+const TRIP_TOO_LONG_MESSAGE = `AI planning supports trips up to ${AI_PLANNING_MAX_TRIP_DAYS} days. For a longer stay, generate an itinerary for a shorter date range and extend it manually.`;
 
 export async function generateAiItineraryForRequest(
   tripId: number,
@@ -127,6 +137,24 @@ export async function generateAiItineraryForRequest(
     tripId,
     generationInput.preferences,
   );
+  // Coverage trips cannot fill every day from the catalog, so the plan carries
+  // free days: validation swaps the every-day requirement for a total-visits
+  // floor, keeping arrival/departure days required so batch application can
+  // anchor their transit points to real first/last planned dates.
+  const coverage = isAiCoverageTrip(
+    tripDates.length,
+    savedPreferences.visits_per_day_min,
+    candidates.length,
+  )
+    ? { min_total_visits: aiCoverageMinTotalVisits(candidates.length) }
+    : null;
+  const coverageValidation = coverage
+    ? {
+        minTotalVisits: coverage.min_total_visits,
+        requireFirstTripDate: arrivalPoint !== null,
+        requireLastTripDate: departurePoint !== null,
+      }
+    : null;
   const generation = await createAiPlanGeneration(
     tripId,
     userId,
@@ -156,6 +184,7 @@ export async function generateAiItineraryForRequest(
         preferences: savedPreferences,
         dailyStartTime: generationInput.daily_start_time,
         tripDates,
+        coverage,
         validationErrors: [],
       }),
     });
@@ -168,6 +197,7 @@ export async function generateAiItineraryForRequest(
       earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
       firstDayEarliestStartTime,
       lastDayLatestEndTime,
+      coverage: coverageValidation,
     });
 
     let finalPlan = primary.plan;
@@ -193,6 +223,7 @@ export async function generateAiItineraryForRequest(
           preferences: savedPreferences,
           dailyStartTime: generationInput.daily_start_time,
           tripDates,
+          coverage,
           validationErrors: primaryValidation.errors,
         }),
       });
@@ -205,6 +236,7 @@ export async function generateAiItineraryForRequest(
         earliestVisitStartTime: lodging ? generationInput.daily_start_time : null,
         firstDayEarliestStartTime,
         lastDayLatestEndTime,
+        coverage: coverageValidation,
       });
       repairValidationStatus = repairValidation.status;
       repairValidationErrors = repairValidation.errors;
@@ -296,6 +328,9 @@ function tripDateRange(trip: Pick<Trip, "start_date" | "end_date">): string[] {
     trip.start_date > trip.end_date
   ) {
     throw new TripValidationError("Trip dates are required for AI planning.");
+  }
+  if (countTripDays(trip.start_date, trip.end_date) > AI_PLANNING_MAX_TRIP_DAYS) {
+    throw new TripValidationError(TRIP_TOO_LONG_MESSAGE);
   }
 
   const dates: string[] = [];

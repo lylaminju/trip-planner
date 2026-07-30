@@ -295,6 +295,86 @@ describe("AI itinerary plan validation", () => {
       "Day 2026-05-27 has visits that are not in increasing start-time order.",
     );
   });
+
+  it("accepts free days in coverage mode when the visit floor is met", () => {
+    const result = validateAiItineraryPlan(plan(), {
+      candidateIds: new Set([10, 11]),
+      tripDates: ["2026-05-27", "2026-05-28", "2026-05-29"],
+      visitsPerDayMin: 1,
+      visitsPerDayMax: 3,
+      mustSeeCandidateIds: [],
+      coverage: {
+        minTotalVisits: 2,
+        requireFirstTripDate: false,
+        requireLastTripDate: false,
+      },
+    });
+
+    expect(result).toEqual({ status: "valid", errors: [] });
+  });
+
+  it("rejects a coverage plan that schedules fewer visits than the floor", () => {
+    const result = validateAiItineraryPlan(plan(), {
+      candidateIds: new Set([10, 11]),
+      tripDates: ["2026-05-27", "2026-05-28", "2026-05-29"],
+      visitsPerDayMin: 1,
+      visitsPerDayMax: 3,
+      mustSeeCandidateIds: [],
+      coverage: {
+        minTotalVisits: 3,
+        requireFirstTripDate: false,
+        requireLastTripDate: false,
+      },
+    });
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Plan schedules only 2 visits; schedule at least 3 curated candidates.",
+    );
+  });
+
+  it("requires arrival and departure days to stay planned in coverage mode", () => {
+    const result = validateAiItineraryPlan(plan(), {
+      candidateIds: new Set([10, 11]),
+      tripDates: ["2026-05-26", "2026-05-27", "2026-05-28"],
+      visitsPerDayMin: 1,
+      visitsPerDayMax: 3,
+      mustSeeCandidateIds: [],
+      coverage: {
+        minTotalVisits: 2,
+        requireFirstTripDate: true,
+        requireLastTripDate: true,
+      },
+    });
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Day 2026-05-26 must be planned because trip_start_point is on that day.",
+    );
+    expect(result.errors).toContain(
+      "Day 2026-05-28 must be planned because trip_end_point is on that day.",
+    );
+  });
+
+  it("keeps per-day pace rules on planned days in coverage mode", () => {
+    const result = validateAiItineraryPlan(plan(), {
+      candidateIds: new Set([10, 11]),
+      tripDates: ["2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30"],
+      visitsPerDayMin: 3,
+      visitsPerDayMax: 5,
+      mustSeeCandidateIds: [],
+      coverage: {
+        minTotalVisits: 2,
+        requireFirstTripDate: false,
+        requireLastTripDate: false,
+      },
+    });
+
+    expect(result.status).toBe("invalid");
+    expect(result.errors).toContain(
+      "Day 2026-05-27 has fewer visits than requested.",
+    );
+  });
 });
 
 function plan(): AiItineraryPlan {

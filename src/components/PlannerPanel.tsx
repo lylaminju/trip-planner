@@ -97,7 +97,7 @@ type Props = {
   canAddVisits: boolean;
   onToggleExpanded: () => void;
   onPlanWithAi?: () => void;
-  aiPlanNeedsDates?: boolean;
+  aiPlanMutedHint?: string | null;
   onMobileSheetStateChange: (state: MobileSheetState) => void;
   onEditTrip?: () => void;
   onManageMembers?: () => void;
@@ -225,7 +225,7 @@ export function PlannerPanel(props: Props) {
               <PlanWithAiButton
                 className="ai-plan-button"
                 onPlanWithAi={props.onPlanWithAi}
-                needsDates={props.aiPlanNeedsDates}
+                mutedHint={props.aiPlanMutedHint}
               />
               <button
                 type="button"

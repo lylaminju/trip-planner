@@ -63,6 +63,9 @@ export type AiPlannerPromptContext = {
     >
   >;
   tripDates: string[];
+  // Present when the trip is longer than the catalog can fill at the requested
+  // pace: the plan covers sightseeing days plus free days instead of every day.
+  coverage: { min_total_visits: number } | null;
   validationErrors: string[];
 };
 
@@ -109,6 +112,9 @@ const SYSTEM_PROMPT = [
   `When trip_end_point is provided, the last day's final attractions must finish early enough to reach it and be there before its given time with buffer: about ${AIRPORT_DEPARTURE_BUFFER_MINUTES} minutes early when trip_end_point.type is "airport" (check-in, security, and boarding) and about ${DEFAULT_DEPARTURE_BUFFER_MINUTES} minutes early for train, bus, ferry, or custom stops, plus realistic travel time to reach it. Keep the last day's final attractions convenient to it and do not schedule it as an attraction.`,
   "Use 10-minute increments for all visit start times, for example 09:00, 09:10, 09:20, 09:30, 09:40, or 09:50.",
   "Use candidate planning notes when relevant, for example booking recommendations.",
+  "When coverage is null, plan every trip date.",
+  "When coverage is provided, the trip is longer than the curated candidate list can fill at the requested visits-per-day pace, so plan sightseeing days plus free days: schedule at least coverage.min_total_visits visits in total, keep every planned day within the requested visits-per-day range, spread the sightseeing days across the whole trip, and group candidates in the same area on the same day.",
+  "When coverage is provided, omit free days from the response entirely instead of returning days with no visits, but still plan the first trip date when trip_start_point is given and the last trip date when trip_end_point is given.",
   "If validation errors are provided, repair only those issues.",
 ].join(" ");
 

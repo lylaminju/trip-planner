@@ -19,6 +19,7 @@ export function promptContext(input: {
   preferences: AiPlanningPreferenceInput;
   dailyStartTime: string;
   tripDates: string[];
+  coverage: { min_total_visits: number } | null;
   validationErrors: string[];
 }): AiPlannerPromptContext {
   return {
@@ -49,6 +50,7 @@ export function promptContext(input: {
       planning_note: candidate.planning_note,
     })),
     tripDates: input.tripDates,
+    coverage: input.coverage,
     validationErrors: input.validationErrors,
   };
 }

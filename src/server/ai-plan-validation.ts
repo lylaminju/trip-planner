@@ -16,6 +16,16 @@ type ValidationContext = {
   earliestVisitStartTime?: string | null;
   firstDayEarliestStartTime?: string | null;
   lastDayLatestEndTime?: string | null;
+  // Coverage mode: the trip is longer than the catalog supports at the minimum
+  // pace, so free days are expected and unplanned dates are allowed. Planned
+  // days still follow the per-day pace rules. The arrival/departure days stay
+  // required when their transit points exist because batch application anchors
+  // those points to the earliest and latest planned dates.
+  coverage?: {
+    minTotalVisits: number;
+    requireFirstTripDate: boolean;
+    requireLastTripDate: boolean;
+  } | null;
 };
 
 export function validateAiItineraryPlan(
@@ -114,9 +124,34 @@ export function validateAiItineraryPlan(
     }
   }
 
+  const coverage = context.coverage ?? null;
   for (const tripDate of context.tripDates) {
-    if (!seenDates.has(tripDate)) {
+    if (seenDates.has(tripDate)) continue;
+    if (!coverage) {
       errors.push(`Day ${tripDate} is missing from the plan.`);
+      continue;
+    }
+    if (tripDate === firstTripDate && coverage.requireFirstTripDate) {
+      errors.push(
+        `Day ${tripDate} must be planned because trip_start_point is on that day.`,
+      );
+    }
+    if (tripDate === lastTripDate && coverage.requireLastTripDate) {
+      errors.push(
+        `Day ${tripDate} must be planned because trip_end_point is on that day.`,
+      );
+    }
+  }
+
+  if (coverage) {
+    const totalVisits = plan.days.reduce(
+      (total, day) => total + day.visits.length,
+      0,
+    );
+    if (totalVisits < coverage.minTotalVisits) {
+      errors.push(
+        `Plan schedules only ${totalVisits} visits; schedule at least ${coverage.minTotalVisits} curated candidates.`,
+      );
     }
   }
 
