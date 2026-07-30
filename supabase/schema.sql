@@ -260,10 +260,11 @@ create table if not exists public.route_segments (
 alter table public.route_segments
   add column if not exists trip_id bigint references public.trips(id) on delete cascade;
 
+-- Keyed by the route itself: mode, coordinates, and for transit a weekday-hour
+-- departure bucket. Deliberately not tied to place rows, so one cached route
+-- serves every trip that travels it.
 create table if not exists public.route_geometry_cache (
   cache_key text primary key,
-  from_place_id bigint not null references public.places(id) on delete cascade,
-  to_place_id bigint not null references public.places(id) on delete cascade,
   mode text not null check (mode in ('walking', 'transit', 'bicycling', 'driving')),
   from_latitude double precision not null,
   from_longitude double precision not null,
@@ -300,9 +301,6 @@ where public.route_segments.id = ranked_route_segments.id
 
 create unique index if not exists idx_route_segments_trip_pair_unique
   on public.route_segments (trip_id, from_item_id, to_item_id);
-
-create index if not exists idx_route_geometry_cache_places
-  on public.route_geometry_cache (from_place_id, to_place_id, mode);
 
 create index if not exists idx_places_trip_name
   on public.places (trip_id, name);

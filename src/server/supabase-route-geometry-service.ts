@@ -1,3 +1,9 @@
+import { findDestinationTimeZone } from "@/lib/destination-options";
+import {
+  resolveTransitDeparture,
+  TRANSIT_BUCKET_NOW,
+  type TransitDeparture,
+} from "@/lib/transit-departure";
 import type { RouteGeometry, TravelMode } from "@/lib/types";
 import { RouteSegmentNotFoundError } from "@/server/errors";
 import { computeGoogleRoute } from "@/server/google-routes";
@@ -7,90 +13,45 @@ import {
   recordGoogleRoutesCall,
 } from "@/server/supabase-google-routes-usage-store";
 
-type SegmentRouteRow = {
-  segment_id: number;
+// A cached route is identified by the route itself — mode, coordinates and, for
+// transit, the departure bucket — never by the place rows that happen to
+// reference it. Place ids are per trip, so keying on them made every trip pay
+// again for geometry another trip already had.
+export type CacheableRoute = {
   mode: TravelMode;
-  from_place_id: number;
   from_latitude: number;
   from_longitude: number;
-  to_place_id: number;
   to_latitude: number;
   to_longitude: number;
+  departure: TransitDeparture;
 };
 
-type RouteSegmentJoinRow = {
-  id: number;
-  mode: TravelMode;
-  from_item:
-    | {
-        place:
-          | {
-              id: number;
-              latitude: number;
-              longitude: number;
-            }
-          | Array<{
-              id: number;
-              latitude: number;
-              longitude: number;
-            }>
-          | null;
-      }
-    | Array<{
-        place:
-          | {
-              id: number;
-              latitude: number;
-              longitude: number;
-            }
-          | Array<{
-              id: number;
-              latitude: number;
-              longitude: number;
-            }>
-          | null;
-      }>
-    | null;
-  to_item:
-    | {
-        place:
-          | {
-              id: number;
-              latitude: number;
-              longitude: number;
-            }
-          | Array<{
-              id: number;
-              latitude: number;
-              longitude: number;
-            }>
-          | null;
-      }
-    | Array<{
-        place:
-          | {
-              id: number;
-              latitude: number;
-              longitude: number;
-            }
-          | Array<{
-              id: number;
-              latitude: number;
-              longitude: number;
-            }>
-          | null;
-      }>
-    | null;
+type SegmentRouteRow = CacheableRoute & {
+  segment_id: number;
 };
 
 type JoinedPlace = {
-  id: number;
   latitude: number;
   longitude: number;
 };
 
 type JoinedItem = {
+  visit_date?: string | null;
+  visit_time?: string | null;
   place: JoinedPlace | JoinedPlace[] | null;
+};
+
+type JoinedTrip = {
+  destination_slug: string | null;
+  destination: string | null;
+};
+
+type RouteSegmentJoinRow = {
+  id: number;
+  mode: TravelMode;
+  trip: JoinedTrip | JoinedTrip[] | null;
+  from_item: JoinedItem | JoinedItem[] | null;
+  to_item: JoinedItem | JoinedItem[] | null;
 };
 
 type RouteGeometryCacheRow = {
@@ -99,7 +60,12 @@ type RouteGeometryCacheRow = {
   duration_seconds: number | null;
 };
 
+// Walking, cycling and driving geometry does not move with the clock, so it
+// stays valid for a month. Transit rows are pinned to a weekday-hour bucket and
+// expire sooner because agency schedules change on service updates.
 const CACHE_MAX_AGE_DAYS = 30;
+const TRANSIT_CACHE_MAX_AGE_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export async function getRouteGeometry(
   tripId: number,
@@ -110,7 +76,7 @@ export async function getRouteGeometry(
 ): Promise<RouteGeometry> {
   const segment = await getSegmentRouteRow(tripId, segmentId);
   const cacheKey = routeGeometryCacheKey(segment);
-  const cached = await getCachedRouteGeometry(cacheKey);
+  const cached = await getCachedRouteGeometry(cacheKey, segment.mode);
 
   if (cached) {
     return toRouteGeometry(segmentId, cached);
@@ -133,6 +99,9 @@ export async function getRouteGeometry(
       longitude: segment.to_longitude,
     },
     mode: segment.mode,
+    ...(segment.departure.departureTime
+      ? { departureTime: segment.departure.departureTime }
+      : {}),
   });
 
   if (userId) {
@@ -153,11 +122,14 @@ async function getSegmentRouteRow(
       `
         id,
         mode,
+        trip:trips (destination_slug, destination),
         from_item:itinerary_items!route_segments_from_item_id_fkey (
-          place:places (id, latitude, longitude)
+          visit_date,
+          visit_time,
+          place:places (latitude, longitude)
         ),
         to_item:itinerary_items!route_segments_to_item_id_fkey (
-          place:places (id, latitude, longitude)
+          place:places (latitude, longitude)
         )
       `,
     )
@@ -169,7 +141,8 @@ async function getSegmentRouteRow(
   if (!data) throw new RouteSegmentNotFoundError(segmentId);
 
   const row = data as unknown as RouteSegmentJoinRow;
-  const fromPlace = firstJoinedPlace(firstJoinedItem(row.from_item)?.place);
+  const fromItem = firstJoinedItem(row.from_item);
+  const fromPlace = firstJoinedPlace(fromItem?.place);
   const toPlace = firstJoinedPlace(firstJoinedItem(row.to_item)?.place);
   if (!fromPlace || !toPlace) {
     throw new RouteSegmentNotFoundError(segmentId);
@@ -178,21 +151,42 @@ async function getSegmentRouteRow(
   return {
     segment_id: row.id,
     mode: row.mode,
-    from_place_id: fromPlace.id,
     from_latitude: fromPlace.latitude,
     from_longitude: fromPlace.longitude,
-    to_place_id: toPlace.id,
     to_latitude: toPlace.latitude,
     to_longitude: toPlace.longitude,
+    departure: segmentDeparture(row.mode, fromItem, firstJoinedTrip(row.trip)),
   };
+}
+
+// Only transit needs a departure: the other modes are clock-independent as we
+// request them, so they stay on one shared row per route.
+function segmentDeparture(
+  mode: TravelMode,
+  fromItem: JoinedItem | null,
+  trip: JoinedTrip | null,
+): TransitDeparture {
+  if (mode !== "transit") {
+    return { bucket: TRANSIT_BUCKET_NOW, departureTime: null };
+  }
+
+  return resolveTransitDeparture({
+    visitDate: fromItem?.visit_date ?? null,
+    visitTime: fromItem?.visit_time ?? null,
+    timeZone: findDestinationTimeZone(
+      trip?.destination_slug ?? trip?.destination,
+    ),
+    now: new Date(),
+  });
 }
 
 async function getCachedRouteGeometry(
   cacheKey: string,
+  mode: TravelMode,
 ): Promise<RouteGeometryCacheRow | null> {
-  const cutoff = new Date(
-    Date.now() - CACHE_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
-  ).toISOString();
+  const maxAgeDays =
+    mode === "transit" ? TRANSIT_CACHE_MAX_AGE_DAYS : CACHE_MAX_AGE_DAYS;
+  const cutoff = new Date(Date.now() - maxAgeDays * MS_PER_DAY).toISOString();
   const { data, error } = await getSupabaseClient()
     .from("route_geometry_cache")
     .select("status, encoded_polyline, duration_seconds")
@@ -223,8 +217,6 @@ async function saveRouteGeometry(
     .upsert(
       {
         cache_key: cacheKey,
-        from_place_id: segment.from_place_id,
-        to_place_id: segment.to_place_id,
         mode: segment.mode,
         from_latitude: segment.from_latitude,
         from_longitude: segment.from_longitude,
@@ -260,20 +252,34 @@ function toRouteGeometry(
   };
 }
 
-// Also used by guest sample-trip cloning to re-key copied geometry rows for
-// the cloned place ids, so clones render routes without new Routes calls.
-export function routeGeometryCacheKey(
-  segment: Omit<SegmentRouteRow, "segment_id">,
-): string {
-  return [
-    segment.from_place_id,
-    segment.to_place_id,
-    segment.mode,
-    coordinateKey(segment.from_latitude),
-    coordinateKey(segment.from_longitude),
-    coordinateKey(segment.to_latitude),
-    coordinateKey(segment.to_longitude),
-  ].join(":");
+export function routeGeometryCacheKey(route: CacheableRoute): string {
+  const parts = [
+    route.mode,
+    coordinateKey(route.from_latitude),
+    coordinateKey(route.from_longitude),
+    coordinateKey(route.to_latitude),
+    coordinateKey(route.to_longitude),
+  ];
+  // Only transit rows carry a departure bucket, so clock-independent modes keep
+  // a single shared row per route.
+  if (route.mode === "transit") {
+    parts.push(route.departure.bucket);
+  }
+  return parts.join(":");
+}
+
+// Read-only reuse for duration-only callers such as the AI planner's walking
+// probes: they get geometry the map already paid for, but never write a row.
+// A duration-only row would have no polyline, and a later map request hitting it
+// would render a straight line and never fetch the real path.
+export async function cachedRouteDurationSeconds(
+  route: CacheableRoute,
+): Promise<number | null> {
+  const cached = await getCachedRouteGeometry(
+    routeGeometryCacheKey(route),
+    route.mode,
+  );
+  return cached?.status === "ok" ? (cached.duration_seconds ?? null) : null;
 }
 
 function coordinateKey(value: number): string {
@@ -290,6 +296,12 @@ function firstJoinedPlace(
   place: JoinedPlace | JoinedPlace[] | null | undefined,
 ): JoinedPlace | null {
   return Array.isArray(place) ? (place[0] ?? null) : (place ?? null);
+}
+
+function firstJoinedTrip(
+  trip: JoinedTrip | JoinedTrip[] | null,
+): JoinedTrip | null {
+  return Array.isArray(trip) ? (trip[0] ?? null) : trip;
 }
 
 function throwSupabaseError(error: { message: string }): never {

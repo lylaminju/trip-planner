@@ -9,7 +9,6 @@ import type { TravelMode } from "@/lib/types";
 import { TripValidationError } from "./errors";
 import { GUEST_TRIP_TTL_HOURS } from "./guest-session";
 import { getSupabaseClient } from "./supabase";
-import { routeGeometryCacheKey } from "./supabase-route-geometry-service";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
@@ -65,9 +64,9 @@ export async function createGuestTrip(
 }
 
 // Clones the configured sample trip — places, itinerary, segments, transit
-// points, lodgings, and cached route geometry — into a fresh guest-owned
-// ephemeral trip. Copied geometry is re-keyed to the cloned place ids so the
-// clone renders its routes with zero Google Routes calls.
+// points, lodgings — into a fresh guest-owned ephemeral trip. Geometry needs no
+// copying: the cache is keyed by route rather than by place row, so the clone's
+// segments hit the same rows the source trip already populated.
 //
 // Cloned rows keep the source's created_by_source, so the sample's AI-generated
 // content stays tagged 'ai' in the clone and the guest's first regeneration
@@ -112,7 +111,6 @@ export async function cloneSampleTripForGuest(
   await cloneRouteSegments(sourceTripId, tripId, itemMaps.itemIdMap);
   await cloneTripChildRows(sourceTripId, tripId, "trip_transit_points");
   await cloneTripChildRows(sourceTripId, tripId, "trip_lodgings");
-  await cloneRouteGeometry(sourceTripId, placeIdMap, itemMaps.placeIdByItemId);
 
   return { tripId };
 }
@@ -177,7 +175,6 @@ async function cloneItineraryItems(
   placeIdMap: Map<number, number>,
 ): Promise<{
   itemIdMap: Map<number, number>;
-  placeIdByItemId: Map<number, number>;
 }> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
@@ -196,8 +193,7 @@ async function cloneItineraryItems(
     created_by_source: string;
   }>;
   const itemIdMap = new Map<number, number>();
-  const placeIdByItemId = new Map<number, number>();
-  if (sourceRows.length === 0) return { itemIdMap, placeIdByItemId };
+  if (sourceRows.length === 0) return { itemIdMap };
 
   const { data: inserted, error: insertError } = await supabase
     .from("itinerary_items")
@@ -217,9 +213,8 @@ async function cloneItineraryItems(
   const insertedRows = (inserted ?? []) as Array<{ id: number }>;
   sourceRows.forEach((row, index) => {
     itemIdMap.set(row.id, insertedRows[index].id);
-    placeIdByItemId.set(row.id, row.place_id);
   });
-  return { itemIdMap, placeIdByItemId };
+  return { itemIdMap };
 }
 
 async function cloneRouteSegments(
@@ -276,109 +271,6 @@ async function cloneTripChildRows(
     })),
   );
   if (insertError) throwSupabaseError(insertError);
-}
-
-// Copies cached geometry rows from the source trip's segments, re-keyed for
-// the cloned place ids. Missing cache rows are skipped; those segments fall
-// back to the normal on-demand geometry path.
-async function cloneRouteGeometry(
-  sourceTripId: number,
-  placeIdMap: Map<number, number>,
-  placeIdByItemId: Map<number, number>,
-): Promise<void> {
-  const supabase = getSupabaseClient();
-
-  const { data, error } = await supabase
-    .from("route_segments")
-    .select("from_item_id, to_item_id, mode")
-    .eq("trip_id", sourceTripId);
-  if (error) throwSupabaseError(error);
-  const segments = (data ?? []) as Array<{
-    from_item_id: number;
-    to_item_id: number;
-    mode: TravelMode;
-  }>;
-  if (segments.length === 0) return;
-
-  const placeIds = [...new Set([...placeIdByItemId.values()])];
-  const { data: placeRows, error: placeError } = await supabase
-    .from("places")
-    .select("id, latitude, longitude")
-    .in("id", placeIds);
-  if (placeError) throwSupabaseError(placeError);
-  const coordsByPlaceId = new Map(
-    ((placeRows ?? []) as Array<{ id: number; latitude: number; longitude: number }>).map(
-      (row) => [row.id, row],
-    ),
-  );
-
-  const pairs = segments.flatMap((segment) => {
-    const fromPlaceId = placeIdByItemId.get(segment.from_item_id);
-    const toPlaceId = placeIdByItemId.get(segment.to_item_id);
-    const from = fromPlaceId === undefined ? undefined : coordsByPlaceId.get(fromPlaceId);
-    const to = toPlaceId === undefined ? undefined : coordsByPlaceId.get(toPlaceId);
-    if (!from || !to) return [];
-    return [
-      {
-        mode: segment.mode,
-        from_place_id: from.id,
-        from_latitude: from.latitude,
-        from_longitude: from.longitude,
-        to_place_id: to.id,
-        to_latitude: to.latitude,
-        to_longitude: to.longitude,
-      },
-    ];
-  });
-  if (pairs.length === 0) return;
-
-  const sourceKeys = pairs.map((pair) => routeGeometryCacheKey(pair));
-  const { data: cacheRows, error: cacheError } = await supabase
-    .from("route_geometry_cache")
-    .select(
-      "cache_key, mode, from_latitude, from_longitude, to_latitude, to_longitude, status, encoded_polyline, duration_seconds",
-    )
-    .in("cache_key", sourceKeys);
-  if (cacheError) throwSupabaseError(cacheError);
-  const cacheByKey = new Map(
-    ((cacheRows ?? []) as Array<Record<string, unknown> & { cache_key: string }>).map(
-      (row) => [row.cache_key, row],
-    ),
-  );
-
-  const clonedRows = pairs.flatMap((pair, index) => {
-    const cached = cacheByKey.get(sourceKeys[index]);
-    const newFromId = placeIdMap.get(pair.from_place_id);
-    const newToId = placeIdMap.get(pair.to_place_id);
-    if (!cached || newFromId === undefined || newToId === undefined) return [];
-
-    const remapped = {
-      ...pair,
-      from_place_id: newFromId,
-      to_place_id: newToId,
-    };
-    return [
-      {
-        cache_key: routeGeometryCacheKey(remapped),
-        from_place_id: newFromId,
-        to_place_id: newToId,
-        mode: cached.mode,
-        from_latitude: cached.from_latitude,
-        from_longitude: cached.from_longitude,
-        to_latitude: cached.to_latitude,
-        to_longitude: cached.to_longitude,
-        status: cached.status,
-        encoded_polyline: cached.encoded_polyline,
-        duration_seconds: cached.duration_seconds,
-      },
-    ];
-  });
-  if (clonedRows.length === 0) return;
-
-  const { error: upsertError } = await supabase
-    .from("route_geometry_cache")
-    .upsert(clonedRows, { onConflict: "cache_key" });
-  if (upsertError) throwSupabaseError(upsertError);
 }
 
 function throwSupabaseError(error: { message: string }): never {

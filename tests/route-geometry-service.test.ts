@@ -10,6 +10,7 @@ describe("route-geometry-service", () => {
     vi.resetModules();
     vi.doMock("@/server/supabase-route-geometry-service", () => ({
       getRouteGeometry: vi.fn(),
+      cachedRouteDurationSeconds: vi.fn().mockResolvedValue(null),
     }));
 
     try {
@@ -98,6 +99,10 @@ describe("route-geometry-service", () => {
     vi.doMock("@/server/google-routes", () => ({
       computeGoogleRoute,
     }));
+    vi.doMock("@/server/supabase-route-geometry-service", () => ({
+      getRouteGeometry: vi.fn(),
+      cachedRouteDurationSeconds: vi.fn().mockResolvedValue(null),
+    }));
 
     try {
       const { getRouteDurationSeconds } =
@@ -117,6 +122,53 @@ describe("route-geometry-service", () => {
       });
     } finally {
       vi.doUnmock("@/server/google-routes");
+      vi.doUnmock("@/server/supabase-route-geometry-service");
+      vi.resetModules();
+      if (originalRoutesKey === undefined) {
+        delete process.env.GOOGLE_MAPS_ROUTES_API_KEY;
+      } else {
+        process.env.GOOGLE_MAPS_ROUTES_API_KEY = originalRoutesKey;
+      }
+    }
+  });
+
+  // A duration the map already paid for must not be bought again: this is the
+  // whole cost saving of routing duration lookups through the cache.
+  it("reuses a cached duration instead of calling Google", async () => {
+    const originalRoutesKey = process.env.GOOGLE_MAPS_ROUTES_API_KEY;
+    process.env.GOOGLE_MAPS_ROUTES_API_KEY = "test-routes-key";
+
+    const computeGoogleRoute = vi.fn();
+    const recordGoogleRoutesCall = vi.fn();
+
+    vi.resetModules();
+    vi.doMock("@/server/google-routes", () => ({ computeGoogleRoute }));
+    vi.doMock("@/server/supabase-route-geometry-service", () => ({
+      getRouteGeometry: vi.fn(),
+      cachedRouteDurationSeconds: vi.fn().mockResolvedValue(315),
+    }));
+    vi.doMock("@/server/supabase-google-routes-usage-store", () => ({
+      recordGoogleRoutesCall,
+    }));
+
+    try {
+      const { getRouteDurationSeconds } =
+        await import("@/server/route-geometry-service");
+
+      await expect(
+        getRouteDurationSeconds({
+          from: { latitude: 40, longitude: -74 },
+          to: { latitude: 40.1, longitude: -73.9 },
+          mode: "walking",
+          userId: "user-1",
+        }),
+      ).resolves.toBe(315);
+      expect(computeGoogleRoute).not.toHaveBeenCalled();
+      expect(recordGoogleRoutesCall).not.toHaveBeenCalled();
+    } finally {
+      vi.doUnmock("@/server/google-routes");
+      vi.doUnmock("@/server/supabase-route-geometry-service");
+      vi.doUnmock("@/server/supabase-google-routes-usage-store");
       vi.resetModules();
       if (originalRoutesKey === undefined) {
         delete process.env.GOOGLE_MAPS_ROUTES_API_KEY;

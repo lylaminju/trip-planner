@@ -13,6 +13,9 @@ type ComputeRouteInput = {
   };
   mode: TravelMode;
   includePolyline?: boolean;
+  // RFC3339 instant. Only meaningful for transit, where it selects the schedule
+  // the duration is computed against; omitted means Google assumes "now".
+  departureTime?: string;
 };
 
 type GoogleRoutesResponse = {
@@ -45,10 +48,19 @@ export async function computeGoogleRoute(
           ? "routes.duration,routes.polyline.encodedPolyline"
           : "routes.duration",
       },
+      // Every request must bill as Compute Routes Essentials. That means this
+      // body stays limited to the fields below and the field mask above: no
+      // routingPreference (TRAFFIC_AWARE bills as Pro), no TWO_WHEELER travel
+      // mode (Enterprise), no intermediates or optimizeWaypointOrder (higher
+      // rate), and no routeModifiers, extraComputations, transitPreferences, or
+      // computeAlternativeRoutes (tier undocumented). departureTime is verified
+      // Essentials. See
+      // https://developers.google.com/maps/documentation/routes/usage-and-billing
       body: JSON.stringify({
         origin: { location: { latLng: input.from } },
         destination: { location: { latLng: input.to } },
         travelMode: toGoogleTravelMode(input.mode),
+        ...(input.departureTime ? { departureTime: input.departureTime } : {}),
         ...(includePolyline
           ? {
               polylineEncoding: "ENCODED_POLYLINE",

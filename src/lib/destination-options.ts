@@ -4,6 +4,7 @@ export type DestinationOption = {
   slug: string;
   name: string;
   countryCode: string;
+  timezone: string;
   latitude: number;
   longitude: number;
   zoom: number;
@@ -97,6 +98,15 @@ export function findDestinationFocus(
     longitude: option.longitude,
     zoom: option.zoom,
   };
+}
+
+// Curated presets carry an IANA zone; trips created from a custom Google
+// destination have none, and callers must treat null as "local time cannot be
+// resolved to an instant" rather than guessing a zone.
+export function findDestinationTimeZone(
+  value: string | null | undefined,
+): string | null {
+  return findDestinationOption(value)?.timezone ?? null;
 }
 
 const COUNTRY_NAME_FORMATTER = new Intl.DisplayNames(["en"], {
