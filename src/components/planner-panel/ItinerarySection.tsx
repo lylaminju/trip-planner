@@ -13,7 +13,6 @@ import type {
 
 import { TrashIcon } from "../Icons";
 import { ItineraryDayBlock } from "./ItineraryDayBlock";
-import { SectionToggle } from "./SectionToggle";
 import { UnscheduledBlock } from "./UnscheduledBlock";
 import { hasScheduleDragData, isLeavingCurrentTarget } from "./drag-schedule";
 
@@ -31,7 +30,6 @@ type Props = {
   deletingPlaceIds: ReadonlySet<number>;
   deletingItineraryItemIds: ReadonlySet<number>;
   isExpanded: boolean;
-  isOpen: boolean;
   isUnscheduledOpen: boolean;
   showRouteSegments: boolean;
   dropTargetKey: string | null;
@@ -41,7 +39,6 @@ type Props = {
     label: string;
   } | null;
   onDropTargetChange: Dispatch<SetStateAction<string | null>>;
-  onToggleOpen: () => void;
   onToggleUnscheduledOpen: () => void;
   onToggleRouteSegments: () => void;
   onCopyExport: () => void;
@@ -131,25 +128,20 @@ export function ItinerarySection(props: Props) {
   return (
     <section className="section-block">
       <div className="section-heading-row">
-        <SectionToggle
-          title="Itineraries"
-          open={props.isOpen}
-          onToggle={props.onToggleOpen}
-          compact
-          titleAction={
-            props.canEdit && hasScheduledItems ? (
-              <button
-                type="button"
-                className="section-clear-button"
-                aria-label="Delete all itinerary items"
-                title="Delete all itinerary items"
-                onClick={deleteAllItems}
-              >
-                <TrashIcon />
-              </button>
-            ) : undefined
-          }
-        />
+        <div className="section-toggle compact">
+          <h2>Itineraries</h2>
+          {props.canEdit && hasScheduledItems && (
+            <button
+              type="button"
+              className="section-clear-button"
+              aria-label="Delete all itinerary items"
+              title="Delete all itinerary items"
+              onClick={deleteAllItems}
+            >
+              <TrashIcon />
+            </button>
+          )}
+        </div>
         <div className="section-heading-actions">
           <details ref={exportMenuRef} className="export-menu">
             <summary>Export</summary>
@@ -198,66 +190,62 @@ export function ItinerarySection(props: Props) {
           </button>
         </div>
       </div>
-      {props.isOpen && (
-        <div
-          className={`itinerary-board ${props.isExpanded ? "expanded" : ""}`}
-        >
-          {props.itinerary.days.map((day, dayIndex) => (
-            <ItineraryDayBlock
-              key={day.date}
-              day={day}
-              dayIndex={dayIndex}
-              itinerary={props.itinerary}
-              collapsed={props.collapsedDates.has(day.date)}
-              activePlaceId={props.activePlaceId}
-              activeSegmentId={props.activeSegmentId}
-              activeDate={props.activeDate}
-              routeGeometries={props.routeGeometries}
-              markerLabels={props.markerLabels}
-              canEdit={props.canEdit}
-              deletingItineraryItemIds={props.deletingItineraryItemIds}
-              showRouteSegments={props.showRouteSegments}
-              dropTargetKey={props.dropTargetKey}
-              activateDropTarget={activateDropTarget}
-              leaveDropTarget={leaveDropTarget}
-              onDropTargetChange={props.onDropTargetChange}
-              onToggleDatePlacePicker={props.onToggleDatePlacePicker}
-              onSelectPlace={props.onSelectPlace}
-              onSelectSegment={props.onSelectSegment}
-              onToggleDateCollapsed={props.onToggleDateCollapsed}
-              onSelectDate={props.onSelectDate}
-              onDuplicateItem={props.onDuplicateItem}
-              onEditItem={props.onEditItem}
-              onDeleteItem={props.onDeleteItem}
-              onScheduleItem={props.onScheduleItem}
-              onModeChange={props.onModeChange}
-              onConfirmDeletion={props.onConfirmDeletion}
-            />
-          ))}
-
-          <UnscheduledBlock
+      <div className={`itinerary-board ${props.isExpanded ? "expanded" : ""}`}>
+        {props.itinerary.days.map((day, dayIndex) => (
+          <ItineraryDayBlock
+            key={day.date}
+            day={day}
+            dayIndex={dayIndex}
             itinerary={props.itinerary}
-            activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+            collapsed={props.collapsedDates.has(day.date)}
+            activePlaceId={props.activePlaceId}
+            activeSegmentId={props.activeSegmentId}
+            activeDate={props.activeDate}
+            routeGeometries={props.routeGeometries}
+            markerLabels={props.markerLabels}
+            canEdit={props.canEdit}
+            deletingItineraryItemIds={props.deletingItineraryItemIds}
+            showRouteSegments={props.showRouteSegments}
             dropTargetKey={props.dropTargetKey}
-            isOpen={props.isUnscheduledOpen}
             activateDropTarget={activateDropTarget}
             leaveDropTarget={leaveDropTarget}
             onDropTargetChange={props.onDropTargetChange}
-            onToggleOpen={props.onToggleUnscheduledOpen}
+            onToggleDatePlacePicker={props.onToggleDatePlacePicker}
             onSelectPlace={props.onSelectPlace}
-            onSelectCanonicalPlace={props.onSelectCanonicalPlace}
             onSelectSegment={props.onSelectSegment}
-            canEdit={props.canEdit}
-            canAddVisits={props.canAddVisits}
-            deletingPlaceIds={props.deletingPlaceIds}
-            onAddVisit={props.onAddVisit}
-            onEdit={props.onEdit}
-            onDelete={props.onDelete}
+            onToggleDateCollapsed={props.onToggleDateCollapsed}
+            onSelectDate={props.onSelectDate}
+            onDuplicateItem={props.onDuplicateItem}
+            onEditItem={props.onEditItem}
+            onDeleteItem={props.onDeleteItem}
             onScheduleItem={props.onScheduleItem}
+            onModeChange={props.onModeChange}
             onConfirmDeletion={props.onConfirmDeletion}
           />
-        </div>
-      )}
+        ))}
+
+        <UnscheduledBlock
+          itinerary={props.itinerary}
+          activeCanonicalPlaceId={props.activeCanonicalPlaceId}
+          dropTargetKey={props.dropTargetKey}
+          isOpen={props.isUnscheduledOpen}
+          activateDropTarget={activateDropTarget}
+          leaveDropTarget={leaveDropTarget}
+          onDropTargetChange={props.onDropTargetChange}
+          onToggleOpen={props.onToggleUnscheduledOpen}
+          onSelectPlace={props.onSelectPlace}
+          onSelectCanonicalPlace={props.onSelectCanonicalPlace}
+          onSelectSegment={props.onSelectSegment}
+          canEdit={props.canEdit}
+          canAddVisits={props.canAddVisits}
+          deletingPlaceIds={props.deletingPlaceIds}
+          onAddVisit={props.onAddVisit}
+          onEdit={props.onEdit}
+          onDelete={props.onDelete}
+          onScheduleItem={props.onScheduleItem}
+          onConfirmDeletion={props.onConfirmDeletion}
+        />
+      </div>
     </section>
   );
 }

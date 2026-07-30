@@ -114,7 +114,6 @@ type PickerState = {
 };
 
 export function PlannerPanel(props: Props) {
-  const [isItinerariesOpen, setIsItinerariesOpen] = useState(true);
   const [isUnscheduledOpen, setIsUnscheduledOpen] = useState(false);
   const [isPlacesOpen, setIsPlacesOpen] = useState(false);
   const [showRouteSegments, setShowRouteSegments] = useState(true);
@@ -313,13 +312,11 @@ export function PlannerPanel(props: Props) {
             deletingPlaceIds={props.mutations.deletingPlaceIds}
             deletingItineraryItemIds={props.mutations.deletingItineraryItemIds}
             isExpanded={props.isExpanded}
-            isOpen={isItinerariesOpen}
             isUnscheduledOpen={isUnscheduledOpen}
             showRouteSegments={showRouteSegments}
             dropTargetKey={dropTargetKey}
             exportFeedback={props.exportFeedback}
             onDropTargetChange={setDropTargetKey}
-            onToggleOpen={() => setIsItinerariesOpen((value) => !value)}
             onToggleUnscheduledOpen={() =>
               setIsUnscheduledOpen((value) => !value)
             }

@@ -16,7 +16,7 @@ describe("planner collapse controls", () => {
   it("renders section toggles with an svg chevron instead of text glyphs", () => {
     const markup = renderToStaticMarkup(
       createElement(SectionToggle, {
-        title: "Itineraries",
+        title: "Unscheduled",
         open: true,
         onToggle: vi.fn(),
       }),
@@ -29,7 +29,7 @@ describe("planner collapse controls", () => {
   it("keeps section titles outside the collapse button", () => {
     const markup = renderToStaticMarkup(
       createElement(SectionToggle, {
-        title: "Itineraries",
+        title: "Unscheduled",
         open: true,
         onToggle: vi.fn(),
       }),
@@ -40,9 +40,9 @@ describe("planner collapse controls", () => {
       "button",
     );
 
-    expect(buttonMarkup).toContain('aria-label="Collapse Itineraries"');
+    expect(buttonMarkup).toContain('aria-label="Collapse Unscheduled"');
     expect(buttonMarkup).not.toContain("<h2>");
-    expect(markup).toContain("</button><h2>Itineraries</h2>");
+    expect(markup).toContain("</button><h2>Unscheduled</h2>");
   });
 
   it("renders itinerary day collapse buttons with svg chevrons in both states", () => {
@@ -142,13 +142,11 @@ function itinerarySectionMarkup(
       deletingPlaceIds: new Set<number>(),
       deletingItineraryItemIds: new Set<number>(),
       isExpanded: false,
-      isOpen: true,
       isUnscheduledOpen: true,
       showRouteSegments: true,
       dropTargetKey: null,
       exportFeedback: null,
       onDropTargetChange: vi.fn(),
-      onToggleOpen: vi.fn(),
       onToggleUnscheduledOpen: vi.fn(),
       onToggleRouteSegments: vi.fn(),
       onCopyExport: vi.fn(),
