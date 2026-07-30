@@ -20,9 +20,12 @@ anonymous guest principal.
 
 ## Entry points
 
-- **Explore a sample trip**: clones a pre-made template trip, including cached
-  route geometry, into a fresh guest-owned copy. Viewing the clone makes zero
-  metered API calls.
+- **Explore a sample trip**: clones a pre-made template trip into a fresh
+  guest-owned copy. Viewing the clone makes zero metered API calls: the geometry
+  cache is keyed by route rather than by place row, so the clone's segments read
+  the rows the source trip already populated. Non-transit rows are shared
+  outright; transit rows are shared per weekday-hour departure bucket, so a clone
+  whose dates fall in an uncached bucket pays for those segments once.
 - **Plan a trip**: a create form limited to the curated destination list, then
   the planner. Guests do not get a dashboard.
 
@@ -95,7 +98,9 @@ is exhausted, the feature degrades with a sign-in upsell instead of an error.
   logged in `ai_plan_generations` with a null user id, keeping token cost
   visibility unified; quota counting for guests uses `guest_api_usage` only.
 - Serving cached route geometry never consumes Routes quota, for guests or
-  members; quota is asserted only on a geometry cache miss.
+  members; quota is asserted only on a geometry cache miss. Cached rows are
+  shared across all trips travelling the same route, so one guest's lookup also
+  spares the next guest's.
 - AI generation asserts the AI generation budget only. Route lookups inside a
   generation are asserted per call, and an exhausted routes budget degrades the
   plan — fallback travel modes, no first-visit realignment — instead of blocking
