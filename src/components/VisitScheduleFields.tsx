@@ -21,6 +21,7 @@ type Props = {
   visitDateOptions: VisitDateOption[];
   visitDate: string | null;
   visitTime: string | null;
+  allowUnscheduled?: boolean;
   onVisitDateChange: (value: string | null) => void;
   onVisitTimeChange: (value: string | null) => void;
 };
@@ -28,11 +29,16 @@ type Props = {
 /**
  * Shared "Which day? / Around what time?" scheduling controls used by both the
  * Add Place and Edit Visit modals so the two stay visually identical.
+ *
+ * Pass `allowUnscheduled={false}` where a dateless visit cannot be stored: an
+ * itinerary item only exists while it has a date, so creating one without a
+ * date would be a silent no-op.
  */
 export function VisitScheduleFields({
   visitDateOptions,
   visitDate,
   visitTime,
+  allowUnscheduled = true,
   onVisitDateChange,
   onVisitTimeChange,
 }: Props) {
@@ -62,20 +68,22 @@ export function VisitScheduleFields({
             );
           })}
         </div>
-        <button
-          type="button"
-          className={
-            visitDate === null
-              ? "place-later-button place-later-button--active"
-              : "place-later-button"
-          }
-          onClick={() => {
-            onVisitDateChange(null);
-            onVisitTimeChange(null);
-          }}
-        >
-          Decide later — keep it unscheduled
-        </button>
+        {allowUnscheduled && (
+          <button
+            type="button"
+            className={
+              visitDate === null
+                ? "place-later-button place-later-button--active"
+                : "place-later-button"
+            }
+            onClick={() => {
+              onVisitDateChange(null);
+              onVisitTimeChange(null);
+            }}
+          >
+            Decide later — keep it unscheduled
+          </button>
+        )}
       </div>
 
       {visitDate !== null && (

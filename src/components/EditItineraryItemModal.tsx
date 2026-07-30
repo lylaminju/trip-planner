@@ -41,6 +41,10 @@ export function EditItineraryItemModal({
     (link) => link.trim().length > 0,
   );
   const resolvedMode: VisitModalMode = mode ?? (item ? "edit" : "add");
+  // Only editing an existing visit can unschedule it (the item is deleted and
+  // its place returns to the Unscheduled list). Adding or duplicating a visit
+  // without a date has nothing to store, so the option is not offered.
+  const allowUnscheduled = resolvedMode === "edit";
 
   const validDates = new Set(visitDateOptions.map((option) => option.value));
   const initialDate =
@@ -148,6 +152,7 @@ export function EditItineraryItemModal({
             visitDateOptions={visitDateOptions}
             visitDate={visitDate}
             visitTime={visitTime}
+            allowUnscheduled={allowUnscheduled}
             onVisitDateChange={setVisitDate}
             onVisitTimeChange={setVisitTime}
           />
@@ -176,7 +181,7 @@ export function EditItineraryItemModal({
             <button
               type="submit"
               className="place-primary-button"
-              disabled={isSaving}
+              disabled={isSaving || (!allowUnscheduled && visitDate === null)}
             >
               {isSaving && <span className="place-spinner" />}
               Save

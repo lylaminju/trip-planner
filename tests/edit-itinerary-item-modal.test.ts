@@ -33,6 +33,43 @@ describe("EditItineraryItemModal", () => {
     expect(markup).toContain("Meet at the entrance");
   });
 
+  // An itinerary item exists only while it has a visit date, so add and
+  // duplicate must not offer "keep it unscheduled": saving that used to return
+  // a successful snapshot without creating anything.
+  it("offers the unscheduled option only when editing an existing visit", () => {
+    const place = buildPlace({ id: 7, name: "Bryant Park" });
+    const item = buildItineraryItem({ place });
+
+    const renderMode = (props: Record<string, unknown>) =>
+      renderToStaticMarkup(
+        createElement(EditItineraryItemModal, {
+          visitDateOptions,
+          onCancel: vi.fn(),
+          onSave: vi.fn(),
+          ...props,
+        }),
+      );
+
+    expect(renderMode({ item })).toContain("place-later-button");
+    expect(renderMode({ place })).not.toContain("place-later-button");
+    expect(renderMode({ item, mode: "duplicate" })).not.toContain(
+      "place-later-button",
+    );
+  });
+
+  it("blocks saving an add-visit dialog until a day is picked", () => {
+    const markup = renderToStaticMarkup(
+      createElement(EditItineraryItemModal, {
+        place: buildPlace({ id: 7, name: "Bryant Park" }),
+        visitDateOptions,
+        onCancel: vi.fn(),
+        onSave: vi.fn(),
+      }),
+    );
+
+    expect(markup).toMatch(/place-primary-button"[^>]*disabled/);
+  });
+
   it("titles the dialog by mode: add for a place, edit for an item", () => {
     const place = buildPlace({ id: 7, name: "Bryant Park" });
 
