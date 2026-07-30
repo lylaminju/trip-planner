@@ -64,9 +64,9 @@ describe("AiPlanningWizard", () => {
     // 3 trip days at the default 2-3/day pace exceed the 2-candidate catalog,
     // so the estimate shows coverage copy: catalog-sized stops plus free days.
     expect(markup).toContain("May 27 – May 29");
-    expect(markup).toContain("3 days");
+    expect(markup).toContain("3-day trip");
     expect(markup).toContain("2 stops");
-    expect(markup).toContain("with free days in between");
+    expect(markup).toContain("the rest are free days");
     expect(markup).toContain("Next");
   });
 
@@ -98,8 +98,8 @@ describe("AiPlanningWizard", () => {
 
     // 40 candidates at 2-3/day: ceil(40/3)=14 to floor(40/2)=20 sightseeing days.
     expect(markup).toContain("40 stops");
-    expect(markup).toContain("about 14–20 sightseeing days");
-    expect(markup).toContain("with free days in between");
+    expect(markup).toContain("14–20 sightseeing days");
+    expect(markup).toContain("the rest are free days");
   });
 
   it("replaces wizard body with the generation screen while generating", () => {

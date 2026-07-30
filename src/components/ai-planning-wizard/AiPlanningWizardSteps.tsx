@@ -111,9 +111,9 @@ export function PaceStep({
       <p className="ai-pace-estimate">
         {isCoverageTrip ? (
           <>
-            That&apos;s about <strong>{candidateCount} stops</strong> over{" "}
-            {sightseeingDaysLabel(draft, candidateCount)} across your {days}{" "}
-            days, with free days in between.
+            About <strong>{candidateCount} stops</strong> spread across{" "}
+            <strong>{sightseeingDaysLabel(draft, candidateCount)}</strong> of
+            your {days}-day trip — the rest are free days.
           </>
         ) : (
           <>
@@ -136,8 +136,8 @@ function sightseeingDaysLabel(
     draft.visits_per_day_max,
   );
   return minDays === maxDays
-    ? `about ${maxDays} sightseeing ${maxDays === 1 ? "day" : "days"}`
-    : `about ${minDays}–${maxDays} sightseeing days`;
+    ? `${maxDays} sightseeing ${maxDays === 1 ? "day" : "days"}`
+    : `${minDays}–${maxDays} sightseeing days`;
 }
 
 export function InterestStep({ draft, onChange }: StepProps) {
