@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { jsonError, requireAuthenticatedRequest } from "@/app/api/_utils";
+import {
+  jsonError,
+  mapRouteError,
+  requireAuthenticatedRequest,
+} from "@/app/api/_utils";
 import { resolveTimeZone } from "@/lib/daily-counts";
 import { getAllUsersUsageStats } from "@/server/supabase-admin-usage-store";
 
@@ -19,6 +23,8 @@ export async function GET(request: Request) {
     const stats = await getAllUsersUsageStats(timeZone);
     return NextResponse.json(stats);
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "Failed to load usage stats.", 500);
+    const response = mapRouteError(error, request);
+    if (response) return response;
+    throw error;
   }
 }
