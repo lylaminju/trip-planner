@@ -4,14 +4,19 @@ import {
   buildBlurb,
   buildSearchQuery,
   extractImageCredit,
+  extractImageInfo,
   extractPageSummary,
   matchPlacesToCandidateImages,
+  normalizeImageFileName,
   parseArgs,
+  pickDestinationQualifiedTitle,
   pickMatchingSearchTitle,
+  rankPageImages,
   slugToPlaceName,
   stripHtml,
   stripPronunciationGlosses,
   titleMatchesCandidate,
+  titlesNameTheSameThing,
 } from "../scripts/backfill-candidate-images.mjs";
 
 describe("Wikimedia response parsing", () => {
@@ -146,6 +151,118 @@ describe("Wikimedia response parsing", () => {
     ).toBe("Banff Gondola");
     expect(pickMatchingSearchTitle({ query: { search: [] } }, "x")).toBeNull();
     expect(pickMatchingSearchTitle({}, "x")).toBeNull();
+  });
+
+  it("finds the city-qualified sibling of an ambiguous name", () => {
+    expect(
+      pickDestinationQualifiedTitle(
+        { query: { search: [{ title: "Chinatown" }, { title: "Chinatown, Vancouver" }] } },
+        "Chinatown",
+        "vancouver",
+      ),
+    ).toBe("Chinatown, Vancouver");
+  });
+
+  it("does not treat an unrelated sibling as a more specific article", () => {
+    // "Granville Island Brewing" shares both words but is a brewery, not a more
+    // specific Granville Island; taking it would push the island entry off its
+    // own article.
+    expect(
+      pickDestinationQualifiedTitle(
+        {
+          query: {
+            search: [
+              { title: "Granville Island" },
+              { title: "Granville Island Brewing" },
+            ],
+          },
+        },
+        "Granville Island",
+        "vancouver",
+      ),
+    ).toBeNull();
+    expect(
+      pickDestinationQualifiedTitle({ query: { search: [] } }, "x", "vancouver"),
+    ).toBeNull();
+    // No destination context means nothing can be qualified by it.
+    expect(
+      pickDestinationQualifiedTitle(
+        { query: { search: [{ title: "Chinatown, Vancouver" }] } },
+        "Chinatown",
+        null,
+      ),
+    ).toBeNull();
+  });
+
+  it("detects when an article title names exactly the candidate", () => {
+    expect(titlesNameTheSameThing("Chinatown", "Chinatown")).toBe(true);
+    // Word order and punctuation do not change the subject.
+    expect(titlesNameTheSameThing("The Getty Center", "Getty Center")).toBe(true);
+    expect(titlesNameTheSameThing("Chinatown", "Chinatown, Vancouver")).toBe(false);
+    expect(titlesNameTheSameThing("Gastown Steam Clock", "Gastown")).toBe(false);
+    expect(titlesNameTheSameThing("", "Chinatown")).toBe(false);
+  });
+
+  it("ranks an article's images by how well the file name fits the candidate", () => {
+    const images = {
+      query: {
+        pages: {
+          1: {
+            images: [
+              { title: "File:Commons-logo.svg" },
+              { title: "File:Flag of Canada.svg" },
+              { title: "File:Gastown Vancouver skyline.jpg" },
+              { title: "File:Gastown steam clock 2019.jpg" },
+            ],
+          },
+        },
+      },
+    };
+    // The steam clock photo wins on the shared "steam"/"clock" words even
+    // though the skyline shot comes first, and the logo/flag are dropped.
+    expect(rankPageImages(images, "Gastown Steam Clock")).toEqual([
+      "File:Gastown steam clock 2019.jpg",
+      "File:Gastown Vancouver skyline.jpg",
+    ]);
+    // A file another candidate already shows is not offered again.
+    expect(
+      rankPageImages(
+        images,
+        "Gastown Steam Clock",
+        new Set(["gastown steam clock 2019.jpg"]),
+      ),
+    ).toEqual(["File:Gastown Vancouver skyline.jpg"]);
+    expect(rankPageImages(null, "x")).toEqual([]);
+    expect(rankPageImages({ query: { pages: { 1: {} } } }, "x")).toEqual([]);
+  });
+
+  it("normalizes Wikimedia file names so the same file compares equal", () => {
+    expect(normalizeImageFileName("File:Gastown_steam_clock.jpg")).toBe(
+      "gastown steam clock.jpg",
+    );
+    expect(normalizeImageFileName("Gastown steam clock.jpg")).toBe(
+      "gastown steam clock.jpg",
+    );
+    expect(normalizeImageFileName(null)).toBeNull();
+    expect(normalizeImageFileName("  ")).toBeNull();
+  });
+
+  it("extracts an image url and width, failing closed on malformed payloads", () => {
+    expect(
+      extractImageInfo({
+        query: {
+          pages: {
+            1: {
+              imageinfo: [
+                { url: "https://upload.wikimedia.org/a.jpg", width: 1200 },
+              ],
+            },
+          },
+        },
+      }),
+    ).toEqual({ url: "https://upload.wikimedia.org/a.jpg", width: 1200 });
+    expect(extractImageInfo({ query: { pages: { 1: { imageinfo: [{}] } } } })).toBeNull();
+    expect(extractImageInfo(null)).toBeNull();
   });
 
   it("keeps short blurbs whole and truncates long ones at a sentence boundary", () => {

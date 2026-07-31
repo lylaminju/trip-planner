@@ -234,6 +234,140 @@ export function titleMatchesCandidate(
   return shared / Math.min(candidateTokens.size, titleTokens.size) >= minOverlap;
 }
 
+// Two entries showing one photo read as duplicates even when the places
+// genuinely differ, so an image already used by another candidate is not
+// available to this one. Wikimedia file names are the identity: our own storage
+// URL is per-row and would never collide.
+export function normalizeImageFileName(value) {
+  if (typeof value !== "string") return null;
+  const name = value
+    .replace(/^File:/i, "")
+    .replace(/_/g, " ")
+    .trim()
+    .toLowerCase();
+  return name || null;
+}
+
+const PHOTO_FILE_EXTENSION_PATTERN = /\.(jpe?g|png|webp)$/i;
+
+// Files that decorate an article rather than depict its subject.
+const NON_SUBJECT_FILE_PATTERN =
+  /commons.?logo|wikimedia|wikipedia|wiktionary|logo|icon|symbol|flag.of|locator|location.map|ambox|disambig|portal|question.book|speaker|pog\.|osm|blank|placeholder/i;
+
+// Every article image is one request, so only the most promising are tried.
+const ALTERNATE_IMAGE_ATTEMPTS = 4;
+const PAGE_IMAGE_LIMIT = "50";
+// Thumbnails and badges left over from infoboxes are not usable previews.
+const MIN_ALTERNATE_IMAGE_WIDTH_PX = 400;
+
+// Order an article's images by how well the file name matches the candidate, so
+// "Gastown Steam Clock" takes the steam clock photo off the Gastown article
+// rather than whichever image happens to lead it. Files already in use, and
+// files that illustrate the page instead of the place, are dropped.
+export function rankPageImages(
+  imagesJson,
+  candidateName,
+  usedImageFiles = new Set(),
+) {
+  const pages = imagesJson?.query?.pages;
+  if (!pages || typeof pages !== "object") return [];
+  const images = Object.values(pages)[0]?.images;
+  if (!Array.isArray(images)) return [];
+
+  const candidateTokens = new Set(tokenizeForMatch(candidateName));
+
+  return images
+    .map((image) => (typeof image?.title === "string" ? image.title : null))
+    .filter((title) => {
+      if (!title || !PHOTO_FILE_EXTENSION_PATTERN.test(title)) return false;
+      if (NON_SUBJECT_FILE_PATTERN.test(title)) return false;
+      return !usedImageFiles.has(normalizeImageFileName(title));
+    })
+    .map((title) => {
+      const fileTokens = new Set(
+        tokenizeForMatch(
+          title
+            .replace(/^File:/i, "")
+            .replace(PHOTO_FILE_EXTENSION_PATTERN, ""),
+        ),
+      );
+      let shared = 0;
+      for (const token of fileTokens) {
+        if (candidateTokens.has(token)) shared += 1;
+      }
+      return { title, shared };
+    })
+    .sort((a, b) => b.shared - a.shared)
+    .map((entry) => entry.title);
+}
+
+// The city-qualified version of the same name: "Chinatown" in Vancouver and in
+// Toronto both match the worldwide "Chinatown" article exactly, so only the
+// qualified sibling tells them apart. Deliberately narrow — a sibling that adds
+// anything other than the destination ("Granville Island Brewing" beside
+// "Granville Island") is a different subject, not a more specific one.
+export function pickDestinationQualifiedTitle(
+  searchJson,
+  candidateName,
+  destinationSlug,
+) {
+  const results = searchJson?.query?.search;
+  if (!Array.isArray(results)) return null;
+
+  const candidateTokens = new Set(tokenizeForMatch(candidateName));
+  const destinationTokens = new Set(
+    tokenizeForMatch(slugToPlaceName(destinationSlug)),
+  );
+  if (candidateTokens.size === 0 || destinationTokens.size === 0) return null;
+
+  for (const result of results) {
+    const title = typeof result?.title === "string" ? result.title : null;
+    if (!title) continue;
+    const titleTokens = new Set(tokenizeForMatch(title));
+    if (titleTokens.size <= candidateTokens.size) continue;
+
+    let qualified = true;
+    for (const token of candidateTokens) {
+      if (!titleTokens.has(token)) {
+        qualified = false;
+        break;
+      }
+    }
+    if (!qualified) continue;
+
+    for (const token of titleTokens) {
+      if (!candidateTokens.has(token) && !destinationTokens.has(token)) {
+        qualified = false;
+        break;
+      }
+    }
+    if (qualified) return title;
+  }
+
+  return null;
+}
+
+export function titlesNameTheSameThing(candidateName, title) {
+  const candidateTokens = new Set(tokenizeForMatch(candidateName));
+  const titleTokens = new Set(tokenizeForMatch(title));
+  if (candidateTokens.size === 0 || candidateTokens.size !== titleTokens.size) {
+    return false;
+  }
+  for (const token of candidateTokens) {
+    if (!titleTokens.has(token)) return false;
+  }
+  return true;
+}
+
+export function extractImageInfo(imageInfoJson) {
+  const pages = imageInfoJson?.query?.pages;
+  if (!pages || typeof pages !== "object") return null;
+  const info = Object.values(pages)[0]?.imageinfo?.[0];
+  const url = typeof info?.url === "string" ? info.url : null;
+  if (!url) return null;
+  return { url, width: typeof info?.width === "number" ? info.width : null };
+}
+
 export function extractImageCredit(imageInfoJson) {
   const pages = imageInfoJson?.query?.pages;
   if (!pages || typeof pages !== "object") return null;
@@ -341,7 +475,57 @@ function pageSummaryParams(title) {
   };
 }
 
-async function resolveCandidateMedia(name, destinationSlug = null) {
+// Take the most on-topic photo from an article that no other candidate is
+// already showing. Used when the article's lead image is taken, which is the
+// normal case for a specific venue inside a broader subject.
+async function resolveAlternateImage(pageTitle, candidateName, usedImageFiles) {
+  if (!pageTitle) return null;
+
+  const ranked = rankPageImages(
+    await fetchWikipediaJson({
+      action: "query",
+      prop: "images",
+      imlimit: PAGE_IMAGE_LIMIT,
+      redirects: "1",
+      titles: pageTitle,
+    }),
+    candidateName,
+    usedImageFiles,
+  );
+
+  for (const fileTitle of ranked.slice(0, ALTERNATE_IMAGE_ATTEMPTS)) {
+    const json = await fetchWikipediaJson({
+      action: "query",
+      prop: "imageinfo",
+      iiprop: "url|size|extmetadata",
+      iiextmetadatafilter: "Artist|LicenseShortName",
+      titles: fileTitle,
+      redirects: "1",
+    });
+    const info = extractImageInfo(json);
+    if (!info) continue;
+    if (info.width !== null && info.width < MIN_ALTERNATE_IMAGE_WIDTH_PX)
+      continue;
+    return {
+      imageUrl: info.url,
+      imageFileName: fileTitle.replace(/^File:/i, ""),
+      credit: extractImageCredit(json),
+    };
+  }
+
+  return null;
+}
+
+async function resolveCandidateMedia(
+  name,
+  destinationSlug = null,
+  usedImageFiles = new Set(),
+) {
+  const isTaken = (fileName) => {
+    const key = normalizeImageFileName(fileName);
+    return key !== null && usedImageFiles.has(key);
+  };
+
   let summary = extractPageSummary(await fetchWikipediaJson(pageSummaryParams(name)));
 
   // A direct-title hit is trusted only when the (redirect-resolved) page still
@@ -350,8 +534,12 @@ async function resolveCandidateMedia(name, destinationSlug = null) {
     summary = null;
   }
 
-  if (!summary?.imageUrl) {
-    const searchTitle = pickMatchingSearchTitle(
+  // An article titled exactly like the candidate can still be the worldwide
+  // subject rather than this city's: "Chinatown" in Toronto reaches the general
+  // article, whose lead photo is New York's. Only bare names reach here, so the
+  // extra lookup is not paid on every candidate.
+  if (summary?.imageUrl && titlesNameTheSameThing(name, summary.title)) {
+    const qualifiedTitle = pickDestinationQualifiedTitle(
       await fetchWikipediaJson({
         action: "query",
         list: "search",
@@ -361,30 +549,74 @@ async function resolveCandidateMedia(name, destinationSlug = null) {
       name,
       destinationSlug,
     );
-    if (searchTitle) {
-      summary = extractPageSummary(
-        await fetchWikipediaJson(pageSummaryParams(searchTitle)),
+    if (qualifiedTitle) {
+      const qualified = extractPageSummary(
+        await fetchWikipediaJson(pageSummaryParams(qualifiedTitle)),
       );
+      if (qualified?.imageUrl) summary = qualified;
     }
   }
 
-  if (!summary?.imageUrl) return null;
+  // Search when the direct hit brought no image, and also when it brought one
+  // another candidate already shows: a redirect from a specific venue to its
+  // broader subject ("Gastown Steam Clock" to "Gastown") otherwise hands both
+  // entries the same photo without a search ever running.
+  if (!summary?.imageUrl || isTaken(summary.imageFileName)) {
+    const searchJson = await fetchWikipediaJson({
+      action: "query",
+      list: "search",
+      srsearch: buildSearchQuery(name, destinationSlug),
+      srlimit: String(SEARCH_RESULT_LIMIT),
+    });
 
-  let credit = null;
-  if (summary.imageFileName) {
-    credit = extractImageCredit(
-      await fetchWikipediaJson({
-        action: "query",
-        prop: "imageinfo",
-        iiprop: "extmetadata",
-        iiextmetadatafilter: "Artist|LicenseShortName",
-        titles: `File:${summary.imageFileName}`,
-        redirects: "1",
-      }),
-    );
+    // The article we already have would win the ranking again, so when its
+    // image is taken the only useful alternative is a city-qualified sibling.
+    // Anything else that merely shares a word is a different subject, and
+    // taking it would push this candidate off its own article.
+    const searchTitle =
+      summary?.title && isTaken(summary.imageFileName)
+        ? pickDestinationQualifiedTitle(searchJson, name, destinationSlug)
+        : pickMatchingSearchTitle(searchJson, name, destinationSlug);
+
+    if (searchTitle && searchTitle !== summary?.title) {
+      const searched = extractPageSummary(
+        await fetchWikipediaJson(pageSummaryParams(searchTitle)),
+      );
+      // Prefer whichever article yields an image nobody else is using.
+      if (searched?.imageUrl && !isTaken(searched.imageFileName)) summary = searched;
+      else summary ??= searched;
+    }
   }
 
-  return { imageUrl: summary.imageUrl, credit, blurb: buildBlurb(summary.extract) };
+  if (!summary) return null;
+
+  const blurb = buildBlurb(summary.extract);
+
+  if (summary.imageUrl && !isTaken(summary.imageFileName)) {
+    let credit = null;
+    if (summary.imageFileName) {
+      credit = extractImageCredit(
+        await fetchWikipediaJson({
+          action: "query",
+          prop: "imageinfo",
+          iiprop: "extmetadata",
+          iiextmetadatafilter: "Artist|LicenseShortName",
+          titles: `File:${summary.imageFileName}`,
+          redirects: "1",
+        }),
+      );
+    }
+    return {
+      imageUrl: summary.imageUrl,
+      imageFileName: summary.imageFileName,
+      credit,
+      blurb,
+    };
+  }
+
+  const alternate = await resolveAlternateImage(summary.title, name, usedImageFiles);
+  if (!alternate) return null;
+  return { ...alternate, blurb };
 }
 
 async function downloadWebpThumbnail(imageUrl) {
@@ -462,11 +694,17 @@ export async function backfillCandidateImages({
     failed: 0,
   };
 
+  // Claimed within this run only: rows left untouched do not record which
+  // Wikimedia file they used, so re-source a whole set of duplicates together
+  // rather than one of them in isolation.
+  const usedImageFiles = new Set();
+
   for (const candidate of candidates) {
     try {
       const media = await resolveCandidateMedia(
         candidate.name,
         candidate.destination_slug,
+        usedImageFiles,
       );
       if (!media) {
         // A forced re-source that finds no acceptable article must drop any
@@ -517,6 +755,9 @@ export async function backfillCandidateImages({
         .update(patch)
         .eq("id", candidate.id);
       if (updateError) throw new Error(updateError.message);
+
+      const usedKey = normalizeImageFileName(media.imageFileName);
+      if (usedKey) usedImageFiles.add(usedKey);
 
       summary.updated += 1;
       console.log(`✓ image ${candidate.name}`);
