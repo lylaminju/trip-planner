@@ -130,3 +130,33 @@ export class GooglePlacesRateLimitError extends Error {
     this.name = "GooglePlacesRateLimitError";
   }
 }
+
+// Shared triage buckets. Route responses (`mapRouteError`) and operator alerts
+// (`error-alerts`) must agree on which failures are our fault, which are budget
+// exhaustion, and which are the caller's own doing, so the taxonomy lives here
+// next to the classes rather than being restated per consumer.
+const SERVER_FAULT_ERROR_TYPES = [
+  AiPlannerConfigError,
+  GoogleRoutesConfigError,
+  GoogleRoutesUpstreamError,
+  GoogleMapsUrlUpstreamError,
+  GooglePlacesConfigError,
+  GooglePlacesUpstreamError,
+];
+
+const RATE_LIMIT_ERROR_TYPES = [
+  AiGenerationRateLimitError,
+  AiUpstreamRateLimitError,
+  GoogleRoutesRateLimitError,
+  GooglePlacesRateLimitError,
+];
+
+// Misconfiguration or a failing upstream: something we have to fix or chase.
+export function isServerFaultError(error: unknown): boolean {
+  return SERVER_FAULT_ERROR_TYPES.some((type) => error instanceof type);
+}
+
+// A budget ran out, ours or an upstream's. Not a defect, but worth watching.
+export function isRateLimitError(error: unknown): boolean {
+  return RATE_LIMIT_ERROR_TYPES.some((type) => error instanceof type);
+}

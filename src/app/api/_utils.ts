@@ -18,7 +18,10 @@ import {
   RouteSegmentNotFoundError,
   TripAccessDeniedError,
   TripValidationError,
+  isRateLimitError,
+  isServerFaultError,
 } from "@/server/errors";
+import { reportHandledRouteError } from "@/server/error-alerts";
 import {
   getAuthenticatedUser,
   readAuthTokensFromCookieHeader,
@@ -165,37 +168,27 @@ export function withRefreshedSession(
   return setAuthCookies(response, refreshedSession);
 }
 
-const SERVER_FAULT_ERROR_TYPES = [
-  AiPlannerConfigError,
-  GoogleRoutesConfigError,
-  GoogleRoutesUpstreamError,
-  GoogleMapsUrlUpstreamError,
-  GooglePlacesConfigError,
-  GooglePlacesUpstreamError,
-];
-
-const RATE_LIMIT_ERROR_TYPES = [
-  AiGenerationRateLimitError,
-  AiUpstreamRateLimitError,
-  GoogleRoutesRateLimitError,
-  GooglePlacesRateLimitError,
-];
-
 // Handled errors never reach the Next.js error boundary, so they are invisible
 // in production logs unless reported here.
 function logRouteError(error: unknown): void {
-  if (SERVER_FAULT_ERROR_TYPES.some((type) => error instanceof type)) {
+  if (isServerFaultError(error)) {
     console.error(error);
     return;
   }
 
-  if (RATE_LIMIT_ERROR_TYPES.some((type) => error instanceof type)) {
+  if (isRateLimitError(error)) {
     console.warn(error);
   }
 }
 
-export function mapRouteError(error: unknown): NextResponse | null {
+// `request` is optional so the 58 existing call sites keep working; passing it
+// only adds route context to the alert.
+export function mapRouteError(
+  error: unknown,
+  request?: { method: string; url: string },
+): NextResponse | null {
   logRouteError(error);
+  reportHandledRouteError(error, request);
 
   if (
     error instanceof PlaceNotFoundError ||
