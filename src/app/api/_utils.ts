@@ -27,7 +27,6 @@ import { guestPrincipalId } from "@/server/principal";
 
 export type JsonObject = Record<string, unknown>;
 
-
 const MAX_ABS_LATITUDE = 90;
 const MAX_ABS_LONGITUDE = 180;
 
@@ -142,7 +141,11 @@ export async function requireUserOrGuestRequest(
     return {
       ok: true,
       refreshedSession: null,
-      principal: { kind: "guest", guestId, principalId: guestPrincipalId(guestId) },
+      principal: {
+        kind: "guest",
+        guestId,
+        principalId: guestPrincipalId(guestId),
+      },
     };
   }
 
