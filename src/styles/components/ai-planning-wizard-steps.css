@@ -204,13 +204,6 @@
   text-transform: uppercase;
 }
 
-.ai-field-optional {
-  color: var(--text-soft);
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
 .ai-field-hint {
   color: var(--text-soft);
   font-size: 12px;

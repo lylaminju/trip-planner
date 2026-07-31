@@ -40,6 +40,12 @@ import {
   transitStopsSummary,
   type TransitStopDraft,
 } from "./ai-planning-wizard/transit-stop-draft";
+import {
+  AI_WIZARD_LAST_STEP_INDEX,
+  AI_WIZARD_STEPS,
+  aiWizardStepIndex,
+  type AiWizardStepKey,
+} from "./ai-planning-wizard/wizard-steps";
 import { CloseIcon, MagicWandIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 
@@ -60,48 +66,6 @@ type Props = {
   onCreateItinerary: (draft: AiPlanningGenerationInput) => void | Promise<void>;
   onRetryLoad: () => void;
 };
-
-const STEP_META = [
-  { key: "pace", label: "Pace", title: "How full should each day feel?" },
-  {
-    key: "interests",
-    label: "Interests",
-    title: "What are you into?",
-    optional: true,
-  },
-  {
-    key: "logistics",
-    label: "Getting around",
-    title: "How will you get around?",
-  },
-  {
-    key: "startend",
-    label: "Start & end",
-    title: "Where does your trip start and end?",
-    optional: true,
-  },
-  {
-    key: "mustsee",
-    label: "Must-sees",
-    title: "Anything you can't miss?",
-    optional: true,
-  },
-  { key: "review", label: "Review", title: "Review & generate" },
-] as const;
-
-const STEP_HELPERS: Record<(typeof STEP_META)[number]["key"], string> = {
-  pace: "Pick the rhythm that fits — we'll size each day to match.",
-  interests: "Pick a few and we'll weight your plan toward them.",
-  logistics:
-    "Choose at least one way to travel, then set when your days start and where they begin.",
-  startend:
-    "Most trips begin and end at an airport, station, or terminal — pick yours and we'll plan around it.",
-  mustsee:
-    "Lock in the places you know you want, and we'll build around them.",
-  review: "Here's your plan brief. Edit anything, then let AI build it.",
-};
-
-const LAST_STEP_INDEX = STEP_META.length - 1;
 
 export function AiPlanningWizard(props: Props) {
   const initialDraft = useMemo(
@@ -181,9 +145,9 @@ export function AiPlanningWizard(props: Props) {
       : null;
   const destinationCountryCodes = trip?.destination_country_codes ?? null;
   const modesEmpty = draft.preferred_travel_modes.length === 0;
-  const isReviewStep = stepIndex === LAST_STEP_INDEX;
-  const currentStep = STEP_META[stepIndex];
-  const isOptionalStep = "optional" in currentStep && currentStep.optional;
+  const isReviewStep = stepIndex === AI_WIZARD_LAST_STEP_INDEX;
+  const currentStep = AI_WIZARD_STEPS[stepIndex];
+  const isOptionalStep = currentStep.optional === true;
   const requiresTravelModes =
     currentStep.key === "logistics" || isReviewStep;
   // Generation validates against catalog candidate IDs server-side, so the
@@ -233,7 +197,7 @@ export function AiPlanningWizard(props: Props) {
       target.closest(
         "textarea, a[href], .ai-wizard-back, .ai-wizard-cancel, " +
           ".ai-wizard-topbar-close, .ai-planning-close, .ai-wizard-step, " +
-          ".ai-review-edit",
+          ".ai-review-edit, .ai-wizard-skip",
       )
     ) {
       return;
@@ -242,7 +206,7 @@ export function AiPlanningWizard(props: Props) {
     goNext();
   }
 
-  function summaryFor(key: (typeof STEP_META)[number]["key"]): string {
+  function summaryFor(key: AiWizardStepKey): string {
     if (key === "pace") {
       return `${compactVisitsRange(draft)} / day`;
     }
@@ -349,7 +313,7 @@ export function AiPlanningWizard(props: Props) {
                 </div>
 
                 <ol className="ai-wizard-stepper">
-                  {STEP_META.map((step, index) => {
+                  {AI_WIZARD_STEPS.map((step, index) => {
                     const status =
                       index < stepIndex
                         ? "done"
@@ -358,7 +322,7 @@ export function AiPlanningWizard(props: Props) {
                           : "todo";
                     return (
                       <li key={step.key} className="ai-wizard-step-item">
-                        {index < LAST_STEP_INDEX && (
+                        {index < AI_WIZARD_LAST_STEP_INDEX && (
                           <span
                             aria-hidden="true"
                             className={
@@ -413,28 +377,40 @@ export function AiPlanningWizard(props: Props) {
                 </div>
                 <div className="ai-wizard-content">
                   <div className="ai-wizard-content-inner">
-                  <p
-                    className={
-                      isOptionalStep
-                        ? "ai-wizard-step-count optional"
-                        : "ai-wizard-step-count"
-                    }
-                  >
-                    <span className="ai-wizard-step-count-index">
-                      Step {stepIndex + 1} of {STEP_META.length}
-                    </span>
-                    {isOptionalStep && (
-                      <span className="ai-wizard-step-count-optional">
-                        Optional
+                  <div className="ai-wizard-eyebrow">
+                    <p
+                      className={
+                        isOptionalStep
+                          ? "ai-wizard-step-count optional"
+                          : "ai-wizard-step-count"
+                      }
+                    >
+                      <span className="ai-wizard-step-count-index">
+                        Step {stepIndex + 1} of {AI_WIZARD_STEPS.length}
                       </span>
+                      {isOptionalStep && (
+                        <span className="ai-wizard-step-count-optional">
+                          Optional
+                        </span>
+                      )}
+                    </p>
+                    {isOptionalStep && (
+                      <button
+                        type="button"
+                        className="ai-wizard-skip"
+                        onClick={() =>
+                          setStepIndex(AI_WIZARD_LAST_STEP_INDEX)
+                        }
+                      >
+                        Skip to review
+                        <span aria-hidden="true"> →</span>
+                      </button>
                     )}
-                  </p>
+                  </div>
                   <h2 className="ai-wizard-title">{currentStep.title}</h2>
-                  <p className="ai-wizard-helper">
-                    {STEP_HELPERS[currentStep.key]}
-                  </p>
+                  <p className="ai-wizard-helper">{currentStep.helper}</p>
 
-                  {stepIndex === 0 && (
+                  {currentStep.key === "pace" && (
                     <PaceStep
                       draft={draft}
                       onChange={setDraft}
@@ -442,32 +418,28 @@ export function AiPlanningWizard(props: Props) {
                       candidateCount={props.setup.candidates.length}
                     />
                   )}
-                  {stepIndex === 1 && (
-                    <InterestStep draft={draft} onChange={setDraft} />
-                  )}
-                  {stepIndex === 2 && (
+                  {currentStep.key === "logistics" && (
                     <LogisticsStep
-                      currentLodging={props.setup.lodging}
                       dailyStartTime={dailyStartTime}
-                      destinationBias={destinationBias}
-                      destinationCountryCodes={destinationCountryCodes}
                       draft={draft}
-                      isGuest={props.isGuest ?? false}
-                      lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
                       onChange={setDraft}
                       onDailyStartTimeChange={setDailyStartTime}
-                      onLodgingGoogleMapsUrlChange={setLodgingGoogleMapsUrl}
-                      tripId={props.setup.trip.id}
                     />
                   )}
-                  {stepIndex === 3 && (
+                  {currentStep.key === "interests" && (
+                    <InterestStep draft={draft} onChange={setDraft} />
+                  )}
+                  {currentStep.key === "startend" && (
                     <TransitStopsStep
                       currentArrivalPoint={props.setup.arrivalPoint}
                       currentDeparturePoint={props.setup.departurePoint}
+                      currentLodging={props.setup.lodging}
                       destinationBias={destinationBias}
                       destinationCountryCodes={destinationCountryCodes}
                       hubsStatus={props.hubsStatus}
                       isGuest={props.isGuest ?? false}
+                      lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
+                      onLodgingGoogleMapsUrlChange={setLodgingGoogleMapsUrl}
                       onRetryPrepare={props.onRetryCatalogPrepare}
                       onTransitDraftChange={setTransitDraft}
                       transitDraft={transitDraft}
@@ -475,7 +447,7 @@ export function AiPlanningWizard(props: Props) {
                       tripId={props.setup.trip.id}
                     />
                   )}
-                  {stepIndex === 4 && (
+                  {currentStep.key === "mustsee" && (
                     <MustSeeStep
                       candidates={props.setup.candidates}
                       catalogStatus={props.catalogStatus}
@@ -505,7 +477,7 @@ export function AiPlanningWizard(props: Props) {
                       }
                       draft={draft}
                       lodgingName={lodgingName}
-                      onEditStep={setStepIndex}
+                      onEditStep={(key) => setStepIndex(aiWizardStepIndex(key))}
                       transitDraft={transitDraft}
                       transitHubs={props.setup.transitHubs}
                     />

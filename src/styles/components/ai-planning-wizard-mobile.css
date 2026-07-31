@@ -116,21 +116,29 @@
 
   /* The dot stepper already shows position, so drop "Step N of N" on mobile.
      Keep only the Optional tag, and only on optional steps. */
+  /* Vertical space is scarce, so the row collapses entirely on required steps
+     rather than reserving the desktop height. */
+  .ai-wizard-eyebrow {
+    gap: 12px;
+    min-height: 0;
+  }
+
   .ai-wizard-step-count {
     display: none;
     font-size: 12px;
   }
 
   .ai-wizard-step-count.optional {
-    display: block;
+    display: flex;
   }
 
   .ai-wizard-step-count-index {
     display: none;
   }
 
-  .ai-wizard-step-count-optional::before {
-    content: none;
+  .ai-wizard-skip {
+    font-size: 12px;
+    padding: 2px 4px;
   }
 
   .ai-wizard-title {

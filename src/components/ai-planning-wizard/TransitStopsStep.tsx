@@ -2,6 +2,7 @@ import type { PlaceSearchBias } from "@/lib/places-api";
 import type {
   AiCatalogPrepStatus,
   AiDestinationTransitHub,
+  TripLodging,
   TripTransitPoint,
 } from "@/lib/types";
 
@@ -17,10 +18,13 @@ import {
 export function TransitStopsStep({
   currentArrivalPoint,
   currentDeparturePoint,
+  currentLodging,
   destinationBias,
   destinationCountryCodes,
   hubsStatus,
   isGuest = false,
+  lodgingGoogleMapsUrl,
+  onLodgingGoogleMapsUrlChange,
   onRetryPrepare,
   onTransitDraftChange,
   transitDraft,
@@ -29,10 +33,13 @@ export function TransitStopsStep({
 }: {
   currentArrivalPoint: TripTransitPoint | null;
   currentDeparturePoint: TripTransitPoint | null;
+  currentLodging: TripLodging | null;
   destinationBias: PlaceSearchBias | null;
   destinationCountryCodes: string[] | null;
   hubsStatus: AiCatalogPrepStatus;
   isGuest?: boolean;
+  lodgingGoogleMapsUrl: string;
+  onLodgingGoogleMapsUrlChange: (value: string) => void;
   onRetryPrepare: () => void;
   onTransitDraftChange: (draft: TransitStopDraft) => void;
   transitDraft: TransitStopDraft;
@@ -41,6 +48,27 @@ export function TransitStopsStep({
 }) {
   return (
     <div className="ai-logistics-step">
+      <div className="ai-transit-panel">
+        <div className="ai-field-group">
+          <span className="ai-field-label">Where your days begin</span>
+          <PlaceSearchField
+            tripId={tripId}
+            value={lodgingGoogleMapsUrl}
+            bias={destinationBias}
+            countryCodes={destinationCountryCodes}
+            ariaLabel="Where your days begin"
+            idleHint="We route each day out from here and back."
+            isGuest={isGuest}
+            onChange={onLodgingGoogleMapsUrlChange}
+          />
+        </div>
+        {currentLodging && (
+          <p className="ai-current-lodging">
+            Current start point: <strong>{currentLodging.name}</strong>
+          </p>
+        )}
+      </div>
+
       {transitHubs.length === 0 && hubsStatus === "preparing" && (
         <p className="ai-step-pending" role="status">
           Finding this destination&apos;s airports and stations… You can paste

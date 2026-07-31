@@ -10,7 +10,15 @@ import {
 } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
 import { LogisticsStep } from "@/components/ai-planning-wizard/LogisticsStep";
 import { TransitStopsStep } from "@/components/ai-planning-wizard/TransitStopsStep";
-import { transitStopPayload } from "@/components/ai-planning-wizard/transit-stop-draft";
+import {
+  transitStopPayload,
+  type TransitStopDraft,
+} from "@/components/ai-planning-wizard/transit-stop-draft";
+import {
+  AI_WIZARD_LAST_STEP_INDEX,
+  AI_WIZARD_STEPS,
+  aiWizardStepIndex,
+} from "@/components/ai-planning-wizard/wizard-steps";
 import { formatVisitsPerDayRangeLabel } from "@/lib/ai-planning-preferences";
 import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
 
@@ -169,14 +177,31 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Try again");
   });
 
-  it("renders a searchable optional start-of-day field on the logistics step", () => {
+  it("keeps the required logistics step free of blank-able optional fields", () => {
     const markup = renderToStaticMarkup(
       createElement(LogisticsStep, {
         draft: preferenceDraft(),
         dailyStartTime: "08:30",
-        destinationBias: { latitude: 40.7128, longitude: -74.006 },
-        destinationCountryCodes: ["US"],
-        lodgingGoogleMapsUrl: "",
+        onChange: vi.fn(),
+        onDailyStartTimeChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("Travel modes");
+    expect(markup).toContain("Daily start time");
+    expect(markup).toContain('type="time"');
+    expect(markup).toContain('value="08:30"');
+    // The step carries the Optional badge's opposite: every control here is
+    // either required or pre-filled, so the lodging search must live on the
+    // optional Start & end step instead.
+    expect(markup).not.toContain("Where your days begin");
+    expect(markup).not.toContain('role="combobox"');
+  });
+
+  it("renders the optional start-of-day field on the start & end step", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TransitStopsStep, {
+        ...transitStepProps(),
         currentLodging: {
           id: 2,
           trip_id: 1,
@@ -188,19 +213,11 @@ describe("AiPlanningWizard", () => {
           created_at: "2026-01-01T00:00:00.000Z",
           updated_at: "2026-01-01T00:00:00.000Z",
         },
-        tripId: 1,
-        onChange: vi.fn(),
-        onDailyStartTimeChange: vi.fn(),
-        onLodgingGoogleMapsUrlChange: vi.fn(),
       }),
     );
 
-    expect(markup).toContain("Travel modes");
-    expect(markup).toContain("Daily start time");
-    expect(markup).toContain('type="time"');
-    expect(markup).toContain('value="08:30"');
     expect(markup).toContain("Where your days begin");
-    // The field is now a place-search combobox that also accepts a pasted link.
+    // The field is a place-search combobox that also accepts a pasted link.
     expect(markup).toContain('role="combobox"');
     expect(markup).toContain("paste a Google Maps link");
     expect(markup).toContain("Pod Times Square");
@@ -208,18 +225,9 @@ describe("AiPlanningWizard", () => {
 
   it("makes the start-of-day field paste-only for guests who can't run live search", () => {
     const markup = renderToStaticMarkup(
-      createElement(LogisticsStep, {
-        draft: preferenceDraft(),
-        dailyStartTime: "08:30",
-        destinationBias: null,
-        destinationCountryCodes: null,
-        lodgingGoogleMapsUrl: "",
-        currentLodging: null,
-        tripId: 1,
+      createElement(TransitStopsStep, {
+        ...transitStepProps(),
         isGuest: true,
-        onChange: vi.fn(),
-        onDailyStartTimeChange: vi.fn(),
-        onLodgingGoogleMapsUrlChange: vi.fn(),
       }),
     );
 
@@ -234,6 +242,7 @@ describe("AiPlanningWizard", () => {
   it("renders hub chips and hides the saved stop note the selected chip duplicates", () => {
     const markup = renderToStaticMarkup(
       createElement(TransitStopsStep, {
+        ...transitStepProps(),
         currentArrivalPoint: {
           id: 3,
           trip_id: 1,
@@ -247,7 +256,6 @@ describe("AiPlanningWizard", () => {
           created_at: "2026-01-01T00:00:00.000Z",
           updated_at: "2026-01-01T00:00:00.000Z",
         },
-        currentDeparturePoint: null,
         transitDraft: {
           arrivalChoice: 71,
           arrivalUrl: "",
@@ -270,12 +278,6 @@ describe("AiPlanningWizard", () => {
             updated_at: "2026-01-01T00:00:00.000Z",
           },
         ],
-        tripId: 1,
-        destinationBias: { latitude: 40.7128, longitude: -74.006 },
-        destinationCountryCodes: ["US"],
-        onTransitDraftChange: vi.fn(),
-        hubsStatus: "ready" as const,
-        onRetryPrepare: vi.fn(),
       }),
     );
 
@@ -296,6 +298,7 @@ describe("AiPlanningWizard", () => {
   it("shows the saved stop note when no hub chip is selected", () => {
     const markup = renderToStaticMarkup(
       createElement(TransitStopsStep, {
+        ...transitStepProps(),
         currentArrivalPoint: {
           id: 3,
           trip_id: 1,
@@ -309,22 +312,6 @@ describe("AiPlanningWizard", () => {
           created_at: "2026-01-01T00:00:00.000Z",
           updated_at: "2026-01-01T00:00:00.000Z",
         },
-        currentDeparturePoint: null,
-        transitDraft: {
-          arrivalChoice: null,
-          arrivalUrl: "",
-          arrivalTime: "",
-          departureChoice: "same",
-          departureUrl: "",
-          departureTime: "",
-        },
-        transitHubs: [],
-        tripId: 1,
-        destinationBias: { latitude: 40.7128, longitude: -74.006 },
-        destinationCountryCodes: ["US"],
-        onTransitDraftChange: vi.fn(),
-        hubsStatus: "ready" as const,
-        onRetryPrepare: vi.fn(),
       }),
     );
 
@@ -336,8 +323,7 @@ describe("AiPlanningWizard", () => {
   it("renders a place-search combobox for a custom transit stop", () => {
     const markup = renderToStaticMarkup(
       createElement(TransitStopsStep, {
-        currentArrivalPoint: null,
-        currentDeparturePoint: null,
+        ...transitStepProps(),
         transitDraft: {
           arrivalChoice: "custom",
           arrivalUrl: "",
@@ -346,13 +332,6 @@ describe("AiPlanningWizard", () => {
           departureUrl: "",
           departureTime: "",
         },
-        transitHubs: [],
-        tripId: 1,
-        destinationBias: { latitude: 40.7128, longitude: -74.006 },
-        destinationCountryCodes: ["US"],
-        onTransitDraftChange: vi.fn(),
-        hubsStatus: "ready" as const,
-        onRetryPrepare: vi.fn(),
       }),
     );
 
@@ -451,7 +430,7 @@ function reviewRowValue(markup: string, label: string): string {
 }
 
 describe("ReviewStep", () => {
-  it("shows the lodging name alongside the daily start time when set", () => {
+  it("splits the home base and daily start rows so each edits its own step", () => {
     const markup = renderToStaticMarkup(
       createElement(ReviewStep, {
         arrivalCustomName: null,
@@ -476,9 +455,11 @@ describe("ReviewStep", () => {
       }),
     );
 
-    const dailyStart = reviewRowValue(markup, "Daily start");
-    expect(dailyStart).toContain("Pod Times Square");
-    expect(dailyStart).toContain("08:30");
+    // Lodging moved to the optional Start & end step, so it can no longer share
+    // a row with the required step's daily start time — each row's Edit button
+    // has to land on the step that actually owns the field.
+    expect(reviewRowValue(markup, "Daily start")).toContain("08:30");
+    expect(reviewRowValue(markup, "Home base")).toContain("Pod Times Square");
   });
 
   it("shows resolved names for custom trip start and end links", () => {
@@ -511,6 +492,38 @@ describe("ReviewStep", () => {
     expect(tripStart).toContain("15:00");
     // Departure link not resolved yet: falls back to the generic label.
     expect(reviewRowValue(markup, "Trip end")).toContain("From link");
+  });
+});
+
+describe("AI_WIZARD_STEPS", () => {
+  it("keeps every optional step in one run after the required steps", () => {
+    const optionalRunStart = AI_WIZARD_STEPS.findIndex(
+      (step) => step.optional === true,
+    );
+    const betweenOptionalAndReview = AI_WIZARD_STEPS.slice(
+      optionalRunStart,
+      AI_WIZARD_LAST_STEP_INDEX,
+    );
+
+    // "Skip to review" is a single jump from any optional step to the last one.
+    // A required step sitting inside that run would be silently skipped, so the
+    // optional steps must stay contiguous and review must stay last.
+    expect(optionalRunStart).toBeGreaterThan(0);
+    expect(
+      betweenOptionalAndReview.every((step) => step.optional === true),
+    ).toBe(true);
+    expect(AI_WIZARD_STEPS[AI_WIZARD_LAST_STEP_INDEX].key).toBe("review");
+  });
+
+  it("gates travel modes on a required step ahead of the skippable run", () => {
+    // Empty travel modes are the wizard's only hard submit block, so the step
+    // owning them has to be answered before skipping becomes reachable.
+    expect(AI_WIZARD_STEPS[aiWizardStepIndex("logistics")].optional).toBe(
+      undefined,
+    );
+    expect(aiWizardStepIndex("logistics")).toBeLessThan(
+      AI_WIZARD_STEPS.findIndex((step) => step.optional === true),
+    );
   });
 });
 
@@ -562,6 +575,32 @@ describe("formatVisitsPerDayRangeLabel", () => {
     expect(formatVisitsPerDayRangeLabel(3, 3)).toBe("3 visits/day");
   });
 });
+
+/** Baseline props for the start & end step; tests override only what they assert. */
+function transitStepProps() {
+  return {
+    currentArrivalPoint: null,
+    currentDeparturePoint: null,
+    currentLodging: null,
+    destinationBias: { latitude: 40.7128, longitude: -74.006 },
+    destinationCountryCodes: ["US"],
+    hubsStatus: "ready" as const,
+    lodgingGoogleMapsUrl: "",
+    onLodgingGoogleMapsUrlChange: vi.fn(),
+    onRetryPrepare: vi.fn(),
+    onTransitDraftChange: vi.fn(),
+    transitDraft: {
+      arrivalChoice: null,
+      arrivalUrl: "",
+      arrivalTime: "",
+      departureChoice: "same",
+      departureUrl: "",
+      departureTime: "",
+    } satisfies TransitStopDraft,
+    transitHubs: [],
+    tripId: 1,
+  };
+}
 
 function preferenceDraft(): AiPlanningPreferenceInput {
   return {

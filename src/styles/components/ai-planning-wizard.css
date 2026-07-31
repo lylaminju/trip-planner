@@ -312,18 +312,58 @@
   width: 100%;
 }
 
+/* Holds its height on every step so adding the skip control on optional steps
+   never nudges the title and body down. */
+.ai-wizard-eyebrow {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  min-height: 26px;
+}
+
 .ai-wizard-step-count {
+  align-items: center;
   color: var(--muted);
+  display: flex;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+  gap: 10px;
   letter-spacing: 0.08em;
   margin: 0;
   text-transform: uppercase;
 }
 
-.ai-wizard-step-count-optional::before {
-  content: " · ";
+.ai-wizard-step-count-optional {
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+}
+
+.ai-wizard-skip {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.ai-wizard-skip:hover {
+  background: var(--accent-soft-bg);
+  color: var(--accent-hover);
+}
+
+.ai-wizard-skip:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
 }
 
 .ai-wizard-title {

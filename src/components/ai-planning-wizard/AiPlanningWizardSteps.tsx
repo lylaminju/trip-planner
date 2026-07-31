@@ -1,4 +1,5 @@
 import {
+  AI_DEFAULT_DAILY_START_TIME,
   AI_INTEREST_TAG_OPTIONS,
   AI_PACE_PRESETS,
   AI_TRAVEL_MODE_OPTIONS,
@@ -19,6 +20,7 @@ import {
   type TransitStopDraft,
 } from "./transit-stop-draft";
 import { toggleValue } from "./toggle-value";
+import type { AiWizardStepKey } from "./wizard-steps";
 import { MagicWandIcon, MapPinIcon } from "../Icons";
 
 type StepProps = {
@@ -342,7 +344,7 @@ export function ReviewStep({
   departureCustomName: string | null;
   departurePointName: string | null;
   lodgingName: string | null;
-  onEditStep: (stepIndex: number) => void;
+  onEditStep: (step: AiWizardStepKey) => void;
   transitDraft: TransitStopDraft;
   transitHubs: AiDestinationTransitHub[];
 }) {
@@ -360,20 +362,13 @@ export function ReviewStep({
     draft.visits_per_day_min === draft.visits_per_day_max
       ? `${draft.visits_per_day_max}`
       : `${draft.visits_per_day_min}–${draft.visits_per_day_max}`;
-  const rows = [
+  const rows: { label: string; value: string; step: AiWizardStepKey }[] = [
     {
       label: "Pace",
       value: isCoverageTrip
         ? `${pacePerDay} / day · ~${candidates.length} stops + free days`
         : `${pacePerDay} / day · ~${stopsEstimate} stops total`,
-      step: 0,
-    },
-    {
-      label: "Interests",
-      value: draft.interest_tags.length
-        ? labelsFor(draft.interest_tags, AI_INTEREST_TAG_OPTIONS).join(", ")
-        : "Open to anything",
-      step: 1,
+      step: "pace",
     },
     {
       label: "Getting around",
@@ -383,14 +378,24 @@ export function ReviewStep({
             AI_TRAVEL_MODE_OPTIONS,
           ).join(", ")
         : "Not set",
-      step: 2,
+      step: "logistics",
     },
     {
       label: "Daily start",
-      value: lodgingName
-        ? `${dailyStartTime || "09:00"} · ${lodgingName}`
-        : dailyStartTime || "09:00",
-      step: 2,
+      value: dailyStartTime || AI_DEFAULT_DAILY_START_TIME,
+      step: "logistics",
+    },
+    {
+      label: "Interests",
+      value: draft.interest_tags.length
+        ? labelsFor(draft.interest_tags, AI_INTEREST_TAG_OPTIONS).join(", ")
+        : "Open to anything",
+      step: "interests",
+    },
+    {
+      label: "Home base",
+      value: lodgingName ?? "Not set",
+      step: "startend",
     },
     {
       label: "Trip start",
@@ -402,7 +407,7 @@ export function ReviewStep({
         arrivalCustomName,
         transitHubs,
       ),
-      step: 3,
+      step: "startend",
     },
     {
       label: "Trip end",
@@ -423,14 +428,14 @@ export function ReviewStep({
             departureCustomName,
             transitHubs,
           ),
-      step: 3,
+      step: "startend",
     },
     {
       label: "Must-sees",
       value: draft.must_see_candidate_ids.length
         ? mustSeeNames(draft.must_see_candidate_ids, candidates)
         : "None — let AI choose",
-      step: 4,
+      step: "mustsee",
     },
   ];
 

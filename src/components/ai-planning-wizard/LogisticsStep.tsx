@@ -1,37 +1,18 @@
 import { AI_TRAVEL_MODE_OPTIONS } from "@/lib/ai-planning-preferences";
-import type { PlaceSearchBias } from "@/lib/places-api";
-import type {
-  AiPlanningPreferenceInput,
-  TripLodging,
-} from "@/lib/types";
+import type { AiPlanningPreferenceInput } from "@/lib/types";
 
-import { PlaceSearchField } from "./PlaceSearchField";
 import { toggleValue } from "./toggle-value";
 
 export function LogisticsStep({
-  currentLodging,
   dailyStartTime,
-  destinationBias,
-  destinationCountryCodes,
   draft,
-  isGuest = false,
-  lodgingGoogleMapsUrl,
   onChange,
   onDailyStartTimeChange,
-  onLodgingGoogleMapsUrlChange,
-  tripId,
 }: {
-  currentLodging: TripLodging | null;
   dailyStartTime: string;
-  destinationBias: PlaceSearchBias | null;
-  destinationCountryCodes: string[] | null;
   draft: AiPlanningPreferenceInput;
-  isGuest?: boolean;
-  lodgingGoogleMapsUrl: string;
   onChange: (draft: AiPlanningPreferenceInput) => void;
   onDailyStartTimeChange: (value: string) => void;
-  onLodgingGoogleMapsUrlChange: (value: string) => void;
-  tripId: number;
 }) {
   const modesEmpty = draft.preferred_travel_modes.length === 0;
 
@@ -72,40 +53,14 @@ export function LogisticsStep({
         )}
       </div>
 
-      <div className="ai-field-row">
-        <div className="ai-field-group">
-          <span className="ai-field-label">
-            Where your days begin
-            <span className="ai-field-optional"> — optional</span>
-          </span>
-          <PlaceSearchField
-            tripId={tripId}
-            value={lodgingGoogleMapsUrl}
-            bias={destinationBias}
-            countryCodes={destinationCountryCodes}
-            ariaLabel="Where your days begin"
-            idleHint="We route each day out from here and back."
-            isGuest={isGuest}
-            onChange={onLodgingGoogleMapsUrlChange}
-          />
-        </div>
-        <label className="ai-field-group ai-field-time">
-          <span className="ai-field-label">Daily start time</span>
-          <input
-            type="time"
-            value={dailyStartTime}
-            onChange={(event) =>
-              onDailyStartTimeChange(event.currentTarget.value)
-            }
-          />
-        </label>
-      </div>
-
-      {currentLodging && (
-        <p className="ai-current-lodging">
-          Current start point: <strong>{currentLodging.name}</strong>
-        </p>
-      )}
+      <label className="ai-field-group ai-field-time">
+        <span className="ai-field-label">Daily start time</span>
+        <input
+          type="time"
+          value={dailyStartTime}
+          onChange={(event) => onDailyStartTimeChange(event.currentTarget.value)}
+        />
+      </label>
     </div>
   );
 }
