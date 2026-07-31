@@ -95,18 +95,55 @@ export function extractPageSummary(apiJson) {
   };
 }
 
-// Return the first search result whose title plausibly names the candidate,
-// scanning past unrelated higher-ranked hits. Falls closed to null.
+// Return the search result whose title best names the candidate, not merely the
+// first acceptable one. A broader article often outranks the exact one — the
+// ward article "Hakata-ku, Fukuoka" leads "Canal City Hakata" — and taking the
+// leader gave several candidates in one district the same article, and so the
+// same preview image. Ranks an exact title above a partial one, then by how
+// much of the candidate the title accounts for, then by search order. Only
+// reorders titles the guard already accepted, so this never costs a candidate
+// an image it would otherwise have had. Falls closed to null.
 export function pickMatchingSearchTitle(searchJson, candidateName, destinationSlug = null) {
   const results = searchJson?.query?.search;
   if (!Array.isArray(results)) return null;
-  for (const result of results) {
+
+  const candidateTokens = new Set(tokenizeForMatch(candidateName));
+  let best = null;
+  let bestScore = null;
+
+  results.forEach((result, rank) => {
     const title = typeof result?.title === "string" ? result.title : null;
-    if (title && titleMatchesCandidate(candidateName, title, destinationSlug)) {
-      return title;
+    if (
+      !title ||
+      !titleMatchesCandidate(candidateName, title, destinationSlug)
+    ) {
+      return;
     }
-  }
-  return null;
+    const titleTokens = new Set(tokenizeForMatch(title));
+    let shared = 0;
+    for (const token of titleTokens) {
+      if (candidateTokens.has(token)) shared += 1;
+    }
+    const score = {
+      exact:
+        titleTokens.size === candidateTokens.size &&
+        shared === titleTokens.size,
+      shared,
+      rank,
+    };
+    if (!bestScore || outranksTitle(score, bestScore)) {
+      best = title;
+      bestScore = score;
+    }
+  });
+
+  return best;
+}
+
+function outranksTitle(score, incumbent) {
+  if (score.exact !== incumbent.exact) return score.exact;
+  if (score.shared !== incumbent.shared) return score.shared > incumbent.shared;
+  return score.rank < incumbent.rank;
 }
 
 // Split a name/title into lowercase identifying words, dropping punctuation and
@@ -121,11 +158,11 @@ function tokenizeForMatch(value) {
 }
 
 // Catalog keys for custom Google-searched destinations look like
-// "custom-pt-lisbon-38.7,-9.1" (country code + normalized name + rounded
-// coordinates, with "na" for missing coordinates and "place" for a name that
-// normalized to nothing). Only the name part anchors a Wikipedia search.
-const CUSTOM_KEY_PATTERN =
-  /^custom-[a-z]{2}-(.+?)(?:-(?:na|-?\d+\.\d+,-?\d+\.\d+))?$/;
+// "custom-lisbon-38.7,-9.1" (normalized name + rounded coordinates, with
+// "place" for a name that normalized to nothing). Only the name part anchors a
+// Wikipedia search. Coordinates are always present: destinationCandidateKey
+// returns null rather than keying a destination that has none.
+const CUSTOM_KEY_PATTERN = /^custom-(.+?)-(?:-?\d+\.\d+,-?\d+\.\d+)$/;
 const CUSTOM_KEY_UNNAMED_PLACEHOLDER = "place";
 
 // Turn a destination slug ("banff-national-park") or custom catalog key
@@ -148,7 +185,18 @@ export function slugToPlaceName(slug) {
 // resolves to the right place instead of an unrelated top hit.
 export function buildSearchQuery(name, destinationSlug) {
   const place = slugToPlaceName(destinationSlug);
-  return place ? `${name} ${place}` : name;
+  if (!place) return name;
+  // Repeating a destination the name already carries ("Museum of Vancouver
+  // Vancouver") weights the search toward the destination's own article.
+  const nameTokens = new Set(tokenizeForMatch(name));
+  const placeTokens = tokenizeForMatch(place);
+  if (
+    placeTokens.length > 0 &&
+    placeTokens.every((token) => nameTokens.has(token))
+  ) {
+    return name;
+  }
+  return `${name} ${place}`;
 }
 
 // Guard against wrong-article matches. A shared distinctive word (a proper noun

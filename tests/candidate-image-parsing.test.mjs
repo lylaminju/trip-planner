@@ -108,6 +108,41 @@ describe("Wikimedia response parsing", () => {
         "Banff Avenue",
       ),
     ).toBeNull();
+  });
+
+  it("prefers the exact article over a broader one that outranks it", () => {
+    // The district article matches on "Hakata" and leads the results, but the
+    // candidate's own article is present further down. Taking the leader gave
+    // every Hakata candidate the same article, and so the same preview image.
+    expect(
+      pickMatchingSearchTitle(
+        {
+          query: {
+            search: [
+              { title: "Hakata-ku, Fukuoka" },
+              { title: "Canal City Hakata" },
+              { title: "Fukuoka" },
+            ],
+          },
+        },
+        "Canal City Hakata",
+        "custom-fukuoka-33.6,130.4",
+      ),
+    ).toBe("Canal City Hakata");
+  });
+
+  it("prefers the title accounting for more of the candidate name", () => {
+    expect(
+      pickMatchingSearchTitle(
+        {
+          query: {
+            search: [{ title: "Sulphur Mountain" }, { title: "Banff Gondola" }],
+          },
+        },
+        "Banff Gondola",
+        "banff-national-park",
+      ),
+    ).toBe("Banff Gondola");
     expect(pickMatchingSearchTitle({ query: { search: [] } }, "x")).toBeNull();
     expect(pickMatchingSearchTitle({}, "x")).toBeNull();
   });
@@ -185,6 +220,24 @@ describe("Wikimedia response parsing", () => {
     expect(buildSearchQuery("Gullfoss", "")).toBe("Gullfoss");
   });
 
+  it("does not repeat a destination the candidate name already carries", () => {
+    // "Museum of Vancouver Vancouver" pushed the search toward the city's own
+    // article instead of the museum's.
+    expect(buildSearchQuery("Museum of Vancouver", "vancouver")).toBe(
+      "Museum of Vancouver",
+    );
+    expect(
+      buildSearchQuery(
+        "Kota Kinabalu Waterfront",
+        "custom-kota-kinabalu-6.0,116.1",
+      ),
+    ).toBe("Kota Kinabalu Waterfront");
+    // Only a full repeat is dropped; a partial overlap still gets the anchor.
+    expect(buildSearchQuery("Vancouver Art Gallery", "north-vancouver")).toBe(
+      "Vancouver Art Gallery North Vancouver",
+    );
+  });
+
   it("humanizes a destination slug into a place name", () => {
     expect(slugToPlaceName("banff-national-park")).toBe("Banff National Park");
     expect(slugToPlaceName("iceland")).toBe("Iceland");
@@ -193,15 +246,16 @@ describe("Wikimedia response parsing", () => {
   });
 
   it("extracts the place name from a custom catalog key", () => {
-    expect(slugToPlaceName("custom-pt-lisbon-38.7,-9.1")).toBe("Lisbon");
+    expect(slugToPlaceName("custom-lisbon-38.7,-9.1")).toBe("Lisbon");
     // Multi-word name plus negative latitude (double dash before the coords).
-    expect(slugToPlaceName("custom-ar-buenos-aires--34.6,-58.4")).toBe(
+    expect(slugToPlaceName("custom-buenos-aires--34.6,-58.4")).toBe(
       "Buenos Aires",
     );
-    // No coordinates recorded for the destination.
-    expect(slugToPlaceName("custom-xx-some-town-na")).toBe("Some Town");
+    expect(slugToPlaceName("custom-kota-kinabalu-6.0,116.1")).toBe(
+      "Kota Kinabalu",
+    );
     // A non-Latin name normalizes to the "place" placeholder: no usable anchor.
-    expect(slugToPlaceName("custom-kr-place-37.6,127.0")).toBe("");
+    expect(slugToPlaceName("custom-place-37.6,127.0")).toBe("");
   });
 
   it("accepts a resolved title that shares the candidate's distinctive words", () => {
