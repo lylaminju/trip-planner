@@ -36,6 +36,32 @@ export type GeneratedAnchorPlaceIds = {
   candidatePlaceIds: number[];
 };
 
+export type GeneratedAnchorLayout = {
+  hasArrival: boolean;
+  hasLodging: boolean;
+  hasDeparture: boolean;
+  // A round trip leaves from the stop it arrived at. The place row is written
+  // once and both anchor visits point at it, the way a multi-night lodging is
+  // one place with a visit per day.
+  departureReusesArrivalPlace: boolean;
+};
+
+export function generatedAnchorLayout(input: {
+  lodging: TripLodging | null;
+  arrivalPoint?: TripTransitPoint | null;
+  departurePoint?: TripTransitPoint | null;
+}): GeneratedAnchorLayout {
+  const arrivalPoint = input.arrivalPoint ?? null;
+  const departurePoint = input.departurePoint ?? null;
+
+  return {
+    hasArrival: arrivalPoint !== null,
+    hasLodging: input.lodging !== null,
+    hasDeparture: departurePoint !== null,
+    departureReusesArrivalPlace: isSameTransitStop(arrivalPoint, departurePoint),
+  };
+}
+
 export function buildAiGeneratedPlaceRows(input: {
   tripId: number;
   generationId: number;
@@ -46,6 +72,7 @@ export function buildAiGeneratedPlaceRows(input: {
   departurePoint?: TripTransitPoint | null;
 }) {
   const visits = input.plan.days.flatMap((day) => day.visits);
+  const layout = generatedAnchorLayout(input);
   const anchors = [
     input.arrivalPoint
       ? {
@@ -56,7 +83,7 @@ export function buildAiGeneratedPlaceRows(input: {
     input.lodging
       ? { location: input.lodging, fallbackEmoji: LODGING_FALLBACK_EMOJI }
       : null,
-    input.departurePoint
+    input.departurePoint && !layout.departureReusesArrivalPlace
       ? {
           location: input.departurePoint,
           fallbackEmoji: transitHubFallbackEmoji(input.departurePoint.hub_type),
@@ -91,11 +118,7 @@ export function buildAiGeneratedPlaceRows(input: {
 
 export function splitGeneratedPlaceIds(
   placeIds: number[],
-  anchors: {
-    hasArrival: boolean;
-    hasLodging: boolean;
-    hasDeparture: boolean;
-  },
+  layout: GeneratedAnchorLayout,
 ): GeneratedAnchorPlaceIds {
   let index = 0;
   const nextAnchorId = (present: boolean): number | null => {
@@ -105,10 +128,15 @@ export function splitGeneratedPlaceIds(
     return placeId ?? null;
   };
 
+  const arrivalPlaceId = nextAnchorId(layout.hasArrival);
+  const lodgingPlaceId = nextAnchorId(layout.hasLodging);
+
   return {
-    arrivalPlaceId: nextAnchorId(anchors.hasArrival),
-    lodgingPlaceId: nextAnchorId(anchors.hasLodging),
-    departurePlaceId: nextAnchorId(anchors.hasDeparture),
+    arrivalPlaceId,
+    lodgingPlaceId,
+    departurePlaceId: layout.departureReusesArrivalPlace
+      ? arrivalPlaceId
+      : nextAnchorId(layout.hasDeparture),
     candidatePlaceIds: placeIds.slice(index),
   };
 }
@@ -272,6 +300,22 @@ export function buildGeneratedScheduleEntries(input: {
   }
 
   return entries;
+}
+
+function isSameTransitStop(
+  arrivalPoint: TripTransitPoint | null,
+  departurePoint: TripTransitPoint | null,
+): boolean {
+  if (!arrivalPoint || !departurePoint) return false;
+
+  // Transit points never carry a google_place_id, so identity is the resolved
+  // stop itself: same name at the same coordinates. Both kinds are written from
+  // one hub row or one resolved Maps URL, so the coordinates match exactly.
+  return (
+    arrivalPoint.name.trim() === departurePoint.name.trim() &&
+    arrivalPoint.latitude === departurePoint.latitude &&
+    arrivalPoint.longitude === departurePoint.longitude
+  );
 }
 
 function minPlanDate(plan: AiItineraryPlan): string | null {

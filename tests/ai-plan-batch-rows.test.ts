@@ -392,12 +392,48 @@ describe("AI plan batch rows", () => {
     ]);
   });
 
+  it("writes the transit stop once when the trip departs from where it arrived", () => {
+    const rows = buildAiGeneratedPlaceRows({
+      tripId: 1,
+      generationId: 5,
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+          },
+        ],
+      },
+      candidateById: new Map([[10, candidate(10)]]),
+      lodging: lodging(),
+      arrivalPoint: transitPoint("arrival", "11:00"),
+      departurePoint: {
+        ...transitPoint("departure", "18:00"),
+        name: "JFK Airport",
+      },
+    });
+
+    expect(rows.map((row) => row.name)).toEqual([
+      "JFK Airport",
+      "Pod Times Square",
+      "Candidate 10",
+    ]);
+  });
+
   it("maps inserted place ids back to arrival, lodging, departure, and candidates", () => {
     expect(
       splitGeneratedPlaceIds([1, 2, 3, 4, 5], {
         hasArrival: true,
         hasLodging: true,
         hasDeparture: true,
+        departureReusesArrivalPlace: false,
       }),
     ).toEqual({
       arrivalPlaceId: 1,
@@ -411,12 +447,29 @@ describe("AI plan batch rows", () => {
         hasArrival: false,
         hasLodging: true,
         hasDeparture: false,
+        departureReusesArrivalPlace: false,
       }),
     ).toEqual({
       arrivalPlaceId: null,
       lodgingPlaceId: 1,
       departurePlaceId: null,
       candidatePlaceIds: [2, 3],
+    });
+  });
+
+  it("sends the round-trip departure back to the arrival place id", () => {
+    expect(
+      splitGeneratedPlaceIds([1, 2, 3], {
+        hasArrival: true,
+        hasLodging: true,
+        hasDeparture: true,
+        departureReusesArrivalPlace: true,
+      }),
+    ).toEqual({
+      arrivalPlaceId: 1,
+      lodgingPlaceId: 2,
+      departurePlaceId: 1,
+      candidatePlaceIds: [3],
     });
   });
 });

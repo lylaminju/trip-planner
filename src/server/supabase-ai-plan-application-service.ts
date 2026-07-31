@@ -11,6 +11,7 @@ import { AI_DEFAULT_DAILY_START_TIME } from "@/lib/ai-planning-preferences";
 import {
   buildAiGeneratedPlaceRows,
   buildGeneratedScheduleEntries,
+  generatedAnchorLayout,
   splitGeneratedPlaceIds,
   type Coordinates,
 } from "./ai-plan-batch-rows";
@@ -72,6 +73,11 @@ export async function replaceAiGeneratedBatch(
   const materializedArrival = hasDays ? arrivalPoint : null;
   const materializedDeparture = hasDays ? departurePoint : null;
 
+  const anchorLayout = generatedAnchorLayout({
+    lodging: materializedLodging,
+    arrivalPoint: materializedArrival,
+    departurePoint: materializedDeparture,
+  });
   const placeRows = buildAiGeneratedPlaceRows({
     tripId,
     generationId,
@@ -104,11 +110,7 @@ export async function replaceAiGeneratedBatch(
   try {
     const places = await insertAiGeneratedPlaces(placeRows);
     const placeIds = places.map((place) => place.id);
-    const anchorPlaceIds = splitGeneratedPlaceIds(placeIds, {
-      hasArrival: materializedArrival !== null,
-      hasLodging: materializedLodging !== null,
-      hasDeparture: materializedDeparture !== null,
-    });
+    const anchorPlaceIds = splitGeneratedPlaceIds(placeIds, anchorLayout);
     const scheduleEntries = buildGeneratedScheduleEntries({
       plan,
       candidateById,

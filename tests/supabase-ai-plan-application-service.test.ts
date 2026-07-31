@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { AiDestinationCandidate, TripLodging } from "@/lib/types";
+import type {
+  AiDestinationCandidate,
+  TripLodging,
+  TripTransitPoint,
+  TripTransitPointKind,
+} from "@/lib/types";
 import type { AiItineraryPlan } from "@/server/openai-ai-planner";
 
 describe("supabase AI plan application service", () => {
@@ -195,6 +200,81 @@ describe("supabase AI plan application service", () => {
         place_id: 103,
         visit_date: "2026-05-28",
         visit_time: "10:00",
+      }),
+    ]);
+  });
+
+  it("writes one place for a round trip that departs from the arrival stop", async () => {
+    const { client, insertCalls } = createMockSupabaseClient();
+
+    vi.doMock("@/server/supabase", () => ({
+      getSupabaseClient: () => client,
+    }));
+    vi.doMock("@/server/supabase-place-service", () => ({
+      getPlannerSnapshot: vi.fn().mockResolvedValue({
+        places: [],
+        itineraryItems: [],
+        routeSegments: [],
+      }),
+    }));
+    vi.doMock("@/server/route-geometry-service", () => ({
+      getRouteGeometry: vi.fn(),
+      getRouteDurationSeconds: vi.fn().mockResolvedValue(null),
+    }));
+
+    const service = await import("@/server/supabase-ai-plan-application-service");
+    const replaceAiGeneratedBatch =
+      service.replaceAiGeneratedBatch as unknown as (
+        ...args: unknown[]
+      ) => Promise<unknown>;
+
+    await replaceAiGeneratedBatch(
+      1,
+      55,
+      twoDayPlan(),
+      candidates(),
+      {
+        visits_per_day_min: 1,
+        visits_per_day_max: 3,
+        interest_tags: [],
+        preferred_travel_modes: ["walking", "transit"],
+        must_see_candidate_ids: [],
+      },
+      null,
+      "09:00",
+      undefined,
+      airportPoint("arrival", "08:00"),
+      airportPoint("departure", "18:00"),
+    );
+
+    expect(insertedRows(insertCalls, "places")).toEqual([
+      expect.objectContaining({ name: "LaGuardia Airport" }),
+      expect.objectContaining({ name: "Candidate 10" }),
+      expect.objectContaining({ name: "Candidate 11" }),
+    ]);
+
+    // Both anchor visits point at the single airport place, so the places list
+    // shows the airport once.
+    expect(insertedRows(insertCalls, "itinerary_items")).toEqual([
+      expect.objectContaining({
+        place_id: 101,
+        visit_date: "2026-05-27",
+        visit_time: "08:00",
+      }),
+      expect.objectContaining({
+        place_id: 102,
+        visit_date: "2026-05-27",
+        visit_time: "09:00",
+      }),
+      expect.objectContaining({
+        place_id: 103,
+        visit_date: "2026-05-28",
+        visit_time: "10:00",
+      }),
+      expect.objectContaining({
+        place_id: 101,
+        visit_date: "2026-05-28",
+        visit_time: "18:00",
       }),
     ]);
   });
@@ -603,6 +683,25 @@ function lodging(): TripLodging {
     longitude: -73.993,
     google_place_id: "google-pod",
     is_primary: true,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+}
+
+function airportPoint(
+  kind: TripTransitPointKind,
+  eventTime: string,
+): TripTransitPoint {
+  return {
+    id: kind === "arrival" ? 41 : 42,
+    trip_id: 1,
+    kind,
+    name: "LaGuardia Airport",
+    latitude: 40.7769271,
+    longitude: -73.8739659,
+    google_place_id: null,
+    hub_type: "airport",
+    event_time: eventTime,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   };
