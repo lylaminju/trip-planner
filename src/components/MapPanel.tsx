@@ -19,7 +19,7 @@ import type {
   RouteSegment,
 } from "@/lib/types";
 
-import { CoordinateFallback } from "./map-panel/CoordinateFallback";
+import { MapUnavailablePanel } from "./map-panel/MapUnavailablePanel";
 import { focusMapOnDestination } from "./map-panel/map-destination";
 import { focusMapOnPositions } from "./map-panel/map-focus";
 import { MapPanelChrome } from "./map-panel/MapPanelChrome";
@@ -306,12 +306,7 @@ export function MapPanel(props: Props) {
   ]);
 
   if (!apiKey || loadFailed) {
-    return (
-      <CoordinateFallback
-        items={itineraryItems}
-        unscheduledPlaces={props.itinerary.unscheduled}
-      />
-    );
+    return <MapUnavailablePanel itinerary={props.itinerary} />;
   }
 
   return (

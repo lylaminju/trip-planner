@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { MapPanel } from "@/components/MapPanel";
 import type { ItineraryView } from "@/lib/types";
 
+import { buildMapPanelProps } from "./helpers/map-panel-props";
+
 describe("MapPanel empty state", () => {
   afterEach(() => {
     delete process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -16,7 +18,7 @@ describe("MapPanel empty state", () => {
     const itinerary: ItineraryView = { days: [], unscheduled: [] };
 
     const markup = renderToStaticMarkup(
-      createElement(MapPanel, mapPanelProps(itinerary)),
+      createElement(MapPanel, buildMapPanelProps(itinerary)),
     );
 
     const css = readFileSync("src/styles/components/map.css", "utf8");
@@ -33,7 +35,7 @@ describe("MapPanel empty state", () => {
 
     const markup = renderToStaticMarkup(
       createElement(MapPanel, {
-        ...mapPanelProps(itinerary),
+        ...buildMapPanelProps(itinerary),
         onPlanWithAi: vi.fn(),
       }),
     );
@@ -48,40 +50,6 @@ describe("MapPanel empty state", () => {
     expect(rule).toContain("justify-content: center;");
   });
 });
-
-function mapPanelProps(itinerary: ItineraryView) {
-  return {
-    itinerary,
-    destinationFocus: null,
-    routeSegments: [],
-    selection: {
-      activeItemId: null,
-      activeCanonicalPlaceId: null,
-      activeSegmentId: null,
-      activeDate: null,
-      selectItem: vi.fn(),
-      toggleSegmentSelection: vi.fn(),
-      clearSelection: vi.fn(),
-    },
-    modals: {
-      openAddModal: vi.fn(),
-      openAddModalWithSelection: vi.fn(),
-      openEditModal: vi.fn(),
-      openEditItemModal: vi.fn(),
-    },
-    mobileSheetState: "half" as const,
-    routeGeometries: new Map(),
-    routeGeometryError: null,
-    currentLocation: {
-      currentLocationPosition: null,
-      currentLocationToast: null,
-      isCurrentLocationEnabled: false,
-      toggleCurrentLocation: vi.fn(),
-    },
-    canShowCurrentLocation: false,
-    canEdit: true,
-  };
-}
 
 function markupBetween(markup: string, className: string, tag: string) {
   const start = markup.indexOf(className);
