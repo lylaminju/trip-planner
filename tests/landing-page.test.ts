@@ -287,11 +287,9 @@ describe("LandingPage", () => {
       'class="landing-feature-icon landing-feature-icon-maps landing-feature-icon-outline"',
     );
     // Feature labels the section advertises (not the surrounding marketing prose).
-    expect(markup).toContain("Date buckets");
-    expect(markup).toContain("Google Maps routes");
-    expect(markup).toContain("Route segments");
-    expect(markup).toContain("Trip dashboard");
-    expect(markup).toContain("Plan with AI");
+    expect(markup).toContain("Save any place");
+    expect(markup).toContain("Share the trip");
+    expect(markup).toContain("All your trips");
   });
 
   it("keeps final CTA mobile actions balanced as equal-width touch targets", () => {

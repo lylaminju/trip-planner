@@ -1,42 +1,24 @@
 import type { ReactNode } from "react";
 
-import { MagicWandIcon } from "../Icons";
+import { UserPlusIcon } from "../Icons";
 import { requestAccessHref } from "./access";
 
 const FEATURE_CARDS = [
   {
-    title: "Date buckets",
-    body: "Visits group by date, timed stops first, with compact weekday labels you can scan in a glance.",
-    icon: <DashboardIcon />,
-    tone: "accent",
-  },
-  {
-    title: "Google Maps routes",
-    body: "Visualize each day with numbered map stops, route lines, and travel durations from Google Maps data.",
-    icon: <GoogleMapsRoutesIcon />,
+    title: "Save any place",
+    body: "Search Google Maps from the planner, or paste a Maps link, and the place lands in your trip with its photo and details.",
+    icon: <PlaceSearchIcon />,
     tone: "maps outline",
   },
   {
-    title: "Route segments",
-    body: "Consecutive stops show travel time. Switch between walking, transit, cycling, or driving on the fly.",
-    icon: <RouteSegmentIcon />,
-    tone: "route outline",
+    title: "Share the trip",
+    body: "Invite travel companions by email as an owner who can edit, or a viewer who just follows along.",
+    icon: <UserPlusIcon />,
+    tone: "share outline",
   },
   {
-    title: "Plan with AI",
-    body: "Choose your pace, interests, travel modes, and lodging, then generate a dated draft you can edit on the map.",
-    icon: <MagicWandIcon />,
-    tone: "ai outline",
-  },
-  {
-    title: "Unscheduled places",
-    body: "Saved but not slotted in yet? They wait in a separate list, ready to drag onto any day.",
-    icon: <PinIcon />,
-    tone: "unscheduled outline",
-  },
-  {
-    title: "Trip dashboard",
-    body: "Trips are grouped into active and past plans, with undated trips kept visible until you add dates.",
+    title: "All your trips",
+    body: "Upcoming and past trips stay grouped on one dashboard, and trips without dates stay visible until you set them.",
     icon: <CalendarGridIcon />,
     tone: "accent",
   },
@@ -56,9 +38,11 @@ export function LandingFeatureProof() {
         aria-labelledby="landing-features-title"
       >
         <div className="landing-section-heading">
-          <p className="landing-section-label">Everything you need</p>
+          <p className="landing-section-label">Beyond the itinerary</p>
           <h2 id="landing-features-title">
-            Plan the details without losing the shape of the trip.
+            Add places, invite companions,
+            <br />
+            keep every trip together.
           </h2>
         </div>
         <div className="landing-feature-grid">
@@ -100,6 +84,15 @@ export function LandingFeatureProof() {
   );
 }
 
+function PlaceSearchIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <circle cx="8.75" cy="8.75" r="5.25" />
+      <path d="M12.6 12.6 16.5 16.5" />
+    </svg>
+  );
+}
+
 function CalendarGridIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
@@ -107,45 +100,6 @@ function CalendarGridIcon() {
       <rect x="11" y="3" width="6" height="6" rx="1.4" />
       <rect x="2" y="11" width="6" height="6" rx="1.4" />
       <rect x="11" y="11" width="6" height="6" rx="1.4" />
-    </svg>
-  );
-}
-
-function GoogleMapsRoutesIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path d="M5 4.5 C12.5 4.5 13.5 8.2 9 9.7 C4.7 11.1 5.8 15.5 15 15.5" />
-      <circle cx="5" cy="4.5" r="2.1" fill="currentColor" stroke="none" />
-      <circle cx="15" cy="15.5" r="2.1" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function RouteSegmentIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <circle cx="5" cy="5" r="2.2" />
-      <circle cx="15" cy="15" r="2.2" />
-      <path d="M5 7.5 V11 a4 4 0 0 0 4 4 h3.5" strokeDasharray="2 2.2" />
-    </svg>
-  );
-}
-
-function DashboardIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <rect x="3" y="3" width="14" height="4" rx="1.4" />
-      <rect x="3" y="9.5" width="9" height="3" rx="1.2" opacity="0.6" />
-      <rect x="3" y="14.5" width="6" height="3" rx="1.2" opacity="0.4" />
-    </svg>
-  );
-}
-
-function PinIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-      <path d="M10 2.5 C6.7 2.5 4.5 5 4.5 8 C4.5 12 10 17.5 10 17.5 C10 17.5 15.5 12 15.5 8 C15.5 5 13.3 2.5 10 2.5 Z" />
-      <circle cx="10" cy="8" r="2" />
     </svg>
   );
 }
