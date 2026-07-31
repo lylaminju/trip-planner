@@ -60,7 +60,7 @@ describe("listDestinationCandidatesForRequest", () => {
     );
 
     expect(listDestinationCandidates).toHaveBeenCalledWith(
-      "custom-pt-lisbon-38.7,-9.1",
+      "custom-lisbon-38.7,-9.1",
     );
   });
 
@@ -1093,7 +1093,7 @@ describe("prepareDestinationCatalogForRequest", () => {
       }),
     );
     expect(insertDestinationCandidates).toHaveBeenCalledWith(
-      "custom-pt-lisbon-38.7,-9.1",
+      "custom-lisbon-38.7,-9.1",
       expect.arrayContaining([
         expect.objectContaining({ name: "Generated Spot 1", sort_order: 1 }),
       ]),
@@ -1248,7 +1248,7 @@ describe("prepareDestinationTransitHubsForRequest", () => {
     );
 
     expect(insertDestinationTransitHubs).toHaveBeenCalledWith(
-      "custom-pt-lisbon-38.7,-9.1",
+      "custom-lisbon-38.7,-9.1",
       [expect.objectContaining({ name: "Lisbon Airport", sort_order: 1 })],
     );
     expect(createAiPlanGeneration).toHaveBeenCalledWith(1, "user-1", {

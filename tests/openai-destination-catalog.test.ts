@@ -316,8 +316,17 @@ describe("destinationCandidateKey", () => {
     ).toBe("seoul");
   });
 
-  it("derives a stable key from country, name, and rounded coordinates", () => {
-    expect(destinationCandidateKey(baseTrip)).toBe("custom-pt-lisbon-38.7,-9.1");
+  it("derives a stable key from name and rounded coordinates", () => {
+    expect(destinationCandidateKey(baseTrip)).toBe("custom-lisbon-38.7,-9.1");
+  });
+
+  // The country code used to be part of the key, so the same destination
+  // landed in a different catalog depending on whether Google had resolved
+  // country codes for the trip yet.
+  it("keys the same destination identically whether or not country codes are set", () => {
+    expect(
+      destinationCandidateKey({ ...baseTrip, destination_country_codes: null }),
+    ).toBe(destinationCandidateKey(baseTrip));
   });
 
   it("falls back to coordinates when the name has no Latin characters", () => {
@@ -329,15 +338,16 @@ describe("destinationCandidateKey", () => {
         destination_latitude: 37.5503,
         destination_longitude: 126.9971,
       }),
-    ).toBe("custom-kr-place-37.6,127.0");
+    ).toBe("custom-place-37.6,127.0");
   });
 
-  it("returns null when neither name nor coordinates identify the destination", () => {
+  // Without coordinates there is no stable identity, and inventing a
+  // placeholder segment would split one destination across several catalogs.
+  it("returns null when the destination has no coordinates", () => {
     expect(
       destinationCandidateKey({
-        destination: "서울",
-        destination_slug: null,
-        destination_country_codes: null,
+        ...baseTrip,
+        destination: "Halifax",
         destination_latitude: null,
         destination_longitude: null,
       }),

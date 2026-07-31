@@ -24,8 +24,17 @@ export function canPlanTripWithAi(
 
 // Storage key for a trip's candidate catalog in ai_destination_candidates.
 // Curated destinations use their preset slug; custom Google-searched
-// destinations derive a stable key from country + normalized name + rounded
-// coordinates so trips to the same place share one generated catalog.
+// destinations key on their rounded coordinates so every trip to the same
+// place shares one generated catalog.
+//
+// Coordinates are the identity. The country code is deliberately excluded: it
+// is redundant with the coordinates and is often absent on a trip, so folding
+// it in split one destination across several catalogs depending on whichever
+// metadata happened to be resolved ("custom-xx-los-angeles-34.1,-118.2" and
+// "custom-us-los-angeles-34.1,-118.2" were the same city). For the same
+// reason a missing value never becomes a placeholder segment: without
+// coordinates there is no stable identity, so the destination is not
+// AI-plannable until it has them.
 export function destinationCandidateKey(
   trip: TripDestinationContext,
 ): string | null {
@@ -33,26 +42,17 @@ export function destinationCandidateKey(
     return trip.destination_slug;
   }
 
+  if (trip.destination_latitude == null || trip.destination_longitude == null) {
+    return null;
+  }
+
+  // A non-Latin destination name normalizes to nothing; the coordinates still
+  // identify the catalog, so the name is only a readable label here.
   const normalizedName = normalizeDestinationText(trip.destination).replace(
     / /g,
     "-",
   );
-  const coordinates =
-    trip.destination_latitude !== null && trip.destination_longitude !== null
-      ? `${trip.destination_latitude.toFixed(1)},${trip.destination_longitude.toFixed(1)}`
-      : null;
-  // A non-Latin destination name normalizes to nothing; without coordinates
-  // either, there is no stable identity to key a shared catalog on.
-  if (!normalizedName && !coordinates) {
-    return null;
-  }
+  const coordinates = `${trip.destination_latitude.toFixed(1)},${trip.destination_longitude.toFixed(1)}`;
 
-  const country =
-    trip.destination_country_codes?.[0]?.toLowerCase() ?? "xx";
-  return [
-    "custom",
-    country,
-    normalizedName || "place",
-    coordinates ?? "na",
-  ].join("-");
+  return ["custom", normalizedName || "place", coordinates].join("-");
 }
