@@ -437,6 +437,7 @@ function sleep(ms) {
 export async function backfillCandidateImages({
   supabase,
   destinationSlug = null,
+  candidateIds = null,
   force = false,
 } = {}) {
   await ensureBucket(supabase);
@@ -447,6 +448,7 @@ export async function backfillCandidateImages({
     .order("destination_slug", { ascending: true })
     .order("sort_order", { ascending: true });
   if (destinationSlug) query = query.eq("destination_slug", destinationSlug);
+  if (candidateIds?.length) query = query.in("id", candidateIds);
   if (!force) query = query.is("image_url", null);
 
   const { data: candidates, error } = await query;
@@ -654,13 +656,28 @@ function loadEnvFile(fileName) {
   }
 }
 
-function parseArgs(argv) {
-  const options = { destinationSlug: null, force: false, recleanBlurbs: false };
+export function parseArgs(argv) {
+  const options = {
+    destinationSlug: null,
+    candidateIds: null,
+    force: false,
+    recleanBlurbs: false,
+  };
   for (const arg of argv) {
     if (arg === "--force") options.force = true;
     else if (arg === "--reclean-blurbs") options.recleanBlurbs = true;
     else if (arg.startsWith("--destination=")) {
       options.destinationSlug = arg.slice("--destination=".length) || null;
+    } else if (arg.startsWith("--ids=")) {
+      // Re-source named rows only. Re-running a whole destination would also
+      // rewrite rows whose image is already right, so a preview found to be
+      // wrong or duplicated is repaired by id.
+      const ids = arg
+        .slice("--ids=".length)
+        .split(",")
+        .map((value) => Number.parseInt(value.trim(), 10))
+        .filter((value) => Number.isInteger(value) && value > 0);
+      options.candidateIds = ids.length > 0 ? ids : null;
     }
   }
   return options;
@@ -688,14 +705,22 @@ async function main() {
     },
   });
 
-  const { destinationSlug, force, recleanBlurbs: reclean } = parseArgs(
-    process.argv.slice(2),
-  );
+  const {
+    destinationSlug,
+    candidateIds,
+    force,
+    recleanBlurbs: reclean,
+  } = parseArgs(process.argv.slice(2));
   if (reclean) {
     await recleanBlurbs({ supabase });
     return;
   }
-  await backfillCandidateImages({ supabase, destinationSlug, force });
+  await backfillCandidateImages({
+    supabase,
+    destinationSlug,
+    candidateIds,
+    force,
+  });
   await propagateCandidateImagesToAiPlaces({ supabase });
 }
 

@@ -6,6 +6,7 @@ import {
   extractImageCredit,
   extractPageSummary,
   matchPlacesToCandidateImages,
+  parseArgs,
   pickMatchingSearchTitle,
   slugToPlaceName,
   stripHtml,
@@ -89,7 +90,7 @@ describe("Wikimedia response parsing", () => {
     expect(extractImageCredit(null)).toBeNull();
   });
 
-  it("picks the first search result that plausibly names the candidate", () => {
+  it("picks a search result that plausibly names the candidate", () => {
     // Skips an unrelated higher-ranked hit and takes the matching one below it.
     expect(
       pickMatchingSearchTitle(
@@ -236,6 +237,27 @@ describe("Wikimedia response parsing", () => {
     expect(buildSearchQuery("Vancouver Art Gallery", "north-vancouver")).toBe(
       "Vancouver Art Gallery North Vancouver",
     );
+  });
+
+  it("parses the backfill CLI arguments", () => {
+    expect(parseArgs([])).toEqual({
+      destinationSlug: null,
+      candidateIds: null,
+      force: false,
+      recleanBlurbs: false,
+    });
+    expect(
+      parseArgs(["--force", "--destination=vancouver", "--ids=113, 340,356"]),
+    ).toEqual({
+      destinationSlug: "vancouver",
+      candidateIds: [113, 340, 356],
+      force: true,
+      recleanBlurbs: false,
+    });
+    // Unusable ids must not narrow the run to an empty set, which would
+    // silently do nothing.
+    expect(parseArgs(["--ids="]).candidateIds).toBeNull();
+    expect(parseArgs(["--ids=abc,-4,0"]).candidateIds).toBeNull();
   });
 
   it("humanizes a destination slug into a place name", () => {
