@@ -83,11 +83,13 @@ export function MagicWandIcon({ className }: { className?: string } = {}) {
   );
 }
 
-export function CopyIcon() {
+export function FilesPlusIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <rect x="9" y="9" width="11" height="11" rx="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      <path d="M8 17H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v2" />
+      <path d="M15 7h-5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7Z" />
+      <path d="M15 7v3.5a1.5 1.5 0 0 0 1.5 1.5H20" />
+      <path d="M14 14.5v4M12 16.5h4" />
     </svg>
   );
 }

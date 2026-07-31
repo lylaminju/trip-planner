@@ -9,8 +9,8 @@ import type { ItineraryItem, Place } from "@/lib/types";
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
 import {
   CalendarPlusIcon,
-  CopyIcon,
   EllipsisIcon,
+  FilesPlusIcon,
   PencilIcon,
   TrashIcon,
 } from "../Icons";
@@ -176,7 +176,7 @@ export function ItineraryItemRow(props: {
                 props.onDuplicate();
               }}
             >
-              <CopyIcon />
+              <FilesPlusIcon />
               <span className="visit-row-action-label">Duplicate</span>
             </button>
             <button
