@@ -29,6 +29,10 @@ import {
 
 const SINGLE_MARKER_INITIAL_ZOOM = 14;
 
+const ROUTE_STROKE_WEIGHT = 5;
+const ROUTE_STROKE_WEIGHT_DATE_SELECTED = 6;
+const ROUTE_STROKE_WEIGHT_ACTIVE = 7;
+
 export type MarkerRecord = {
   marker: google.maps.marker.AdvancedMarkerElement;
   element: HTMLElement;
@@ -219,7 +223,7 @@ export function renderOverlays(input: {
       path: routePath(from.place, to.place, routeGeometry),
       strokeColor: color,
       strokeOpacity: 0.55,
-      strokeWeight: 3,
+      strokeWeight: ROUTE_STROKE_WEIGHT,
     });
 
     polyline.addListener("click", () => input.onSelectSegment(segment.id));
@@ -326,7 +330,11 @@ export function updateOverlaySelection(
 
     polyline.setOptions({
       strokeOpacity: active ? 0.95 : dimmed ? 0.16 : dateSelected ? 0.82 : 0.55,
-      strokeWeight: active ? 5 : dateSelected ? 4 : 3,
+      strokeWeight: active
+        ? ROUTE_STROKE_WEIGHT_ACTIVE
+        : dateSelected
+          ? ROUTE_STROKE_WEIGHT_DATE_SELECTED
+          : ROUTE_STROKE_WEIGHT,
       zIndex: active ? 3 : dateSelected ? 2 : 1,
     });
   }
