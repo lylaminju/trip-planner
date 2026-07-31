@@ -1,5 +1,9 @@
 import { humanizeRetryAfter } from "./retry-after";
 
+// Gateway statuses we pass through when a third-party call fails (502) or times
+// out (504).
+export type UpstreamErrorStatus = 502 | 504;
+
 export class PlaceNotFoundError extends Error {
   constructor(id: number) {
     super(`Place ${id} not found`);
@@ -43,9 +47,9 @@ export class GoogleMapsUrlValidationError extends Error {
 }
 
 export class GoogleMapsUrlUpstreamError extends Error {
-  readonly status: 502 | 504;
+  readonly status: UpstreamErrorStatus;
 
-  constructor(message: string, status: 502 | 504) {
+  constructor(message: string, status: UpstreamErrorStatus) {
     super(message);
     this.name = "GoogleMapsUrlUpstreamError";
     this.status = status;
@@ -60,9 +64,9 @@ export class GoogleRoutesConfigError extends Error {
 }
 
 export class GoogleRoutesUpstreamError extends Error {
-  readonly status: 502 | 504;
+  readonly status: UpstreamErrorStatus;
 
-  constructor(message: string, status: 502 | 504) {
+  constructor(message: string, status: UpstreamErrorStatus) {
     super(message);
     this.name = "GoogleRoutesUpstreamError";
     this.status = status;
@@ -115,9 +119,9 @@ export class GooglePlacesConfigError extends Error {
 }
 
 export class GooglePlacesUpstreamError extends Error {
-  readonly status: 502 | 504;
+  readonly status: UpstreamErrorStatus;
 
-  constructor(message: string, status: 502 | 504) {
+  constructor(message: string, status: UpstreamErrorStatus) {
     super(message);
     this.name = "GooglePlacesUpstreamError";
     this.status = status;
@@ -134,13 +138,18 @@ export class GooglePlacesRateLimitError extends Error {
 // Shared triage buckets. Route responses (`mapRouteError`) and operator alerts
 // (`error-alerts`) must agree on which failures are our fault, which are budget
 // exhaustion, and which are the caller's own doing, so the taxonomy lives here
-// next to the classes rather than being restated per consumer.
-const SERVER_FAULT_ERROR_TYPES = [
+// next to the classes rather than being restated per consumer. Registering a new
+// error in the right list is all it takes to give it the matching status and
+// alert severity.
+const CONFIG_ERROR_TYPES = [
   AiPlannerConfigError,
   GoogleRoutesConfigError,
-  GoogleRoutesUpstreamError,
-  GoogleMapsUrlUpstreamError,
   GooglePlacesConfigError,
+];
+
+const UPSTREAM_ERROR_TYPES = [
+  GoogleMapsUrlUpstreamError,
+  GoogleRoutesUpstreamError,
   GooglePlacesUpstreamError,
 ];
 
@@ -151,12 +160,28 @@ const RATE_LIMIT_ERROR_TYPES = [
   GooglePlacesRateLimitError,
 ];
 
+// Every class here extends Error directly, so the predicates narrow to Error
+// and callers can read `message` without re-checking the concrete type.
+
+// A required key or setting is missing: we serve 503 until it is fixed.
+export function isConfigError(error: unknown): error is Error {
+  return CONFIG_ERROR_TYPES.some((type) => error instanceof type);
+}
+
+// A third-party call failed or timed out. Each of these carries the gateway
+// status to pass through, so the predicate narrows to it.
+export function isUpstreamError(
+  error: unknown,
+): error is Error & { status: UpstreamErrorStatus } {
+  return UPSTREAM_ERROR_TYPES.some((type) => error instanceof type);
+}
+
 // Misconfiguration or a failing upstream: something we have to fix or chase.
 export function isServerFaultError(error: unknown): boolean {
-  return SERVER_FAULT_ERROR_TYPES.some((type) => error instanceof type);
+  return isConfigError(error) || isUpstreamError(error);
 }
 
 // A budget ran out, ours or an upstream's. Not a defect, but worth watching.
-export function isRateLimitError(error: unknown): boolean {
+export function isRateLimitError(error: unknown): error is Error {
   return RATE_LIMIT_ERROR_TYPES.some((type) => error instanceof type);
 }

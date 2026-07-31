@@ -2,24 +2,16 @@ import { NextResponse } from "next/server";
 import type { Session, User } from "@supabase/supabase-js";
 
 import {
-  AiGenerationRateLimitError,
-  AiPlannerConfigError,
-  AiUpstreamRateLimitError,
-  GooglePlacesConfigError,
-  GooglePlacesRateLimitError,
-  GooglePlacesUpstreamError,
-  GoogleRoutesConfigError,
-  GoogleRoutesRateLimitError,
-  GoogleRoutesUpstreamError,
-  GoogleMapsUrlUpstreamError,
   GoogleMapsUrlValidationError,
   ItineraryItemNotFoundError,
   PlaceNotFoundError,
   RouteSegmentNotFoundError,
   TripAccessDeniedError,
   TripValidationError,
+  isConfigError,
   isRateLimitError,
   isServerFaultError,
+  isUpstreamError,
 } from "@/server/errors";
 import { reportHandledRouteError } from "@/server/error-alerts";
 import {
@@ -202,51 +194,22 @@ export function mapRouteError(
     return jsonError(error.message, 403);
   }
 
-  if (error instanceof TripValidationError) {
+  if (
+    error instanceof TripValidationError ||
+    error instanceof GoogleMapsUrlValidationError
+  ) {
     return jsonError(error.message, 400);
   }
 
-  if (error instanceof GoogleMapsUrlValidationError) {
-    return jsonError(error.message, 400);
-  }
-
-  if (error instanceof GoogleMapsUrlUpstreamError) {
-    return jsonError(error.message, error.status);
-  }
-
-  if (error instanceof GoogleRoutesRateLimitError) {
+  if (isRateLimitError(error)) {
     return jsonError(error.message, 429);
   }
 
-  if (error instanceof GoogleRoutesConfigError) {
+  if (isConfigError(error)) {
     return jsonError(error.message, 503);
   }
 
-  if (error instanceof AiGenerationRateLimitError) {
-    return jsonError(error.message, 429);
-  }
-
-  if (error instanceof AiUpstreamRateLimitError) {
-    return jsonError(error.message, 429);
-  }
-
-  if (error instanceof AiPlannerConfigError) {
-    return jsonError(error.message, 503);
-  }
-
-  if (error instanceof GoogleRoutesUpstreamError) {
-    return jsonError(error.message, error.status);
-  }
-
-  if (error instanceof GooglePlacesRateLimitError) {
-    return jsonError(error.message, 429);
-  }
-
-  if (error instanceof GooglePlacesConfigError) {
-    return jsonError(error.message, 503);
-  }
-
-  if (error instanceof GooglePlacesUpstreamError) {
+  if (isUpstreamError(error)) {
     return jsonError(error.message, error.status);
   }
 
