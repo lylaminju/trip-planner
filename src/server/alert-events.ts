@@ -84,11 +84,12 @@ export function alertFingerprint(event: AlertEvent): string {
 
 const MINUTE_MS = 60 * 1000;
 
-// Defects are rare and urgent. Limits repeat all day once a budget is gone, so
-// they wait longer between repeats; nothing is dropped, the suppressed count
-// rides along on the next alert.
-const ALERT_COOLDOWN_MS: Record<AlertSeverity, number> = {
-  [ALERT_SEVERITY.BUG]: 5 * MINUTE_MS,
+// How long a fingerprint stays quiet after it has been alerted; null means it
+// never repeats. Being told twice about a defect you already know about adds
+// nothing, so bugs alert once. A budget that is still exhausted half an hour
+// later is new information, so limits keep repeating with their tally.
+const ALERT_REPEAT_AFTER_MS: Record<AlertSeverity, number | null> = {
+  [ALERT_SEVERITY.BUG]: null,
   [ALERT_SEVERITY.LIMIT]: 30 * MINUTE_MS,
 };
 
@@ -108,9 +109,12 @@ export type AlertThrottle = {
   check(event: AlertEvent, now: number): ThrottleDecision;
 };
 
-// Instance-based so each serverless worker keeps its own window and tests can
-// run without shared state. Best-effort by design: two warm instances can each
-// send the first alert for the same failure.
+// Instance-based so each serverless worker keeps its own record and tests can
+// run without shared state. That bounds how long "never repeats" lasts: the map
+// dies with its instance and every deploy starts clean, so a defect that
+// resurfaces later is always announced again rather than staying muted forever.
+// The same property makes it best-effort in the other direction — concurrent
+// instances can each send the first alert for one failure.
 export function createAlertThrottle(): AlertThrottle {
   const entries = new Map<string, ThrottleEntry>();
 
@@ -129,7 +133,12 @@ export function createAlertThrottle(): AlertThrottle {
       const fingerprint = alertFingerprint(event);
       const entry = entries.get(fingerprint);
 
-      if (entry && now - entry.lastSentAt < ALERT_COOLDOWN_MS[event.severity]) {
+      const repeatAfterMs = ALERT_REPEAT_AFTER_MS[event.severity];
+
+      if (
+        entry &&
+        (repeatAfterMs === null || now - entry.lastSentAt < repeatAfterMs)
+      ) {
         entry.suppressedCount += 1;
         return { send: false, suppressedCount: entry.suppressedCount };
       }

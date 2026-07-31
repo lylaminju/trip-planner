@@ -170,7 +170,7 @@ describe("createAlertThrottle", () => {
     expect(throttle.check(bugEvent("missing key"), 0).send).toBe(true);
   });
 
-  it("suppresses repeats inside the window and counts them", () => {
+  it("suppresses every repeat of a defect it has already reported", () => {
     const throttle = createAlertThrottle();
     throttle.check(bugEvent("missing key"), 0);
 
@@ -184,13 +184,36 @@ describe("createAlertThrottle", () => {
     });
   });
 
-  it("reports how many repeats were swallowed once the window passes", () => {
+  // Bugs alert once and never repeat, however long the defect keeps firing.
+  it("never re-announces a defect, no matter how much time passes", () => {
     const throttle = createAlertThrottle();
     throttle.check(bugEvent("missing key"), 0);
-    throttle.check(bugEvent("missing key"), MINUTE_MS);
-    throttle.check(bugEvent("missing key"), 2 * MINUTE_MS);
 
-    expect(throttle.check(bugEvent("missing key"), 10 * MINUTE_MS)).toEqual({
+    const aMonthLater = 30 * 24 * 60 * MINUTE_MS;
+    expect(throttle.check(bugEvent("missing key"), aMonthLater).send).toBe(
+      false,
+    );
+  });
+
+  // "Never" is bounded by the instance holding the record. A replacement worker
+  // — a cold start, or the next deploy — reports the defect again, so a
+  // regression can never end up permanently muted.
+  it("reports the same defect again on a fresh instance", () => {
+    const first = createAlertThrottle();
+    first.check(bugEvent("missing key"), 0);
+
+    expect(createAlertThrottle().check(bugEvent("missing key"), 0).send).toBe(
+      true,
+    );
+  });
+
+  it("re-announces a still-exhausted budget with its tally", () => {
+    const throttle = createAlertThrottle();
+    throttle.check(limitEvent("daily cap"), 0);
+    throttle.check(limitEvent("daily cap"), MINUTE_MS);
+    throttle.check(limitEvent("daily cap"), 2 * MINUTE_MS);
+
+    expect(throttle.check(limitEvent("daily cap"), 31 * MINUTE_MS)).toEqual({
       send: true,
       suppressedCount: 2,
     });
@@ -216,17 +239,18 @@ describe("createAlertThrottle", () => {
     ).toBe(true);
   });
 
-  // Limits repeat all day once a budget is gone; defects should resurface fast.
-  it("holds limits back longer than defects", () => {
+  // A budget still gone half an hour on is new information; a defect you have
+  // already been told about is not.
+  it("repeats limits but not defects", () => {
     const throttle = createAlertThrottle();
     throttle.check(bugEvent("missing key"), 0);
     throttle.check(limitEvent("daily cap"), 0);
 
-    const tenMinutesLater = 10 * MINUTE_MS;
-    expect(throttle.check(bugEvent("missing key"), tenMinutesLater).send).toBe(
+    const anHourLater = 60 * MINUTE_MS;
+    expect(throttle.check(limitEvent("daily cap"), anHourLater).send).toBe(
       true,
     );
-    expect(throttle.check(limitEvent("daily cap"), tenMinutesLater).send).toBe(
+    expect(throttle.check(bugEvent("missing key"), anHourLater).send).toBe(
       false,
     );
   });
