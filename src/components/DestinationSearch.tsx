@@ -49,6 +49,10 @@ export function DestinationSearch(props: {
   const inputId = props.inputId ?? generatedInputId;
 
   const [isOpen, setIsOpen] = useState(false);
+  // The trip edit form mounts this field prefilled with the saved destination,
+  // so live search stays off until the text is actually edited. Searching a
+  // value nobody typed would spend a billed autocomplete call on mount.
+  const [hasEditedValue, setHasEditedValue] = useState(false);
   const [suggestions, setSuggestions] = useState<DestinationSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [unavailableMessage, setUnavailableMessage] = useState<string | null>(
@@ -64,7 +68,9 @@ export function DestinationSearch(props: {
 
   const trimmedValue = props.value.trim();
   const isSearching =
-    trimmedValue.length >= MIN_QUERY_LENGTH && unavailableMessage === null;
+    hasEditedValue &&
+    trimmedValue.length >= MIN_QUERY_LENGTH &&
+    unavailableMessage === null;
 
   useEffect(() => {
     if (skipNextSearchRef.current) {
@@ -181,6 +187,7 @@ export function DestinationSearch(props: {
         id={inputId}
         value={props.value}
         onChange={(event) => {
+          setHasEditedValue(true);
           props.onChange(event.currentTarget.value);
           setIsOpen(true);
         }}
