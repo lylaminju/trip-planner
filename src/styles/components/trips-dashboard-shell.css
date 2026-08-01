@@ -5,7 +5,12 @@
   background: var(--surface-base);
   height: 100dvh;
   overflow: hidden;
-  padding: var(--trips-page-padding-x);
+  /* viewport-fit=cover lets the page reach the bezel, so the status bar, notch,
+     and home indicator have to be padded back out. */
+  padding: calc(var(--trips-page-padding-x) + env(safe-area-inset-top))
+    calc(var(--trips-page-padding-x) + env(safe-area-inset-right))
+    calc(var(--trips-page-padding-x) + env(safe-area-inset-bottom))
+    calc(var(--trips-page-padding-x) + env(safe-area-inset-left));
 }
 
 .trips-dashboard-shell {

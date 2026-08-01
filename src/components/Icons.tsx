@@ -238,6 +238,16 @@ export function CloseIcon() {
   );
 }
 
+export function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9 10H6.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H15" />
+      <path d="M12 3v12" />
+      <path d="m8.5 6.5 3.5-3.5 3.5 3.5" />
+    </svg>
+  );
+}
+
 export function MenuIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

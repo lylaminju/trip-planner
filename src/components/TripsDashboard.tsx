@@ -12,6 +12,7 @@ import { addTripMember } from "@/lib/trip-members-api";
 import { fetchDestinationPhoto } from "@/lib/places-api";
 import { createTrip, deleteTrip, loadTrips, updateTrip } from "@/lib/trips-api";
 import type { TripSummary } from "@/lib/types";
+import { AddToHomeScreenTip } from "./AddToHomeScreenTip";
 import { CreateTripModal } from "./CreateTripModal";
 import type { GoogleDestinationSelection } from "./DestinationSearch";
 import { emptyTripInvite, type TripInviteDraft } from "./TripInviteFields";
@@ -275,6 +276,8 @@ export function TripsDashboard(props: {
         />
 
         <section className="trips-main-pane">
+          <AddToHomeScreenTip />
+
           {!isEmptyState && (
             <header className="trips-header">
               <h1>Hi, {displayName}</h1>

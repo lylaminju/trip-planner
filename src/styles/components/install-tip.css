@@ -1,0 +1,115 @@
+/* Add-to-home-screen tip. Only rendered on iOS Safari, so this is a
+   narrow-viewport surface in practice. */
+.install-tip {
+  align-items: flex-start;
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+}
+
+.install-tip-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.install-tip-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Left in normal list flow so the step numbers keep rendering. */
+.install-tip-steps {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  padding-inline-start: 18px;
+}
+
+.install-tip-step + .install-tip-step {
+  margin-block-start: 4px;
+}
+
+.install-tip-step-action {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.install-tip-share-icon {
+  display: inline-flex;
+  margin-inline-end: 3px;
+  vertical-align: -3px;
+}
+
+.install-tip-share-icon svg {
+  fill: none;
+  height: 15px;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 15px;
+}
+
+.install-tip-note {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Opting out permanently. The dismiss control only snoozes, because Safari
+   cannot tell whether the visitor already installed the app. */
+.install-tip-confirm {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  justify-self: start;
+  margin-block-start: 2px;
+  padding: 5px 10px;
+}
+
+.install-tip-confirm:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.install-tip-dismiss {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+
+.install-tip-dismiss:hover {
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+}
+
+.install-tip-dismiss:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.install-tip-dismiss svg {
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 16px;
+}

@@ -16,6 +16,7 @@
 @import "../styles/components/ai-planning-wizard-review.css";
 @import "../styles/components/ai-planning-wizard-generation.css";
 @import "../styles/components/ai-planning-wizard-mobile.css";
+@import "../styles/components/install-tip.css";
 @import "../styles/components/trips-dashboard-shell.css";
 @import "../styles/components/trip-create-modal.css";
 @import "../styles/components/trip-date-range-picker.css";
