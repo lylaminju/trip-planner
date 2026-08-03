@@ -806,6 +806,67 @@ describe("API routes transport behavior", () => {
     });
   });
 
+  // Stored links render as clickable anchors for every trip member, so both
+  // persistence boundaries must fail closed on anything that is not a plain
+  // web URL (javascript:, data:, protocol-less text).
+  it("drops non-http place links at creation time", async () => {
+    await withFreshTestEnv(async () => {
+      const { POST } = await import("@/app/api/trips/[tripId]/places/route");
+      const response = await POST(
+        jsonRequest("POST", {
+          name: "Louvre Museum",
+          google_maps_url: "https://maps.google.com/?cid=42",
+          latitude: 48.8606,
+          longitude: 2.3376,
+          links: [
+            "https://example.com/guide",
+            "javascript:alert(1)",
+            "data:text/html,<script>alert(1)</script>",
+            "example.com/no-protocol",
+            42,
+            "   ",
+            "http://example.com/old",
+          ],
+        }),
+        tripParams(),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        places: [
+          expect.objectContaining({
+            links: ["https://example.com/guide", "http://example.com/old"],
+          }),
+        ],
+      });
+    });
+  });
+
+  it("drops non-http place links at edit time", async () => {
+    await withFreshTestEnv(async () => {
+      const service = await import("@/server/place-service");
+      const created = await service.createPlace(1, baseInput);
+
+      const { PATCH } =
+        await import("@/app/api/trips/[tripId]/places/[id]/route");
+      const response = await PATCH(
+        jsonRequest("PATCH", {
+          links: ["javascript:alert(1)", "https://example.com/guide"],
+        }),
+        params(String(created.places[0].id)),
+      );
+
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        places: [
+          expect.objectContaining({
+            links: ["https://example.com/guide"],
+          }),
+        ],
+      });
+    });
+  });
+
   it.each([
     { latitude: 91, longitude: 2.3376 },
     { latitude: 48.8606, longitude: 181 },

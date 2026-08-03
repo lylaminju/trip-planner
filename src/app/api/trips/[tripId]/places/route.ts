@@ -12,6 +12,7 @@ import {
   requireUserOrGuestRequest,
   withRefreshedSession,
 } from "@/app/api/_utils";
+import { sanitizeLinks } from "@/lib/safe-links";
 import { recordGuestEvent } from "@/server/guest-events";
 import { resolvePlaceImage } from "@/server/place-image-resolution";
 import {
@@ -119,7 +120,7 @@ export async function POST(request: Request, { params }: TripParams) {
         source_list_url: null,
         latitude: resolved.latitude,
         longitude: resolved.longitude,
-        links: stringArray(body.links),
+        links: sanitizeLinks(body.links),
         image_url: image.image_url,
         image_credit: image.image_credit,
         visit_date: visitDate,
@@ -194,17 +195,6 @@ function readClientCoordinates(
   }
 
   return { latitude, longitude };
-}
-
-function stringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .filter((entry): entry is string => typeof entry === "string")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
 }
 
 function dateOrNull(value: unknown): string | NextResponse | null {

@@ -2,6 +2,7 @@
 
 import { useState, type SubmitEvent } from "react";
 
+import { isHttpUrl } from "@/lib/safe-links";
 import type { ItineraryItem, Place, VisitDateOption } from "@/lib/types";
 
 import { ModalShell } from "./ModalShell";
@@ -37,9 +38,11 @@ export function EditItineraryItemModal({
     throw new Error("EditItineraryItemModal requires an item or place.");
   }
   const placeNotes = displayPlace.notes?.trim() || null;
-  const placeLinks = displayPlace.links.filter(
-    (link) => link.trim().length > 0,
-  );
+  // Render-side guard for rows stored before links were sanitized: anything
+  // that is not a plain web URL never becomes a clickable anchor.
+  const placeLinks = displayPlace.links
+    .map((link) => link.trim())
+    .filter(isHttpUrl);
   const resolvedMode: VisitModalMode = mode ?? (item ? "edit" : "add");
   // Only editing an existing visit can unschedule it (the item is deleted and
   // its place returns to the Unscheduled list). Adding or duplicating a visit
