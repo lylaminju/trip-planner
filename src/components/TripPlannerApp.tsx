@@ -20,11 +20,10 @@ import {
   canPlanTripWithAi,
 } from "@/lib/ai-planning";
 import {
-  AI_PLANNING_MAX_TRIP_DAYS,
-  countTripDays,
+  exceedsAiPlanningTripLength,
+  hasAiPlanningDateRange,
 } from "@/lib/ai-planning-preferences";
 import { toggleCollapsedDate } from "@/lib/date-collapse";
-import { isValidIsoDate } from "@/lib/date-validation";
 import {
   DEFAULT_DESTINATION_ZOOM,
   findDestinationFocus,
@@ -492,29 +491,5 @@ export function TripPlannerApp({
         onCreateAiItinerary={createAiItineraryFromWizard}
       />
     </>
-  );
-}
-
-function hasAiPlanningDateRange(trip: Trip | null): boolean {
-  if (!trip?.start_date || !trip.end_date) {
-    return false;
-  }
-
-  return (
-    isValidIsoDate(trip.start_date) &&
-    isValidIsoDate(trip.end_date) &&
-    trip.start_date <= trip.end_date
-  );
-}
-
-// The cap gates AI generation only; the trip itself may be longer. Mirrors the
-// server-side check in tripDateRange so the muted hint and the API agree.
-function exceedsAiPlanningTripLength(trip: Trip | null): boolean {
-  if (!hasAiPlanningDateRange(trip) || !trip?.start_date || !trip.end_date) {
-    return false;
-  }
-
-  return (
-    countTripDays(trip.start_date, trip.end_date) > AI_PLANNING_MAX_TRIP_DAYS
   );
 }

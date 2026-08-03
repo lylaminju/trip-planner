@@ -2,11 +2,11 @@ import { destinationCandidateKey } from "@/lib/ai-planning";
 import {
   AI_PLANNING_MAX_TRIP_DAYS,
   aiCoverageMinTotalVisits,
-  countTripDays,
+  exceedsAiPlanningTripLength,
+  hasAiPlanningDateRange,
   isAiCoverageTrip,
 } from "@/lib/ai-planning-preferences";
 import type { PlannerSnapshot, Trip } from "@/lib/types";
-import { isValidIsoDate } from "@/app/api/_utils";
 
 import {
   firstDayEarliestStartFromArrival,
@@ -320,16 +320,10 @@ export async function generateAiItineraryForRequest(
 }
 
 function tripDateRange(trip: Pick<Trip, "start_date" | "end_date">): string[] {
-  if (
-    !trip.start_date ||
-    !trip.end_date ||
-    !isValidIsoDate(trip.start_date) ||
-    !isValidIsoDate(trip.end_date) ||
-    trip.start_date > trip.end_date
-  ) {
+  if (!hasAiPlanningDateRange(trip)) {
     throw new TripValidationError("Trip dates are required for AI planning.");
   }
-  if (countTripDays(trip.start_date, trip.end_date) > AI_PLANNING_MAX_TRIP_DAYS) {
+  if (exceedsAiPlanningTripLength(trip)) {
     throw new TripValidationError(TRIP_TOO_LONG_MESSAGE);
   }
 

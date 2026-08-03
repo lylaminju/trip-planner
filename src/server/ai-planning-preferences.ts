@@ -1,4 +1,4 @@
-import { isValid24HourTime } from "@/app/api/_utils";
+import { isValid24HourTime } from "@/lib/date-validation";
 import {
   AI_DEFAULT_DAILY_START_TIME,
   AI_DEFAULT_PLANNING_PREFERENCES,

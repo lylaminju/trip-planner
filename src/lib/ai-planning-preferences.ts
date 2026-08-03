@@ -1,7 +1,9 @@
+import { isValidIsoDate } from "./date-validation";
 import type {
   AiPlanningPreferenceInput,
   AiPlanningSetup,
   TravelMode,
+  Trip,
 } from "./types";
 
 export const AI_INTEREST_TAG_OPTIONS = [
@@ -168,6 +170,35 @@ export function countTripDays(startDate: string, endDate: string): number {
   const end = Date.parse(`${endDate}T00:00:00Z`);
   if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 1;
   return Math.round((end - start) / MS_PER_DAY) + 1;
+}
+
+// The two halves of the AI-planning date gate, shared by the client's muted
+// hint and the server's generation guard so they cannot drift apart.
+export function hasAiPlanningDateRange<
+  T extends Pick<Trip, "start_date" | "end_date">,
+>(trip: T | null): trip is T & { start_date: string; end_date: string } {
+  if (!trip?.start_date || !trip.end_date) {
+    return false;
+  }
+
+  return (
+    isValidIsoDate(trip.start_date) &&
+    isValidIsoDate(trip.end_date) &&
+    trip.start_date <= trip.end_date
+  );
+}
+
+// The cap gates AI generation only; the trip itself may be longer.
+export function exceedsAiPlanningTripLength(
+  trip: Pick<Trip, "start_date" | "end_date"> | null,
+): boolean {
+  if (!hasAiPlanningDateRange(trip)) {
+    return false;
+  }
+
+  return (
+    countTripDays(trip.start_date, trip.end_date) > AI_PLANNING_MAX_TRIP_DAYS
+  );
 }
 
 export function formatTripDateRangeShort(

@@ -1,4 +1,4 @@
-import { isValid24HourTime, isValidIsoDate } from "@/app/api/_utils";
+import { isValid24HourTime, isValidIsoDate } from "@/lib/date-validation";
 import { parseVisitTime } from "@/lib/visit-time";
 
 import type { AiItineraryPlan } from "./openai-ai-planner";
