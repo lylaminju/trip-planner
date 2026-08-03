@@ -12,6 +12,7 @@ export const AI_INTEREST_TAG_OPTIONS = [
   { value: "nature", label: "Nature", emoji: "🌿" },
   { value: "local-vibe", label: "Local vibe", emoji: "🏘️" },
   { value: "food", label: "Food & markets", emoji: "🍽️" },
+  { value: "cafes", label: "Cafes", emoji: "☕" },
   { value: "shopping", label: "Shopping", emoji: "🛍️" },
   { value: "kid-friendly", label: "Kid-friendly", emoji: "🧸" },
 ] as const;

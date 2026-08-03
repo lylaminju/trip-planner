@@ -108,7 +108,7 @@ const CATALOG_SYSTEM_PROMPT = [
   // attractions are stable knowledge. Date-specific operation and opening
   // hours are verified later, at itinerary generation.
   "Rely on your own knowledge; exclude attractions you know to be permanently closed or under long-term renovation.",
-  "Include attractions, sights, parks, museums, viewpoints, neighborhoods, and markets or food halls; do not include restaurants, cafes, bars, or hotels.",
+  "Include attractions, sights, parks, museums, viewpoints, neighborhoods, and markets or food halls; also include cafes or coffee houses only when they are iconic enough to be destinations in their own right. Do not include ordinary restaurants, cafes, bars, or hotels.",
   "Cover a diverse mix across the provided interest tags and across central, nearby, and day_trip distance tiers, weighted toward central.",
   "Coordinates must be the attraction's real location in decimal degrees, as precise as you can give.",
   "typical_duration_minutes is the usual visit length. planning_note is a short practical tip such as booking requirements, or null. blurb is one enticing sentence, or null.",
