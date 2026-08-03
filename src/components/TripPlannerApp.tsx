@@ -481,6 +481,7 @@ export function TripPlannerApp({
             ? () => setIsMembersModalOpen(true)
             : undefined
         }
+        onDismissAiGenerationToast={() => setAiGenerationToast(null)}
         onCopyMarkdownExport={copyMarkdownExport}
         onDownloadMarkdownExport={downloadMarkdownExport}
         onToggleDateCollapsed={toggleDateCollapsed}

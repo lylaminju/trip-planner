@@ -25,6 +25,7 @@ import { AiPlanningWizard } from "./AiPlanningWizard";
 import { EditItineraryItemModal } from "./EditItineraryItemModal";
 import { EditTripModal } from "./EditTripModal";
 import { GuestModeBanner } from "./GuestModeBanner";
+import { CloseIcon } from "./Icons";
 import { MapPanel } from "./MapPanel";
 import { PlannerPanel } from "./PlannerPanel";
 import { PlannerResizeHandle } from "./planner-panel/PlannerResizeHandle";
@@ -88,6 +89,7 @@ type Props = {
   onCopyMarkdownExport: () => void;
   onDownloadMarkdownExport: () => void;
   onToggleDateCollapsed: (date: string) => void;
+  onDismissAiGenerationToast: () => void;
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onCloseAiPlanningWizard: () => void;
   onRetryAiCatalogPrepare: () => void;
@@ -163,7 +165,17 @@ export function TripPlannerView(props: Props) {
       />
       {props.aiGenerationToast && (
         <div className="ai-generation-toast" role="status">
-          {props.aiGenerationToast}
+          <span className="ai-generation-toast-message">
+            {props.aiGenerationToast}
+          </span>
+          <button
+            type="button"
+            className="ai-generation-toast-dismiss"
+            onClick={props.onDismissAiGenerationToast}
+            aria-label="Dismiss AI itinerary notice"
+          >
+            <CloseIcon />
+          </button>
         </div>
       )}
       {props.isGuest && <GuestModeBanner />}

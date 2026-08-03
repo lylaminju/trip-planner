@@ -289,19 +289,56 @@
 }
 
 .ai-generation-toast {
+  align-items: flex-start;
   background: var(--surface-inverse);
   border-radius: 8px;
   bottom: 20px;
   box-shadow: var(--shadow-floating-large);
   color: var(--text-on-accent);
+  display: flex;
   font-size: 13px;
   font-weight: 700;
+  gap: 8px;
   line-height: 1.35;
   max-width: min(420px, calc(100% - 32px));
   padding: 10px 12px;
   position: fixed;
   right: 20px;
   z-index: 20;
+}
+
+.ai-generation-toast-dismiss {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  width: 22px;
+}
+
+.ai-generation-toast-dismiss:hover {
+  background: var(--surface-inverse-hover);
+}
+
+.ai-generation-toast-dismiss:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.ai-generation-toast-dismiss svg {
+  fill: none;
+  height: 14px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 14px;
 }
 
 .guest-mode-banner {

@@ -11,6 +11,7 @@
   --surface-map-muted: #e2e8f0;
   --surface-floating: rgba(255, 255, 255, 0.94);
   --surface-inverse: rgba(15, 23, 42, 0.94);
+  --surface-inverse-hover: rgba(255, 255, 255, 0.16);
 
   --text-primary: #1f2933;
   --text-secondary: #64748b;

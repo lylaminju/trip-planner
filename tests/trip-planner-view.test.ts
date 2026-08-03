@@ -21,6 +21,7 @@ describe("TripPlannerView", () => {
     expect(markup).toContain('class="ai-generation-toast"');
     expect(markup).toContain('role="status"');
     expect(markup).toContain(OPENING_HOURS_WARNING);
+    expect(markup).toContain('aria-label="Dismiss AI itinerary notice"');
   });
 
   it("shows the guest banner with sign-in and invite links only in guest mode", () => {
@@ -172,6 +173,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onCopyMarkdownExport: vi.fn(),
     onDownloadMarkdownExport: vi.fn(),
     onToggleDateCollapsed: vi.fn(),
+    onDismissAiGenerationToast: vi.fn(),
     onSubmitEditTrip: vi.fn(),
     onCloseAiPlanningWizard: vi.fn(),
     onCreateAiItinerary: vi.fn().mockResolvedValue(undefined),
