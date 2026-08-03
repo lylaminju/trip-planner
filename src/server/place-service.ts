@@ -48,12 +48,18 @@ export async function getTripPlannerInitialDataForRequest(
   userId: string,
 ): Promise<TripPlannerInitialData> {
   const membership = await requireTripRole(tripId, userId, "viewer");
-  const membersByTripId = await listTripMembers([tripId]);
+  // Independent reads once the role check has passed; one round-trip of
+  // latency instead of three on every planner page open.
+  const [trip, membersByTripId, plannerSnapshot] = await Promise.all([
+    getTripById(tripId),
+    listTripMembers([tripId]),
+    getPlannerSnapshot(tripId),
+  ]);
   return {
-    trip: await getTripById(tripId),
+    trip,
     role: membership.role,
     members: membersByTripId.get(tripId) ?? [],
-    plannerSnapshot: await getPlannerSnapshot(tripId),
+    plannerSnapshot,
     isGuest: isGuestPrincipalId(userId),
   };
 }

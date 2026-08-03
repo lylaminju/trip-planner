@@ -56,7 +56,11 @@ export async function getRouteDurationSeconds(input: {
   });
 
   if (input.userId) {
-    recordGoogleRoutesCall(input.userId).catch(() => {});
+    // The usage counter backs the daily budget guard, so a recording failure
+    // must be visible in logs even though it must not fail the request.
+    recordGoogleRoutesCall(input.userId).catch((error: unknown) => {
+      console.error("Failed to record Google Routes usage", error);
+    });
   }
 
   // Write the paid-for answer back so the next probe of this route is free.
