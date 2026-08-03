@@ -120,8 +120,15 @@ is exhausted, the feature degrades with a sign-in upsell instead of an error.
 
 Guest actions are recorded in a `guest_events` table (`guest_id`,
 `event_name`, `metadata`, `created_at`): trip created, sample cloned, place
-added, generation run, limit hit, upsell shown, upsell clicked. Raw IP
-addresses are never stored.
+added, generation run, limit hit, upsell clicked. Raw IP addresses are never
+stored.
+
+`upsell_shown` was recorded until 2026-08-01 and then removed. The guest banner
+renders on every guest planner mount with no other condition, so the event
+counted guest planner page views rather than upsell impressions, and every
+guest reaching a planner already has a `trip_created` or `sample_cloned` row to
+count as active. Rows written before the removal are retained; unknown event
+names still count toward active guests and get no chart of their own.
 
 Developer-owned guest cookie UUIDs are listed in `internal_guests` and
 excluded from guest activity analytics; their rows in `guest_events`,

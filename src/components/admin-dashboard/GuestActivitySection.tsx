@@ -20,7 +20,6 @@ const GUEST_EVENT_CHARTS: Record<GuestEventName, { label: string; limit?: number
   place_added: { label: "Places added" },
   generation_run: { label: "AI generations", limit: GUEST_AI_GENERATIONS_CHART_CAP },
   limit_hit: { label: "Limits hit" },
-  upsell_shown: { label: "Upsells shown" },
   upsell_clicked: { label: "Upsells clicked" },
 };
 

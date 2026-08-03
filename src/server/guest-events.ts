@@ -8,7 +8,6 @@ export const GUEST_EVENT_NAMES = [
   "place_added",
   "generation_run",
   "limit_hit",
-  "upsell_shown",
   "upsell_clicked",
 ] as const;
 

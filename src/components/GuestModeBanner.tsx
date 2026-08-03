@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-
 import { requestAccessHref } from "@/components/landing/access";
 import { sendGuestEvent } from "@/lib/guest-api";
 
 export function GuestModeBanner() {
-  // One impression beacon per planner mount; failures are ignored.
-  useEffect(() => {
-    sendGuestEvent("upsell_shown");
-  }, []);
-
   return (
     <div className="guest-mode-banner" role="note">
       <p className="guest-mode-banner-line">
