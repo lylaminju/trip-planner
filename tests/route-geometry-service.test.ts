@@ -11,6 +11,7 @@ describe("route-geometry-service", () => {
     vi.doMock("@/server/supabase-route-geometry-service", () => ({
       getRouteGeometry: vi.fn(),
       cachedRouteDurationSeconds: vi.fn().mockResolvedValue(null),
+      saveRouteDurationSeconds: vi.fn(),
     }));
 
     try {
@@ -91,9 +92,9 @@ describe("route-geometry-service", () => {
 
     const computeGoogleRoute = vi.fn().mockResolvedValue({
       status: "ok",
-      encoded_polyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@",
       duration_seconds: 540,
     });
+    const saveRouteDurationSeconds = vi.fn().mockResolvedValue(undefined);
 
     vi.resetModules();
     vi.doMock("@/server/google-routes", () => ({
@@ -102,6 +103,7 @@ describe("route-geometry-service", () => {
     vi.doMock("@/server/supabase-route-geometry-service", () => ({
       getRouteGeometry: vi.fn(),
       cachedRouteDurationSeconds: vi.fn().mockResolvedValue(null),
+      saveRouteDurationSeconds,
     }));
 
     try {
@@ -120,6 +122,18 @@ describe("route-geometry-service", () => {
         mode: "transit",
         includePolyline: false,
       });
+      // The paid-for duration must land in the cache, or every later probe of
+      // this route buys the same answer again.
+      expect(saveRouteDurationSeconds).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: "transit",
+          from_latitude: 40,
+          from_longitude: -74,
+          to_latitude: 40.1,
+          to_longitude: -73.9,
+        }),
+        expect.objectContaining({ status: "ok", duration_seconds: 540 }),
+      );
     } finally {
       vi.doUnmock("@/server/google-routes");
       vi.doUnmock("@/server/supabase-route-geometry-service");
@@ -145,7 +159,10 @@ describe("route-geometry-service", () => {
     vi.doMock("@/server/google-routes", () => ({ computeGoogleRoute }));
     vi.doMock("@/server/supabase-route-geometry-service", () => ({
       getRouteGeometry: vi.fn(),
-      cachedRouteDurationSeconds: vi.fn().mockResolvedValue(315),
+      cachedRouteDurationSeconds: vi
+        .fn()
+        .mockResolvedValue({ durationSeconds: 315 }),
+      saveRouteDurationSeconds: vi.fn(),
     }));
     vi.doMock("@/server/supabase-google-routes-usage-store", () => ({
       recordGoogleRoutesCall,
@@ -169,6 +186,48 @@ describe("route-geometry-service", () => {
       vi.doUnmock("@/server/google-routes");
       vi.doUnmock("@/server/supabase-route-geometry-service");
       vi.doUnmock("@/server/supabase-google-routes-usage-store");
+      vi.resetModules();
+      if (originalRoutesKey === undefined) {
+        delete process.env.GOOGLE_MAPS_ROUTES_API_KEY;
+      } else {
+        process.env.GOOGLE_MAPS_ROUTES_API_KEY = originalRoutesKey;
+      }
+    }
+  });
+
+  // A cached no_route is a definitive answer, not a miss: paying Google to
+  // re-learn that no route exists is the exact waste the cache prevents.
+  it("returns null for a cached no_route without calling Google", async () => {
+    const originalRoutesKey = process.env.GOOGLE_MAPS_ROUTES_API_KEY;
+    process.env.GOOGLE_MAPS_ROUTES_API_KEY = "test-routes-key";
+
+    const computeGoogleRoute = vi.fn();
+
+    vi.resetModules();
+    vi.doMock("@/server/google-routes", () => ({ computeGoogleRoute }));
+    vi.doMock("@/server/supabase-route-geometry-service", () => ({
+      getRouteGeometry: vi.fn(),
+      cachedRouteDurationSeconds: vi
+        .fn()
+        .mockResolvedValue({ durationSeconds: null }),
+      saveRouteDurationSeconds: vi.fn(),
+    }));
+
+    try {
+      const { getRouteDurationSeconds } =
+        await import("@/server/route-geometry-service");
+
+      await expect(
+        getRouteDurationSeconds({
+          from: { latitude: 40, longitude: -74 },
+          to: { latitude: 40.1, longitude: -73.9 },
+          mode: "walking",
+        }),
+      ).resolves.toBeNull();
+      expect(computeGoogleRoute).not.toHaveBeenCalled();
+    } finally {
+      vi.doUnmock("@/server/google-routes");
+      vi.doUnmock("@/server/supabase-route-geometry-service");
       vi.resetModules();
       if (originalRoutesKey === undefined) {
         delete process.env.GOOGLE_MAPS_ROUTES_API_KEY;

@@ -78,7 +78,7 @@ export async function getRouteGeometry(
   const cacheKey = routeGeometryCacheKey(segment);
   const cached = await getCachedRouteGeometry(cacheKey);
 
-  if (cached) {
+  if (cached && hasRenderableGeometry(cached)) {
     return toRouteGeometry(segmentId, cached);
   }
 
@@ -194,20 +194,22 @@ async function getCachedRouteGeometry(
     .maybeSingle();
 
   if (error) throwSupabaseError(error);
-  const cached = (data as RouteGeometryCacheRow | null) ?? null;
-  if (
-    cached?.status === "ok" &&
-    cached.encoded_polyline &&
-    cached.duration_seconds === null
-  ) {
-    return null;
-  }
-  return cached;
+  return (data as RouteGeometryCacheRow | null) ?? null;
+}
+
+// A cached row satisfies the map only when it is complete: no_route is a
+// definitive answer, while an "ok" row must carry both the polyline and the
+// duration. Duration-only rows written by probe callers and legacy rows that
+// predate duration capture are misses here; the refetch upserts the full row
+// over the same cache key.
+function hasRenderableGeometry(cached: RouteGeometryCacheRow): boolean {
+  if (cached.status === "no_route") return true;
+  return Boolean(cached.encoded_polyline) && cached.duration_seconds !== null;
 }
 
 async function saveRouteGeometry(
   cacheKey: string,
-  segment: SegmentRouteRow,
+  route: CacheableRoute,
   geometry: Omit<RouteGeometry, "segment_id">,
 ): Promise<void> {
   const now = new Date().toISOString();
@@ -216,11 +218,11 @@ async function saveRouteGeometry(
     .upsert(
       {
         cache_key: cacheKey,
-        mode: segment.mode,
-        from_latitude: segment.from_latitude,
-        from_longitude: segment.from_longitude,
-        to_latitude: segment.to_latitude,
-        to_longitude: segment.to_longitude,
+        mode: route.mode,
+        from_latitude: route.from_latitude,
+        from_longitude: route.from_longitude,
+        to_latitude: route.to_latitude,
+        to_longitude: route.to_longitude,
         status: geometry.status,
         encoded_polyline: geometry.encoded_polyline ?? null,
         duration_seconds: geometry.duration_seconds ?? null,
@@ -267,15 +269,35 @@ export function routeGeometryCacheKey(route: CacheableRoute): string {
   return parts.join(":");
 }
 
-// Read-only reuse for duration-only callers such as the AI planner's walking
-// probes: they get geometry the map already paid for, but never write a row.
-// A duration-only row would have no polyline, and a later map request hitting it
-// would render a straight line and never fetch the real path.
+// Duration reuse for callers such as the AI planner's walking probes: a full
+// row and a duration-only row both count, and a cached no_route is a
+// definitive "no duration" rather than a reason to pay for the same answer
+// again. Null means a true miss — the caller must compute.
+export type CachedRouteDuration = { durationSeconds: number | null };
+
 export async function cachedRouteDurationSeconds(
   route: CacheableRoute,
-): Promise<number | null> {
+): Promise<CachedRouteDuration | null> {
   const cached = await getCachedRouteGeometry(routeGeometryCacheKey(route));
-  return cached?.status === "ok" ? (cached.duration_seconds ?? null) : null;
+  if (!cached) return null;
+  if (cached.status === "no_route") return { durationSeconds: null };
+  return cached.duration_seconds !== null
+    ? { durationSeconds: cached.duration_seconds }
+    : null;
+}
+
+// Persist a duration-only result so repeat probes stop paying for the same
+// route. The row carries no polyline, so the full-geometry path treats it as
+// a miss and still fetches the real path once the map needs it; that refetch
+// fills in the polyline on the same cache key.
+export async function saveRouteDurationSeconds(
+  route: CacheableRoute,
+  result: Omit<RouteGeometry, "segment_id">,
+): Promise<void> {
+  await saveRouteGeometry(routeGeometryCacheKey(route), route, {
+    status: result.status,
+    duration_seconds: result.duration_seconds,
+  });
 }
 
 function coordinateKey(value: number): string {

@@ -5,6 +5,7 @@ import { computeGoogleRoute } from "@/server/google-routes";
 import {
   cachedRouteDurationSeconds,
   getRouteGeometry as getSupabaseRouteGeometry,
+  saveRouteDurationSeconds,
   type CacheableRoute,
 } from "@/server/supabase-route-geometry-service";
 import { recordGoogleRoutesCall } from "@/server/supabase-google-routes-usage-store";
@@ -32,11 +33,12 @@ export async function getRouteDurationSeconds(input: {
   mode: TravelMode;
   userId?: string;
 }): Promise<number | null> {
-  // Reuse a duration the map already paid for before spending a call. Callers
+  // Reuse a duration anyone already paid for before spending a call. Callers
   // here have coordinates but no itinerary context, so a transit lookup carries
   // no departure bucket and simply misses rather than reusing another schedule.
-  const cached = await cachedRouteDurationSeconds(cacheableRoute(input));
-  if (cached !== null) return cached;
+  const cacheable = cacheableRoute(input);
+  const cached = await cachedRouteDurationSeconds(cacheable);
+  if (cached) return cached.durationSeconds;
 
   const apiKey = getRoutesApiKey();
   if (!apiKey) {
@@ -56,6 +58,9 @@ export async function getRouteDurationSeconds(input: {
   if (input.userId) {
     recordGoogleRoutesCall(input.userId).catch(() => {});
   }
+
+  // Write the paid-for answer back so the next probe of this route is free.
+  await saveRouteDurationSeconds(cacheable, route);
 
   return route.status === "ok" ? (route.duration_seconds ?? null) : null;
 }
