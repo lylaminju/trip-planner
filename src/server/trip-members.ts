@@ -1,6 +1,7 @@
 import type { TripMembership, TripMemberSummary, TripRole } from "@/lib/types";
 import { TripValidationError } from "@/server/errors";
 import { getSupabaseClient } from "@/server/supabase";
+import { throwSupabaseError } from "@/server/supabase-errors";
 
 type ProfileRow = {
   user_id: string;
@@ -128,8 +129,4 @@ async function listMembersForTrip(
 ): Promise<TripMemberSummary[]> {
   const membersByTripId = await listTripMembers([tripId]);
   return membersByTripId.get(tripId) ?? [];
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

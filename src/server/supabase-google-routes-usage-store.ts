@@ -10,6 +10,7 @@ import {
 } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 export const GOOGLE_ROUTES_DAILY_LIMIT = 200;
 
@@ -90,8 +91,4 @@ export async function recordGoogleRoutesCall(
     .insert({ user_id: principalId });
 
   if (error) throwSupabaseError(error);
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

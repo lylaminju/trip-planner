@@ -5,6 +5,7 @@ import {
   guestPrincipalId,
 } from "@/server/principal";
 import { getSupabaseClient } from "@/server/supabase";
+import { throwSupabaseError } from "@/server/supabase-errors";
 
 const ROLE_RANK: Record<TripRole, number> = {
   viewer: 0,
@@ -77,8 +78,4 @@ async function requireGuestTripAccess(
     role: "owner",
     created_at: trip.created_at,
   };
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

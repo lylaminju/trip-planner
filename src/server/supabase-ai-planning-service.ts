@@ -16,6 +16,7 @@ import type {
   SanitizedCatalogHub,
 } from "./openai-destination-catalog";
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 const AI_DESTINATION_CANDIDATE_COLUMNS =
   "id, destination_slug, name, category, tags, area, region_distance_tier, sort_order, latitude, longitude, google_place_id, typical_duration_minutes, indoor_outdoor, planning_note, blurb, image_url, image_credit, created_at, updated_at";
@@ -324,8 +325,4 @@ function normalizeTransitPoint(point: TripTransitPoint): TripTransitPoint {
     // Postgres `time` columns read back as HH:MM:SS.
     event_time: point.event_time ? point.event_time.slice(0, 5) : null,
   };
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

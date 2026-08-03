@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 export const PLACES_SKU = {
   AUTOCOMPLETE: "autocomplete",
@@ -72,8 +73,4 @@ export async function recordPlacesCall(
     .insert({ user_id: userId, sku });
 
   if (error) throwSupabaseError(error);
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

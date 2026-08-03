@@ -9,6 +9,7 @@ import type { TravelMode } from "@/lib/types";
 import { TripValidationError } from "./errors";
 import { GUEST_TRIP_TTL_HOURS } from "./guest-session";
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
@@ -271,8 +272,4 @@ async function cloneTripChildRows(
     })),
   );
   if (insertError) throwSupabaseError(insertError);
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

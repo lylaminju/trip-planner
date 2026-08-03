@@ -14,6 +14,7 @@ import type { Trip, TripMembership, TripSummary } from "@/lib/types";
 import { storeDestinationPhoto } from "./destination-photo-service";
 import { TripValidationError } from "./errors";
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 import { listScheduledVisits } from "./supabase-place-store";
 import { isGuestPrincipalId } from "./principal";
 import { requireTripRole } from "./trip-access";
@@ -236,10 +237,6 @@ export async function deleteTripForRequest(
     .is("deleted_at", null);
 
   if (error) throwSupabaseError(error);
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }
 
 // Guests keep their trips inside the demo envelope: curated destinations only

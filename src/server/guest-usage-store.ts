@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 // Metered call kinds recorded per guest in guest_api_usage.
 export const GUEST_USAGE_KIND = {
@@ -64,8 +65,4 @@ function todayStartIso(): string {
   const todayStart = new Date();
   todayStart.setUTCHours(0, 0, 0, 0);
   return todayStart.toISOString();
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

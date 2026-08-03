@@ -17,6 +17,7 @@ import type {
   PlaceUpdate,
 } from "@/server/place-inputs";
 import { getSupabaseClient } from "@/server/supabase";
+import { throwSupabaseError } from "@/server/supabase-errors";
 
 type SupabaseItineraryItemRow = Omit<ItineraryItem, "place"> & {
   place: Place | Place[] | null;
@@ -312,8 +313,4 @@ function toItineraryItem(row: SupabaseItineraryItemRow): ItineraryItem {
     updated_at: row.updated_at,
     place,
   };
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

@@ -1,5 +1,6 @@
 import type { TravelMode } from "@/lib/types";
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 export type RowId = {
   id: number;
@@ -140,8 +141,4 @@ async function runDelete(
 ): Promise<void> {
   const { error } = await result;
   if (error) throwSupabaseError(error);
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

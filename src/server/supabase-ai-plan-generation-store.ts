@@ -2,6 +2,7 @@ import { recordGuestEvent } from "./guest-events";
 import { GUEST_USAGE_KIND, recordGuestCall } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
 import { getSupabaseClient } from "./supabase";
+import { throwSupabaseError } from "./supabase-errors";
 
 type GenerationRecord = {
   id: number;
@@ -95,8 +96,4 @@ export async function updateAiPlanGeneration(
     .eq("id", generationId);
 
   if (error) throwSupabaseError(error);
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }

@@ -8,6 +8,7 @@ import type { RouteGeometry, TravelMode } from "@/lib/types";
 import { RouteSegmentNotFoundError } from "@/server/errors";
 import { computeGoogleRoute } from "@/server/google-routes";
 import { getSupabaseClient } from "@/server/supabase";
+import { throwSupabaseError } from "@/server/supabase-errors";
 import {
   assertGoogleRoutesQuota,
   recordGoogleRoutesCall,
@@ -324,8 +325,4 @@ function firstJoinedTrip(
   trip: JoinedTrip | JoinedTrip[] | null,
 ): JoinedTrip | null {
   return Array.isArray(trip) ? (trip[0] ?? null) : trip;
-}
-
-function throwSupabaseError(error: { message: string }): never {
-  throw new Error(`Supabase query failed: ${error.message}`);
 }
