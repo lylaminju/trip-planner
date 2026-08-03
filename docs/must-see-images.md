@@ -25,6 +25,14 @@ Supabase Storage — never committed to the repo.
 A candidate with no `image_url` cleanly falls back to a map-pin icon in the
 card, so partial coverage is fine.
 
+Adding a candidate to a trip copies `image_url` and `image_credit` onto the
+`public.places` row, so one object path is stored in two tables. A migration
+that changes a candidate's `destination_slug`, and any cleanup that removes
+objects belonging to retired candidate ids, must repoint those copies too:
+`20260731120000_merge_duplicate_ai_destination_catalogs` did not, and
+`20260802120000_repoint_place_photos_at_surviving_candidate_images` repaired the
+107 visit thumbnails it left pointing at deleted objects.
+
 ## Prerequisites
 
 1. The media-columns migration is applied to the target database:
