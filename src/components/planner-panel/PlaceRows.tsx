@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { formatPlaceRow, placeThumbGlyph } from "@/lib/place-display";
+import { formatPlaceRow } from "@/lib/place-display";
 import type { ItineraryItem, Place } from "@/lib/types";
 
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
@@ -14,6 +14,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from "../Icons";
+import { PlaceThumb } from "./PlaceThumb";
 import { VisitTimeSlot } from "./VisitTimeSlot";
 
 export function ItineraryItemRow(props: {
@@ -98,30 +99,11 @@ export function ItineraryItemRow(props: {
         canEdit={props.canEdit}
         onTimeChange={props.onTimeChange}
       />
-      <span className="visit-thumb-frame">
-        <span className="visit-thumb" aria-hidden="true">
-          {props.item.place.image_url ? (
-            <img
-              className="visit-thumb-image"
-              src={props.item.place.image_url}
-              alt=""
-              title={props.item.place.image_credit ?? undefined}
-              loading="lazy"
-            />
-          ) : (
-            placeThumbGlyph(props.item.place)
-          )}
-        </span>
-        {props.markerLabel && (
-          <span
-            className="place-marker-label"
-            style={{ backgroundColor: props.markerColor }}
-            aria-label={`Visit order ${props.markerLabel}`}
-          >
-            {props.markerLabel}
-          </span>
-        )}
-      </span>
+      <PlaceThumb
+        place={props.item.place}
+        markerLabel={props.markerLabel}
+        markerColor={props.markerColor}
+      />
       <span className="visit-row-content">
         <button
           type="button"
@@ -218,6 +200,7 @@ export function PlaceListRow(props: {
   active: boolean;
   canEdit: boolean;
   canAddVisit: boolean;
+  compactThumb?: boolean;
   onSelect: () => void;
   onEdit: () => void;
   onAddVisit: () => void;
@@ -236,6 +219,7 @@ export function PlaceListRow(props: {
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
+      <PlaceThumb place={props.place} compact={props.compactThumb} />
       <button
         type="button"
         className="place-main"
@@ -290,4 +274,3 @@ export function PlaceListRow(props: {
     </div>
   );
 }
-

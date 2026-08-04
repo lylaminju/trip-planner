@@ -130,6 +130,7 @@ export function PlacesSection(props: {
                   place={place}
                   canEdit={props.canEdit}
                   canAddVisit={props.canAddVisits}
+                  compactThumb
                   isDeleting={props.deletingPlaceIds.has(place.id)}
                   active={
                     props.activeCanonicalPlaceId === place.id ||

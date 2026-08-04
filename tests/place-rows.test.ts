@@ -7,6 +7,8 @@ import {
   ItineraryItemRow,
   PlaceListRow,
 } from "@/components/planner-panel/PlaceRows";
+import { PlacesSection } from "@/components/planner-panel/PlacesSection";
+import { UnscheduledBlock } from "@/components/planner-panel/UnscheduledBlock";
 import { VisitTimeInlineEditor } from "@/components/planner-panel/VisitTimeInlineEditor";
 import { buildItineraryItem, buildPlace } from "./helpers/fixtures";
 
@@ -270,6 +272,93 @@ describe("PlaceRows", () => {
     expect(markup).toContain('class="place-row-actions"');
   });
 
+  it("shows a place thumbnail ahead of the name in unscheduled rows", () => {
+    const markup = renderToStaticMarkup(
+      createElement(UnscheduledBlock, {
+        itinerary: {
+          days: [],
+          unscheduled: [
+            buildPlace({
+              id: 7,
+              name: "Bryant Park",
+              image_url: "https://example.com/bryant.jpg",
+            }),
+            buildPlace({ id: 8, name: "Chelsea Market" }),
+          ],
+        },
+        activeCanonicalPlaceId: null,
+        isDropTarget: false,
+        isOpen: true,
+        canEdit: true,
+        canAddVisits: true,
+        deletingPlaceIds: new Set<number>(),
+        onToggleOpen: vi.fn(),
+        onSelectPlace: vi.fn(),
+        onSelectCanonicalPlace: vi.fn(),
+        onSelectSegment: vi.fn(),
+        onAddVisit: vi.fn(),
+        onEdit: vi.fn(),
+        onDelete: vi.fn(),
+        onConfirmDeletion: vi.fn(() => true),
+      }),
+    );
+
+    expect(markup).toContain('src="https://example.com/bryant.jpg"');
+    expect(markup.indexOf("visit-thumb")).toBeLessThan(
+      markup.indexOf("Bryant Park"),
+    );
+    expect(markup).toContain(">C</span>");
+  });
+
+  it("shows smaller place thumbnails in the places list", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PlacesSection, {
+        places: [
+          buildPlace({
+            id: 7,
+            name: "Bryant Park",
+            image_url: "https://example.com/bryant.jpg",
+          }),
+        ],
+        itinerary: { days: [], unscheduled: [] },
+        activePlaceId: null,
+        activeCanonicalPlaceId: null,
+        canEdit: true,
+        canAddVisits: true,
+        deletingPlaceIds: new Set<number>(),
+        isExpanded: false,
+        isOpen: true,
+        onToggleOpen: vi.fn(),
+        onAddPlace: vi.fn(),
+        onSelectPlace: vi.fn(),
+        onSelectCanonicalPlace: vi.fn(),
+        onSelectSegment: vi.fn(),
+        onAddVisit: vi.fn(),
+        onEdit: vi.fn(),
+        onDelete: vi.fn(),
+        onDeleteAll: vi.fn(),
+        onConfirmDeletion: vi.fn(() => true),
+      }),
+    );
+
+    expect(markup).toContain('class="visit-thumb-frame compact"');
+    expect(markup).toContain('src="https://example.com/bryant.jpg"');
+  });
+
+  it("sizes compact thumbnails below the itinerary thumbnails", () => {
+    const css = readFileSync(
+      "src/styles/components/planner-place-rows.css",
+      "utf8",
+    );
+
+    expect(cssRule(css, ".visit-thumb-frame")).toContain(
+      "flex: 0 0 var(--visit-thumb-size);",
+    );
+    expect(cssRule(css, ".visit-thumb-frame.compact")).toContain(
+      "--visit-thumb-size: 32px;",
+    );
+  });
+
   it("stacks unscheduled place row actions vertically on mobile layouts", () => {
     const css = readFileSync("src/styles/mobile.css", "utf8");
 
@@ -279,7 +368,9 @@ describe("PlaceRows", () => {
   it("collapses itinerary visit actions behind a kebab menu on mobile layouts", () => {
     const css = readFileSync("src/styles/mobile.css", "utf8");
 
-    expect(css).toContain(".visit-row-menu-toggle {\n    display: inline-flex;");
+    expect(css).toContain(
+      ".visit-row-menu-toggle {\n    display: inline-flex;",
+    );
     expect(css).toContain(".visit-row-actions.open {\n    display: flex;");
   });
 
