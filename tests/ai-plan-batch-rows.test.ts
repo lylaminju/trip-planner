@@ -122,6 +122,48 @@ describe("AI plan batch rows", () => {
     expect(rows[0]).toMatchObject({ name: "JFK Airport", fallback_emoji: null });
   });
 
+  it("stores a note's markdown link on the place instead of in the note text", () => {
+    const plan = {
+      days: [
+        {
+          date: "2026-08-10",
+          visits: [
+            {
+              candidate_id: 10,
+              start_time: "09:00",
+              duration_minutes: 120,
+              notes:
+                "Closed Mondays; check [hours](https://example.com/visit?utm_source=openai) first.",
+            },
+          ],
+        },
+      ],
+    };
+    const candidateById = new Map([[10, candidate(10)]]);
+
+    const rows = buildAiGeneratedPlaceRows({
+      tripId: 1,
+      generationId: 5,
+      plan,
+      candidateById,
+      lodging: null,
+    });
+    const entries = buildGeneratedScheduleEntries({
+      plan,
+      candidateById,
+      lodging: null,
+      lodgingStartTime: "09:00",
+      lodgingPlaceId: null,
+      candidatePlaceIds: [102],
+    });
+
+    expect(rows[0]).toMatchObject({
+      notes: "Closed Mondays; check hours first.",
+      links: ["https://example.com/visit"],
+    });
+    expect(entries[0].notes).toBe("Closed Mondays; check hours first.");
+  });
+
   it("moves the first attraction after the lodging travel duration on the 10-minute grid", () => {
     const entries = buildGeneratedScheduleEntries({
       plan: {

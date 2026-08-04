@@ -8,6 +8,7 @@ import {
   LODGING_FALLBACK_EMOJI,
   transitHubFallbackEmoji,
 } from "@/lib/place-fallback-emoji";
+import { extractNoteLinks } from "@/lib/note-links";
 import { arrivalBufferMinutes } from "@/lib/transit-buffers";
 import {
   formatVisitTime,
@@ -106,11 +107,14 @@ export function buildAiGeneratedPlaceRows(input: {
         throw new Error(`Candidate ${visit.candidate_id} is not available.`);
       }
 
+      const note = extractNoteLinks(visit.notes);
+
       return candidatePlaceRow(
         input.tripId,
         input.generationId,
         candidate,
-        visit.notes,
+        note.notes,
+        note.links,
       );
     }),
   ];
@@ -276,7 +280,9 @@ export function buildGeneratedScheduleEntries(input: {
         date: day.date,
         startTime,
         placeId,
-        notes: visit.notes,
+        // The visit note carries the same text as the place note, so it drops
+        // its markdown links the same way; the URLs live on the place.
+        notes: extractNoteLinks(visit.notes).notes,
         location: candidate,
         order,
       });
@@ -411,6 +417,7 @@ function candidatePlaceRow(
   generationId: number,
   candidate: AiDestinationCandidate,
   notes: string | null,
+  links: string[],
 ) {
   return {
     trip_id: tripId,
@@ -424,7 +431,7 @@ function candidatePlaceRow(
     latitude: candidate.latitude,
     longitude: candidate.longitude,
     notes,
-    links: [],
+    links,
     image_url: candidate.image_url,
     image_credit: candidate.image_credit,
     fallback_emoji: null,
