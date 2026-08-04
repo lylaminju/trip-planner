@@ -23,7 +23,7 @@ const AI_DESTINATION_CANDIDATE_COLUMNS =
 const TRIP_LODGING_COLUMNS =
   "id, trip_id, name, latitude, longitude, google_place_id, is_primary, created_at, updated_at";
 const AI_PLANNING_PREFERENCES_COLUMNS =
-  "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, avoid_interest_tags, preferred_travel_modes, must_see_candidate_ids, created_at, updated_at";
+  "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, avoid_interest_tags, preferred_travel_modes, must_see_candidate_ids, daily_start_time, created_at, updated_at";
 const TRIP_TRANSIT_POINT_COLUMNS =
   "id, trip_id, kind, name, latitude, longitude, google_place_id, hub_type, event_time, created_at, updated_at";
 const AI_TRANSIT_HUB_COLUMNS =
@@ -260,7 +260,7 @@ export async function getPlanningPreferences(
     .maybeSingle();
 
   if (error) throwSupabaseError(error);
-  return (data ?? null) as AiPlanningPreferences | null;
+  return data ? normalizePreferences(data as AiPlanningPreferences) : null;
 }
 
 export async function upsertPlanningPreferences(
@@ -274,7 +274,7 @@ export async function upsertPlanningPreferences(
     .maybeSingle();
 
   if (error) throwSupabaseError(error);
-  return data as AiPlanningPreferences;
+  return normalizePreferences(data as AiPlanningPreferences);
 }
 
 async function upsertPrimaryLodging(
@@ -317,6 +317,16 @@ async function upsertPrimaryLodging(
 
   if (error) throwSupabaseError(error);
   return data as TripLodging;
+}
+
+function normalizePreferences(
+  preferences: AiPlanningPreferences,
+): AiPlanningPreferences {
+  return {
+    ...preferences,
+    // Postgres `time` columns read back as HH:MM:SS.
+    daily_start_time: preferences.daily_start_time.slice(0, 5),
+  };
 }
 
 function normalizeTransitPoint(point: TripTransitPoint): TripTransitPoint {

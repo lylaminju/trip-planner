@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AI_DEFAULT_DAILY_START_TIME,
   AI_DEFAULT_PLANNING_PREFERENCES,
   aiCoverageMinTotalVisits,
   aiCoverageSightseeingDayRange,
@@ -29,6 +30,7 @@ describe("ai planning preference defaults", () => {
             avoid_interest_tags: ["shopping"],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [10, 99],
+            daily_start_time: "08:00",
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -41,7 +43,29 @@ describe("ai planning preference defaults", () => {
       avoid_interest_tags: ["shopping"],
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
+      daily_start_time: "08:00",
     });
+  });
+
+  it("falls back to the default daily start time when the saved value is malformed", () => {
+    expect(
+      buildAiPlanningPreferenceDraft(
+        setup({
+          preferences: {
+            trip_id: 1,
+            visits_per_day_min: 2,
+            visits_per_day_max: 3,
+            interest_tags: [],
+            avoid_interest_tags: [],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [],
+            daily_start_time: "25:00",
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          },
+        }),
+      ).daily_start_time,
+    ).toBe(AI_DEFAULT_DAILY_START_TIME);
   });
 
   it("keeps the current interest-tag vocabulary and drops retired tags", () => {
@@ -61,6 +85,7 @@ describe("ai planning preference defaults", () => {
             avoid_interest_tags: [],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [],
+            daily_start_time: "09:00",
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -81,6 +106,7 @@ describe("ai planning preference defaults", () => {
             avoid_interest_tags: ["food", "shopping", "neighborhoods"],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [],
+            daily_start_time: "09:00",
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -162,8 +188,8 @@ describe("ai planning preference defaults", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [10],
+        daily_start_time: "08:30",
       },
-      daily_start_time: "08:30",
       lodging_google_maps_url: "https://maps.app.goo.gl/example",
       arrival_hub_id: null,
       arrival_google_maps_url: null,
@@ -263,8 +289,8 @@ describe("ai planning preference defaults", () => {
           must_see_candidate_ids: [],
         },
         new Set([10]),
-      ).daily_start_time,
-    ).toBe("09:00");
+      ).preferences.daily_start_time,
+    ).toBe(AI_DEFAULT_DAILY_START_TIME);
 
     expect(() =>
       parseAiPlanningGenerationInput(

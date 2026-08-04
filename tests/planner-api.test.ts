@@ -70,6 +70,7 @@ describe("planner api client", () => {
       avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "09:00",
     };
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -96,6 +97,7 @@ describe("planner api client", () => {
       avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "09:00",
     };
     const result = {
       generationId: 55,
@@ -185,6 +187,7 @@ describe("planner api client", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking"],
         must_see_candidate_ids: [],
+        daily_start_time: "09:00",
       }),
     ).rejects.toThrow("Failed to generate AI itinerary.");
   });

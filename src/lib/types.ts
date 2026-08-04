@@ -215,11 +215,12 @@ export type AiPlanningPreferenceInput = {
   avoid_interest_tags: string[];
   preferred_travel_modes: TravelMode[];
   must_see_candidate_ids: number[];
+  // HH:MM; the hour each planned day starts from lodging.
+  daily_start_time: string;
 };
 
 export type AiPlanningGenerationInput = AiPlanningPreferenceInput & {
   lodging_google_maps_url?: string | null;
-  daily_start_time?: string | null;
   arrival_hub_id?: number | null;
   arrival_google_maps_url?: string | null;
   arrival_time?: string | null;

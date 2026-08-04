@@ -152,6 +152,7 @@ export function savedPreferenceRecord(
     avoid_interest_tags: string[];
     preferred_travel_modes: string[];
     must_see_candidate_ids: number[];
+    daily_start_time: string;
   }> = {},
 ) {
   return {
@@ -162,6 +163,7 @@ export function savedPreferenceRecord(
     avoid_interest_tags: [],
     preferred_travel_modes: ["walking"],
     must_see_candidate_ids: [],
+    daily_start_time: "09:00",
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...overrides,

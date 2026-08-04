@@ -185,6 +185,7 @@ describe("ai-planning-service request boundary", () => {
       interest_tags: ["nature"],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "09:00",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     };
@@ -222,6 +223,7 @@ describe("ai-planning-service request boundary", () => {
       avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "09:00",
     });
   });
 
@@ -268,6 +270,7 @@ describe("ai-planning-service request boundary", () => {
       interest_tags: ["landmarks"],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "08:30",
     });
     const upsertPlanningPreferences = vi
       .fn()
@@ -582,6 +585,7 @@ describe("ai-planning-service request boundary", () => {
       visits_per_day_max: 3,
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
+      daily_start_time: "08:30",
     });
     const lodging = {
       id: 7,
@@ -686,6 +690,7 @@ describe("ai-planning-service request boundary", () => {
       visits_per_day_max: 3,
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
+      daily_start_time: "08:30",
     });
     const arrivalPoint = transitPointRecord("arrival", "15:00");
     const departurePoint = transitPointRecord("departure", "21:00");

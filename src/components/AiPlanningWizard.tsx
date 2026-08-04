@@ -73,9 +73,6 @@ export function AiPlanningWizard(props: Props) {
     [props.setup],
   );
   const [draft, setDraft] = useState<AiPlanningPreferenceInput>(initialDraft);
-  const [dailyStartTime, setDailyStartTime] = useState(
-    AI_DEFAULT_DAILY_START_TIME,
-  );
   const [lodgingGoogleMapsUrl, setLodgingGoogleMapsUrl] = useState("");
   const [transitDraft, setTransitDraft] = useState<TransitStopDraft>(() =>
     buildTransitStopDraft(props.setup),
@@ -104,7 +101,6 @@ export function AiPlanningWizard(props: Props) {
     if (!setup || hasInitializedFromSetupRef.current) return;
     hasInitializedFromSetupRef.current = true;
     setDraft(buildAiPlanningPreferenceDraft(setup));
-    setDailyStartTime(AI_DEFAULT_DAILY_START_TIME);
     setLodgingGoogleMapsUrl("");
     setTransitDraft(buildTransitStopDraft(setup));
     setStepIndex(0);
@@ -169,7 +165,9 @@ export function AiPlanningWizard(props: Props) {
       ...draft,
       lodging_google_maps_url:
         lodgingGoogleMapsUrl.trim() === "" ? null : lodgingGoogleMapsUrl.trim(),
-      daily_start_time: dailyStartTime || AI_DEFAULT_DAILY_START_TIME,
+      // The time input clears to "" when the user wipes it; the saved
+      // preference must still be a real HH:MM.
+      daily_start_time: draft.daily_start_time || AI_DEFAULT_DAILY_START_TIME,
       ...transitStopPayload(transitDraft),
     });
   }
@@ -425,10 +423,15 @@ export function AiPlanningWizard(props: Props) {
                   )}
                   {currentStep.key === "logistics" && (
                     <LogisticsStep
-                      dailyStartTime={dailyStartTime}
+                      dailyStartTime={draft.daily_start_time}
                       draft={draft}
                       onChange={setDraft}
-                      onDailyStartTimeChange={setDailyStartTime}
+                      onDailyStartTimeChange={(value) =>
+                        setDraft((current) => ({
+                          ...current,
+                          daily_start_time: value,
+                        }))
+                      }
                     />
                   )}
                   {currentStep.key === "interests" && (
@@ -465,7 +468,6 @@ export function AiPlanningWizard(props: Props) {
                     <ReviewStep
                       arrivalPointName={props.setup.arrivalPoint?.name ?? null}
                       candidates={props.setup.candidates}
-                      dailyStartTime={dailyStartTime}
                       days={days}
                       departurePointName={
                         props.setup.departurePoint?.name ?? null

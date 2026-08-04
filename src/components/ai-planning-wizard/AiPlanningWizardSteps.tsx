@@ -342,7 +342,6 @@ export function ReviewStep({
   arrivalPointName,
   draft,
   candidates,
-  dailyStartTime,
   days,
   departureCustomName,
   departurePointName,
@@ -355,7 +354,6 @@ export function ReviewStep({
   arrivalPointName: string | null;
   draft: AiPlanningPreferenceInput;
   candidates: AiDestinationCandidate[];
-  dailyStartTime: string;
   days: number;
   departureCustomName: string | null;
   departurePointName: string | null;
@@ -398,7 +396,7 @@ export function ReviewStep({
     },
     {
       label: "Daily start",
-      value: dailyStartTime || AI_DEFAULT_DAILY_START_TIME,
+      value: draft.daily_start_time || AI_DEFAULT_DAILY_START_TIME,
       step: "logistics",
     },
     {

@@ -1,4 +1,4 @@
-import { isValidIsoDate } from "./date-validation";
+import { isValid24HourTime, isValidIsoDate } from "./date-validation";
 import type {
   AiPlanningPreferenceInput,
   AiPlanningSetup,
@@ -101,6 +101,8 @@ const SHORT_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
+export const AI_DEFAULT_DAILY_START_TIME = "09:00";
+
 export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   visits_per_day_min: 2,
   visits_per_day_max: 3,
@@ -108,9 +110,8 @@ export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   avoid_interest_tags: [],
   preferred_travel_modes: ["walking", "transit"],
   must_see_candidate_ids: [],
+  daily_start_time: AI_DEFAULT_DAILY_START_TIME,
 };
-
-export const AI_DEFAULT_DAILY_START_TIME = "09:00";
 
 const INTEREST_TAG_VALUES = new Set<string>(
   AI_INTEREST_TAG_OPTIONS.map((option) => option.value),
@@ -152,6 +153,9 @@ export function buildAiPlanningPreferenceDraft(
     must_see_candidate_ids: unique(
       preferences.must_see_candidate_ids.filter((id) => candidateIds.has(id)),
     ),
+    daily_start_time: isValid24HourTime(preferences.daily_start_time)
+      ? preferences.daily_start_time
+      : AI_DEFAULT_DAILY_START_TIME,
   };
 }
 

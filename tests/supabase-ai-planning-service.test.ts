@@ -54,6 +54,7 @@ describe("supabase ai planning service", () => {
       interest_tags: ["landmarks"],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "08:00:00",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     };
@@ -69,9 +70,10 @@ describe("supabase ai planning service", () => {
     const service = await import("@/server/supabase-ai-planning-service");
 
     await expect(service.getPrimaryLodging(1)).resolves.toEqual(lodging);
-    await expect(service.getPlanningPreferences(1)).resolves.toEqual(
-      preferences,
-    );
+    await expect(service.getPlanningPreferences(1)).resolves.toEqual({
+      ...preferences,
+      daily_start_time: "08:00",
+    });
 
     expect(calls).toContainEqual({
       table: "trip_lodgings",
@@ -150,6 +152,8 @@ describe("supabase ai planning service", () => {
       interest_tags: ["nature"],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      // Postgres `time` columns read back with seconds; callers expect HH:MM.
+      daily_start_time: "08:30:00",
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     };
@@ -171,8 +175,9 @@ describe("supabase ai planning service", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [10],
+        daily_start_time: "08:30",
       }),
-    ).resolves.toEqual(preferences);
+    ).resolves.toEqual({ ...preferences, daily_start_time: "08:30" });
 
     expect(calls).toContainEqual({
       table: "ai_planning_preferences",
@@ -186,6 +191,7 @@ describe("supabase ai planning service", () => {
           avoid_interest_tags: [],
           preferred_travel_modes: ["walking", "transit"],
           must_see_candidate_ids: [10],
+          daily_start_time: "08:30",
         },
         { onConflict: "trip_id" },
       ],

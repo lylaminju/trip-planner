@@ -54,6 +54,7 @@ describe("supabase AI plan application service", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [],
+        daily_start_time: "09:00",
       },
     );
 
@@ -111,6 +112,7 @@ describe("supabase AI plan application service", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [],
+        daily_start_time: "09:00",
       }),
     ).rejects.toThrow("Supabase query failed: itinerary insert failed");
 
@@ -155,6 +157,7 @@ describe("supabase AI plan application service", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [],
+        daily_start_time: "09:00",
       },
       lodging(),
       "08:30",
@@ -243,6 +246,7 @@ describe("supabase AI plan application service", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [],
+        daily_start_time: "09:00",
       },
       null,
       "09:00",
@@ -396,6 +400,7 @@ describe("supabase AI plan application service", () => {
         avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [],
+        daily_start_time: "09:00",
       },
       lodging(),
       "09:00",

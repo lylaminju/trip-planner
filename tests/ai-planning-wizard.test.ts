@@ -21,7 +21,10 @@ import {
   AI_WIZARD_STEPS,
   aiWizardStepIndex,
 } from "@/components/ai-planning-wizard/wizard-steps";
-import { formatVisitsPerDayRangeLabel } from "@/lib/ai-planning-preferences";
+import {
+  AI_DEFAULT_DAILY_START_TIME,
+  formatVisitsPerDayRangeLabel,
+} from "@/lib/ai-planning-preferences";
 import type { AiPlanningPreferenceInput, AiPlanningSetup } from "@/lib/types";
 
 describe("AiPlanningWizard", () => {
@@ -530,11 +533,10 @@ describe("ReviewStep", () => {
         arrivalCustomName: null,
         arrivalPointName: null,
         candidates: [],
-        dailyStartTime: "08:30",
         days: 3,
         departureCustomName: null,
         departurePointName: null,
-        draft: preferenceDraft(),
+        draft: { ...preferenceDraft(), daily_start_time: "08:30" },
         lodgingName: "Pod Times Square",
         onEditStep: vi.fn(),
         transitDraft: {
@@ -562,7 +564,6 @@ describe("ReviewStep", () => {
         arrivalCustomName: "Niagara Falls Terminal",
         arrivalPointName: null,
         candidates: [],
-        dailyStartTime: "09:00",
         days: 3,
         departureCustomName: null,
         departurePointName: null,
@@ -704,6 +705,7 @@ function preferenceDraft(): AiPlanningPreferenceInput {
     avoid_interest_tags: [],
     preferred_travel_modes: ["walking", "transit"],
     must_see_candidate_ids: [],
+    daily_start_time: AI_DEFAULT_DAILY_START_TIME,
   };
 }
 

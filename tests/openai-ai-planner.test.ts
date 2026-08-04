@@ -217,6 +217,7 @@ function promptContext(): AiPlannerPromptContext {
       avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
+      daily_start_time: "09:00",
     },
     lodging: null,
     daily_start_time: "09:00",

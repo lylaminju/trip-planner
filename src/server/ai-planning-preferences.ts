@@ -61,6 +61,7 @@ export function parseAiPlanningPreferenceInput(
       body.must_see_candidate_ids,
       allowedCandidateIds,
     ),
+    daily_start_time: dailyStartTime(body.daily_start_time),
   };
 }
 
@@ -71,7 +72,6 @@ export function parseAiPlanningGenerationInput(
 ): {
   preferences: AiPlanningPreferenceInput;
   lodging_google_maps_url: string | null;
-  daily_start_time: string;
   arrival_hub_id: number | null;
   arrival_google_maps_url: string | null;
   arrival_time: string | null;
@@ -87,7 +87,6 @@ export function parseAiPlanningGenerationInput(
       body.lodging_google_maps_url,
       "Lodging",
     ),
-    daily_start_time: dailyStartTime(body.daily_start_time),
     arrival_hub_id: optionalTransitHubId(
       body.arrival_hub_id,
       "Arrival stop",
