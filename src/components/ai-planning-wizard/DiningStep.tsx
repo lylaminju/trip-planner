@@ -81,7 +81,8 @@ export function DiningStep({ draft, onChange }: Props) {
                 target="_blank"
                 rel="noopener"
               >
-                Edit defaults
+                Edit defaults in profile
+                <span aria-hidden="true"> ↗</span>
               </a>
             </div>
             <DietaryPreferenceFields
