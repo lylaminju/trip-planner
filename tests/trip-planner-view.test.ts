@@ -7,7 +7,7 @@ import { TripPlannerView } from "@/components/TripPlannerView";
 import type { ItineraryView, PlannerSnapshot } from "@/lib/types";
 
 const OPENING_HOURS_WARNING =
-  "AI itinerary created. Opening hours may change, so check Google Maps or the venue before you go.";
+  "AI itinerary created. Opening hours may change,\nso check Google Maps or the venue before you go.";
 
 describe("TripPlannerView", () => {
   it("renders the AI opening-hours warning after generation", () => {
@@ -22,6 +22,11 @@ describe("TripPlannerView", () => {
     expect(markup).toContain('role="status"');
     expect(markup).toContain(OPENING_HOURS_WARNING);
     expect(markup).toContain('aria-label="Dismiss AI itinerary notice"');
+
+    // The newline in the warning only breaks the line if the CSS keeps it.
+    expect(readFileSync("src/styles/layout.css", "utf8")).toMatch(
+      /\.ai-generation-toast-message \{\s*white-space: pre-line;/,
+    );
   });
 
   it("shows the guest banner with sign-in and invite links only in guest mode", () => {

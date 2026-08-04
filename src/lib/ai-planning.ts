@@ -1,8 +1,9 @@
 import { normalizeDestinationText } from "./destination-options";
 import type { Trip } from "./types";
 
+// The break keeps the created/verify halves on their own toast lines.
 export const AI_OPENING_HOURS_WARNING =
-  "AI itinerary created. Opening hours may change, so check Google Maps or the venue before you go.";
+  "AI itinerary created. Opening hours may change,\nso check Google Maps or the venue before you go.";
 
 export type TripDestinationContext = Pick<
   Trip,

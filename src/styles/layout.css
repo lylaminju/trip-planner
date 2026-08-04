@@ -298,13 +298,17 @@
   display: flex;
   font-size: 13px;
   font-weight: 700;
-  gap: 8px;
+  gap: 4px;
   line-height: 1.35;
   max-width: min(420px, calc(100% - 32px));
-  padding: 10px 12px;
+  padding: 10px 8px 10px 12px;
   position: fixed;
   right: 20px;
   z-index: 20;
+}
+
+.ai-generation-toast-message {
+  white-space: pre-line;
 }
 
 .ai-generation-toast-dismiss {
