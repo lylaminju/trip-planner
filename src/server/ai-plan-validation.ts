@@ -1,7 +1,14 @@
 import { isValid24HourTime, isValidIsoDate } from "@/lib/date-validation";
 import { parseVisitTime } from "@/lib/visit-time";
 
-import type { AiItineraryPlan } from "./openai-ai-planner";
+import {
+  AI_LUNCH_EARLIEST_START_TIME,
+  AI_LUNCH_LATEST_START_TIME,
+  AI_LUNCH_MAX_DURATION_MINUTES,
+  AI_LUNCH_MIN_DURATION_MINUTES,
+  type AiItineraryPlan,
+  type AiPlanLunchStop,
+} from "./openai-ai-planner";
 
 export type AiPlanValidationResult =
   | { status: "valid"; errors: [] }
@@ -122,6 +129,12 @@ export function validateAiItineraryPlan(
         `Day ${day.date} has visits that are not in increasing start-time order.`,
       );
     }
+    // Presence is lenient — a null or absent lunch never fails a plan — but a
+    // provided lunch must be schedulable: real name, plausible coordinates,
+    // and a start inside the lunch window.
+    if (day.lunch) {
+      errors.push(...lunchErrors(day.date, day.lunch));
+    }
   }
 
   const coverage = context.coverage ?? null;
@@ -164,6 +177,53 @@ export function validateAiItineraryPlan(
   return errors.length === 0
     ? { status: "valid", errors: [] }
     : { status: "invalid", errors };
+}
+
+function lunchErrors(date: string, lunch: AiPlanLunchStop): string[] {
+  const errors: string[] = [];
+
+  if (lunch.name.trim() === "") {
+    errors.push(`Day ${date} lunch must have a restaurant name.`);
+  }
+  if (!isFiniteInRange(lunch.latitude, -90, 90)) {
+    errors.push(`Day ${date} lunch latitude is invalid.`);
+  }
+  if (!isFiniteInRange(lunch.longitude, -180, 180)) {
+    errors.push(`Day ${date} lunch longitude is invalid.`);
+  }
+  if (!isValid24HourTime(lunch.start_time)) {
+    errors.push(`Day ${date} lunch time ${lunch.start_time} must be HH:MM.`);
+  } else {
+    const startMinutes = parseVisitTime(lunch.start_time);
+    const windowStart = parseVisitTime(AI_LUNCH_EARLIEST_START_TIME);
+    const windowEnd = parseVisitTime(AI_LUNCH_LATEST_START_TIME);
+    if (
+      startMinutes === null ||
+      windowStart === null ||
+      windowEnd === null ||
+      startMinutes < windowStart ||
+      startMinutes > windowEnd
+    ) {
+      errors.push(
+        `Day ${date} lunch must start between ${AI_LUNCH_EARLIEST_START_TIME} and ${AI_LUNCH_LATEST_START_TIME}.`,
+      );
+    }
+  }
+  if (
+    !Number.isInteger(lunch.duration_minutes) ||
+    lunch.duration_minutes < AI_LUNCH_MIN_DURATION_MINUTES ||
+    lunch.duration_minutes > AI_LUNCH_MAX_DURATION_MINUTES
+  ) {
+    errors.push(
+      `Day ${date} lunch duration must be ${AI_LUNCH_MIN_DURATION_MINUTES}-${AI_LUNCH_MAX_DURATION_MINUTES} minutes.`,
+    );
+  }
+
+  return errors;
+}
+
+function isFiniteInRange(value: number, min: number, max: number): boolean {
+  return Number.isFinite(value) && value >= min && value <= max;
 }
 
 function startsBefore(

@@ -1,0 +1,75 @@
+/* Dining step: lunch switch and its conditional budget/dietary sections.
+   Chips reuse the ai-chip classes; only the switch and section frame live
+   here. */
+
+.ai-dining-step {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ai-dining-toggle {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-weight: 600;
+  gap: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.ai-dining-toggle:hover {
+  border-color: var(--border-strong);
+}
+
+.ai-dining-toggle:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.ai-dining-toggle-track {
+  background: var(--line);
+  border-radius: 999px;
+  flex: none;
+  height: 22px;
+  padding: 3px;
+  transition: background 0.15s ease;
+  width: 40px;
+}
+
+.ai-dining-toggle.on .ai-dining-toggle-track {
+  background: var(--accent);
+}
+
+.ai-dining-toggle-thumb {
+  background: var(--surface-panel);
+  border-radius: 999px;
+  display: block;
+  height: 16px;
+  transition: transform 0.15s ease;
+  width: 16px;
+}
+
+.ai-dining-toggle.on .ai-dining-toggle-thumb {
+  transform: translateX(18px);
+}
+
+.ai-dining-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-dining-section-label {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}

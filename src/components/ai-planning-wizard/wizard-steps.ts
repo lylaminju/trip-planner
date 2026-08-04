@@ -2,6 +2,7 @@ export type AiWizardStepKey =
   | "pace"
   | "logistics"
   | "interests"
+  | "dining"
   | "startend"
   | "mustsee"
   | "review";
@@ -38,6 +39,14 @@ export const AI_WIZARD_STEPS: readonly AiWizardStep[] = [
     title: "What are you into?",
     helper:
       "Tap once for what you're into, twice for what to skip — we'll plan around both.",
+    optional: true,
+  },
+  {
+    key: "dining",
+    label: "Dining",
+    title: "Want a lunch stop each day?",
+    helper:
+      "We'll pick a well-fitting restaurant near each day's route — or skip food planning entirely.",
     optional: true,
   },
   {

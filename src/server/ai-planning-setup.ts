@@ -1,6 +1,8 @@
 import { destinationCandidateKey } from "@/lib/ai-planning";
 import type { AiPlanningSetup, Trip } from "@/lib/types";
 
+import { getProfileDietaryDefaults } from "./auth-session";
+import { guestIdFromPrincipalId } from "./principal";
 import { transitPointOfKind } from "./ai-planning-transit-points";
 import {
   getPlanningPreferences,
@@ -18,7 +20,15 @@ export async function getAiPlanningSetupForRequest(
 ): Promise<AiPlanningSetup> {
   await requireTripRole(tripId, userId, "owner");
   const trip = await getTripById(tripId);
-  return loadAiPlanningSetupForTrip(trip);
+  const [setup, profileDietaryDefaults] = await Promise.all([
+    loadAiPlanningSetupForTrip(trip),
+    // Guests have no profile; the lookup itself is best-effort and null on
+    // any failure, so it can never block the wizard from opening.
+    guestIdFromPrincipalId(userId) === null
+      ? getProfileDietaryDefaults(userId)
+      : Promise.resolve(null),
+  ]);
+  return { ...setup, profileDietaryDefaults };
 }
 
 // Setup loader for callers that have already authorized the request and hold

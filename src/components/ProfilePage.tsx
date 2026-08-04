@@ -6,17 +6,26 @@ import { errorMessage } from "@/lib/error-message";
 import { logoutRequest } from "@/lib/planner-api";
 import { updateProfile } from "@/lib/profile-api";
 import { PROFILE_COLORS } from "@/lib/profile-colors";
+import { DietaryPreferenceFields } from "./DietaryPreferenceFields";
 import { LogoutIcon } from "./Icons";
 import { TripsDashboardRail } from "./TripsDashboardRail";
 
 export function ProfilePage(props: {
   initialUsername: string;
   initialProfileColor: string;
+  initialDietaryTags?: string[];
+  initialDietaryNotes?: string | null;
   userEmail?: string;
   isAdmin?: boolean;
 }) {
   const [username, setUsername] = useState(props.initialUsername);
   const [profileColor, setProfileColor] = useState(props.initialProfileColor);
+  const [dietaryTags, setDietaryTags] = useState<string[]>(
+    props.initialDietaryTags ?? [],
+  );
+  const [dietaryNotes, setDietaryNotes] = useState(
+    props.initialDietaryNotes ?? "",
+  );
   const [savedProfile, setSavedProfile] = useState({
     username: props.initialUsername,
     profileColor: props.initialProfileColor,
@@ -40,10 +49,17 @@ export function ProfilePage(props: {
       const saved = await updateProfile({
         username: trimmedName,
         profileColor,
+        dietaryTags,
+        dietaryNotes: dietaryNotes.trim() === "" ? null : dietaryNotes.trim(),
       });
       setUsername(saved.username);
       setProfileColor(saved.profileColor);
-      setSavedProfile(saved);
+      setDietaryTags(saved.dietaryTags);
+      setDietaryNotes(saved.dietaryNotes ?? "");
+      setSavedProfile({
+        username: saved.username,
+        profileColor: saved.profileColor,
+      });
       setIsSaved(true);
     } catch (reason) {
       setError(errorMessage(reason, "Failed to save profile."));
@@ -138,6 +154,22 @@ export function ProfilePage(props: {
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="profile-field">
+                <span>Food preferences &amp; restrictions</span>
+                <DietaryPreferenceFields
+                  tags={dietaryTags}
+                  notes={dietaryNotes}
+                  onTagsChange={(tags) => {
+                    setDietaryTags(tags);
+                    setIsSaved(false);
+                  }}
+                  onNotesChange={(notes) => {
+                    setDietaryNotes(notes);
+                    setIsSaved(false);
+                  }}
+                />
               </div>
 
               {error && <p className="error-text">{error}</p>}

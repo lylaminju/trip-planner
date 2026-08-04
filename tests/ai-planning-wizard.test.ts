@@ -67,7 +67,7 @@ describe("AiPlanningWizard", () => {
 
     expect(markup).toContain('class="modal ai-planning-modal"');
     expect(markup).toContain("Plan with AI");
-    expect(markup).toContain("Step 1 of 6");
+    expect(markup).toContain("Step 1 of 7");
     expect(markup).not.toContain("New York City - ");
     expect(markup).not.toContain("2 curated attractions");
     expect(markup).toContain("How full should each day feel?");
@@ -136,7 +136,7 @@ describe("AiPlanningWizard", () => {
     expect(markup).toContain("Creating itinerary");
     expect(markup).toContain('class="ai-generation-spotlight"');
     expect(markup).toContain("Building your New York City itinerary");
-    expect(markup).not.toContain("Step 1 of 6");
+    expect(markup).not.toContain("Step 1 of 7");
     expect(markup).not.toContain("How full should each day feel?");
   });
 
@@ -157,7 +157,7 @@ describe("AiPlanningWizard", () => {
     );
 
     // Form stays mounted (not a dead-end error screen) so the draft survives.
-    expect(markup).toContain("Step 1 of 6");
+    expect(markup).toContain("Step 1 of 7");
     expect(markup).toContain("How full should each day feel?");
     expect(markup).not.toContain("ai-planning-status-error");
   });
@@ -706,6 +706,10 @@ function preferenceDraft(): AiPlanningPreferenceInput {
     preferred_travel_modes: ["walking", "transit"],
     must_see_candidate_ids: [],
     daily_start_time: AI_DEFAULT_DAILY_START_TIME,
+    include_lunch_stop: false,
+    dining_budget: null,
+    dietary_tags: [],
+    dietary_notes: null,
   };
 }
 

@@ -1,0 +1,36 @@
+/* Dietary chips + free-text catch-all, shared by the profile page and the AI
+   wizard's dining step. Chip visuals come from the ai-chip classes; this file
+   only owns the wrapper, the notes input, and the allergen disclaimer. */
+
+.dietary-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dietary-notes-input {
+  background: var(--surface-panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  height: 46px;
+  outline: none;
+  padding: 0 14px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.dietary-notes-input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.dietary-disclaimer {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}

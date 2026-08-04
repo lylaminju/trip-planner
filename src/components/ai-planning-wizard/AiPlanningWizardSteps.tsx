@@ -1,5 +1,7 @@
 import {
   AI_DEFAULT_DAILY_START_TIME,
+  AI_DIETARY_OPTIONS,
+  AI_DINING_BUDGET_OPTIONS,
   AI_INTEREST_TAG_OPTIONS,
   AI_PACE_PRESETS,
   AI_TRAVEL_MODE_OPTIONS,
@@ -419,6 +421,13 @@ export function ReviewStep({
         ]
       : []),
     {
+      label: "Dining",
+      value: draft.include_lunch_stop
+        ? diningSummary(draft)
+        : "No lunch stops",
+      step: "dining",
+    },
+    {
       label: "Home base",
       value: lodgingName ?? "Not set",
       step: "startend",
@@ -514,6 +523,18 @@ function withTime(name: string, time: string): string {
   const trimmedTime = time.trim();
   // Time first so a long place name can't push it out of view / crop it.
   return trimmedTime ? `${trimmedTime} · ${name}` : name;
+}
+
+function diningSummary(draft: AiPlanningPreferenceInput): string {
+  const parts = ["Lunch daily"];
+  const budget = AI_DINING_BUDGET_OPTIONS.find(
+    (option) => option.value === draft.dining_budget,
+  );
+  if (budget) parts.push(`${budget.symbol} ${budget.label}`);
+  const dietaryLabels = labelsFor(draft.dietary_tags, AI_DIETARY_OPTIONS);
+  if (dietaryLabels.length) parts.push(dietaryLabels.join(", "));
+  if (draft.dietary_notes) parts.push("+ notes");
+  return parts.join(" · ");
 }
 
 function labelsFor<T extends string | number>(

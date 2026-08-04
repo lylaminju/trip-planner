@@ -31,6 +31,10 @@ describe("ai planning preference defaults", () => {
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [10, 99],
             daily_start_time: "08:00",
+            include_lunch_stop: false,
+            dining_budget: null,
+            dietary_tags: [],
+            dietary_notes: null,
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -44,7 +48,51 @@ describe("ai planning preference defaults", () => {
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
       daily_start_time: "08:00",
+      include_lunch_stop: false,
+      dining_budget: null,
+      dietary_tags: [],
+      dietary_notes: null,
     });
+  });
+
+  it("seeds dietary answers from the profile only when the trip has no saved preferences", () => {
+    const profileDietaryDefaults = {
+      dietary_tags: ["vegetarian", "not-a-real-tag"],
+      dietary_notes: "no cilantro",
+    };
+
+    const fresh = buildAiPlanningPreferenceDraft(
+      setup({ preferences: null, profileDietaryDefaults }),
+    );
+    expect(fresh.dietary_tags).toEqual(["vegetarian"]);
+    expect(fresh.dietary_notes).toBe("no cilantro");
+
+    const savedTrip = buildAiPlanningPreferenceDraft(
+      setup({
+        preferences: {
+          trip_id: 1,
+          visits_per_day_min: 2,
+          visits_per_day_max: 3,
+          interest_tags: [],
+          avoid_interest_tags: [],
+          preferred_travel_modes: ["walking"],
+          must_see_candidate_ids: [],
+          daily_start_time: "09:00",
+          include_lunch_stop: true,
+          dining_budget: "moderate",
+          dietary_tags: ["vegan"],
+          dietary_notes: null,
+          created_at: "2026-01-01T00:00:00.000Z",
+          updated_at: "2026-01-01T00:00:00.000Z",
+        },
+        profileDietaryDefaults,
+      }),
+    );
+    // Trip-level answers win over the profile default, including cleared ones.
+    expect(savedTrip.dietary_tags).toEqual(["vegan"]);
+    expect(savedTrip.dietary_notes).toBeNull();
+    expect(savedTrip.include_lunch_stop).toBe(true);
+    expect(savedTrip.dining_budget).toBe("moderate");
   });
 
   it("falls back to the default daily start time when the saved value is malformed", () => {
@@ -60,6 +108,10 @@ describe("ai planning preference defaults", () => {
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [],
             daily_start_time: "25:00",
+            include_lunch_stop: false,
+            dining_budget: null,
+            dietary_tags: [],
+            dietary_notes: null,
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -86,6 +138,10 @@ describe("ai planning preference defaults", () => {
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [],
             daily_start_time: "09:00",
+            include_lunch_stop: false,
+            dining_budget: null,
+            dietary_tags: [],
+            dietary_notes: null,
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -107,6 +163,10 @@ describe("ai planning preference defaults", () => {
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [],
             daily_start_time: "09:00",
+            include_lunch_stop: false,
+            dining_budget: null,
+            dietary_tags: [],
+            dietary_notes: null,
             created_at: "2026-01-01T00:00:00.000Z",
             updated_at: "2026-01-01T00:00:00.000Z",
           },
@@ -189,6 +249,10 @@ describe("ai planning preference defaults", () => {
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [10],
         daily_start_time: "08:30",
+        include_lunch_stop: false,
+        dining_budget: null,
+        dietary_tags: [],
+        dietary_notes: null,
       },
       lodging_google_maps_url: "https://maps.app.goo.gl/example",
       arrival_hub_id: null,
@@ -303,6 +367,45 @@ describe("ai planning preference defaults", () => {
         new Set([10]),
       ),
     ).toThrow("Daily start time must be HH:MM.");
+  });
+
+  it("round-trips valid dining preferences", () => {
+    const parsed = parseAiPlanningGenerationInput(
+      {
+        include_lunch_stop: true,
+        dining_budget: "budget",
+        dietary_tags: ["vegetarian", "nut-allergy", "vegetarian"],
+        dietary_notes: "  no cilantro  ",
+      },
+      new Set(),
+    );
+
+    expect(parsed.preferences).toMatchObject({
+      include_lunch_stop: true,
+      dining_budget: "budget",
+      dietary_tags: ["vegetarian", "nut-allergy"],
+      dietary_notes: "no cilantro",
+    });
+  });
+
+  it.each([
+    [
+      "a non-boolean lunch toggle",
+      { include_lunch_stop: "yes" },
+      "Lunch stop preference must be a boolean.",
+    ],
+    ["an unknown budget", { dining_budget: "michelin" }, "Invalid dining budget."],
+    ["an unknown dietary tag", { dietary_tags: ["carnivore"] }, "Invalid dietary tag."],
+    ["non-array dietary tags", { dietary_tags: "vegan" }, "Dietary tags must be an array."],
+    [
+      "over-long dietary notes",
+      { dietary_notes: "x".repeat(201) },
+      "Dietary notes must be 200 characters or fewer.",
+    ],
+  ])("rejects %s", (_label, payload, message) => {
+    expect(() => parseAiPlanningGenerationInput(payload, new Set())).toThrow(
+      message,
+    );
   });
 });
 

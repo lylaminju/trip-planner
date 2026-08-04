@@ -77,6 +77,50 @@ describe("OpenAI AI planner adapter", () => {
     expect(body.text.format.schema.properties.days.type).toBe("array");
   });
 
+  it("adds the lunch slot and lunch rules only when lunch stops are enabled", async () => {
+    const emptyPlanResponse = () =>
+      Response.json({
+        output_text: JSON.stringify({ days: [] }),
+        usage: { input_tokens: 1, output_tokens: 1 },
+      });
+
+    const lunchFetch = vi.fn().mockResolvedValue(emptyPlanResponse());
+    const context = promptContext();
+    await requestAiItineraryPlan({
+      apiKey: "test-key",
+      model: "gpt-5.5",
+      context: {
+        ...context,
+        preferences: { ...context.preferences, include_lunch_stop: true },
+      },
+      fetchImpl: lunchFetch,
+    });
+    const lunchBody = JSON.parse(lunchFetch.mock.calls[0][1].body);
+    const lunchDaySchema = lunchBody.text.format.schema.properties.days.items;
+    expect(lunchDaySchema.required).toEqual(["date", "visits", "lunch"]);
+    expect(lunchDaySchema.properties.lunch.type).toEqual(["object", "null"]);
+    expect(lunchBody.input[0].content[0].text).toContain("lunch stop per planned day");
+    expect(lunchBody.input[0].content[0].text).toContain(
+      "Confirm dietary needs with the restaurant.",
+    );
+
+    const noLunchFetch = vi.fn().mockResolvedValue(emptyPlanResponse());
+    await requestAiItineraryPlan({
+      apiKey: "test-key",
+      model: "gpt-5.5",
+      context: promptContext(),
+      fetchImpl: noLunchFetch,
+    });
+    const noLunchBody = JSON.parse(noLunchFetch.mock.calls[0][1].body);
+    const noLunchDaySchema =
+      noLunchBody.text.format.schema.properties.days.items;
+    expect(noLunchDaySchema.required).toEqual(["date", "visits"]);
+    expect(noLunchDaySchema.properties.lunch).toBeUndefined();
+    expect(noLunchBody.input[0].content[0].text).toContain(
+      "Do not add restaurants, meals, or places outside the candidate list.",
+    );
+  });
+
   it("normalizes failed OpenAI responses", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       Response.json({ error: { message: "Bad request" } }, { status: 400 }),
@@ -218,6 +262,10 @@ function promptContext(): AiPlannerPromptContext {
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
       daily_start_time: "09:00",
+      include_lunch_stop: false,
+      dining_budget: null,
+      dietary_tags: [],
+      dietary_notes: null,
     },
     lodging: null,
     daily_start_time: "09:00",

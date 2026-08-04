@@ -2,12 +2,19 @@ import { isValid24HourTime } from "@/lib/date-validation";
 import {
   AI_DEFAULT_DAILY_START_TIME,
   AI_DEFAULT_PLANNING_PREFERENCES,
+  AI_DIETARY_NOTES_MAX_LENGTH,
+  AI_DIETARY_OPTIONS,
+  AI_DINING_BUDGET_OPTIONS,
   AI_INTEREST_TAG_OPTIONS,
   AI_TRAVEL_MODE_OPTIONS,
   AI_VISITS_PER_DAY_MAX,
   AI_VISITS_PER_DAY_MIN,
 } from "@/lib/ai-planning-preferences";
-import type { AiPlanningPreferenceInput, TravelMode } from "@/lib/types";
+import type {
+  AiDiningBudget,
+  AiPlanningPreferenceInput,
+  TravelMode,
+} from "@/lib/types";
 
 import { TripValidationError } from "./errors";
 
@@ -16,6 +23,12 @@ const INTEREST_TAG_VALUES = new Set<string>(
 );
 const TRAVEL_MODE_VALUES = new Set<TravelMode>(
   AI_TRAVEL_MODE_OPTIONS.map((option) => option.value),
+);
+const DIETARY_TAG_VALUES = new Set<string>(
+  AI_DIETARY_OPTIONS.map((option) => option.value),
+);
+const DINING_BUDGET_VALUES = new Set<string>(
+  AI_DINING_BUDGET_OPTIONS.map((option) => option.value),
 );
 
 export function parseAiPlanningPreferenceInput(
@@ -62,6 +75,10 @@ export function parseAiPlanningPreferenceInput(
       allowedCandidateIds,
     ),
     daily_start_time: dailyStartTime(body.daily_start_time),
+    include_lunch_stop: includeLunchStop(body.include_lunch_stop),
+    dining_budget: diningBudget(body.dining_budget),
+    dietary_tags: dietaryTags(body.dietary_tags),
+    dietary_notes: dietaryNotes(body.dietary_notes),
   };
 }
 
@@ -223,6 +240,58 @@ function dailyStartTime(value: unknown): string {
   if (trimmed === "") return AI_DEFAULT_DAILY_START_TIME;
   if (!isValid24HourTime(trimmed)) {
     throw new TripValidationError("Daily start time must be HH:MM.");
+  }
+
+  return trimmed;
+}
+
+function includeLunchStop(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value !== "boolean") {
+    throw new TripValidationError("Lunch stop preference must be a boolean.");
+  }
+
+  return value;
+}
+
+function diningBudget(value: unknown): AiDiningBudget | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string" || !DINING_BUDGET_VALUES.has(value)) {
+    throw new TripValidationError("Invalid dining budget.");
+  }
+
+  return value as AiDiningBudget;
+}
+
+function dietaryTags(value: unknown): string[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw new TripValidationError("Dietary tags must be an array.");
+  }
+
+  return unique(
+    value.map((tag) => {
+      if (typeof tag !== "string" || !DIETARY_TAG_VALUES.has(tag)) {
+        throw new TripValidationError("Invalid dietary tag.");
+      }
+
+      return tag;
+    }),
+  );
+}
+
+function dietaryNotes(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") {
+    throw new TripValidationError("Dietary notes must be a string.");
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  if (trimmed.length > AI_DIETARY_NOTES_MAX_LENGTH) {
+    throw new TripValidationError(
+      `Dietary notes must be ${AI_DIETARY_NOTES_MAX_LENGTH} characters or fewer.`,
+    );
   }
 
   return trimmed;

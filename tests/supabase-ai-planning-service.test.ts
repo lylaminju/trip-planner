@@ -176,6 +176,10 @@ describe("supabase ai planning service", () => {
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [10],
         daily_start_time: "08:30",
+        include_lunch_stop: false,
+        dining_budget: null,
+        dietary_tags: [],
+        dietary_notes: null,
       }),
     ).resolves.toEqual({ ...preferences, daily_start_time: "08:30" });
 
@@ -192,6 +196,10 @@ describe("supabase ai planning service", () => {
           preferred_travel_modes: ["walking", "transit"],
           must_see_candidate_ids: [10],
           daily_start_time: "08:30",
+          include_lunch_stop: false,
+          dining_budget: null,
+          dietary_tags: [],
+          dietary_notes: null,
         },
         { onConflict: "trip_id" },
       ],

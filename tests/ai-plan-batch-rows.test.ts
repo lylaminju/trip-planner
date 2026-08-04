@@ -5,6 +5,10 @@ import {
   buildGeneratedScheduleEntries,
   splitGeneratedPlaceIds,
 } from "@/server/ai-plan-batch-rows";
+import {
+  LUNCH_VERIFICATION_STATUS,
+  type EnrichedLunchStop,
+} from "@/server/ai-lunch-enrichment";
 import type {
   AiDestinationCandidate,
   AiTransitHubType,
@@ -482,6 +486,7 @@ describe("AI plan batch rows", () => {
       lodgingPlaceId: 2,
       departurePlaceId: 3,
       candidatePlaceIds: [4, 5],
+      lunchPlaceIdsByDate: new Map(),
     });
 
     expect(
@@ -496,7 +501,112 @@ describe("AI plan batch rows", () => {
       lodgingPlaceId: 1,
       departurePlaceId: null,
       candidatePlaceIds: [2, 3],
+      lunchPlaceIdsByDate: new Map(),
     });
+  });
+
+  it("appends lunch place rows after visits and maps their ids by date", () => {
+    const plan = {
+      days: [
+        {
+          date: "2026-08-10",
+          visits: [
+            {
+              candidate_id: 10,
+              start_time: "09:00",
+              duration_minutes: 120,
+              notes: null,
+            },
+          ],
+          lunch: null,
+        },
+      ],
+    };
+    const lunchByDate = new Map([["2026-08-10", enrichedLunch()]]);
+
+    const rows = buildAiGeneratedPlaceRows({
+      tripId: 1,
+      generationId: 5,
+      plan,
+      candidateById: new Map([[10, candidate(10)]]),
+      lodging: lodging(),
+      lunchByDate,
+    });
+
+    expect(rows).toHaveLength(3);
+    expect(rows[2]).toMatchObject({
+      name: "Chez Janou",
+      google_place_id: "google-place-1",
+      google_maps_url: "https://maps.google.com/?cid=1",
+      notes: "★ 4.6 (1,234 reviews) · $$ — Great pasta.",
+      fallback_emoji: "🍽️",
+      created_by_source: "ai",
+    });
+
+    const split = splitGeneratedPlaceIds(
+      [7, 8, 9],
+      {
+        hasArrival: false,
+        hasLodging: true,
+        hasDeparture: false,
+        departureReusesArrivalPlace: false,
+      },
+      ["2026-08-10"],
+    );
+    expect(split).toEqual({
+      arrivalPlaceId: null,
+      lodgingPlaceId: 7,
+      departurePlaceId: null,
+      candidatePlaceIds: [8],
+      lunchPlaceIdsByDate: new Map([["2026-08-10", 9]]),
+    });
+  });
+
+  it("slots the lunch entry into the day's schedule by start time", () => {
+    const entries = buildGeneratedScheduleEntries({
+      plan: {
+        days: [
+          {
+            date: "2026-08-10",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+              {
+                candidate_id: 11,
+                start_time: "14:00",
+                duration_minutes: 60,
+                notes: null,
+              },
+            ],
+            lunch: null,
+          },
+        ],
+      },
+      candidateById: new Map([
+        [10, candidate(10)],
+        [11, candidate(11)],
+      ]),
+      lodging: null,
+      lodgingStartTime: "09:00",
+      lodgingPlaceId: null,
+      candidatePlaceIds: [31, 32],
+      lunchByDate: new Map([["2026-08-10", enrichedLunch()]]),
+      lunchPlaceIdsByDate: new Map([["2026-08-10", 40]]),
+    });
+
+    expect(
+      entries.map((entry) => [entry.placeId, entry.startTime]),
+    ).toEqual([
+      [31, "09:00"],
+      [40, "12:30"],
+      [32, "14:00"],
+    ]);
+    expect(entries[1].notes).toBe("★ 4.6 (1,234 reviews) · $$ — Great pasta.");
+    expect(entries[1].location).toEqual({ latitude: 48.856, longitude: 2.365 });
   });
 
   it("sends the round-trip departure back to the arrival place id", () => {
@@ -512,9 +622,27 @@ describe("AI plan batch rows", () => {
       lodgingPlaceId: 2,
       departurePlaceId: 1,
       candidatePlaceIds: [3],
+      lunchPlaceIdsByDate: new Map(),
     });
   });
 });
+
+function enrichedLunch(): EnrichedLunchStop {
+  return {
+    name: "Chez Janou",
+    latitude: 48.856,
+    longitude: 2.365,
+    start_time: "12:30",
+    duration_minutes: 60,
+    notes: "Great pasta.",
+    google_place_id: "google-place-1",
+    google_maps_url: "https://maps.google.com/?cid=1",
+    rating: 4.6,
+    user_rating_count: 1234,
+    price_symbol: "$$",
+    verification: LUNCH_VERIFICATION_STATUS.VERIFIED,
+  };
+}
 
 function lodging(): TripLodging {
   return {

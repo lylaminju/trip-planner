@@ -20,6 +20,15 @@ import {
   openAiUsageTokens,
 } from "./openai-response";
 
+export type AiPlanLunchStop = {
+  name: string;
+  latitude: number;
+  longitude: number;
+  start_time: string;
+  duration_minutes: number;
+  notes: string | null;
+};
+
 export type AiItineraryPlan = {
   days: Array<{
     date: string;
@@ -29,6 +38,10 @@ export type AiItineraryPlan = {
       duration_minutes: number;
       notes: string | null;
     }>;
+    // Present only when the trip's preferences enable lunch stops; null on a
+    // day the model found no workable pick. Unlike visits, a lunch stop is the
+    // model's own suggestion (name + coordinates), not a catalog candidate.
+    lunch?: AiPlanLunchStop | null;
   }>;
 };
 
@@ -98,9 +111,28 @@ type RequestResult = {
   };
 };
 
+// Lunch scheduling window and pacing; validation enforces the same bounds.
+export const AI_LUNCH_EARLIEST_START_TIME = "11:00";
+export const AI_LUNCH_LATEST_START_TIME = "15:00";
+export const AI_LUNCH_MIN_DURATION_MINUTES = 30;
+export const AI_LUNCH_MAX_DURATION_MINUTES = 120;
+
+const SYSTEM_PROMPT_INTRO =
+  "Create a timed attraction-only itinerary from the provided curated candidates.";
+
+const NO_RESTAURANTS_RULE =
+  "Do not add restaurants, meals, or places outside the candidate list.";
+
+const LUNCH_RULES = [
+  "preferences.include_lunch_stop is on: besides the attraction visits, schedule one lunch stop per planned day in that day's lunch field — a real, currently operating restaurant close to where the traveler is around midday. Set lunch to null only when a day has no workable option.",
+  "Pick restaurants matching preferences.dining_budget (budget = inexpensive local spots, moderate = mid-range, upscale = a notable dining experience; unset = use your judgment), suitable for every preferences.dietary_tags value, and consistent with preferences.dietary_notes.",
+  `Lunch start_time must be between ${AI_LUNCH_EARLIEST_START_TIME} and ${AI_LUNCH_LATEST_START_TIME} on the same 10-minute grid, must not overlap attraction visits, and duration_minutes should be realistic (${AI_LUNCH_MIN_DURATION_MINUTES}-${AI_LUNCH_MAX_DURATION_MINUTES}).`,
+  "Give the restaurant's real coordinates and its exact commonly used name. In lunch notes, say briefly why it fits (signature dish or vibe).",
+  'When dietary_tags or dietary_notes are set, end the lunch notes with: "Confirm dietary needs with the restaurant."',
+  "Apart from the lunch field, do not add restaurants, meals, or places outside the candidate list.",
+].join(" ");
+
 const SYSTEM_PROMPT = [
-  "Create a timed attraction-only itinerary from the provided curated candidates.",
-  "Do not add restaurants, meals, or places outside the candidate list.",
   "Use only candidate IDs in the response.",
   "Respect the trip dates, preferred visit-count range, must-see IDs, and travel modes.",
   "Schedule each candidate at most once across the entire trip; never plan a return visit to a place already scheduled on another day.",
@@ -125,6 +157,20 @@ const WEB_SEARCH_VERIFICATION_PROMPT = [
   "If a must-see candidate appears to be closed, keep it scheduled and add a clear warning note rather than dropping it.",
 ].join(" ");
 
+// Lunch swaps the blanket no-restaurants rule for the lunch-field contract;
+// everything else in the prompt is shared between the two modes.
+function plannerSystemPrompt(input: {
+  includeLunch: boolean;
+  enableWebSearch: boolean;
+}): string {
+  return [
+    SYSTEM_PROMPT_INTRO,
+    input.includeLunch ? LUNCH_RULES : NO_RESTAURANTS_RULE,
+    SYSTEM_PROMPT,
+    ...(input.enableWebSearch ? [WEB_SEARCH_VERIFICATION_PROMPT] : []),
+  ].join(" ");
+}
+
 export async function requestAiItineraryPlan({
   apiKey,
   model,
@@ -132,6 +178,7 @@ export async function requestAiItineraryPlan({
   enableWebSearch = false,
   fetchImpl = fetch,
 }: RequestOptions): Promise<RequestResult> {
+  const includeLunch = context.preferences.include_lunch_stop === true;
   const response = await fetchImpl("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -153,9 +200,7 @@ export async function requestAiItineraryPlan({
           content: [
             {
               type: "input_text",
-              text: enableWebSearch
-                ? `${SYSTEM_PROMPT} ${WEB_SEARCH_VERIFICATION_PROMPT}`
-                : SYSTEM_PROMPT,
+              text: plannerSystemPrompt({ includeLunch, enableWebSearch }),
             },
           ],
         },
@@ -174,7 +219,7 @@ export async function requestAiItineraryPlan({
           type: "json_schema",
           name: "ai_itinerary_plan",
           strict: true,
-          schema: AI_ITINERARY_PLAN_SCHEMA,
+          schema: aiItineraryPlanSchema(includeLunch),
         },
       },
     }),
@@ -200,41 +245,66 @@ export async function requestAiItineraryPlan({
   };
 }
 
-const AI_ITINERARY_PLAN_SCHEMA = {
-  type: "object",
+const AI_PLAN_VISITS_SCHEMA = {
+  type: "array",
+  items: {
+    type: "object",
+    additionalProperties: false,
+    required: ["candidate_id", "start_time", "duration_minutes", "notes"],
+    properties: {
+      candidate_id: { type: "integer" },
+      start_time: { type: "string" },
+      duration_minutes: { type: "integer" },
+      notes: { type: ["string", "null"] },
+    },
+  },
+};
+
+const AI_PLAN_LUNCH_SCHEMA = {
+  type: ["object", "null"],
   additionalProperties: false,
-  required: ["days"],
+  required: [
+    "name",
+    "latitude",
+    "longitude",
+    "start_time",
+    "duration_minutes",
+    "notes",
+  ],
   properties: {
-    days: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["date", "visits"],
-        properties: {
-          date: { type: "string" },
-          visits: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: false,
-              required: [
-                "candidate_id",
-                "start_time",
-                "duration_minutes",
-                "notes",
-              ],
-              properties: {
-                candidate_id: { type: "integer" },
-                start_time: { type: "string" },
-                duration_minutes: { type: "integer" },
-                notes: { type: ["string", "null"] },
-              },
-            },
+    name: { type: "string" },
+    latitude: { type: "number" },
+    longitude: { type: "number" },
+    start_time: { type: "string" },
+    duration_minutes: { type: "integer" },
+    notes: { type: ["string", "null"] },
+  },
+};
+
+// Without lunch the schema is byte-identical to the pre-dining contract, so
+// generations with the toggle off (and all guests) keep their exact behavior.
+function aiItineraryPlanSchema(includeLunch: boolean) {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["days"],
+    properties: {
+      days: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: includeLunch
+            ? ["date", "visits", "lunch"]
+            : ["date", "visits"],
+          properties: {
+            date: { type: "string" },
+            visits: AI_PLAN_VISITS_SCHEMA,
+            ...(includeLunch ? { lunch: AI_PLAN_LUNCH_SCHEMA } : {}),
           },
         },
       },
     },
-  },
-};
+  };
+}
 

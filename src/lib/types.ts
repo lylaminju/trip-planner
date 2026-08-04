@@ -206,6 +206,8 @@ export type TripTransitPoint = {
   updated_at: string;
 };
 
+export type AiDiningBudget = "budget" | "moderate" | "upscale";
+
 export type AiPlanningPreferenceInput = {
   visits_per_day_min: number;
   visits_per_day_max: number;
@@ -217,6 +219,14 @@ export type AiPlanningPreferenceInput = {
   must_see_candidate_ids: number[];
   // HH:MM; the hour each planned day starts from lodging.
   daily_start_time: string;
+  // One AI-picked lunch stop per planned day when enabled. Budget and dietary
+  // answers persist even while the toggle is off, so re-enabling keeps them.
+  include_lunch_stop: boolean;
+  dining_budget: AiDiningBudget | null;
+  // Whitelisted values from AI_DIETARY_OPTIONS; free-form constraints go in
+  // dietary_notes. Both steer lunch picks — never presented as allergen-safe.
+  dietary_tags: string[];
+  dietary_notes: string | null;
 };
 
 export type AiPlanningGenerationInput = AiPlanningPreferenceInput & {
@@ -250,4 +260,11 @@ export type AiPlanningSetup = {
   departurePoint: TripTransitPoint | null;
   transitHubs: AiDestinationTransitHub[];
   preferences: AiPlanningPreferences | null;
+  // Standing dietary answers from the owner's profile, used to prefill the
+  // dining step when the trip has no saved preferences yet. Absent for guests
+  // and callers that skip the profile lookup.
+  profileDietaryDefaults?: {
+    dietary_tags: string[];
+    dietary_notes: string | null;
+  } | null;
 };

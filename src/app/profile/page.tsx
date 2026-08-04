@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ProfilePage } from "@/components/ProfilePage";
+import {
+  sanitizeDietaryNotes,
+  sanitizeDietaryTags,
+} from "@/lib/ai-planning-preferences";
 import { DEFAULT_PROFILE_COLOR } from "@/lib/profile-colors";
 import {
   getAuthenticatedUser,
@@ -35,10 +39,25 @@ export default async function ProfileRoute() {
   const isAdmin =
     !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
 
+  const dietaryTags = sanitizeDietaryTags(
+    Array.isArray(user.user_metadata?.dietary_tags)
+      ? user.user_metadata.dietary_tags.filter(
+          (tag: unknown): tag is string => typeof tag === "string",
+        )
+      : [],
+  );
+  const dietaryNotes = sanitizeDietaryNotes(
+    typeof user.user_metadata?.dietary_notes === "string"
+      ? user.user_metadata.dietary_notes
+      : null,
+  );
+
   return (
     <ProfilePage
       initialUsername={username}
       initialProfileColor={profileColor}
+      initialDietaryTags={dietaryTags}
+      initialDietaryNotes={dietaryNotes}
       userEmail={user.email}
       isAdmin={isAdmin}
     />

@@ -1,6 +1,8 @@
 export type ProfileUpdate = {
   username: string;
   profileColor: string;
+  dietaryTags: string[];
+  dietaryNotes: string | null;
 };
 
 export async function updateProfile(

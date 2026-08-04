@@ -153,6 +153,10 @@ export function savedPreferenceRecord(
     preferred_travel_modes: string[];
     must_see_candidate_ids: number[];
     daily_start_time: string;
+    include_lunch_stop: boolean;
+    dining_budget: string | null;
+    dietary_tags: string[];
+    dietary_notes: string | null;
   }> = {},
 ) {
   return {
@@ -164,6 +168,10 @@ export function savedPreferenceRecord(
     preferred_travel_modes: ["walking"],
     must_see_candidate_ids: [],
     daily_start_time: "09:00",
+    include_lunch_stop: false,
+    dining_budget: null,
+    dietary_tags: [],
+    dietary_notes: null,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...overrides,

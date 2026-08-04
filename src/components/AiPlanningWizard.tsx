@@ -13,6 +13,7 @@ import { useResolvedPlaceName } from "@/hooks/useResolvedPlaceName";
 import {
   AI_CREATE_ITINERARY_LABEL,
   AI_DEFAULT_DAILY_START_TIME,
+  AI_DINING_BUDGET_OPTIONS,
   AI_TRAVEL_MODE_OPTIONS,
   buildAiPlanningPreferenceDraft,
   countTripDays,
@@ -32,6 +33,7 @@ import {
   ReviewStep,
 } from "./ai-planning-wizard/AiPlanningWizardSteps";
 import { AiGenerationScreen } from "./ai-planning-wizard/AiGenerationScreen";
+import { DiningStep } from "./ai-planning-wizard/DiningStep";
 import { LogisticsStep } from "./ai-planning-wizard/LogisticsStep";
 import { TransitStopsStep } from "./ai-planning-wizard/TransitStopsStep";
 import {
@@ -222,6 +224,20 @@ export function AiPlanningWizard(props: Props) {
       return draft.preferred_travel_modes.length
         ? travelModeLabels(draft).join(", ")
         : "Not set";
+    }
+    if (key === "dining") {
+      if (!draft.include_lunch_stop) return "Skipping";
+      const parts = ["Lunch daily"];
+      const budget = AI_DINING_BUDGET_OPTIONS.find(
+        (option) => option.value === draft.dining_budget,
+      );
+      if (budget) parts.push(budget.symbol);
+      const needsCount =
+        draft.dietary_tags.length + (draft.dietary_notes ? 1 : 0);
+      if (needsCount > 0) {
+        parts.push(`${needsCount} food ${needsCount === 1 ? "need" : "needs"}`);
+      }
+      return parts.join(" · ");
     }
     if (key === "startend") {
       return transitStopsSummary(transitDraft, props.setup);
@@ -436,6 +452,9 @@ export function AiPlanningWizard(props: Props) {
                   )}
                   {currentStep.key === "interests" && (
                     <InterestStep draft={draft} onChange={setDraft} />
+                  )}
+                  {currentStep.key === "dining" && (
+                    <DiningStep draft={draft} onChange={setDraft} />
                   )}
                   {currentStep.key === "startend" && (
                     <TransitStopsStep

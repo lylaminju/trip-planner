@@ -6,6 +6,7 @@ import type {
 } from "@/lib/types";
 import {
   LODGING_FALLBACK_EMOJI,
+  LUNCH_FALLBACK_EMOJI,
   transitHubFallbackEmoji,
 } from "@/lib/place-fallback-emoji";
 import { extractNoteLinks } from "@/lib/note-links";
@@ -18,6 +19,10 @@ import {
   roundVisitMinutesUpToGrid,
 } from "@/lib/visit-time";
 import type { AiItineraryPlan } from "./openai-ai-planner";
+import {
+  lunchDisplayNotes,
+  type EnrichedLunchStop,
+} from "./ai-lunch-enrichment";
 import type { Coordinates } from "@/lib/geo-distance";
 
 export type { Coordinates };
@@ -36,6 +41,7 @@ export type GeneratedAnchorPlaceIds = {
   lodgingPlaceId: number | null;
   departurePlaceId: number | null;
   candidatePlaceIds: number[];
+  lunchPlaceIdsByDate: Map<string, number>;
 };
 
 export type GeneratedAnchorLayout = {
@@ -64,6 +70,17 @@ export function generatedAnchorLayout(input: {
   };
 }
 
+// Lunch dates in the order their place rows are appended, so id splitting can
+// map the inserted tail rows back to their trip dates.
+export function lunchDatesInPlanOrder(
+  plan: AiItineraryPlan,
+  lunchByDate: Map<string, EnrichedLunchStop>,
+): string[] {
+  return plan.days
+    .filter((day) => lunchByDate.has(day.date))
+    .map((day) => day.date);
+}
+
 export function buildAiGeneratedPlaceRows(input: {
   tripId: number;
   generationId: number;
@@ -72,6 +89,7 @@ export function buildAiGeneratedPlaceRows(input: {
   lodging: TripLodging | null;
   arrivalPoint?: TripTransitPoint | null;
   departurePoint?: TripTransitPoint | null;
+  lunchByDate?: Map<string, EnrichedLunchStop>;
 }) {
   const visits = input.plan.days.flatMap((day) => day.visits);
   const layout = generatedAnchorLayout(input);
@@ -118,12 +136,24 @@ export function buildAiGeneratedPlaceRows(input: {
         note.links,
       );
     }),
+    // Lunch rows sit after all visit rows so the id split stays a fixed
+    // anchors / visits / lunches layout.
+    ...lunchDatesInPlanOrder(input.plan, input.lunchByDate ?? new Map()).map(
+      (date) => {
+        const lunch = input.lunchByDate?.get(date);
+        if (!lunch) {
+          throw new Error(`Lunch stop for ${date} is not available.`);
+        }
+        return lunchPlaceRow(input.tripId, input.generationId, lunch);
+      },
+    ),
   ];
 }
 
 export function splitGeneratedPlaceIds(
   placeIds: number[],
   layout: GeneratedAnchorLayout,
+  lunchDates: string[] = [],
 ): GeneratedAnchorPlaceIds {
   let index = 0;
   const nextAnchorId = (present: boolean): number | null => {
@@ -135,14 +165,25 @@ export function splitGeneratedPlaceIds(
 
   const arrivalPlaceId = nextAnchorId(layout.hasArrival);
   const lodgingPlaceId = nextAnchorId(layout.hasLodging);
+  const departurePlaceId = layout.departureReusesArrivalPlace
+    ? arrivalPlaceId
+    : nextAnchorId(layout.hasDeparture);
+
+  const candidateEnd = placeIds.length - lunchDates.length;
+  const lunchPlaceIdsByDate = new Map<string, number>();
+  lunchDates.forEach((date, lunchIndex) => {
+    const placeId = placeIds[candidateEnd + lunchIndex];
+    if (Number.isInteger(placeId)) {
+      lunchPlaceIdsByDate.set(date, placeId);
+    }
+  });
 
   return {
     arrivalPlaceId,
     lodgingPlaceId,
-    departurePlaceId: layout.departureReusesArrivalPlace
-      ? arrivalPlaceId
-      : nextAnchorId(layout.hasDeparture),
-    candidatePlaceIds: placeIds.slice(index),
+    departurePlaceId,
+    candidatePlaceIds: placeIds.slice(index, candidateEnd),
+    lunchPlaceIdsByDate,
   };
 }
 
@@ -158,6 +199,8 @@ export function buildGeneratedScheduleEntries(input: {
   departurePlaceId?: number | null;
   candidatePlaceIds: number[];
   firstVisitTravelDurationsByDate?: Map<string, number>;
+  lunchByDate?: Map<string, EnrichedLunchStop>;
+  lunchPlaceIdsByDate?: Map<string, number>;
 }): GeneratedScheduleEntry[] {
   const entries: GeneratedScheduleEntry[] = [];
   const arrivalPoint = input.arrivalPoint ?? null;
@@ -250,7 +293,57 @@ export function buildGeneratedScheduleEntries(input: {
       firstVisitTravelSeconds = firstOfDayTravelSeconds;
     }
 
+    const lunch = input.lunchByDate?.get(day.date) ?? null;
+    const lunchPlaceId = input.lunchPlaceIdsByDate?.get(day.date) ?? null;
+    const lunchStartMinutes = lunch ? parseVisitTime(lunch.start_time) : null;
+    // Lunch slots in before the first visit that starts later than it; when no
+    // visit does, it lands after the day's last visit.
+    const lunchInsertIndex =
+      lunchStartMinutes === null
+        ? -1
+        : day.visits.findIndex((visit) => {
+            const visitMinutes = parseVisitTime(visit.start_time);
+            return visitMinutes !== null && visitMinutes > lunchStartMinutes;
+          });
+    let lunchPushed = false;
+    const pushLunchEntry = () => {
+      if (lunchPushed || !lunch || lunchPlaceId === null) return;
+      lunchPushed = true;
+
+      const parsedMinutes = parseVisitTime(lunch.start_time);
+      let startTime =
+        parsedMinutes === null
+          ? lunch.start_time
+          : formatVisitTime(roundVisitMinutesUpToGrid(parsedMinutes));
+      let startMinutes = parseVisitTime(startTime);
+      if (
+        startMinutes !== null &&
+        previousStartMinutes !== null &&
+        startMinutes <= previousStartMinutes
+      ) {
+        startMinutes = nextVisitGridMinuteAfter(previousStartMinutes);
+        startTime = formatVisitTime(startMinutes);
+      }
+      if (startMinutes !== null) {
+        previousStartMinutes = startMinutes;
+      }
+      entries.push({
+        date: day.date,
+        startTime,
+        placeId: lunchPlaceId,
+        notes: lunchDisplayNotes(lunch),
+        location: { latitude: lunch.latitude, longitude: lunch.longitude },
+        order,
+      });
+      lastVisitEndTime =
+        visitEndTime(startTime, lunch.duration_minutes) ?? lastVisitEndTime;
+      order += 1;
+    };
+
     day.visits.forEach((visit, visitIndex) => {
+      if (visitIndex === lunchInsertIndex) {
+        pushLunchEntry();
+      }
       const candidate = input.candidateById.get(visit.candidate_id);
       if (!candidate) {
         throw new Error(`Candidate ${visit.candidate_id} is not available.`);
@@ -291,6 +384,8 @@ export function buildGeneratedScheduleEntries(input: {
       candidatePlaceIndex += 1;
       order += 1;
     });
+    // A lunch later than every visit (or on a day with no visits) lands here.
+    pushLunchEntry();
 
     if (day.date === lastDate && departurePoint && departurePlaceId !== null) {
       entries.push({
@@ -440,6 +535,39 @@ function candidatePlaceRow(
     image_url: candidate.image_url,
     image_credit: candidate.image_credit,
     fallback_emoji: null,
+    created_by_source: "ai",
+    ai_generation_id: generationId,
+  };
+}
+
+function lunchPlaceRow(
+  tripId: number,
+  generationId: number,
+  lunch: EnrichedLunchStop,
+) {
+  return {
+    trip_id: tripId,
+    name: lunch.name,
+    address: null,
+    // Verified lunches carry Google's canonical link; unverified ones fall
+    // back to a name search URL like curated candidates without a place id.
+    google_maps_url:
+      lunch.google_maps_url ??
+      buildGoogleMapsPlaceLinkUrl({
+        name: lunch.name,
+        googlePlaceId: lunch.google_place_id,
+      }),
+    google_place_id: lunch.google_place_id,
+    google_place_token: null,
+    google_internal_ids: null,
+    source_list_url: null,
+    latitude: lunch.latitude,
+    longitude: lunch.longitude,
+    notes: lunchDisplayNotes(lunch),
+    links: [],
+    image_url: null,
+    image_credit: null,
+    fallback_emoji: LUNCH_FALLBACK_EMOJI,
     created_by_source: "ai",
     ai_generation_id: generationId,
   };

@@ -1,5 +1,6 @@
 import { isValid24HourTime, isValidIsoDate } from "./date-validation";
 import type {
+  AiDiningBudget,
   AiPlanningPreferenceInput,
   AiPlanningSetup,
   TravelMode,
@@ -16,6 +17,32 @@ export const AI_INTEREST_TAG_OPTIONS = [
   { value: "shopping", label: "Shopping", emoji: "🛍️" },
   { value: "kid-friendly", label: "Kid-friendly", emoji: "🧸" },
 ] as const;
+
+export const AI_DINING_BUDGET_OPTIONS: {
+  value: AiDiningBudget;
+  label: string;
+  symbol: string;
+}[] = [
+  { value: "budget", label: "Cheap eats", symbol: "$" },
+  { value: "moderate", label: "Moderate", symbol: "$$" },
+  { value: "upscale", label: "Treat yourself", symbol: "$$$" },
+];
+
+// Deliberately short, high-coverage list; the free-text dietary notes field is
+// the escape hatch, so this does not try to be exhaustive.
+export const AI_DIETARY_OPTIONS = [
+  { value: "vegetarian", label: "Vegetarian", emoji: "🥦" },
+  { value: "vegan", label: "Vegan", emoji: "🌱" },
+  { value: "halal", label: "Halal", emoji: "🕌" },
+  { value: "kosher", label: "Kosher", emoji: "✡️" },
+  { value: "gluten-free", label: "Gluten-free", emoji: "🌾" },
+  { value: "no-pork", label: "No pork", emoji: "🥓" },
+  { value: "no-shellfish", label: "No shellfish", emoji: "🦐" },
+  { value: "nut-allergy", label: "Nut allergy", emoji: "🥜" },
+  { value: "no-alcohol", label: "No alcohol", emoji: "🍷" },
+] as const;
+
+export const AI_DIETARY_NOTES_MAX_LENGTH = 200;
 
 export const AI_TRAVEL_MODE_OPTIONS: {
   value: TravelMode;
@@ -111,6 +138,10 @@ export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   preferred_travel_modes: ["walking", "transit"],
   must_see_candidate_ids: [],
   daily_start_time: AI_DEFAULT_DAILY_START_TIME,
+  include_lunch_stop: false,
+  dining_budget: null,
+  dietary_tags: [],
+  dietary_notes: null,
 };
 
 const INTEREST_TAG_VALUES = new Set<string>(
@@ -118,6 +149,12 @@ const INTEREST_TAG_VALUES = new Set<string>(
 );
 const TRAVEL_MODE_VALUES = new Set<TravelMode>(
   AI_TRAVEL_MODE_OPTIONS.map((option) => option.value),
+);
+const DIETARY_TAG_VALUES = new Set<string>(
+  AI_DIETARY_OPTIONS.map((option) => option.value),
+);
+const DINING_BUDGET_VALUES = new Set<AiDiningBudget>(
+  AI_DINING_BUDGET_OPTIONS.map((option) => option.value),
 );
 
 export function buildAiPlanningPreferenceDraft(
@@ -156,7 +193,40 @@ export function buildAiPlanningPreferenceDraft(
     daily_start_time: isValid24HourTime(preferences.daily_start_time)
       ? preferences.daily_start_time
       : AI_DEFAULT_DAILY_START_TIME,
+    include_lunch_stop: preferences.include_lunch_stop === true,
+    dining_budget:
+      preferences.dining_budget !== null &&
+      DINING_BUDGET_VALUES.has(preferences.dining_budget)
+        ? preferences.dining_budget
+        : null,
+    // Saved trip preferences win; a trip without them starts from the owner's
+    // profile defaults so dietary answers don't have to be retyped per trip.
+    dietary_tags: sanitizeDietaryTags(
+      setup?.preferences
+        ? preferences.dietary_tags
+        : (setup?.profileDietaryDefaults?.dietary_tags ??
+            preferences.dietary_tags),
+    ),
+    dietary_notes: sanitizeDietaryNotes(
+      setup?.preferences
+        ? preferences.dietary_notes
+        : (setup?.profileDietaryDefaults?.dietary_notes ??
+            preferences.dietary_notes),
+    ),
   };
+}
+
+export function isAiDietaryTag(value: string): boolean {
+  return DIETARY_TAG_VALUES.has(value);
+}
+
+export function sanitizeDietaryTags(values: string[]): string[] {
+  return unique(values.filter((tag) => DIETARY_TAG_VALUES.has(tag)));
+}
+
+export function sanitizeDietaryNotes(value: string | null): string | null {
+  const trimmed = (value ?? "").trim().slice(0, AI_DIETARY_NOTES_MAX_LENGTH);
+  return trimmed === "" ? null : trimmed;
 }
 
 export function formatVisitsPerDayRangeLabel(

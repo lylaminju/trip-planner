@@ -1,6 +1,11 @@
 import { createClient, type Session, type User } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+import {
+  sanitizeDietaryNotes,
+  sanitizeDietaryTags,
+} from "@/lib/ai-planning-preferences";
+
 const ACCESS_TOKEN_COOKIE = "trip-planner-access-token";
 const REFRESH_TOKEN_COOKIE = "trip-planner-refresh-token";
 const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
@@ -143,13 +148,25 @@ export async function signInWithPassword(
 
 export async function updateUserProfile(
   userId: string,
-  updates: { username: string; profileColor: string },
-): Promise<{ username: string; profileColor: string }> {
+  updates: {
+    username: string;
+    profileColor: string;
+    dietaryTags: string[];
+    dietaryNotes: string | null;
+  },
+): Promise<{
+  username: string;
+  profileColor: string;
+  dietaryTags: string[];
+  dietaryNotes: string | null;
+}> {
   const client = createSupabaseAuthClient();
   const { data, error } = await client.auth.admin.updateUserById(userId, {
     user_metadata: {
       username: updates.username,
       profile_color: updates.profileColor,
+      dietary_tags: updates.dietaryTags,
+      dietary_notes: updates.dietaryNotes,
     },
   });
 
@@ -160,7 +177,52 @@ export async function updateUserProfile(
   return {
     username: updates.username,
     profileColor: updates.profileColor,
+    dietaryTags: updates.dietaryTags,
+    dietaryNotes: updates.dietaryNotes,
   };
+}
+
+export type ProfileDietaryDefaults = {
+  dietary_tags: string[];
+  dietary_notes: string | null;
+};
+
+/**
+ * The traveler's standing dietary answers from their profile, used to prefill
+ * the AI wizard's dining step. Best-effort: any failure (guest principal,
+ * missing user, auth backend error) returns null rather than blocking setup.
+ */
+export async function getProfileDietaryDefaults(
+  userId: string,
+): Promise<ProfileDietaryDefaults | null> {
+  try {
+    const client = createSupabaseAuthClient();
+    const { data, error } = await client.auth.admin.getUserById(userId);
+    if (error || !data.user) {
+      return null;
+    }
+
+    const metadata = data.user.user_metadata ?? {};
+    const tags = Array.isArray(metadata.dietary_tags)
+      ? sanitizeDietaryTags(
+          metadata.dietary_tags.filter(
+            (tag: unknown): tag is string => typeof tag === "string",
+          ),
+        )
+      : [];
+    const notes = sanitizeDietaryNotes(
+      typeof metadata.dietary_notes === "string"
+        ? metadata.dietary_notes
+        : null,
+    );
+    if (tags.length === 0 && notes === null) {
+      return null;
+    }
+
+    return { dietary_tags: tags, dietary_notes: notes };
+  } catch {
+    return null;
+  }
 }
 
 function createSupabaseAuthClient() {

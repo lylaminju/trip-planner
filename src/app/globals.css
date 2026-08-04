@@ -13,6 +13,8 @@
 @import "../styles/components/modals.css";
 @import "../styles/components/ai-planning-wizard.css";
 @import "../styles/components/ai-planning-wizard-steps.css";
+@import "../styles/components/ai-planning-wizard-dining.css";
+@import "../styles/components/dietary-fields.css";
 @import "../styles/components/ai-planning-wizard-review.css";
 @import "../styles/components/ai-planning-wizard-generation.css";
 @import "../styles/components/ai-planning-wizard-mobile.css";

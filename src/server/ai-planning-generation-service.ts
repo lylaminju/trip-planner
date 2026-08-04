@@ -18,6 +18,11 @@ import {
   lastDayLatestEndFromDeparture,
 } from "@/lib/transit-buffers";
 
+import {
+  enrichLunchStops,
+  unverifiedLunchStops,
+  type EnrichedLunchStop,
+} from "./ai-lunch-enrichment";
 import { promptContext } from "./ai-planner-prompt-context";
 import { validateAiItineraryPlan } from "./ai-plan-validation";
 import { parseAiPlanningGenerationInput } from "./ai-planning-preferences";
@@ -58,7 +63,9 @@ import { getTripById } from "./trip-service";
 // v4: coverage mode plans sightseeing days plus free days on long trips.
 // v5: avoided interest tags drop matching candidates from the planner's
 //     catalog (must-see picks exempt), so the model never sees them.
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v5";
+// v6: opt-in lunch stops — one model-picked restaurant per day honoring
+//     budget/dietary preferences, verified via Google Places after validation.
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v6";
 
 const CATALOG_NOT_READY_MESSAGE =
   "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";
@@ -184,6 +191,8 @@ export async function generateAiItineraryForRequest(
     ipHash,
   );
 
+  const isGuest = guestIdFromPrincipalId(userId) !== null;
+
   try {
     const config = openAiPlannerConfig();
     const primary = await requestAiItineraryPlan({
@@ -191,7 +200,7 @@ export async function generateAiItineraryForRequest(
       model: config.model,
       // Guests get model-knowledge-only generations; live web verification is
       // reserved for invited accounts.
-      enableWebSearch: guestIdFromPrincipalId(userId) === null,
+      enableWebSearch: !isGuest,
       context: promptContext({
         trip,
         lodging,
@@ -293,6 +302,21 @@ export async function generateAiItineraryForRequest(
       };
     }
 
+    // Lunch verification is the run's only Places spend (one Text Search per
+    // lunch); guests skip it and keep unverified model picks, mirroring the
+    // web-search split above. Every failure inside degrades to "unverified"
+    // rather than failing an already-validated generation.
+    const lunchByDate: Map<string, EnrichedLunchStop> =
+      savedPreferences.include_lunch_stop
+        ? isGuest
+          ? unverifiedLunchStops(finalPlan)
+          : await enrichLunchStops({
+              plan: finalPlan,
+              destination: trip.destination,
+              userId,
+            })
+        : new Map();
+
     const plannerSnapshot = await replaceAiGeneratedBatch(
       tripId,
       generation.id,
@@ -304,6 +328,7 @@ export async function generateAiItineraryForRequest(
       userId,
       arrivalPoint,
       departurePoint,
+      lunchByDate,
     );
     await updateAiPlanGeneration(generation.id, {
       status: "completed",
@@ -313,7 +338,7 @@ export async function generateAiItineraryForRequest(
       repair_attempted: repairAttempted,
       repair_validation_status: repairValidationStatus,
       repair_validation_errors: repairValidationErrors,
-      generated_place_count: countGeneratedVisits(finalPlan),
+      generated_place_count: countGeneratedVisits(finalPlan) + lunchByDate.size,
       generated_day_count: finalPlan.days.length,
       duration_ms: Date.now() - startedAt,
       token_input_count: finalUsage.inputTokens,

@@ -119,6 +119,7 @@ describe("ai-planning-service request boundary", () => {
           departurePoint: null,
           transitHubs: [],
           preferences: null,
+          profileDietaryDefaults: null,
         });
       },
     );
@@ -160,6 +161,7 @@ describe("ai-planning-service request boundary", () => {
           departurePoint: null,
           transitHubs: [],
           preferences: null,
+          profileDietaryDefaults: null,
         });
       },
     );
@@ -224,6 +226,10 @@ describe("ai-planning-service request boundary", () => {
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
       daily_start_time: "09:00",
+      include_lunch_stop: false,
+      dining_budget: null,
+      dietary_tags: [],
+      dietary_notes: null,
     });
   });
 
@@ -344,6 +350,7 @@ describe("ai-planning-service request boundary", () => {
       "user-1",
       null,
       null,
+      new Map(),
     );
     expect(updateAiPlanGeneration).toHaveBeenLastCalledWith(
       55,
@@ -430,6 +437,7 @@ describe("ai-planning-service request boundary", () => {
       "user-1",
       null,
       null,
+      new Map(),
     );
   });
 
@@ -671,6 +679,7 @@ describe("ai-planning-service request boundary", () => {
       "user-1",
       null,
       null,
+      new Map(),
     );
   });
 
@@ -801,6 +810,7 @@ describe("ai-planning-service request boundary", () => {
       "user-1",
       arrivalPoint,
       departurePoint,
+      new Map(),
     );
   });
 
@@ -987,6 +997,7 @@ describe("ai-planning-service request boundary", () => {
       "user-1",
       arrivalPoint,
       null,
+      new Map(),
     );
   });
 

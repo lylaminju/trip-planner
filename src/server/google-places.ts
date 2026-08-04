@@ -71,6 +71,18 @@ const SEARCH_TEXT_FIELD_MASK = "places.id";
 // Same soft-bias contract as autocomplete: rank results near the destination
 // first without excluding an exact-name match elsewhere.
 const SEARCH_TEXT_BIAS_RADIUS_METERS = 50_000;
+// AI lunch verification needs rating, price level, and the weekly schedule,
+// which are Text Search Enterprise fields (1,000 free calls/month). This mask
+// must never grow an Enterprise + Atmosphere field (reviews, servesXxx,
+// editorialSummary, ...): that escalates every lunch lookup to the most
+// expensive Places SKU. regularOpeningHours (the weekly schedule) is chosen
+// over currentOpeningHours because trips are planned for future dates.
+const LUNCH_VERIFICATION_FIELD_MASK =
+  "places.id,places.displayName,places.location,places.businessStatus,places.googleMapsUri,places.rating,places.userRatingCount,places.priceLevel,places.regularOpeningHours";
+// Lunch picks are verified where the model placed them, so the bias circle is
+// much tighter than destination-wide search: it keeps a common restaurant name
+// from matching a same-name place across town.
+const LUNCH_SEARCH_BIAS_RADIUS_METERS = 5_000;
 
 export function requirePlacesApiKey(): string {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
@@ -191,6 +203,116 @@ export function parseFirstSearchPlaceId(payload: unknown): string | null {
     return null;
   }
   return asString(asRecord(places[0]).id);
+}
+
+export type LunchRestaurantDetails = {
+  place_id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  google_maps_url: string | null;
+  // Google businessStatus, e.g. "OPERATIONAL" / "CLOSED_PERMANENTLY"; null
+  // when the field is absent from the response.
+  business_status: string | null;
+  rating: number | null;
+  user_rating_count: number | null;
+  // Google priceLevel enum value, e.g. "PRICE_LEVEL_MODERATE".
+  price_level: string | null;
+  // Weekdays with at least one opening period, as JS getUTCDay() indices
+  // (0 = Sunday). Null when Google returned no usable schedule; an always-open
+  // place yields all seven days.
+  open_weekdays: number[] | null;
+};
+
+/**
+ * Resolves an AI-suggested lunch restaurant to Google's record of it via Text
+ * Search biased to where the model placed it. Billed at the Text Search
+ * Enterprise tier — callers must budget-gate and record it. Returns null when
+ * nothing matches.
+ */
+export async function fetchLunchRestaurantDetails(input: {
+  apiKey: string;
+  query: string;
+  locationBias: AutocompleteLocationBias | null;
+}): Promise<LunchRestaurantDetails | null> {
+  const payload = await placesFetch({
+    url: SEARCH_TEXT_ENDPOINT,
+    apiKey: input.apiKey,
+    fieldMask: LUNCH_VERIFICATION_FIELD_MASK,
+    method: "POST",
+    body: {
+      textQuery: input.query,
+      ...(input.locationBias
+        ? {
+            locationBias: {
+              circle: {
+                center: {
+                  latitude: input.locationBias.latitude,
+                  longitude: input.locationBias.longitude,
+                },
+                radius: LUNCH_SEARCH_BIAS_RADIUS_METERS,
+              },
+            },
+          }
+        : {}),
+    },
+  });
+
+  return parseLunchRestaurantDetails(payload);
+}
+
+export function parseLunchRestaurantDetails(
+  payload: unknown,
+): LunchRestaurantDetails | null {
+  const places = asRecord(payload).places;
+  if (!Array.isArray(places)) {
+    return null;
+  }
+  const record = asRecord(places[0]);
+  const placeId = asString(record.id);
+  const name = asString(asRecord(record.displayName).text);
+  const location = asRecord(record.location);
+  const latitude = asNumber(location.latitude);
+  const longitude = asNumber(location.longitude);
+  if (!placeId || !name || latitude === null || longitude === null) {
+    return null;
+  }
+
+  return {
+    place_id: placeId,
+    name,
+    latitude,
+    longitude,
+    google_maps_url: asString(record.googleMapsUri),
+    business_status: asString(record.businessStatus),
+    rating: asNumber(record.rating),
+    user_rating_count: asNumber(record.userRatingCount),
+    price_level: asString(record.priceLevel),
+    open_weekdays: parseOpenWeekdays(record.regularOpeningHours),
+  };
+}
+
+const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+
+function parseOpenWeekdays(regularOpeningHours: unknown): number[] | null {
+  const periods = asRecord(regularOpeningHours).periods;
+  if (!Array.isArray(periods) || periods.length === 0) {
+    return null;
+  }
+
+  const days = new Set<number>();
+  for (const period of periods) {
+    const record = asRecord(period);
+    const openDay = asNumber(asRecord(record.open).day);
+    if (openDay === null) continue;
+    // A period with no close marks an always-open place per the Places API.
+    if (record.close === undefined || record.close === null) {
+      return ALL_WEEKDAYS;
+    }
+    days.add(openDay);
+  }
+
+  return days.size > 0 ? Array.from(days).sort() : null;
 }
 
 export type PlacePhotoReference = {

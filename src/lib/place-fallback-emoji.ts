@@ -12,6 +12,10 @@ const TRANSIT_HUB_FALLBACK_EMOJI: Record<AiTransitHubType, string> = {
 
 export const LODGING_FALLBACK_EMOJI = "🏨";
 
+// AI lunch stops are model suggestions without a curated photo, so they show
+// the dining emoji the same way anchors show their type.
+export const LUNCH_FALLBACK_EMOJI = "🍽️";
+
 // Null for a custom transit point whose hub type is unknown; the thumbnail then
 // falls back to the name initial like any other place.
 export function transitHubFallbackEmoji(

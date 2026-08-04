@@ -12,9 +12,11 @@ import {
   buildAiGeneratedPlaceRows,
   buildGeneratedScheduleEntries,
   generatedAnchorLayout,
+  lunchDatesInPlanOrder,
   splitGeneratedPlaceIds,
   type Coordinates,
 } from "./ai-plan-batch-rows";
+import type { EnrichedLunchStop } from "./ai-lunch-enrichment";
 import {
   buildGeneratedRoutePairs,
   routePairKey,
@@ -64,6 +66,7 @@ export async function replaceAiGeneratedBatch(
   userId?: string,
   arrivalPoint: TripTransitPoint | null = null,
   departurePoint: TripTransitPoint | null = null,
+  lunchByDate: Map<string, EnrichedLunchStop> = new Map(),
 ): Promise<PlannerSnapshot> {
   const candidateById = new Map(
     candidates.map((candidate) => [candidate.id, candidate]),
@@ -86,7 +89,9 @@ export async function replaceAiGeneratedBatch(
     lodging: materializedLodging,
     arrivalPoint: materializedArrival,
     departurePoint: materializedDeparture,
+    lunchByDate,
   });
+  const lunchDates = lunchDatesInPlanOrder(plan, lunchByDate);
 
   if (placeRows.length === 0) {
     await deletePreviousAiBatch(tripId, generationId);
@@ -110,7 +115,11 @@ export async function replaceAiGeneratedBatch(
   try {
     const places = await insertAiGeneratedPlaces(placeRows);
     const placeIds = places.map((place) => place.id);
-    const anchorPlaceIds = splitGeneratedPlaceIds(placeIds, anchorLayout);
+    const anchorPlaceIds = splitGeneratedPlaceIds(
+      placeIds,
+      anchorLayout,
+      lunchDates,
+    );
     const scheduleEntries = buildGeneratedScheduleEntries({
       plan,
       candidateById,
@@ -123,6 +132,8 @@ export async function replaceAiGeneratedBatch(
       departurePlaceId: anchorPlaceIds.departurePlaceId,
       candidatePlaceIds: anchorPlaceIds.candidatePlaceIds,
       firstVisitTravelDurationsByDate,
+      lunchByDate,
+      lunchPlaceIdsByDate: anchorPlaceIds.lunchPlaceIdsByDate,
     });
     const itemRows = scheduleEntries.map((entry) => ({
       trip_id: tripId,
