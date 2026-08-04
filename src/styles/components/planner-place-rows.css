@@ -344,8 +344,8 @@
 
 @media (min-width: 901px) {
   .visit-thumb-frame {
-    --visit-thumb-size: 48px;
-    --visit-thumb-glyph-size: 20px;
+    --visit-thumb-size: 56px;
+    --visit-thumb-glyph-size: 24px;
   }
 
   .visit-thumb-frame.compact {
