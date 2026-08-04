@@ -142,7 +142,7 @@ describe("AI itinerary plan validation", () => {
       "Day 2026-05-27 lunch must have a restaurant name.",
       "Day 2026-05-27 lunch latitude is invalid.",
       "Day 2026-05-27 lunch longitude is invalid.",
-      "Day 2026-05-27 lunch must start between 11:00 and 15:00.",
+      "Day 2026-05-27 lunch must start between 12:00 and 15:00.",
       "Day 2026-05-27 lunch duration must be 30-120 minutes.",
     ]);
   });

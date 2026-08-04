@@ -112,7 +112,7 @@ type RequestResult = {
 };
 
 // Lunch scheduling window and pacing; validation enforces the same bounds.
-export const AI_LUNCH_EARLIEST_START_TIME = "11:00";
+export const AI_LUNCH_EARLIEST_START_TIME = "12:00";
 export const AI_LUNCH_LATEST_START_TIME = "15:00";
 export const AI_LUNCH_MIN_DURATION_MINUTES = 30;
 export const AI_LUNCH_MAX_DURATION_MINUTES = 120;
