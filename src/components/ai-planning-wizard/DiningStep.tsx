@@ -70,9 +70,20 @@ export function DiningStep({ draft, onChange }: Props) {
           </div>
 
           <div className="ai-dining-section">
-            <span className="ai-dining-section-label">
-              Food preferences &amp; restrictions
-            </span>
+            <div className="ai-dining-section-header">
+              <span className="ai-dining-section-label">
+                Food preferences &amp; restrictions
+              </span>
+              {/* New tab: mid-wizard navigation would discard the draft. */}
+              <a
+                className="ai-dining-profile-link"
+                href="/profile"
+                target="_blank"
+                rel="noopener"
+              >
+                Edit defaults
+              </a>
+            </div>
             <DietaryPreferenceFields
               tags={draft.dietary_tags}
               notes={draft.dietary_notes ?? ""}

@@ -68,8 +68,33 @@
   gap: 10px;
 }
 
+.ai-dining-section-header {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
 .ai-dining-section-label {
   color: var(--text);
   font-size: 14px;
   font-weight: 600;
+}
+
+.ai-dining-profile-link {
+  color: var(--accent);
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ai-dining-profile-link:hover {
+  text-decoration: underline;
+}
+
+.ai-dining-profile-link:focus-visible {
+  border-radius: 4px;
+  box-shadow: var(--focus-ring);
+  outline: none;
 }

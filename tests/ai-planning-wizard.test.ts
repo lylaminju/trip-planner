@@ -9,6 +9,7 @@ import {
   PaceStep,
   ReviewStep,
 } from "@/components/ai-planning-wizard/AiPlanningWizardSteps";
+import { DiningStep } from "@/components/ai-planning-wizard/DiningStep";
 import { LogisticsStep } from "@/components/ai-planning-wizard/LogisticsStep";
 import { TransitStopsStep } from "@/components/ai-planning-wizard/TransitStopsStep";
 import {
@@ -773,3 +774,17 @@ function candidate(
     updated_at: "2026-01-01T00:00:00.000Z",
   };
 }
+
+describe("DiningStep", () => {
+  it("links to the profile in a new tab so defaults are editable without losing the draft", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DiningStep, {
+        draft: { ...preferenceDraft(), include_lunch_stop: true },
+        onChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain('href="/profile"');
+    expect(markup).toContain('target="_blank"');
+  });
+});
