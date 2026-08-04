@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+import { GUEST_AI_GENERATION_GLOBAL_DAILY_CAP } from "@/lib/api-limits";
 import type { GuestEventName } from "@/server/guest-events";
 import type { GuestActivityStats } from "@/server/supabase-admin-guest-activity-store";
 
 import { UsageChart } from "./UsageChart";
-
-// Mirrors GUEST_AI_GENERATION_GLOBAL_DAILY_CAP (the demo-wide daily cap across
-// all guests in the guest usage store); kept as a local literal so this client
-// file avoids importing the server-only store module.
-const GUEST_AI_GENERATIONS_CHART_CAP = 50;
 
 // Charts render in the server's GUEST_EVENT_NAMES order; this map only
 // supplies the admin-facing label (and cap, where one exists) per event.
@@ -18,7 +14,10 @@ const GUEST_EVENT_CHARTS: Record<GuestEventName, { label: string; limit?: number
   sample_cloned: { label: "Sample trips explored" },
   trip_created: { label: "Own trips planned" },
   place_added: { label: "Places added" },
-  generation_run: { label: "AI generations", limit: GUEST_AI_GENERATIONS_CHART_CAP },
+  generation_run: {
+    label: "AI generations",
+    limit: GUEST_AI_GENERATION_GLOBAL_DAILY_CAP,
+  },
   limit_hit: { label: "Limits hit" },
   upsell_clicked: { label: "Upsells clicked" },
 };

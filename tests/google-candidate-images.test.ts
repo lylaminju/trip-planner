@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  PLACES_PER_USER_DAILY_LIMIT,
+  PLACES_PHOTO_MONTHLY_LIMIT,
+} from "@/lib/api-limits";
+import {
   googleImageCredit,
   imageResolutionAllowance,
 } from "@/server/google-candidate-images";
-import {
-  PLACES_PER_USER_DAILY_LIMIT,
-  PLACES_PHOTO_MONTHLY_LIMIT,
-} from "@/server/supabase-google-places-usage-store";
 
 describe("imageResolutionAllowance", () => {
   it("allows the full batch when budgets have room", () => {

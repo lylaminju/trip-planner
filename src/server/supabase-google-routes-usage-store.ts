@@ -1,18 +1,20 @@
+import {
+  GOOGLE_ROUTES_DAILY_LIMIT,
+  GUEST_GOOGLE_ROUTES_DAILY_LIMIT,
+  GUEST_GOOGLE_ROUTES_GLOBAL_DAILY_CAP,
+} from "@/lib/api-limits";
+
 import { GoogleRoutesRateLimitError } from "./errors";
 import { recordGuestEvent } from "./guest-events";
 import {
   countAllGuestCallsToday,
   countGuestCallsToday,
-  GUEST_GOOGLE_ROUTES_DAILY_LIMIT,
-  GUEST_GOOGLE_ROUTES_GLOBAL_DAILY_CAP,
   GUEST_USAGE_KIND,
   recordGuestCall,
 } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
 import { getSupabaseClient } from "./supabase";
 import { throwSupabaseError } from "./supabase-errors";
-
-export const GOOGLE_ROUTES_DAILY_LIMIT = 200;
 
 export async function countUserGoogleRoutesCallsToday(
   userId: string,

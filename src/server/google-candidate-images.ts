@@ -1,3 +1,7 @@
+import {
+  PLACES_PER_USER_DAILY_LIMIT,
+  PLACES_PHOTO_MONTHLY_LIMIT,
+} from "@/lib/api-limits";
 import type { AiDestinationCandidate } from "@/lib/types";
 
 import {
@@ -11,8 +15,6 @@ import { getSupabaseClient } from "./supabase";
 import {
   countPlacesCallsThisMonth,
   countUserPlacesCallsToday,
-  PLACES_PER_USER_DAILY_LIMIT,
-  PLACES_PHOTO_MONTHLY_LIMIT,
   PLACES_SKU,
   recordPlacesCall,
 } from "./supabase-google-places-usage-store";

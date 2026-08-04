@@ -1,3 +1,8 @@
+import {
+  AI_GENERATION_DAILY_LIMIT,
+  GUEST_AI_GENERATION_DAILY_LIMIT,
+  GUEST_AI_GENERATION_GLOBAL_DAILY_CAP,
+} from "@/lib/api-limits";
 import type { AiDestinationCandidate } from "@/lib/types";
 
 import {
@@ -9,14 +14,10 @@ import { recordGuestEvent } from "./guest-events";
 import {
   countAllGuestCallsToday,
   countGuestCallsToday,
-  GUEST_AI_GENERATION_DAILY_LIMIT,
-  GUEST_AI_GENERATION_GLOBAL_DAILY_CAP,
   GUEST_USAGE_KIND,
 } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
 import { countUserGenerationsToday } from "./supabase-ai-plan-application-service";
-
-const AI_GENERATION_DAILY_LIMIT = 30;
 
 export const DESTINATION_NOT_PLANNABLE_MESSAGE =
   "AI planning needs a trip destination first.";

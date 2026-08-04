@@ -72,7 +72,8 @@
 }
 
 .admin-user-card,
-.admin-guest-card {
+.admin-guest-card,
+.admin-limits-card {
   background: var(--surface-panel);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -90,7 +91,8 @@
 }
 
 .admin-user-email,
-.admin-guest-title {
+.admin-guest-title,
+.admin-limits-title {
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
@@ -102,7 +104,8 @@
 }
 
 .admin-user-last-login,
-.admin-guest-subtitle {
+.admin-guest-subtitle,
+.admin-limits-subtitle {
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
@@ -110,10 +113,66 @@
   white-space: nowrap;
 }
 
-.admin-charts-row {
+.admin-charts-row,
+.admin-limits-groups {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Static ceilings panel above the charts. Matches .admin-chart-block framing so
+   each limit group reads as a peer of the chart it bounds. */
+.admin-limits-group {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px 12px;
+}
+
+.admin-limits-group-title {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* The scope ("per day, per account") sits on its own line: it is too long to
+   share a row with the group name at narrow widths. */
+.admin-limits-group-title span {
+  color: var(--text-tertiary);
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.admin-limits-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.admin-limits-row {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.admin-limits-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 0;
+}
+
+.admin-limits-value {
+  color: var(--text);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
 }
 
 @media (max-width: 640px) {
@@ -153,14 +212,23 @@
   .admin-page-back,
   .admin-refresh-button,
   .admin-user-email,
-  .admin-guest-title {
+  .admin-guest-title,
+  .admin-limits-title {
     font-size: 17px;
   }
 
   .admin-user-last-login,
   .admin-guest-subtitle,
+  .admin-limits-subtitle,
+  .admin-limits-group-title,
+  .admin-limits-label,
+  .admin-limits-value,
   .admin-chart-label {
     font-size: 16px;
+  }
+
+  .admin-limits-group-title span {
+    font-size: 13px;
   }
 
   .admin-usage-tooltip {

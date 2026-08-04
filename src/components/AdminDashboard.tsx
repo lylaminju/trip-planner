@@ -2,17 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  AI_GENERATION_DAILY_LIMIT,
+  GOOGLE_ROUTES_DAILY_LIMIT,
+  PLACES_PER_USER_DAILY_LIMIT,
+} from "@/lib/api-limits";
 import type { UserUsageStats } from "@/server/supabase-admin-usage-store";
 
 import { GuestActivitySection } from "./admin-dashboard/GuestActivitySection";
+import { LimitsSection } from "./admin-dashboard/LimitsSection";
 import { UsageChart } from "./admin-dashboard/UsageChart";
-
-const GOOGLE_ROUTES_CHART_LIMIT = 200;
-// Mirrors PLACES_PER_USER_DAILY_LIMIT (the per-user daily cap in the places
-// usage store, enforced across both SKUs combined); kept as a local literal so
-// this client file avoids importing the server-only store module.
-const GOOGLE_PLACES_CHART_LIMIT = 200;
-const AI_GENERATIONS_CHART_LIMIT = 30;
 
 // Render the last sign-in timestamp in the viewer's local timezone, including
 // the timezone name (e.g. "Jul 13, 2026, 2:30 PM PDT").
@@ -75,6 +74,8 @@ export function AdminDashboard() {
         </button>
       </div>
 
+      <LimitsSection />
+
       <GuestActivitySection refreshToken={refreshToken} />
 
       {error && <p className="error-text">{error}</p>}
@@ -90,27 +91,27 @@ export function AdminDashboard() {
           <div className="admin-charts-row">
             <div className="admin-chart-block">
               <p className="admin-chart-label">
-                Google Routes <span>/ {GOOGLE_ROUTES_CHART_LIMIT} per day</span>
+                Google Routes <span>/ {GOOGLE_ROUTES_DAILY_LIMIT} per day</span>
               </p>
-              <UsageChart data={user.googleRoutesByDay} limit={GOOGLE_ROUTES_CHART_LIMIT} />
+              <UsageChart data={user.googleRoutesByDay} limit={GOOGLE_ROUTES_DAILY_LIMIT} />
             </div>
             <div className="admin-chart-block">
               <p className="admin-chart-label">
-                Places Autocomplete <span>/ {GOOGLE_PLACES_CHART_LIMIT} per day</span>
+                Places Autocomplete <span>/ {PLACES_PER_USER_DAILY_LIMIT} per day</span>
               </p>
-              <UsageChart data={user.placesAutocompleteByDay} limit={GOOGLE_PLACES_CHART_LIMIT} />
+              <UsageChart data={user.placesAutocompleteByDay} limit={PLACES_PER_USER_DAILY_LIMIT} />
             </div>
             <div className="admin-chart-block">
               <p className="admin-chart-label">
-                Places Details <span>/ {GOOGLE_PLACES_CHART_LIMIT} per day</span>
+                Places Details <span>/ {PLACES_PER_USER_DAILY_LIMIT} per day</span>
               </p>
-              <UsageChart data={user.placesDetailsByDay} limit={GOOGLE_PLACES_CHART_LIMIT} />
+              <UsageChart data={user.placesDetailsByDay} limit={PLACES_PER_USER_DAILY_LIMIT} />
             </div>
             <div className="admin-chart-block">
               <p className="admin-chart-label">
-                AI Generations <span>/ {AI_GENERATIONS_CHART_LIMIT} per day</span>
+                AI Generations <span>/ {AI_GENERATION_DAILY_LIMIT} per day</span>
               </p>
-              <UsageChart data={user.aiGenerationsByDay} limit={AI_GENERATIONS_CHART_LIMIT} />
+              <UsageChart data={user.aiGenerationsByDay} limit={AI_GENERATION_DAILY_LIMIT} />
             </div>
           </div>
         </div>

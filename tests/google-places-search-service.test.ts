@@ -34,10 +34,8 @@ vi.mock(
 
 import { GooglePlacesRateLimitError } from "@/server/errors";
 import { getPlaceNameAndPhoto } from "@/server/google-places-search-service";
-import {
-  PLACES_DETAILS_MONTHLY_LIMIT,
-  PLACES_SKU,
-} from "@/server/supabase-google-places-usage-store";
+import { PLACES_DETAILS_MONTHLY_LIMIT } from "@/lib/api-limits";
+import { PLACES_SKU } from "@/server/supabase-google-places-usage-store";
 
 // Resolving a map POI's name needs `displayName`, a Place Details Pro field, so
 // this lookup is billed. It replaced a free IDs-Only call that was deliberately

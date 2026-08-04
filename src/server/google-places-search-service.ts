@@ -1,3 +1,4 @@
+import { PLACES_PER_USER_DAILY_LIMIT } from "@/lib/api-limits";
 import { GooglePlacesRateLimitError } from "@/server/errors";
 import {
   fetchDestinationDetails,
@@ -13,7 +14,6 @@ import {
   countPlacesCallsThisMonth,
   countUserPlacesCallsToday,
   monthlyLimitForSku,
-  PLACES_PER_USER_DAILY_LIMIT,
   PLACES_SKU,
   recordPlacesCall,
   type PlacesSku,
