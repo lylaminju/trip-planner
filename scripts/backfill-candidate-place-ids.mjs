@@ -253,6 +253,7 @@ export async function backfillCandidatePlaceIds({
   supabase,
   apiKey,
   destinationSlug = null,
+  candidateIds = null,
   apply = false,
 } = {}) {
   let query = supabase
@@ -262,6 +263,7 @@ export async function backfillCandidatePlaceIds({
     .order("destination_slug", { ascending: true })
     .order("sort_order", { ascending: true });
   if (destinationSlug) query = query.eq("destination_slug", destinationSlug);
+  if (candidateIds?.length) query = query.in("id", candidateIds);
 
   const { data: candidates, error } = await query;
   if (error) throw new Error(`Could not load candidates: ${error.message}`);
@@ -333,11 +335,20 @@ function loadEnvFile(fileName) {
 }
 
 function parseArgs(argv) {
-  const options = { destinationSlug: null, apply: false };
+  const options = { destinationSlug: null, candidateIds: null, apply: false };
   for (const arg of argv) {
     if (arg === "--apply") options.apply = true;
     else if (arg.startsWith("--destination=")) {
       options.destinationSlug = arg.slice("--destination=".length) || null;
+    } else if (arg.startsWith("--ids=")) {
+      // Resolve named rows only, so a targeted run does not spend Text Search
+      // requests on every other row that still lacks a place id.
+      const ids = arg
+        .slice("--ids=".length)
+        .split(",")
+        .map((value) => Number.parseInt(value.trim(), 10))
+        .filter((value) => Number.isInteger(value) && value > 0);
+      options.candidateIds = ids.length > 0 ? ids : null;
     }
   }
   return options;
@@ -366,8 +377,14 @@ async function main() {
     },
   });
 
-  const { destinationSlug, apply } = parseArgs(process.argv.slice(2));
-  await backfillCandidatePlaceIds({ supabase, apiKey, destinationSlug, apply });
+  const { destinationSlug, candidateIds, apply } = parseArgs(process.argv.slice(2));
+  await backfillCandidatePlaceIds({
+    supabase,
+    apiKey,
+    destinationSlug,
+    candidateIds,
+    apply,
+  });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
