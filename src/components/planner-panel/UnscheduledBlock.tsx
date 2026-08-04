@@ -29,7 +29,15 @@ export function UnscheduledBlock(props: Props) {
       className={`unscheduled-block ${props.isDropTarget ? "drop-target" : ""}`}
       data-unscheduled-drop
     >
-      <div className="unscheduled-heading-row">
+      <div
+        className="unscheduled-heading-row"
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("button")) {
+            return;
+          }
+          props.onToggleOpen();
+        }}
+      >
         <SectionToggle
           title="Unscheduled"
           count={props.itinerary.unscheduled.length}

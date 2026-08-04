@@ -362,9 +362,19 @@
 
 .unscheduled-heading-row {
   align-items: center;
+  border-radius: 6px;
+  cursor: pointer;
   display: flex;
   gap: 8px;
+  margin-inline: -6px;
   min-width: 0;
+  padding-inline: 6px;
+  transition: background 120ms ease;
+  user-select: none;
+}
+
+.unscheduled-heading-row:hover {
+  background: var(--surface-muted);
 }
 
 .unscheduled-heading-row .section-toggle {
