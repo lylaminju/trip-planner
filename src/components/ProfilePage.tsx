@@ -6,6 +6,7 @@ import { errorMessage } from "@/lib/error-message";
 import { logoutRequest } from "@/lib/planner-api";
 import { updateProfile } from "@/lib/profile-api";
 import { PROFILE_COLORS } from "@/lib/profile-colors";
+import { LogoutIcon } from "./Icons";
 import { TripsDashboardRail } from "./TripsDashboardRail";
 
 export function ProfilePage(props: {
@@ -67,7 +68,6 @@ export function ProfilePage(props: {
           userEmail={props.userEmail}
           profileColor={savedProfile.profileColor}
           isTripsActive={false}
-          onLogout={logout}
           isAdmin={props.isAdmin}
         />
 
@@ -155,6 +155,17 @@ export function ProfilePage(props: {
                 </button>
               </div>
             </form>
+
+            <div className="profile-logout">
+              <button
+                type="button"
+                className="profile-logout-button"
+                onClick={logout}
+              >
+                <LogoutIcon />
+                Log out
+              </button>
+            </div>
           </div>
         </section>
       </section>

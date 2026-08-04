@@ -258,6 +258,16 @@ export function MenuIcon() {
   );
 }
 
+export function LogoutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M10 3H4.5v18H10" />
+      <path d="m15.5 8 4 4-4 4" />
+      <path d="M19.5 12H10" />
+    </svg>
+  );
+}
+
 export function ChatIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

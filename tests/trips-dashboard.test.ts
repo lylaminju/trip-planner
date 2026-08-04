@@ -42,8 +42,8 @@ describe("TripsDashboard", () => {
     expect(markup).toContain("Settings");
     expect(markup).toContain('aria-current="page"');
     expect(markup).toContain('class="trips-profile-card"');
-    expect(markup).toContain('class="icon-button trips-logout-button"');
-    expect(markup).toContain('aria-label="Log out"');
+    // Logging out is reachable only from the profile page, not the nav rail.
+    expect(markup).not.toContain("Log out");
     expect(markup.indexOf('class="trips-service-mark"')).toBeLessThan(
       markup.indexOf('class="trips-rail-nav"'),
     );

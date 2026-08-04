@@ -190,19 +190,6 @@
   padding-top: 8px;
 }
 
-.trips-rail-footer .trips-logout-button {
-  background: transparent;
-  border: 0;
-  color: var(--text-secondary);
-  flex: 0 0 30px;
-}
-
-.trips-rail-footer .trips-logout-button:hover {
-  background: var(--surface-subtle);
-  border: 0;
-  color: var(--text);
-}
-
 .trips-main-pane {
   align-content: start;
   background: var(--surface-dashboard);
@@ -262,8 +249,6 @@
   background: transparent;
   border: 0;
   display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto;
   padding: 10px 0 2px;
 }
 

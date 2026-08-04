@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type SubmitEvent } from "react";
 
 import { getTripCoverImage } from "@/lib/city-covers";
-import { logoutRequest } from "@/lib/planner-api";
 import { groupTripsByTiming } from "@/lib/trip-classification";
 import { errorMessage } from "@/lib/error-message";
 import { isTripOngoing } from "@/lib/trip-classification";
@@ -207,14 +206,6 @@ export function TripsDashboard(props: {
     }
   }
 
-  async function logout() {
-    try {
-      await logoutRequest();
-    } finally {
-      window.location.assign("/");
-    }
-  }
-
   // Editing captures the picked place's coordinates and country (so search bias
   // and country restriction stay correct) but leaves the stored cover untouched,
   // matching the rest of the edit flow which never re-fetches a photo.
@@ -271,7 +262,6 @@ export function TripsDashboard(props: {
           displayName={displayName}
           userEmail={userEmail}
           profileColor={props.profileColor}
-          onLogout={logout}
           isAdmin={isAdmin}
         />
 

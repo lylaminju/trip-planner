@@ -67,14 +67,6 @@ function RailDashboardIcon() {
   );
 }
 
-function RailLogoutIcon() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-      <path d="M6.5 2H3.5v12h3M10.5 5l3 3-3 3M13 8H6.5" />
-    </svg>
-  );
-}
-
 function RailFeedbackIcon() {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -89,7 +81,6 @@ export function TripsDashboardRail(props: {
   userEmail?: string;
   profileColor?: string;
   isTripsActive?: boolean;
-  onLogout: () => void;
   isAdmin?: boolean;
 }) {
   const isTripsActive = props.isTripsActive ?? true;
@@ -119,11 +110,6 @@ export function TripsDashboardRail(props: {
 
   function closeMobileNav() {
     setIsMobileNavOpen(false);
-  }
-
-  function logout() {
-    closeMobileNav();
-    props.onLogout();
   }
 
   function openFeedback() {
@@ -264,15 +250,6 @@ export function TripsDashboardRail(props: {
                 {props.userEmail && <span>{props.userEmail}</span>}
               </div>
             </a>
-            <button
-              type="button"
-              className="icon-button trips-logout-button"
-              aria-label="Log out"
-              title="Log out"
-              onClick={logout}
-            >
-              <RailLogoutIcon />
-            </button>
           </div>
         </div>
       </aside>
