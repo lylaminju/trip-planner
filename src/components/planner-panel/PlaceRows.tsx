@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { formatPlaceRow } from "@/lib/place-display";
@@ -9,12 +8,12 @@ import type { ItineraryItem, Place } from "@/lib/types";
 import { DeleteLoadingSpinner } from "../DeleteLoadingSpinner";
 import {
   CalendarPlusIcon,
-  EllipsisIcon,
   FilesPlusIcon,
   PencilIcon,
   TrashIcon,
 } from "../Icons";
 import { PlaceThumb } from "./PlaceThumb";
+import { RowActionsMenu } from "./RowActionsMenu";
 import { VisitTimeSlot } from "./VisitTimeSlot";
 
 export function ItineraryItemRow(props: {
@@ -49,32 +48,6 @@ export function ItineraryItemRow(props: {
     ? `Deleting visit to ${props.item.place.name}`
     : deleteLabel;
   const menuLabel = `Visit actions for ${props.item.place.name}`;
-
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const actionsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isMenuOpen) return;
-
-    function handlePointerDown(event: PointerEvent) {
-      if (
-        actionsRef.current &&
-        !actionsRef.current.contains(event.target as Node)
-      ) {
-        setIsMenuOpen(false);
-      }
-    }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsMenuOpen(false);
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isMenuOpen]);
 
   return (
     <div className={rowClassName}>
@@ -131,65 +104,52 @@ export function ItineraryItemRow(props: {
         </button>
       </span>
       {props.canEdit && (
-        <div className="visit-row-actions-wrap" ref={actionsRef}>
-          <button
-            type="button"
-            className="icon-button visit-row-menu-toggle"
-            aria-label={menuLabel}
-            title={menuLabel}
-            aria-haspopup="true"
-            aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((open) => !open)}
-          >
-            <EllipsisIcon />
-          </button>
-          <span
-            className={
-              isMenuOpen ? "visit-row-actions open" : "visit-row-actions"
-            }
-          >
-            <button
-              type="button"
-              className="icon-button"
-              aria-label={duplicateLabel}
-              title={duplicateLabel}
-              onClick={() => {
-                setIsMenuOpen(false);
-                props.onDuplicate();
-              }}
-            >
-              <FilesPlusIcon />
-              <span className="visit-row-action-label">Duplicate</span>
-            </button>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label={editLabel}
-              title={editLabel}
-              onClick={() => {
-                setIsMenuOpen(false);
-                props.onEdit();
-              }}
-            >
-              <PencilIcon />
-              <span className="visit-row-action-label">Edit</span>
-            </button>
-            <button
-              type="button"
-              className="icon-button danger-button"
-              aria-label={deleteButtonLabel}
-              title={deleteButtonLabel}
-              disabled={props.isDeleting}
-              onClick={() => {
-                setIsMenuOpen(false);
-                props.onDelete();
-              }}
-            >
-              {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
-              <span className="visit-row-action-label">Delete</span>
-            </button>
-          </span>
-        </div>
+        <RowActionsMenu menuLabel={menuLabel}>
+          {(closeMenu) => (
+            <>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label={duplicateLabel}
+                title={duplicateLabel}
+                onClick={() => {
+                  closeMenu();
+                  props.onDuplicate();
+                }}
+              >
+                <FilesPlusIcon />
+                <span className="visit-row-action-label">Duplicate</span>
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label={editLabel}
+                title={editLabel}
+                onClick={() => {
+                  closeMenu();
+                  props.onEdit();
+                }}
+              >
+                <PencilIcon />
+                <span className="visit-row-action-label">Edit</span>
+              </button>
+              <button
+                type="button"
+                className="icon-button danger-button"
+                aria-label={deleteButtonLabel}
+                title={deleteButtonLabel}
+                disabled={props.isDeleting}
+                onClick={() => {
+                  closeMenu();
+                  props.onDelete();
+                }}
+              >
+                {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
+                <span className="visit-row-action-label">Delete</span>
+              </button>
+            </>
+          )}
+        </RowActionsMenu>
       )}
     </div>
   );
@@ -216,6 +176,7 @@ export function PlaceListRow(props: {
   const deleteButtonLabel = props.isDeleting
     ? `Deleting place ${props.place.name}`
     : deleteLabel;
+  const menuLabel = `Place actions for ${props.place.name}`;
 
   return (
     <div className={`place-row ${props.active ? "active" : ""}`}>
@@ -248,27 +209,39 @@ export function PlaceListRow(props: {
           >
             <CalendarPlusIcon />
           </button>
-          <span className="place-row-actions">
-            <button
-              type="button"
-              className="icon-button"
-              aria-label={editLabel}
-              title={editLabel}
-              onClick={props.onEdit}
-            >
-              <PencilIcon />
-            </button>
-            <button
-              type="button"
-              className="icon-button danger-button"
-              aria-label={deleteButtonLabel}
-              title={deleteButtonLabel}
-              disabled={props.isDeleting}
-              onClick={props.onDelete}
-            >
-              {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
-            </button>
-          </span>
+          <RowActionsMenu menuLabel={menuLabel}>
+            {(closeMenu) => (
+              <>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label={editLabel}
+                  title={editLabel}
+                  onClick={() => {
+                    closeMenu();
+                    props.onEdit();
+                  }}
+                >
+                  <PencilIcon />
+                  <span className="visit-row-action-label">Edit</span>
+                </button>
+                <button
+                  type="button"
+                  className="icon-button danger-button"
+                  aria-label={deleteButtonLabel}
+                  title={deleteButtonLabel}
+                  disabled={props.isDeleting}
+                  onClick={() => {
+                    closeMenu();
+                    props.onDelete();
+                  }}
+                >
+                  {props.isDeleting ? <DeleteLoadingSpinner /> : <TrashIcon />}
+                  <span className="visit-row-action-label">Delete</span>
+                </button>
+              </>
+            )}
+          </RowActionsMenu>
         </>
       )}
     </div>

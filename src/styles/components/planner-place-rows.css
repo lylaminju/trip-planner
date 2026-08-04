@@ -460,13 +460,6 @@
   display: none;
 }
 
-.place-row-actions {
-  align-items: center;
-  display: inline-flex;
-  flex: 0 0 auto;
-  gap: 8px;
-}
-
 .visit-time-inline-editor {
   align-items: center;
   display: inline-flex;
@@ -558,7 +551,9 @@
 }
 
 @media (min-width: 901px) and (hover: hover) and (pointer: fine) {
-  .visit-row-actions {
+  /* Scoped to visit rows: place rows share the markup but keep their actions
+     visible, since the itinerary is the denser list. */
+  .visit-row .visit-row-actions {
     opacity: 0;
     pointer-events: none;
     transition: opacity 120ms ease;

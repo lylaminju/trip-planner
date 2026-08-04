@@ -253,7 +253,7 @@ describe("PlaceRows", () => {
     expect(markup).toContain(">50</button>");
   });
 
-  it("keeps unscheduled place row actions outside the visit hover reveal", () => {
+  it("collapses place edit and delete behind a menu, keeping add visit inline", () => {
     const markup = renderToStaticMarkup(
       createElement(PlaceListRow, {
         place: buildPlace({ id: 7, name: "Bryant Park" }),
@@ -267,9 +267,29 @@ describe("PlaceRows", () => {
         onDelete: vi.fn(),
       }),
     );
+    const menuStart = markup.indexOf('class="visit-row-actions"');
 
-    expect(markup).not.toContain("visit-row-actions");
-    expect(markup).toContain('class="place-row-actions"');
+    expect(markup).toContain('aria-label="Place actions for Bryant Park"');
+    expect(markup).toContain('aria-haspopup="true"');
+    expect(
+      markup.indexOf('aria-label="Add Bryant Park to itinerary"'),
+    ).toBeLessThan(menuStart);
+    expect(
+      markup.indexOf('aria-label="Edit place Bryant Park"'),
+    ).toBeGreaterThan(menuStart);
+    expect(
+      markup.indexOf('aria-label="Delete place Bryant Park"'),
+    ).toBeGreaterThan(menuStart);
+  });
+
+  it("reveals actions on hover only for visit rows, not place rows", () => {
+    const css = readFileSync(
+      "src/styles/components/planner-place-rows.css",
+      "utf8",
+    );
+
+    expect(css).toContain(".visit-row .visit-row-actions {\n    opacity: 0;");
+    expect(css).not.toContain("\n  .visit-row-actions {\n    opacity: 0;");
   });
 
   it("shows a place thumbnail ahead of the name in unscheduled rows", () => {
@@ -357,12 +377,6 @@ describe("PlaceRows", () => {
     expect(cssRule(css, ".visit-thumb-frame.compact")).toContain(
       "--visit-thumb-size: 32px;",
     );
-  });
-
-  it("stacks unscheduled place row actions vertically on mobile layouts", () => {
-    const css = readFileSync("src/styles/mobile.css", "utf8");
-
-    expect(css).toContain(".place-row-actions {\n    flex-direction: column;");
   });
 
   it("collapses itinerary visit actions behind a kebab menu on mobile layouts", () => {

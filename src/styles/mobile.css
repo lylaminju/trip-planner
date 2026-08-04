@@ -297,16 +297,8 @@
     width: 34px;
   }
 
-  .place-row-actions {
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .place-row-actions .icon-button {
-    flex-basis: auto;
-  }
-
-  /* Visit rows collapse their three actions into a kebab menu to save space. */
+  /* Rows collapse their secondary actions into a kebab menu to save space.
+     Place rows keep add-to-itinerary inline as their primary action. */
   .visit-row-menu-toggle {
     display: inline-flex;
   }
