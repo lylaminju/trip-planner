@@ -27,13 +27,24 @@ export function buildResolvableGoogleMapsPlaceUrl(input: {
   return `https://www.google.com/maps/place/${name}/@${input.latitude},${input.longitude},15z`;
 }
 
-// Documented Maps URLs search link for a coordinate, used for curated
-// candidates that have no stored Google place id.
-export function buildGoogleMapsSearchUrl(coordinate: Coordinate): string {
-  const params = new URLSearchParams({
-    api: "1",
-    query: `${coordinate.latitude},${coordinate.longitude}`,
-  });
+// Outbound Google Maps link for a saved place. The place id is the only
+// identifier that opens the place itself, so it wins when we resolved one.
+// Without an id, a name (plus address when we have one) search still lands on
+// the place page, while a coordinate query only drops an unnamed pin at the
+// raw point.
+export function buildGoogleMapsPlaceLinkUrl(input: {
+  name: string;
+  address?: string | null;
+  googlePlaceId: string | null;
+}): string {
+  if (input.googlePlaceId) {
+    return buildGoogleMapsPlaceIdUrl(input.googlePlaceId);
+  }
+
+  const query = [input.name.trim(), input.address?.trim()]
+    .filter(Boolean)
+    .join(", ");
+  const params = new URLSearchParams({ api: "1", query });
   return `https://www.google.com/maps/search/?${params.toString()}`;
 }
 

@@ -170,7 +170,7 @@ describe("supabase AI plan application service", () => {
         name: "Pod Times Square",
         address: null,
         google_maps_url:
-          "https://www.google.com/maps/search/?api=1&query=40.758%2C-73.993",
+          "https://www.google.com/maps/place/?q=place_id%3Agoogle-pod",
         latitude: 40.758,
         longitude: -73.993,
         created_by_source: "ai",

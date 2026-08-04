@@ -2,19 +2,45 @@ import { describe, expect, it } from "vitest";
 import { parseGoogleMapsUrl } from "@/lib/google-maps-url";
 import {
   buildGoogleMapsDirectionsUrl,
-  buildGoogleMapsSearchUrl,
+  buildGoogleMapsPlaceLinkUrl,
   buildResolvableGoogleMapsPlaceUrl,
 } from "@/lib/maps-url";
 
-describe("buildGoogleMapsSearchUrl", () => {
-  it("builds a documented Maps URLs search link from coordinates", () => {
-    const url = buildGoogleMapsSearchUrl({
-      latitude: 40.7579747,
-      longitude: -73.9855426,
+describe("buildGoogleMapsPlaceLinkUrl", () => {
+  it("opens the exact place when a Google place id is known", () => {
+    const url = buildGoogleMapsPlaceLinkUrl({
+      name: "Mulberry Coffeehouse",
+      address: "James Street North",
+      googlePlaceId: "ChIJcXvo5IabLIgRV9B03H_l-Bs",
     });
 
     expect(url).toBe(
-      "https://www.google.com/maps/search/?api=1&query=40.7579747%2C-73.9855426",
+      "https://www.google.com/maps/place/?q=place_id%3AChIJcXvo5IabLIgRV9B03H_l-Bs",
+    );
+  });
+
+  // A coordinate query only drops an unnamed pin, so an id-less place has to
+  // search by the text a person would type.
+  it("searches by name and address when no place id is known", () => {
+    const url = buildGoogleMapsPlaceLinkUrl({
+      name: "Mulberry Coffeehouse",
+      address: "James Street North",
+      googlePlaceId: null,
+    });
+
+    expect(url).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Mulberry+Coffeehouse%2C+James+Street+North",
+    );
+  });
+
+  it("searches by name alone when no address is known", () => {
+    const url = buildGoogleMapsPlaceLinkUrl({
+      name: "Hamilton GO Centre",
+      googlePlaceId: null,
+    });
+
+    expect(url).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Hamilton+GO+Centre",
     );
   });
 });

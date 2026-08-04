@@ -15,7 +15,7 @@ import { matchDestinationCandidates } from "@/lib/destination-candidates";
 import { errorMessage } from "@/lib/error-message";
 import {
   buildGoogleMapsPlaceIdUrl,
-  buildGoogleMapsSearchUrl,
+  buildGoogleMapsPlaceLinkUrl,
 } from "@/lib/maps-url";
 import {
   DestinationSearchUnavailableError,
@@ -229,12 +229,11 @@ export function AddPlaceSearchStep({
       name: candidate.name,
       latitude: candidate.latitude,
       longitude: candidate.longitude,
-      google_maps_url: candidate.google_place_id
-        ? buildGoogleMapsPlaceIdUrl(candidate.google_place_id)
-        : buildGoogleMapsSearchUrl({
-            latitude: candidate.latitude,
-            longitude: candidate.longitude,
-          }),
+      google_maps_url: buildGoogleMapsPlaceLinkUrl({
+        name: candidate.name,
+        address: candidate.area,
+        googlePlaceId: candidate.google_place_id,
+      }),
       photo_name: null,
       photo_attribution: null,
       image_url: candidate.image_url,

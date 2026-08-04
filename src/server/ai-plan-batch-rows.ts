@@ -9,6 +9,7 @@ import {
   transitHubFallbackEmoji,
 } from "@/lib/place-fallback-emoji";
 import { extractNoteLinks } from "@/lib/note-links";
+import { buildGoogleMapsPlaceLinkUrl } from "@/lib/maps-url";
 import { arrivalBufferMinutes } from "@/lib/transit-buffers";
 import {
   formatVisitTime,
@@ -423,7 +424,11 @@ function candidatePlaceRow(
     trip_id: tripId,
     name: candidate.name,
     address: candidate.area,
-    google_maps_url: googleMapsSearchUrl(candidate),
+    google_maps_url: buildGoogleMapsPlaceLinkUrl({
+      name: candidate.name,
+      address: candidate.area,
+      googlePlaceId: candidate.google_place_id,
+    }),
     google_place_id: candidate.google_place_id,
     google_place_token: null,
     google_internal_ids: null,
@@ -453,7 +458,10 @@ function anchorPlaceRow(
     trip_id: tripId,
     name: anchor.name,
     address: null,
-    google_maps_url: googleMapsSearchUrl(anchor),
+    google_maps_url: buildGoogleMapsPlaceLinkUrl({
+      name: anchor.name,
+      googlePlaceId: anchor.google_place_id,
+    }),
     google_place_id: anchor.google_place_id,
     google_place_token: null,
     google_internal_ids: null,
@@ -468,9 +476,4 @@ function anchorPlaceRow(
     created_by_source: "ai",
     ai_generation_id: generationId,
   };
-}
-
-function googleMapsSearchUrl(location: Coordinates): string {
-  const query = encodeURIComponent(`${location.latitude},${location.longitude}`);
-  return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
