@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AiPlanningWizard } from "@/components/AiPlanningWizard";
 import {
+  InterestStep,
   MustSeeStep,
   PaceStep,
   ReviewStep,
@@ -14,6 +15,7 @@ import {
   transitStopPayload,
   type TransitStopDraft,
 } from "@/components/ai-planning-wizard/transit-stop-draft";
+import { cycleInterestTag } from "@/components/ai-planning-wizard/toggle-value";
 import {
   AI_WIZARD_LAST_STEP_INDEX,
   AI_WIZARD_STEPS,
@@ -429,7 +431,99 @@ function reviewRowValue(markup: string, label: string): string {
   return match?.[1] ?? "";
 }
 
+describe("InterestStep", () => {
+  it("renders one chip list with distinct chosen and skipped states", () => {
+    const markup = renderToStaticMarkup(
+      createElement(InterestStep, {
+        draft: {
+          ...preferenceDraft(),
+          interest_tags: ["food"],
+          avoid_interest_tags: ["shopping"],
+        },
+        onChange: vi.fn(),
+      }),
+    );
+
+    // A single tri-state list: chosen chips read as pressed, skipped chips as
+    // mixed, and the header counts both plus a shared Clear affordance.
+    expect(markup).toContain("1 chosen · 1 skipped");
+    expect(markup).toContain('class="ai-chip selected"');
+    expect(markup).toContain('class="ai-chip avoided"');
+    expect(markup).toContain('aria-pressed="mixed"');
+    expect(markup).toContain('aria-label="Shopping — skipped"');
+    expect(markup).toContain('aria-label="Clear interests"');
+  });
+});
+
+describe("cycleInterestTag", () => {
+  it("cycles a tag through chosen, skipped, and neutral without overlap", () => {
+    const neutral = { interest_tags: [], avoid_interest_tags: [] };
+
+    const chosen = cycleInterestTag(neutral, "food");
+    expect(chosen).toEqual({
+      interest_tags: ["food"],
+      avoid_interest_tags: [],
+    });
+
+    const skipped = cycleInterestTag(chosen, "food");
+    expect(skipped).toEqual({
+      interest_tags: [],
+      avoid_interest_tags: ["food"],
+    });
+
+    expect(cycleInterestTag(skipped, "food")).toEqual(neutral);
+  });
+
+  it("leaves other tags in place while one cycles", () => {
+    expect(
+      cycleInterestTag(
+        { interest_tags: ["nature"], avoid_interest_tags: ["shopping"] },
+        "nature",
+      ),
+    ).toEqual({
+      interest_tags: [],
+      avoid_interest_tags: ["shopping", "nature"],
+    });
+  });
+});
+
 describe("ReviewStep", () => {
+  it("adds a Skipping row only when interests are avoided", () => {
+    const baseProps = {
+      arrivalCustomName: null,
+      arrivalPointName: null,
+      candidates: [],
+      dailyStartTime: "09:00",
+      days: 3,
+      departureCustomName: null,
+      departurePointName: null,
+      lodgingName: null,
+      onEditStep: vi.fn(),
+      transitDraft: {
+        arrivalChoice: null,
+        arrivalUrl: "",
+        arrivalTime: "",
+        departureChoice: null,
+        departureUrl: "",
+        departureTime: "",
+      } satisfies TransitStopDraft,
+      transitHubs: [],
+    };
+
+    const withAvoided = renderToStaticMarkup(
+      createElement(ReviewStep, {
+        ...baseProps,
+        draft: { ...preferenceDraft(), avoid_interest_tags: ["shopping"] },
+      }),
+    );
+    expect(reviewRowValue(withAvoided, "Skipping")).toBe("Shopping");
+
+    const withoutAvoided = renderToStaticMarkup(
+      createElement(ReviewStep, { ...baseProps, draft: preferenceDraft() }),
+    );
+    expect(reviewRowValue(withoutAvoided, "Skipping")).toBe("");
+  });
+
   it("splits the home base and daily start rows so each edits its own step", () => {
     const markup = renderToStaticMarkup(
       createElement(ReviewStep, {
@@ -607,6 +701,7 @@ function preferenceDraft(): AiPlanningPreferenceInput {
     visits_per_day_min: 2,
     visits_per_day_max: 3,
     interest_tags: [],
+    avoid_interest_tags: [],
     preferred_travel_modes: ["walking", "transit"],
     must_see_candidate_ids: [],
   };

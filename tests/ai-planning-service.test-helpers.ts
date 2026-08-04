@@ -149,6 +149,7 @@ export function savedPreferenceRecord(
     visits_per_day_min: number;
     visits_per_day_max: number;
     interest_tags: string[];
+    avoid_interest_tags: string[];
     preferred_travel_modes: string[];
     must_see_candidate_ids: number[];
   }> = {},
@@ -158,6 +159,7 @@ export function savedPreferenceRecord(
     visits_per_day_min: 1,
     visits_per_day_max: 3,
     interest_tags: ["landmarks"],
+    avoid_interest_tags: [],
     preferred_travel_modes: ["walking"],
     must_see_candidate_ids: [],
     created_at: "2026-01-01T00:00:00.000Z",

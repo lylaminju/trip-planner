@@ -19,7 +19,7 @@ import {
   type TransitStopChoice,
   type TransitStopDraft,
 } from "./transit-stop-draft";
-import { toggleValue } from "./toggle-value";
+import { cycleInterestTag, toggleValue } from "./toggle-value";
 import type { AiWizardStepKey } from "./wizard-steps";
 import { MagicWandIcon, MapPinIcon } from "../Icons";
 
@@ -144,20 +144,27 @@ function sightseeingDaysLabel(
 
 export function InterestStep({ draft, onChange }: StepProps) {
   const count = draft.interest_tags.length;
+  const avoidCount = draft.avoid_interest_tags.length;
+  const countParts = [
+    ...(count > 0 ? [`${count} chosen`] : []),
+    ...(avoidCount > 0 ? [`${avoidCount} skipped`] : []),
+  ];
   return (
     <div className="ai-choice-step">
       <div className="ai-choice-header">
         <span className="ai-choice-count">
-          {count > 0
-            ? `${count} selected`
+          {countParts.length > 0
+            ? countParts.join(" · ")
             : "Nothing selected — that's fine, we'll keep it broad."}
         </span>
-        {count > 0 && (
+        {countParts.length > 0 && (
           <button
             type="button"
             className="ai-choice-clear"
-            aria-label="Clear selected interests"
-            onClick={() => onChange({ ...draft, interest_tags: [] })}
+            aria-label="Clear interests"
+            onClick={() =>
+              onChange({ ...draft, interest_tags: [], avoid_interest_tags: [] })
+            }
           >
             Clear
           </button>
@@ -166,17 +173,26 @@ export function InterestStep({ draft, onChange }: StepProps) {
       <div className="ai-chip-grid">
         {AI_INTEREST_TAG_OPTIONS.map((option) => {
           const isSelected = draft.interest_tags.includes(option.value);
+          const isAvoided = draft.avoid_interest_tags.includes(option.value);
           return (
             <button
               key={option.value}
               type="button"
-              className={isSelected ? "ai-chip selected" : "ai-chip"}
-              aria-pressed={isSelected}
+              className={
+                isSelected
+                  ? "ai-chip selected"
+                  : isAvoided
+                    ? "ai-chip avoided"
+                    : "ai-chip"
+              }
+              // Tri-state toggle: "mixed" marks the skipped state between
+              // pressed (chosen) and unpressed (neutral).
+              aria-pressed={isSelected ? true : isAvoided ? "mixed" : false}
+              aria-label={
+                isAvoided ? `${option.label} — skipped` : option.label
+              }
               onClick={() =>
-                onChange({
-                  ...draft,
-                  interest_tags: toggleValue(draft.interest_tags, option.value),
-                })
+                onChange({ ...draft, ...cycleInterestTag(draft, option.value) })
               }
             >
               <span className="ai-chip-emoji" aria-hidden="true">
@@ -392,6 +408,18 @@ export function ReviewStep({
         : "Open to anything",
       step: "interests",
     },
+    ...(draft.avoid_interest_tags.length
+      ? [
+          {
+            label: "Skipping",
+            value: labelsFor(
+              draft.avoid_interest_tags,
+              AI_INTEREST_TAG_OPTIONS,
+            ).join(", "),
+            step: "interests" as const,
+          },
+        ]
+      : []),
     {
       label: "Home base",
       value: lodgingName ?? "Not set",

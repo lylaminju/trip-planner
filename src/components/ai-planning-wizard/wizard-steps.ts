@@ -36,7 +36,8 @@ export const AI_WIZARD_STEPS: readonly AiWizardStep[] = [
     key: "interests",
     label: "Interests",
     title: "What are you into?",
-    helper: "Pick a few and we'll weight your plan toward them.",
+    helper:
+      "Tap once for what you're into, twice for what to skip — we'll plan around both.",
     optional: true,
   },
   {

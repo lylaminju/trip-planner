@@ -211,9 +211,14 @@ export function AiPlanningWizard(props: Props) {
       return `${compactVisitsRange(draft)} / day`;
     }
     if (key === "interests") {
-      return draft.interest_tags.length
-        ? `${draft.interest_tags.length} chosen`
-        : "Open to any";
+      const parts = [];
+      if (draft.interest_tags.length) {
+        parts.push(`${draft.interest_tags.length} chosen`);
+      }
+      if (draft.avoid_interest_tags.length) {
+        parts.push(`${draft.avoid_interest_tags.length} skipped`);
+      }
+      return parts.length ? parts.join(" · ") : "Open to any";
     }
     if (key === "logistics") {
       return draft.preferred_travel_modes.length

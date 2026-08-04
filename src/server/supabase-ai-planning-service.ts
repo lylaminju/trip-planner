@@ -23,7 +23,7 @@ const AI_DESTINATION_CANDIDATE_COLUMNS =
 const TRIP_LODGING_COLUMNS =
   "id, trip_id, name, latitude, longitude, google_place_id, is_primary, created_at, updated_at";
 const AI_PLANNING_PREFERENCES_COLUMNS =
-  "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, preferred_travel_modes, must_see_candidate_ids, created_at, updated_at";
+  "trip_id, visits_per_day_min, visits_per_day_max, interest_tags, avoid_interest_tags, preferred_travel_modes, must_see_candidate_ids, created_at, updated_at";
 const TRIP_TRANSIT_POINT_COLUMNS =
   "id, trip_id, kind, name, latitude, longitude, google_place_id, hub_type, event_time, created_at, updated_at";
 const AI_TRANSIT_HUB_COLUMNS =

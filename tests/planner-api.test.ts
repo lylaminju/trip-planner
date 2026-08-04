@@ -67,6 +67,7 @@ describe("planner api client", () => {
       visits_per_day_min: 1,
       visits_per_day_max: 3,
       interest_tags: ["nature"],
+      avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
     };
@@ -92,6 +93,7 @@ describe("planner api client", () => {
       visits_per_day_min: 1,
       visits_per_day_max: 3,
       interest_tags: ["nature"],
+      avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
     };
@@ -180,6 +182,7 @@ describe("planner api client", () => {
         visits_per_day_min: 1,
         visits_per_day_max: 3,
         interest_tags: [],
+        avoid_interest_tags: [],
         preferred_travel_modes: ["walking"],
         must_see_candidate_ids: [],
       }),

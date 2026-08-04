@@ -219,6 +219,7 @@ describe("ai-planning-service request boundary", () => {
       visits_per_day_min: 1,
       visits_per_day_max: 3,
       interest_tags: ["nature"],
+      avoid_interest_tags: [],
       preferred_travel_modes: ["walking", "transit"],
       must_see_candidate_ids: [10],
     });
@@ -351,6 +352,122 @@ describe("ai-planning-service request boundary", () => {
         generated_day_count: 1,
       }),
     );
+  });
+
+  it("drops avoided-tag candidates from the planner catalog but keeps avoided must-sees", async () => {
+    const requireTripRole = vi.fn().mockResolvedValue(membership("owner"));
+    const getTripById = vi.fn().mockResolvedValue(
+      tripRecord({ start_date: "2026-05-27", end_date: "2026-05-27" }),
+    );
+    const mustSeeMuseum = { ...candidateRecord(12), tags: ["museums"] };
+    const listDestinationCandidates = vi.fn().mockResolvedValue([
+      candidateRecord(10),
+      { ...candidateRecord(11), tags: ["museums"] },
+      mustSeeMuseum,
+    ]);
+    const savedPreferences = savedPreferenceRecord({
+      interest_tags: [],
+      avoid_interest_tags: ["museums"],
+      must_see_candidate_ids: [12],
+    });
+    const upsertPlanningPreferences = vi
+      .fn()
+      .mockResolvedValue(savedPreferences);
+    const requestAiItineraryPlan = vi
+      .fn()
+      .mockResolvedValue(aiPlannerResult(12, 10, 20));
+    const createAiPlanGeneration = vi.fn().mockResolvedValue({ id: 57 });
+    const updateAiPlanGeneration = vi.fn();
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+    const replaceAiGeneratedBatch = vi.fn().mockResolvedValue(plannerSnapshot);
+
+    await withMockedAiPlanningService(
+      {
+        getTripById,
+        requireTripRole,
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          getPrimaryLodging: vi.fn().mockResolvedValue(null),
+          upsertPlanningPreferences,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration,
+          updateAiPlanGeneration,
+          replaceAiGeneratedBatch,
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            avoid_interest_tags: ["museums"],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [12],
+          }),
+        ).resolves.toEqual({ generationId: 57, plannerSnapshot });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    // The avoided museum (11) never reaches the model; the must-see museum
+    // (12) stays because an explicit place pick overrides the tag rule.
+    expect(
+      requestAiItineraryPlan.mock.calls[0][0].context.candidates.map(
+        (candidate: { id: number }) => candidate.id,
+      ),
+    ).toEqual([10, 12]);
+    expect(replaceAiGeneratedBatch).toHaveBeenCalledWith(
+      1,
+      57,
+      expect.any(Object),
+      [candidateRecord(10), mustSeeMuseum],
+      savedPreferences,
+      null,
+      "09:00",
+      "user-1",
+      null,
+      null,
+    );
+  });
+
+  it("rejects generation when avoided interests rule out the whole catalog", async () => {
+    const listDestinationCandidates = vi
+      .fn()
+      .mockResolvedValue([candidateRecord(10)]);
+    const upsertPlanningPreferences = vi.fn().mockResolvedValue(
+      savedPreferenceRecord({
+        interest_tags: [],
+        avoid_interest_tags: ["landmarks"],
+      }),
+    );
+    const requestAiItineraryPlan = vi.fn();
+    const createAiPlanGeneration = vi.fn();
+
+    await withMockedAiPlanningService(
+      {
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          getPrimaryLodging: vi.fn().mockResolvedValue(null),
+          upsertPlanningPreferences,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: { createAiPlanGeneration },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(1, "user-1", {
+            avoid_interest_tags: ["landmarks"],
+            preferred_travel_modes: ["walking"],
+          }),
+        ).rejects.toThrow(
+          "Your avoided interests rule out every attraction",
+        );
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    expect(requestAiItineraryPlan).not.toHaveBeenCalled();
+    expect(createAiPlanGeneration).not.toHaveBeenCalled();
   });
 
   it("rejects AI generation for trips longer than the planning cap before any spend", async () => {

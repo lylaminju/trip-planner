@@ -43,10 +43,19 @@ export function parseAiPlanningPreferenceInput(
     throw new TripValidationError("At least one travel mode is required.");
   }
 
+  const selectedInterestTags = interestTags(body.interest_tags);
+  const avoidInterestTags = interestTags(body.avoid_interest_tags);
+  if (avoidInterestTags.some((tag) => selectedInterestTags.includes(tag))) {
+    throw new TripValidationError(
+      "An interest tag cannot also be avoided.",
+    );
+  }
+
   return {
     visits_per_day_min: visitsPerDayMin,
     visits_per_day_max: visitsPerDayMax,
-    interest_tags: interestTags(body.interest_tags),
+    interest_tags: selectedInterestTags,
+    avoid_interest_tags: avoidInterestTags,
     preferred_travel_modes: preferredTravelModes,
     must_see_candidate_ids: mustSeeCandidateIds(
       body.must_see_candidate_ids,

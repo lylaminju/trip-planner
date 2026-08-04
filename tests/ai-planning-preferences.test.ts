@@ -26,6 +26,7 @@ describe("ai planning preference defaults", () => {
             visits_per_day_min: 1,
             visits_per_day_max: 5,
             interest_tags: ["nature", "museums"],
+            avoid_interest_tags: ["shopping"],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [10, 99],
             created_at: "2026-01-01T00:00:00.000Z",
@@ -37,6 +38,7 @@ describe("ai planning preference defaults", () => {
       visits_per_day_min: 1,
       visits_per_day_max: 5,
       interest_tags: ["nature", "museums"],
+      avoid_interest_tags: ["shopping"],
       preferred_travel_modes: ["walking"],
       must_see_candidate_ids: [10],
     });
@@ -56,6 +58,7 @@ describe("ai planning preference defaults", () => {
               "kid-friendly",
               "neighborhoods",
             ],
+            avoid_interest_tags: [],
             preferred_travel_modes: ["walking"],
             must_see_candidate_ids: [],
             created_at: "2026-01-01T00:00:00.000Z",
@@ -64,6 +67,60 @@ describe("ai planning preference defaults", () => {
         }),
       ).interest_tags,
     ).toEqual(["local-vibe", "food", "kid-friendly"]);
+  });
+
+  it("drops avoided tags that are retired or already chosen as interests", () => {
+    expect(
+      buildAiPlanningPreferenceDraft(
+        setup({
+          preferences: {
+            trip_id: 1,
+            visits_per_day_min: 2,
+            visits_per_day_max: 3,
+            interest_tags: ["food"],
+            avoid_interest_tags: ["food", "shopping", "neighborhoods"],
+            preferred_travel_modes: ["walking"],
+            must_see_candidate_ids: [],
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+          },
+        }),
+      ).avoid_interest_tags,
+    ).toEqual(["shopping"]);
+  });
+
+  it("parses avoided interest tags and rejects overlap with chosen interests", () => {
+    expect(
+      parseAiPlanningGenerationInput(
+        {
+          interest_tags: ["nature"],
+          avoid_interest_tags: ["shopping", "museums"],
+          preferred_travel_modes: ["walking"],
+        },
+        new Set([10]),
+      ).preferences.avoid_interest_tags,
+    ).toEqual(["shopping", "museums"]);
+
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          interest_tags: ["nature"],
+          avoid_interest_tags: ["nature"],
+          preferred_travel_modes: ["walking"],
+        },
+        new Set([10]),
+      ),
+    ).toThrow("An interest tag cannot also be avoided.");
+
+    expect(() =>
+      parseAiPlanningGenerationInput(
+        {
+          avoid_interest_tags: ["not-a-tag"],
+          preferred_travel_modes: ["walking"],
+        },
+        new Set([10]),
+      ),
+    ).toThrow("Invalid interest tag.");
   });
 
   it("accepts five visits per day as the upper bound", () => {
@@ -102,6 +159,7 @@ describe("ai planning preference defaults", () => {
         visits_per_day_min: 1,
         visits_per_day_max: 3,
         interest_tags: ["nature"],
+        avoid_interest_tags: [],
         preferred_travel_modes: ["walking", "transit"],
         must_see_candidate_ids: [10],
       },

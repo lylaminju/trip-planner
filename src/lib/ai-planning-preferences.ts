@@ -105,6 +105,7 @@ export const AI_DEFAULT_PLANNING_PREFERENCES: AiPlanningPreferenceInput = {
   visits_per_day_min: 2,
   visits_per_day_max: 3,
   interest_tags: [],
+  avoid_interest_tags: [],
   preferred_travel_modes: ["walking", "transit"],
   must_see_candidate_ids: [],
 };
@@ -129,11 +130,20 @@ export function buildAiPlanningPreferenceDraft(
     ),
   );
 
+  const interestTags = unique(
+    preferences.interest_tags.filter((tag) => INTEREST_TAG_VALUES.has(tag)),
+  );
+
   return {
     visits_per_day_min: clampVisitCount(preferences.visits_per_day_min),
     visits_per_day_max: clampVisitCount(preferences.visits_per_day_max),
-    interest_tags: unique(
-      preferences.interest_tags.filter((tag) => INTEREST_TAG_VALUES.has(tag)),
+    interest_tags: interestTags,
+    // Interests win when saved data overlaps, so the draft never starts with a
+    // tag both chosen and avoided.
+    avoid_interest_tags: unique(
+      preferences.avoid_interest_tags.filter(
+        (tag) => INTEREST_TAG_VALUES.has(tag) && !interestTags.includes(tag),
+      ),
     ),
     preferred_travel_modes:
       preferredTravelModes.length > 0

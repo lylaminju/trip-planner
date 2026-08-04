@@ -210,6 +210,9 @@ export type AiPlanningPreferenceInput = {
   visits_per_day_min: number;
   visits_per_day_max: number;
   interest_tags: string[];
+  // Tags the traveler wants kept out of the itinerary; disjoint from
+  // interest_tags, and must-see picks override it per place.
+  avoid_interest_tags: string[];
   preferred_travel_modes: TravelMode[];
   must_see_candidate_ids: number[];
 };

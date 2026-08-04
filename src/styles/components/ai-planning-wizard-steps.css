@@ -185,6 +185,18 @@
   border-color: var(--accent-selected-border);
 }
 
+.ai-chip.avoided {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
+  font-weight: 700;
+  text-decoration: line-through;
+}
+
+.ai-chip.avoided:hover {
+  border-color: var(--danger-border);
+}
+
 /* Logistics step */
 .ai-logistics-step {
   display: grid;

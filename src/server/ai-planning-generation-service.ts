@@ -6,7 +6,12 @@ import {
   hasAiPlanningDateRange,
   isAiCoverageTrip,
 } from "@/lib/ai-planning-preferences";
-import type { PlannerSnapshot, Trip } from "@/lib/types";
+import type {
+  AiDestinationCandidate,
+  AiPlanningPreferenceInput,
+  PlannerSnapshot,
+  Trip,
+} from "@/lib/types";
 
 import {
   firstDayEarliestStartFromArrival,
@@ -51,7 +56,9 @@ import { getTripById } from "./trip-service";
 
 // v3: no-repeat and must-see-exactly-once rules; low reasoning effort.
 // v4: coverage mode plans sightseeing days plus free days on long trips.
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v4";
+// v5: avoided interest tags drop matching candidates from the planner's
+//     catalog (must-see picks exempt), so the model never sees them.
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v5";
 
 const CATALOG_NOT_READY_MESSAGE =
   "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";
@@ -137,6 +144,16 @@ export async function generateAiItineraryForRequest(
     tripId,
     generationInput.preferences,
   );
+  // Avoided interests are enforced by construction: matching candidates are
+  // removed from the catalog the model sees (and from the validation ID set),
+  // except places the user explicitly locked in as must-sees.
+  const plannableCandidates = withoutAvoidedCandidates(
+    candidates,
+    savedPreferences,
+  );
+  if (plannableCandidates.length === 0) {
+    throw new TripValidationError(AVOIDED_EVERYTHING_MESSAGE);
+  }
   // Coverage trips cannot fill every day from the catalog, so the plan carries
   // free days: validation swaps the every-day requirement for a total-visits
   // floor, keeping arrival/departure days required so batch application can
@@ -144,9 +161,9 @@ export async function generateAiItineraryForRequest(
   const coverage = isAiCoverageTrip(
     tripDates.length,
     savedPreferences.visits_per_day_min,
-    candidates.length,
+    plannableCandidates.length,
   )
-    ? { min_total_visits: aiCoverageMinTotalVisits(candidates.length) }
+    ? { min_total_visits: aiCoverageMinTotalVisits(plannableCandidates.length) }
     : null;
   const coverageValidation = coverage
     ? {
@@ -180,7 +197,7 @@ export async function generateAiItineraryForRequest(
         lodging,
         arrivalPoint,
         departurePoint,
-        candidates,
+        candidates: plannableCandidates,
         preferences: savedPreferences,
         dailyStartTime: generationInput.daily_start_time,
         tripDates,
@@ -189,7 +206,7 @@ export async function generateAiItineraryForRequest(
       }),
     });
     const primaryValidation = validateAiItineraryPlan(primary.plan, {
-      candidateIds: candidateIdSet(candidates),
+      candidateIds: candidateIdSet(plannableCandidates),
       tripDates,
       visitsPerDayMin: savedPreferences.visits_per_day_min,
       visitsPerDayMax: savedPreferences.visits_per_day_max,
@@ -219,7 +236,7 @@ export async function generateAiItineraryForRequest(
           lodging,
           arrivalPoint,
           departurePoint,
-          candidates,
+          candidates: plannableCandidates,
           preferences: savedPreferences,
           dailyStartTime: generationInput.daily_start_time,
           tripDates,
@@ -228,7 +245,7 @@ export async function generateAiItineraryForRequest(
         }),
       });
       const repairValidation = validateAiItineraryPlan(repair.plan, {
-        candidateIds: candidateIdSet(candidates),
+        candidateIds: candidateIdSet(plannableCandidates),
         tripDates,
         visitsPerDayMin: savedPreferences.visits_per_day_min,
         visitsPerDayMax: savedPreferences.visits_per_day_max,
@@ -280,7 +297,7 @@ export async function generateAiItineraryForRequest(
       tripId,
       generation.id,
       finalPlan,
-      candidates,
+      plannableCandidates,
       savedPreferences,
       lodging,
       generationInput.daily_start_time,
@@ -317,6 +334,23 @@ export async function generateAiItineraryForRequest(
     });
     throw error;
   }
+}
+
+const AVOIDED_EVERYTHING_MESSAGE =
+  "Your avoided interests rule out every attraction we know for this destination. Un-avoid an interest or lock in some must-sees, then try again.";
+
+function withoutAvoidedCandidates(
+  candidates: AiDestinationCandidate[],
+  preferences: AiPlanningPreferenceInput,
+): AiDestinationCandidate[] {
+  const avoidedTags = new Set(preferences.avoid_interest_tags);
+  if (avoidedTags.size === 0) return candidates;
+  const mustSeeIds = new Set(preferences.must_see_candidate_ids);
+  return candidates.filter(
+    (candidate) =>
+      mustSeeIds.has(candidate.id) ||
+      !candidate.tags.some((tag) => avoidedTags.has(tag)),
+  );
 }
 
 function tripDateRange(trip: Pick<Trip, "start_date" | "end_date">): string[] {
