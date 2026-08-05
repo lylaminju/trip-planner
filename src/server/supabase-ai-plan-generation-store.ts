@@ -1,4 +1,5 @@
 import type { LunchDayLog } from "./ai-lunch-enrichment";
+import type { OpenAiWebSearchCall } from "./openai-response";
 import { recordGuestEvent } from "./guest-events";
 import { GUEST_USAGE_KIND, recordGuestCall } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
@@ -34,6 +35,9 @@ type GenerationUpdate = {
   // Per-day lunch verification outcomes; null when lunch was off or the run
   // was a guest generation (no verification happens there).
   lunch_verification_log?: LunchDayLog[] | null;
+  // Web searches the primary call executed ([] = tool attached, none used);
+  // null when the tool was never attached (guest generations).
+  web_search_calls?: OpenAiWebSearchCall[] | null;
 };
 
 export async function createAiPlanGeneration(

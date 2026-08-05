@@ -45,6 +45,7 @@ describe("OpenAI AI planner adapter", () => {
         inputTokens: 111,
         outputTokens: 222,
       },
+      webSearchCalls: [],
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -129,6 +130,47 @@ describe("OpenAI AI planner adapter", () => {
     expect(noLunchBody.input[0].content[0].text).toContain(
       "Do not add restaurants, meals, or places outside the candidate list.",
     );
+  });
+
+  it("returns the executed web searches alongside the plan", async () => {
+    const plan = { days: [] };
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        output: [
+          {
+            type: "web_search_call",
+            status: "completed",
+            action: { type: "search", query: "Louvre opening hours May 2026" },
+          },
+          {
+            type: "web_search_call",
+            status: "completed",
+            action: { type: "open_page" },
+          },
+          {
+            type: "message",
+            content: [{ type: "output_text", text: JSON.stringify(plan) }],
+          },
+        ],
+        usage: { input_tokens: 10, output_tokens: 20 },
+      }),
+    );
+
+    await expect(
+      requestAiItineraryPlan({
+        apiKey: "test-key",
+        model: "gpt-5.5",
+        context: promptContext(),
+        enableWebSearch: true,
+        fetchImpl: fetchMock,
+      }),
+    ).resolves.toMatchObject({
+      plan,
+      webSearchCalls: [
+        { action_type: "search", query: "Louvre opening hours May 2026" },
+        { action_type: "open_page", query: null },
+      ],
+    });
   });
 
   it("normalizes failed OpenAI responses", async () => {

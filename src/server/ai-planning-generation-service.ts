@@ -280,6 +280,7 @@ export async function generateAiItineraryForRequest(
           repair_attempted: true,
           repair_validation_status: "invalid",
           repair_validation_errors: repairValidation.errors,
+          web_search_calls: isGuest ? null : primary.webSearchCalls,
           duration_ms: Date.now() - startedAt,
           token_input_count: sumTokens(
             primary.usage.inputTokens,
@@ -351,6 +352,9 @@ export async function generateAiItineraryForRequest(
       repair_validation_errors: repairValidationErrors,
       generated_place_count: countGeneratedVisits(finalPlan) + lunchByDate.size,
       lunch_verification_log: lunchVerificationLog,
+      // Only the primary call can search (repairs run without the tool); null
+      // marks runs where the tool was never attached at all.
+      web_search_calls: isGuest ? null : primary.webSearchCalls,
       generated_day_count: finalPlan.days.length,
       duration_ms: Date.now() - startedAt,
       token_input_count: finalUsage.inputTokens,

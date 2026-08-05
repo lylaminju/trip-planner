@@ -141,6 +141,7 @@ export function aiPlannerResult(
       ],
     },
     usage: { inputTokens, outputTokens },
+    webSearchCalls: [],
   };
 }
 

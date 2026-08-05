@@ -18,6 +18,8 @@ import {
   openAiFailureDetail,
   openAiRetryAfterSeconds,
   openAiUsageTokens,
+  openAiWebSearchCalls,
+  type OpenAiWebSearchCall,
 } from "./openai-response";
 
 export type AiPlanLunchCandidate = {
@@ -116,6 +118,9 @@ type RequestResult = {
     inputTokens: number | null;
     outputTokens: number | null;
   };
+  // Web searches the model actually executed; always [] when the web_search
+  // tool was not attached (repairs, guests).
+  webSearchCalls: OpenAiWebSearchCall[];
 };
 
 // Lunch scheduling window and pacing; validation enforces the same bounds.
@@ -254,6 +259,7 @@ export async function requestAiItineraryPlan({
   return {
     plan: JSON.parse(extractOutputText(body)) as AiItineraryPlan,
     usage: openAiUsageTokens(body),
+    webSearchCalls: openAiWebSearchCalls(body),
   };
 }
 

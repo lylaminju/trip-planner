@@ -67,6 +67,43 @@ export function openAiErrorMessage(body: unknown): string {
   return "Unknown error";
 }
 
+export type OpenAiWebSearchCall = {
+  // The action kind of the call, e.g. "search" or "open_page".
+  action_type: string | null;
+  // The query text for search actions; open_page/find_in_page actions have none.
+  query: string | null;
+};
+
+/**
+ * The web_search tool calls a Responses API answer actually executed, in
+ * output order. Empty when the tool was attached but never used; callers that
+ * never attached the tool should record null instead of calling this.
+ */
+export function openAiWebSearchCalls(body: unknown): OpenAiWebSearchCall[] {
+  const output = objectProperty(body, "output");
+  if (!Array.isArray(output)) return [];
+
+  const calls: OpenAiWebSearchCall[] = [];
+  for (const item of output) {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      (item as Record<string, unknown>).type !== "web_search_call"
+    ) {
+      continue;
+    }
+    const action = objectProperty(item, "action");
+    const actionType = objectProperty(action, "type");
+    const query = objectProperty(action, "query");
+    calls.push({
+      action_type: typeof actionType === "string" ? actionType : null,
+      query: typeof query === "string" ? query : null,
+    });
+  }
+
+  return calls;
+}
+
 export function openAiUsageTokens(body: unknown): {
   inputTokens: number | null;
   outputTokens: number | null;
