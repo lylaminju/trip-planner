@@ -53,7 +53,10 @@ export async function withMockedAiPlanningService(
     insertDestinationTransitHubs: vi.fn(),
     ...mocks.supabaseAiPlanningService,
   }));
-  vi.doMock("@/server/openai-ai-planner", () => ({
+  // Only the OpenAI request is stubbed; the module's planning constants stay
+  // real so production code that reads them keeps its true values.
+  vi.doMock("@/server/openai-ai-planner", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/server/openai-ai-planner")>()),
     requestAiItineraryPlan: vi.fn(),
     ...mocks.aiPlanner,
   }));

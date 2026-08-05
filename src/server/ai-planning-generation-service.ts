@@ -24,6 +24,7 @@ import {
   type EnrichedLunchStop,
   type LunchDayLog,
 } from "./ai-lunch-enrichment";
+import { withLunchClearOfVisits } from "./ai-lunch-scheduling";
 import { promptContext } from "./ai-planner-prompt-context";
 import { validateAiItineraryPlan } from "./ai-plan-validation";
 import {
@@ -318,6 +319,13 @@ export async function generateAiItineraryForRequest(
     let lunchByDate: Map<string, EnrichedLunchStop> = new Map();
     let lunchVerificationLog: LunchDayLog[] | null = null;
     if (savedPreferences.include_lunch_stop) {
+      // Before verification, not after: the opening-hours gate checks the slot's
+      // start time, so a lunch moved out of a visit has to be moved first or
+      // Google confirms hours for a time the traveler never arrives at.
+      finalPlan = withLunchClearOfVisits(finalPlan, {
+        lastTripDate: tripDates[tripDates.length - 1] ?? null,
+        lastDayLatestEndTime,
+      });
       const enrichment = await enrichLunchStops({
         plan: finalPlan,
         destination: trip.destination,
