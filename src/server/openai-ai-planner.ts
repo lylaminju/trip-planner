@@ -180,7 +180,10 @@ const SYSTEM_PROMPT = [
 ].join(" ");
 
 const WEB_SEARCH_VERIFICATION_PROMPT = [
-  `Use at most ${AI_ITINERARY_MAX_WEB_SEARCHES} web searches, and only to verify places you intend to schedule: confirm they currently operate and check their opening days and hours against the trip dates.`,
+  `Use at most ${AI_ITINERARY_MAX_WEB_SEARCHES} web searches, and only to verify attractions you intend to schedule: confirm they currently operate and check their opening days and hours against the trip dates. Spend them on the attractions whose current hours you are least sure of rather than on landmarks you already know well.`,
+  "Do not search lunch candidates. Every lunch venue is checked against Google Places after you answer, including its real opening hours, so searching one duplicates a check the attractions never get.",
+  "One search per place. If a result is inconclusive, note the uncertainty in that visit's notes and move on; asking the same question again in different words spends the budget without adding information.",
+  "Only use a site: filter when you are sure of the official domain. If a domain guess returns nothing, search the place name and city in plain words rather than guessing another domain.",
   "Never schedule a place on a day it is closed; move it to another day or pick another candidate instead.",
   "When a search reveals a booking requirement, seasonal closure, or unusual hours, mention it briefly in that visit's notes.",
   "If a must-see candidate appears to be closed, keep it scheduled and add a clear warning note rather than dropping it.",
