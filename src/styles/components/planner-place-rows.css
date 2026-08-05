@@ -553,18 +553,51 @@
 @media (min-width: 901px) and (hover: hover) and (pointer: fine) {
   /* Scoped to visit rows: place rows share the markup but keep their actions
      visible, since the itinerary is the denser list. */
+  .visit-row {
+    /* Three 30px icon buttons plus the two 2px gaps between them. */
+    --visit-row-actions-width: 94px;
+    --visit-row-actions-fade: 24px;
+  }
+
+  /* The actions float over the trailing edge of the row instead of holding a
+     column, so idle rows give the whole width to the visit name and revealing
+     the actions shifts nothing. */
+  .visit-row .visit-row-actions-wrap {
+    inset-inline-end: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
   .visit-row .visit-row-actions {
     opacity: 0;
     pointer-events: none;
     transition: opacity 120ms ease;
   }
 
+  /* Keyboard focus reveals the actions, but a mouse click must not: the row
+     button keeps DOM focus after a click, so :focus-within would strand the
+     actions on a deselected row until the next click elsewhere. */
   .visit-row:hover .visit-row-actions,
-  .visit-row:focus-within .visit-row-actions,
+  .visit-row:has(:focus-visible) .visit-row-actions,
   .visit-row.active .visit-row-actions,
   .visit-row.visit-row-deleting .visit-row-actions {
     opacity: 1;
     pointer-events: auto;
+  }
+
+  /* While the actions are up, long text fades out beneath them instead of
+     colliding with the icons. The mask sits on the text rather than on
+     .visit-row-content so the row button's focus ring stays fully drawn.
+     currentColor is the mask's opaque stop, not a paint color. */
+  .visit-row:is(:hover, :has(:focus-visible), .active, .visit-row-deleting)
+    :is(.visit-row-title-line, .place-note) {
+    mask-image: linear-gradient(
+      to left,
+      transparent var(--visit-row-actions-width),
+      currentColor
+        calc(var(--visit-row-actions-width) + var(--visit-row-actions-fade))
+    );
   }
 }
 

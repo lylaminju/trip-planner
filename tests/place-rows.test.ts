@@ -388,7 +388,10 @@ describe("PlaceRows", () => {
     expect(css).toContain(".visit-row-actions.open {\n    display: flex;");
   });
 
-  it("reveals visit row actions only on hover-capable desktop layouts", () => {
+  // The negative assertion guards a real regression: :focus-within leaves the
+  // actions revealed on a deselected row, because the row button keeps DOM
+  // focus after a mouse click.
+  it("reveals visit row actions on hover or keyboard focus, not after a click", () => {
     const css = readFileSync(
       "src/styles/components/planner-place-rows.css",
       "utf8",
@@ -399,8 +402,12 @@ describe("PlaceRows", () => {
     );
     expect(css).toContain(".visit-row-actions {\n    opacity: 0;");
     expect(css).toContain("pointer-events: none;");
+    expect(css).toContain(
+      ".visit-row .visit-row-actions-wrap {\n    inset-inline-end: 0;\n    position: absolute;",
+    );
     expect(css).toContain(".visit-row:hover .visit-row-actions");
-    expect(css).toContain(".visit-row:focus-within .visit-row-actions");
+    expect(css).toContain(".visit-row:has(:focus-visible) .visit-row-actions");
+    expect(css).not.toContain(".visit-row:focus-within .visit-row-actions");
     expect(css).toContain(".visit-row.active .visit-row-actions");
     expect(css).toContain("opacity: 1;");
     expect(css).toContain("pointer-events: auto;");
@@ -413,7 +420,7 @@ describe("PlaceRows", () => {
     );
 
     expect(css).toContain(".visit-time-inline-editor");
-    expect(css).toContain(".visit-row:focus-within .visit-row-actions");
+    expect(css).toContain(".visit-row:has(:focus-visible) .visit-row-actions");
     expect(css).toContain(".visit-time-segment");
     expect(css).toContain(".visit-time-menu");
     expect(css).not.toContain(".visit-time-quick-editor");
