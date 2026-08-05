@@ -33,6 +33,11 @@ const ROUTE_STROKE_WEIGHT = 5;
 const ROUTE_STROKE_WEIGHT_DATE_SELECTED = 6;
 const ROUTE_STROKE_WEIGHT_ACTIVE = 7;
 
+const MARKER_Z_INDEX_DEFAULT = 1;
+const MARKER_Z_INDEX_DATE_SELECTED = 100;
+const MARKER_Z_INDEX_SEGMENT_ENDPOINT = 500;
+const MARKER_Z_INDEX_ACTIVE = 1000;
+
 export type MarkerRecord = {
   marker: google.maps.marker.AdvancedMarkerElement;
   element: HTMLElement;
@@ -44,6 +49,8 @@ export type PolylineRecord = {
   polyline: google.maps.Polyline;
   signature: string;
   date: string | null;
+  fromItemId: number;
+  toItemId: number;
 };
 
 export type CurrentLocationMarkerRecord = {
@@ -231,6 +238,8 @@ export function renderOverlays(input: {
       polyline,
       signature,
       date: from.visit_date,
+      fromItemId: from.id,
+      toItemId: to.id,
     });
   }
 
@@ -309,18 +318,31 @@ export function updateOverlaySelection(
   activeSegmentId: number | null,
   activeDate: string | null,
 ): void {
+  const segmentEndpointKeys = activeSegmentMarkerKeys(
+    polylines,
+    activeSegmentId,
+  );
+
   for (const [markerKey, { element, marker, date }] of markerRecords) {
     const active =
       (activePlaceId !== null && markerKey === itemMarkerKey(activePlaceId)) ||
       (activeCanonicalPlaceId !== null &&
         markerKey === placeMarkerKey(activeCanonicalPlaceId));
+    const segmentEndpoint = segmentEndpointKeys.has(markerKey);
     const dateSelected = activeDate !== null && date === activeDate;
     element.classList.toggle("active", active);
+    element.classList.toggle("segment-active", segmentEndpoint);
     element.classList.toggle(
       "date-active",
       activeDate !== null && date === activeDate,
     );
-    marker.zIndex = active ? 1000 : dateSelected ? 100 : 1;
+    marker.zIndex = active
+      ? MARKER_Z_INDEX_ACTIVE
+      : segmentEndpoint
+        ? MARKER_Z_INDEX_SEGMENT_ENDPOINT
+        : dateSelected
+          ? MARKER_Z_INDEX_DATE_SELECTED
+          : MARKER_Z_INDEX_DEFAULT;
   }
 
   for (const [segmentId, { polyline, date }] of polylines) {
@@ -338,4 +360,22 @@ export function updateOverlaySelection(
       zIndex: active ? 3 : dateSelected ? 2 : 1,
     });
   }
+}
+
+// The markers at both ends of the selected leg, so they can lift above the
+// rest of the trip alongside the highlighted polyline.
+function activeSegmentMarkerKeys(
+  polylines: Map<number, PolylineRecord>,
+  activeSegmentId: number | null,
+): Set<string> {
+  const active =
+    activeSegmentId === null ? undefined : polylines.get(activeSegmentId);
+  if (!active) {
+    return new Set();
+  }
+
+  return new Set([
+    itemMarkerKey(active.fromItemId),
+    itemMarkerKey(active.toItemId),
+  ]);
 }

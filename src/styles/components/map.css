@@ -239,7 +239,8 @@
   width: var(--map-marker-size, 16px);
 }
 
-.map-marker.active {
+.map-marker.active,
+.map-marker.segment-active {
   font-size: var(--map-marker-active-font-size, 12px);
   height: var(--map-marker-active-size, 22px);
   width: var(--map-marker-active-size, 22px);

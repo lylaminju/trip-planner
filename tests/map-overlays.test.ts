@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createMap, renderOverlays } from "@/components/map-panel/map-overlays";
+import {
+  createMap,
+  renderOverlays,
+  updateOverlaySelection,
+  type MarkerRecord,
+  type PolylineRecord,
+} from "@/components/map-panel/map-overlays";
 import type { Place } from "@/lib/types";
 
 describe("createMap", () => {
@@ -88,6 +94,84 @@ describe("renderOverlays", () => {
     expect(boundsSignatureRef.current).toBe("initialized");
   });
 });
+
+describe("updateOverlaySelection", () => {
+  it("lifts and enlarges the markers at both ends of the selected segment", () => {
+    const from = markerRecord();
+    const to = markerRecord();
+    const other = markerRecord();
+    const markerRecords = new Map<string, MarkerRecord>([
+      ["item:1", from.record],
+      ["item:2", to.record],
+      ["item:3", other.record],
+    ]);
+    const polylines = new Map<number, PolylineRecord>([
+      [10, polylineRecord({ fromItemId: 1, toItemId: 2 })],
+    ]);
+
+    updateOverlaySelection(markerRecords, polylines, null, null, 10, null);
+
+    expect(from.classes).toContain("segment-active");
+    expect(to.classes).toContain("segment-active");
+    expect(other.classes).not.toContain("segment-active");
+    expect(from.zIndex()).toBeGreaterThan(other.zIndex());
+    expect(to.zIndex()).toBe(from.zIndex());
+  });
+
+  it("drops the segment highlight once no segment is selected", () => {
+    const from = markerRecord();
+    const markerRecords = new Map<string, MarkerRecord>([
+      ["item:1", from.record],
+    ]);
+    const polylines = new Map<number, PolylineRecord>([
+      [10, polylineRecord({ fromItemId: 1, toItemId: 2 })],
+    ]);
+
+    updateOverlaySelection(markerRecords, polylines, null, null, 10, null);
+    updateOverlaySelection(markerRecords, polylines, null, null, null, null);
+
+    expect(from.classes).not.toContain("segment-active");
+  });
+});
+
+function markerRecord() {
+  const classes = new Set<string>();
+  const marker = { zIndex: 0 };
+  const element = {
+    classList: {
+      toggle(name: string, force: boolean) {
+        if (force) {
+          classes.add(name);
+        } else {
+          classes.delete(name);
+        }
+      },
+    },
+  };
+
+  return {
+    classes,
+    zIndex: () => marker.zIndex,
+    record: {
+      marker: marker as unknown as google.maps.marker.AdvancedMarkerElement,
+      element: element as unknown as HTMLElement,
+      signature: "signature",
+      date: null,
+    } satisfies MarkerRecord,
+  };
+}
+
+function polylineRecord(endpoints: {
+  fromItemId: number;
+  toItemId: number;
+}): PolylineRecord {
+  return {
+    polyline: { setOptions() {} } as unknown as google.maps.Polyline,
+    signature: "signature",
+    date: null,
+    ...endpoints,
+  };
+}
 
 function place(overrides: Partial<Place>): Place {
   return {
