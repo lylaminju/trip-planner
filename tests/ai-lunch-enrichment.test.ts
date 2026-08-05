@@ -250,6 +250,10 @@ describe("enrichLunchStops", () => {
     assertPlacesBudget.mockRejectedValue(
       new GooglePlacesRateLimitError("budget gone"),
     );
+    // Distinct venues per day, so the cross-day dedup never fires here.
+    searchPlaceId
+      .mockResolvedValueOnce("google-place-1")
+      .mockResolvedValueOnce("google-place-2");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const { lunchByDate, log } = await enrichLunchStops({
@@ -270,6 +274,137 @@ describe("enrichLunchStops", () => {
     expect(fetchLunchPlaceDetails).not.toHaveBeenCalled();
     expect(log.map((entry) => entry.details_calls)).toEqual([0, 0]);
     warn.mockRestore();
+  });
+
+  it("skips a candidate an earlier day already took and spends nothing on it", async () => {
+    searchPlaceId
+      .mockResolvedValueOnce("google-place-1")
+      .mockResolvedValueOnce("google-place-1")
+      .mockResolvedValueOnce("google-place-2");
+    fetchLunchPlaceDetails
+      .mockResolvedValueOnce(googleDetails())
+      .mockResolvedValueOnce(
+        googleDetails({
+          place_id: "google-place-2",
+          name: "Le Backup (Google)",
+        }),
+      );
+
+    const { lunchByDate, log } = await enrichLunchStops({
+      plan: planWithLunch(["2026-05-27", "2026-05-28"]),
+      destination: "Paris",
+      userId: "user-1",
+      diningBudget: null,
+    });
+
+    expect(lunchByDate.get("2026-05-27")?.name).toBe("Chez Janou (Google)");
+    expect(lunchByDate.get("2026-05-28")?.name).toBe("Le Backup (Google)");
+    expect(log[1].candidates.map((entry) => entry.result)).toEqual([
+      LUNCH_CANDIDATE_RESULT.DUPLICATE,
+      LUNCH_CANDIDATE_RESULT.CHOSEN,
+    ]);
+    // The repeat is rejected on the free search alone: one details call per day.
+    expect(fetchLunchPlaceDetails).toHaveBeenCalledTimes(2);
+    expect(log[1].details_calls).toBe(1);
+  });
+
+  it("rejects a venue Google places away from that day's attractions", async () => {
+    searchPlaceId
+      .mockResolvedValueOnce("google-place-1")
+      .mockResolvedValueOnce("google-place-2");
+    fetchLunchPlaceDetails
+      // Google puts the top pick ~17 km out, well past the detour budget.
+      .mockResolvedValueOnce(googleDetails({ latitude: 48.95, longitude: 2.55 }))
+      .mockResolvedValueOnce(
+        googleDetails({
+          place_id: "google-place-2",
+          name: "Le Backup (Google)",
+        }),
+      );
+
+    const { lunchByDate, log } = await enrichLunchStops({
+      plan: planWithLunch([WEDNESDAY_DATE]),
+      destination: "Paris",
+      userId: "user-1",
+      diningBudget: null,
+      visitCoordinatesByDate: new Map([
+        [WEDNESDAY_DATE, [{ latitude: 48.856, longitude: 2.365 }]],
+      ]),
+    });
+
+    expect(lunchByDate.get(WEDNESDAY_DATE)?.name).toBe("Le Backup (Google)");
+    expect(log[0].candidates.map((entry) => entry.result)).toEqual([
+      LUNCH_CANDIDATE_RESULT.TOO_FAR,
+      LUNCH_CANDIDATE_RESULT.CHOSEN,
+    ]);
+  });
+
+  it("drops the lunch slot when the only candidates are too far", async () => {
+    fetchLunchPlaceDetails.mockResolvedValue(
+      googleDetails({ latitude: 48.95, longitude: 2.55 }),
+    );
+    searchPlaceId
+      .mockResolvedValueOnce("google-place-1")
+      .mockResolvedValueOnce("google-place-2");
+
+    const { lunchByDate, log } = await enrichLunchStops({
+      plan: planWithLunch([WEDNESDAY_DATE]),
+      destination: "Paris",
+      userId: "user-1",
+      diningBudget: null,
+      visitCoordinatesByDate: new Map([
+        [WEDNESDAY_DATE, [{ latitude: 48.856, longitude: 2.365 }]],
+      ]),
+    });
+
+    expect(lunchByDate.has(WEDNESDAY_DATE)).toBe(false);
+    expect(log[0].outcome).toBeNull();
+  });
+
+  it("skips a candidate the trip already visits as an attraction", async () => {
+    searchPlaceId
+      .mockResolvedValueOnce("google-place-1")
+      .mockResolvedValueOnce("google-place-2");
+    fetchLunchPlaceDetails.mockResolvedValue(
+      googleDetails({ place_id: "google-place-2", name: "Le Backup (Google)" }),
+    );
+
+    const { lunchByDate, log } = await enrichLunchStops({
+      plan: planWithLunch([WEDNESDAY_DATE]),
+      destination: "Paris",
+      userId: "user-1",
+      diningBudget: null,
+      // The catalog lists this cafe as an attraction and the plan visits it.
+      scheduledPlaceIds: new Set(["google-place-1"]),
+    });
+
+    expect(lunchByDate.get(WEDNESDAY_DATE)?.name).toBe("Le Backup (Google)");
+    expect(log[0].candidates.map((entry) => entry.result)).toEqual([
+      LUNCH_CANDIDATE_RESULT.DUPLICATE,
+      LUNCH_CANDIDATE_RESULT.CHOSEN,
+    ]);
+    expect(fetchLunchPlaceDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the lunch slot when every candidate repeats an earlier day", async () => {
+    const { lunchByDate, log } = await enrichLunchStops({
+      plan: planWithLunch(["2026-05-27", "2026-05-28"]),
+      destination: "Paris",
+      userId: "user-1",
+      diningBudget: null,
+    });
+
+    expect(lunchByDate.has("2026-05-28")).toBe(false);
+    expect(lunchByDate.size).toBe(1);
+    expect(log[1]).toMatchObject({
+      outcome: null,
+      chosen_index: null,
+      details_calls: 0,
+      candidates: [
+        { name: "Chez Janou", result: LUNCH_CANDIDATE_RESULT.DUPLICATE },
+        { name: "Le Backup", result: LUNCH_CANDIDATE_RESULT.DUPLICATE },
+      ],
+    });
   });
 
   it("keeps a successful verification when only the usage insert fails", async () => {
@@ -341,6 +476,24 @@ describe("unverifiedLunchStops", () => {
     });
     expect(searchPlaceId).not.toHaveBeenCalled();
     expect(fetchLunchPlaceDetails).not.toHaveBeenCalled();
+  });
+
+  it("falls through to the next candidate when a day repeats a restaurant", () => {
+    const lunches = unverifiedLunchStops(
+      planWithLunch(["2026-05-27", "2026-05-28"]),
+    );
+
+    expect(lunches.get("2026-05-27")?.name).toBe("Chez Janou");
+    expect(lunches.get("2026-05-28")?.name).toBe("Le Backup");
+  });
+
+  it("drops a day whose every candidate repeats an earlier day", () => {
+    const lunches = unverifiedLunchStops(
+      planWithLunch(["2026-05-27", "2026-05-28", "2026-05-29"]),
+    );
+
+    expect(lunches.has("2026-05-29")).toBe(false);
+    expect(lunches.size).toBe(2);
   });
 });
 

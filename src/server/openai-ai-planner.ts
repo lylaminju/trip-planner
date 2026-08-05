@@ -82,6 +82,10 @@ export type AiPlannerPromptContext = {
       | "region_distance_tier"
       | "typical_duration_minutes"
       | "planning_note"
+      // Sent so the model can place a lunch stop by measuring against the day's
+      // attractions instead of inferring distance from area names.
+      | "latitude"
+      | "longitude"
     >
   >;
   tripDates: string[];
@@ -133,6 +137,11 @@ export const AI_LUNCH_MAX_DURATION_MINUTES = 120;
 // lunch_verification_log before expanding.
 export const AI_LUNCH_CANDIDATE_COUNT = 2;
 
+// How far a lunch venue may sit from the nearest attraction scheduled that day.
+// The prompt states the bound so the model can respect it up front, and lunch
+// selection re-checks it against Google's coordinates rather than the model's.
+export const AI_LUNCH_MAX_DETOUR_KM = 2.5;
+
 const SYSTEM_PROMPT_INTRO =
   "Create a timed attraction-only itinerary from the provided curated candidates.";
 
@@ -142,6 +151,9 @@ const NO_RESTAURANTS_RULE =
 const LUNCH_RULES = [
   "preferences.include_lunch_stop is on: besides the attraction visits, schedule one lunch slot per planned day in that day's lunch field, close to where the traveler is around midday. Set lunch to null only when a day has no workable option.",
   `Each lunch slot lists exactly ${AI_LUNCH_CANDIDATE_COUNT} candidate restaurants, your best pick first — real, currently operating, genuinely different venues (not two branches or near-clones), all reachable from the slot's location.`,
+  "Draw lunch venues from your own knowledge of the destination rather than the candidates list: pick the best real option near that day's midday location whether or not it appears in candidates. Cafes and restaurants that do appear in candidates are attractions to schedule as visits, not a shortlist to pick lunch from.",
+  `Every candidate must be within ${AI_LUNCH_MAX_DETOUR_KM} km of an attraction scheduled that same day. Measure this against the latitude and longitude given for those candidates instead of judging distance from area names, and leave enough travel time that the visit before and the visit after both still work.`,
+  "Vary restaurants across the trip: no venue should be your best pick on more than one day. Backup candidates may repeat across days, so a thin local shortlist is never a reason to leave a day's lunch null.",
   "Every candidate must match preferences.dining_budget (budget = inexpensive local spots, moderate = mid-range, upscale = a notable dining experience; unset = use your judgment), suit every preferences.dietary_tags value, and be consistent with preferences.dietary_notes.",
   `Lunch start_time must be between ${AI_LUNCH_EARLIEST_START_TIME} and ${AI_LUNCH_LATEST_START_TIME} on the same 10-minute grid, must not overlap attraction visits, and duration_minutes should be realistic (${AI_LUNCH_MIN_DURATION_MINUTES}-${AI_LUNCH_MAX_DURATION_MINUTES}).`,
   "Give each candidate's real coordinates and its exact commonly used name. In each candidate's notes, say briefly why it fits (signature dish or vibe).",

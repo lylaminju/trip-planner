@@ -333,6 +333,8 @@ function promptContext(): AiPlannerPromptContext {
         region_distance_tier: "central",
         typical_duration_minutes: 120,
         planning_note: "Online booking recommended.",
+        latitude: 40.785,
+        longitude: -73.968,
       },
     ],
     tripDates: ["2026-05-27"],

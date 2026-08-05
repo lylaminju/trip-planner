@@ -1,3 +1,7 @@
+import {
+  straightLineDistanceKm,
+  type Coordinates,
+} from "@/lib/geo-distance";
 import type { AiDiningBudget } from "@/lib/types";
 import { parseVisitTime } from "@/lib/visit-time";
 
@@ -15,10 +19,11 @@ import {
   PLACES_SKU,
   recordPlacesCall,
 } from "./supabase-google-places-usage-store";
-import type {
-  AiItineraryPlan,
-  AiPlanLunchCandidate,
-  AiPlanLunchSlot,
+import {
+  AI_LUNCH_MAX_DETOUR_KM,
+  type AiItineraryPlan,
+  type AiPlanLunchCandidate,
+  type AiPlanLunchSlot,
 } from "./openai-ai-planner";
 
 export const LUNCH_VERIFICATION_STATUS = {
@@ -42,6 +47,10 @@ export const LUNCH_CANDIDATE_RESULT = {
   CLOSED_AT_LUNCH: "closed_at_lunch",
   BUDGET_MISMATCH: "budget_mismatch",
   DETAILS_ERROR: "details_error",
+  // Resolved to a restaurant an earlier day already took.
+  DUPLICATE: "duplicate",
+  // Google placed it beyond the day's detour budget.
+  TOO_FAR: "too_far",
   NOT_FETCHED: "not_fetched",
 } as const;
 
@@ -67,7 +76,9 @@ export type EnrichedLunchStop = {
 // candidate-cap decisions can be made from real outcome distributions.
 export type LunchDayLog = {
   date: string;
-  outcome: LunchVerificationStatus;
+  // null when the day ended up with no lunch stop at all, which happens when
+  // every candidate repeated a restaurant an earlier day already took.
+  outcome: LunchVerificationStatus | null;
   // Index into candidates of the venue that ended up in the itinerary; null
   // when the day fell back to unverified model data.
   chosen_index: number | null;
@@ -118,18 +129,33 @@ const CLOSED_WARNING_NOTE =
  * place ids via the free IDs-only search, then Place Details Enterprise is
  * fetched in the model's rank order, stopping at the first candidate that
  * passes the hard gates (operational, open during the lunch window, price
- * within one tier of the requested budget). Every failure mode degrades down
- * the fallback ladder instead of failing the generation, and each day's
- * outcomes are returned as a log for later analysis.
+ * within one tier of the requested budget, and not already taken by an earlier
+ * day). Every failure mode degrades down the fallback ladder instead of failing
+ * the generation, and each day's outcomes are returned as a log for later
+ * analysis.
  */
 export async function enrichLunchStops(input: {
   plan: AiItineraryPlan;
   destination: string;
   userId: string;
   diningBudget: AiDiningBudget | null;
+  // Catalog places already scheduled as visits. Some catalogs list cafes as
+  // attractions, so without these a lunch pick can land on a venue the trip
+  // already visits: the same repeat the attraction rules forbid, arriving
+  // through the lunch field instead.
+  scheduledPlaceIds?: ReadonlySet<string>;
+  // Where each day's attractions actually are, keyed by date. The model reasons
+  // about distance from memory and gets it wrong, so this is what stops a venue
+  // across town from being scheduled between two downtown stops.
+  visitCoordinatesByDate?: ReadonlyMap<string, readonly Coordinates[]>;
 }): Promise<LunchEnrichmentResult> {
   const lunchByDate = new Map<string, EnrichedLunchStop>();
   const log: LunchDayLog[] = [];
+  // Restaurants the trip has already taken, seeded with the scheduled visits.
+  // The prompt tells the model not to reuse a venue, but two different
+  // candidate names can still resolve to one real restaurant, so the resolved
+  // place id is the only trustworthy identity to dedup on.
+  const usedPlaceIds = new Set<string>(input.scheduledPlaceIds ?? []);
   // Once the shared budget is exhausted, skip the remaining lookups instead of
   // asserting per candidate just to collect the same rejection.
   let budgetExhausted = false;
@@ -140,6 +166,9 @@ export async function enrichLunchStops(input: {
 
     const results: LunchCandidateResult[] = lunch.candidates.map(
       () => LUNCH_CANDIDATE_RESULT.NOT_FETCHED,
+    );
+    const resolvedPlaceIds: Array<string | null> = lunch.candidates.map(
+      () => null,
     );
     const fetched: Array<{ index: number; details: LunchRestaurantDetails }> =
       [];
@@ -155,6 +184,13 @@ export async function enrichLunchStops(input: {
       );
       if (placeId === null) {
         results[index] = LUNCH_CANDIDATE_RESULT.NOT_FOUND;
+        continue;
+      }
+      resolvedPlaceIds[index] = placeId;
+      // Rejecting a repeat here, before the details fetch, also keeps a
+      // duplicate from spending Place Details Enterprise quota.
+      if (usedPlaceIds.has(placeId)) {
+        results[index] = LUNCH_CANDIDATE_RESULT.DUPLICATE;
         continue;
       }
 
@@ -215,6 +251,7 @@ export async function enrichLunchStops(input: {
         day.date,
         lunch,
         input.diningBudget,
+        input.visitCoordinatesByDate?.get(day.date) ?? [],
       );
       results[index] = gateResult;
       if (gateResult === LUNCH_CANDIDATE_RESULT.CHOSEN) {
@@ -224,10 +261,23 @@ export async function enrichLunchStops(input: {
     }
 
     const selection = selectLunch(lunch, results, fetched, chosenIndex);
-    lunchByDate.set(day.date, selection.stop);
+    if (selection.stop !== null) {
+      lunchByDate.set(day.date, selection.stop);
+      // Verified stops carry Google's own id; an unverified fallback still has
+      // a resolved id whenever the search matched, and claiming it here stops a
+      // later day from scheduling the same restaurant.
+      const takenPlaceId =
+        selection.stop.google_place_id ??
+        (selection.sourceIndex === null
+          ? null
+          : resolvedPlaceIds[selection.sourceIndex]);
+      if (takenPlaceId !== null) {
+        usedPlaceIds.add(takenPlaceId);
+      }
+    }
     log.push({
       date: day.date,
-      outcome: selection.stop.verification,
+      outcome: selection.stop?.verification ?? null,
       chosen_index: selection.chosenIndex,
       details_calls: detailsCalls,
       candidates: lunch.candidates.map((candidate, index) => ({
@@ -243,19 +293,29 @@ export async function enrichLunchStops(input: {
 /**
  * The no-Places variant used for guest generations: each day keeps the model's
  * top candidate with an unverified marker, no budget is spent, and no log is
- * produced (there are no verification outcomes to analyze).
+ * produced (there are no verification outcomes to analyze). Without place ids
+ * to compare, repeats are caught on the candidate name alone, so a day falls
+ * through to its next candidate and is dropped when every name repeats.
  */
 export function unverifiedLunchStops(
   plan: AiItineraryPlan,
 ): Map<string, EnrichedLunchStop> {
   const lunches = new Map<string, EnrichedLunchStop>();
+  const usedNames = new Set<string>();
   for (const day of plan.days) {
-    const topCandidate = day.lunch?.candidates[0];
-    if (day.lunch && topCandidate) {
-      lunches.set(day.date, unverifiedLunch(day.lunch, topCandidate));
-    }
+    if (!day.lunch) continue;
+    const candidate = day.lunch.candidates.find(
+      (entry) => !usedNames.has(lunchNameKey(entry.name)),
+    );
+    if (!candidate) continue;
+    usedNames.add(lunchNameKey(candidate.name));
+    lunches.set(day.date, unverifiedLunch(day.lunch, candidate));
   }
   return lunches;
+}
+
+function lunchNameKey(name: string): string {
+  return name.trim().toLowerCase();
 }
 
 /**
@@ -316,6 +376,7 @@ function candidateGateResult(
   date: string,
   slot: AiPlanLunchSlot,
   diningBudget: AiDiningBudget | null,
+  dayVisitCoordinates: readonly Coordinates[],
 ): LunchCandidateResult {
   if (
     details.business_status !== null &&
@@ -333,22 +394,50 @@ function candidateGateResult(
   ) {
     return LUNCH_CANDIDATE_RESULT.CLOSED_AT_LUNCH;
   }
+  if (isBeyondDetour(details, dayVisitCoordinates)) {
+    return LUNCH_CANDIDATE_RESULT.TOO_FAR;
+  }
   if (!budgetCompatible(diningBudget, details.price_level)) {
     return LUNCH_CANDIDATE_RESULT.BUDGET_MISMATCH;
   }
   return LUNCH_CANDIDATE_RESULT.CHOSEN;
 }
 
+// Judged on Google's coordinates rather than the model's claimed ones, since a
+// venue only reaches here once Google has confirmed where it really is. A day
+// with no visits to measure against never rejects.
+function isBeyondDetour(
+  details: LunchRestaurantDetails,
+  dayVisitCoordinates: readonly Coordinates[],
+): boolean {
+  if (dayVisitCoordinates.length === 0) return false;
+  const venue = {
+    latitude: details.latitude,
+    longitude: details.longitude,
+  };
+  return dayVisitCoordinates.every(
+    (visit) => straightLineDistanceKm(venue, visit) > AI_LUNCH_MAX_DETOUR_KM,
+  );
+}
+
 // Fallback ladder when no candidate passed every gate: a budget mismatch is
 // still a real, open restaurant (its displayed price tells the story), a
 // closed-looking venue keeps a warning, and with no Google data at all the
-// model's top pick stands as unverified.
+// model's top pick stands as unverified. Duplicates and too-far venues never
+// win a rung: the budget and closed-looking rungs match only their own results,
+// and the unverified fallback skips both explicitly. `sourceIndex`
+// reports which candidate the stop came from even when `chosenIndex` is null,
+// so the caller can claim the restaurant against later days.
 function selectLunch(
   slot: AiPlanLunchSlot,
   results: LunchCandidateResult[],
   fetched: Array<{ index: number; details: LunchRestaurantDetails }>,
   chosenIndex: number | null,
-): { stop: EnrichedLunchStop; chosenIndex: number | null } {
+): {
+  stop: EnrichedLunchStop | null;
+  chosenIndex: number | null;
+  sourceIndex: number | null;
+} {
   if (chosenIndex !== null) {
     const chosen = fetched.find((entry) => entry.index === chosenIndex);
     if (chosen) {
@@ -360,6 +449,7 @@ function selectLunch(
           LUNCH_VERIFICATION_STATUS.VERIFIED,
         ),
         chosenIndex,
+        sourceIndex: chosenIndex,
       };
     }
   }
@@ -376,6 +466,7 @@ function selectLunch(
         LUNCH_VERIFICATION_STATUS.VERIFIED,
       ),
       chosenIndex: budgetMismatch.index,
+      sourceIndex: budgetMismatch.index,
     };
   }
 
@@ -393,12 +484,26 @@ function selectLunch(
         LUNCH_VERIFICATION_STATUS.CLOSED_WARNING,
       ),
       chosenIndex: closedLooking.index,
+      sourceIndex: closedLooking.index,
     };
   }
 
+  // A day with no lunch is better than a repeat of yesterday's restaurant or a
+  // detour across town, so when every candidate is one of those the slot is
+  // dropped entirely.
+  const fallbackIndex = results.findIndex(
+    (result) =>
+      result !== LUNCH_CANDIDATE_RESULT.DUPLICATE &&
+      result !== LUNCH_CANDIDATE_RESULT.TOO_FAR,
+  );
+  if (fallbackIndex === -1) {
+    return { stop: null, chosenIndex: null, sourceIndex: null };
+  }
+
   return {
-    stop: unverifiedLunch(slot, slot.candidates[0]),
+    stop: unverifiedLunch(slot, slot.candidates[fallbackIndex]),
     chosenIndex: null,
+    sourceIndex: fallbackIndex,
   };
 }
 

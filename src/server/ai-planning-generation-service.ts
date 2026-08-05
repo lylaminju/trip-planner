@@ -1,4 +1,5 @@
 import { destinationCandidateKey } from "@/lib/ai-planning";
+import type { Coordinates } from "@/lib/geo-distance";
 import {
   AI_PLANNING_MAX_TRIP_DAYS,
   aiCoverageMinTotalVisits,
@@ -322,6 +323,14 @@ export async function generateAiItineraryForRequest(
         destination: trip.destination,
         userId,
         diningBudget: savedPreferences.dining_budget,
+        scheduledPlaceIds: scheduledCandidatePlaceIds(
+          finalPlan,
+          plannableCandidates,
+        ),
+        visitCoordinatesByDate: dayVisitCoordinates(
+          finalPlan,
+          plannableCandidates,
+        ),
       });
       lunchByDate = enrichment.lunchByDate;
       lunchVerificationLog = enrichment.log;
@@ -413,6 +422,55 @@ function tripDateRange(trip: Pick<Trip, "start_date" | "end_date">): string[] {
 
 function countGeneratedVisits(plan: AiItineraryPlan): number {
   return plan.days.reduce((total, day) => total + day.visits.length, 0);
+}
+
+// Where each day's attractions are, so lunch selection can reject a venue that
+// is nowhere near them. Coordinates come from the catalog rather than the plan,
+// which carries only candidate ids.
+function dayVisitCoordinates(
+  plan: AiItineraryPlan,
+  candidates: AiDestinationCandidate[],
+): Map<string, Coordinates[]> {
+  const pointByCandidateId = new Map(
+    candidates.map((candidate) => [
+      candidate.id,
+      { latitude: candidate.latitude, longitude: candidate.longitude },
+    ]),
+  );
+  const byDate = new Map<string, Coordinates[]>();
+  for (const day of plan.days) {
+    const points: Coordinates[] = [];
+    for (const visit of day.visits) {
+      const point = pointByCandidateId.get(visit.candidate_id);
+      if (point) {
+        points.push(point);
+      }
+    }
+    byDate.set(day.date, points);
+  }
+  return byDate;
+}
+
+// Google places the plan already visits. Catalogs may list cafes as
+// attractions, so lunch selection needs these to avoid picking a venue that is
+// on the itinerary already; candidates without a place id cannot collide.
+function scheduledCandidatePlaceIds(
+  plan: AiItineraryPlan,
+  candidates: AiDestinationCandidate[],
+): Set<string> {
+  const placeIdByCandidateId = new Map(
+    candidates.map((candidate) => [candidate.id, candidate.google_place_id]),
+  );
+  const placeIds = new Set<string>();
+  for (const day of plan.days) {
+    for (const visit of day.visits) {
+      const placeId = placeIdByCandidateId.get(visit.candidate_id);
+      if (placeId) {
+        placeIds.add(placeId);
+      }
+    }
+  }
+  return placeIds;
 }
 
 function sumTokens(

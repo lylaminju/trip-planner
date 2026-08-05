@@ -48,6 +48,8 @@ export function promptContext(input: {
       region_distance_tier: candidate.region_distance_tier,
       typical_duration_minutes: candidate.typical_duration_minutes,
       planning_note: candidate.planning_note,
+      latitude: candidate.latitude,
+      longitude: candidate.longitude,
     })),
     tripDates: input.tripDates,
     coverage: input.coverage,
