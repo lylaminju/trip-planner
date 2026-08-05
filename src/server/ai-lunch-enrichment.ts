@@ -6,7 +6,6 @@ import {
   LUNCH_CANDIDATE_RESULT,
   LUNCH_VERIFICATION_STATUS,
   selectLunch,
-  unverifiedLunch,
   type EnrichedLunchStop,
   type LunchCandidateResult,
   type LunchVerificationStatus,
@@ -228,34 +227,6 @@ export async function enrichLunchStops(input: {
   }
 
   return { lunchByDate, log };
-}
-
-/**
- * The no-Places variant: each day keeps the model's top candidate with an
- * unverified marker, no budget is spent, and no log is produced (there are no
- * verification outcomes to analyze). Without place ids to compare, repeats are
- * caught on the candidate name alone, so a day falls through to its next
- * candidate and is dropped when every name repeats.
- */
-export function unverifiedLunchStops(
-  plan: AiItineraryPlan,
-): Map<string, EnrichedLunchStop> {
-  const lunches = new Map<string, EnrichedLunchStop>();
-  const usedNames = new Set<string>();
-  for (const day of plan.days) {
-    if (!day.lunch) continue;
-    const candidate = day.lunch.candidates.find(
-      (entry) => !usedNames.has(lunchNameKey(entry.name)),
-    );
-    if (!candidate) continue;
-    usedNames.add(lunchNameKey(candidate.name));
-    lunches.set(day.date, unverifiedLunch(day.lunch, candidate));
-  }
-  return lunches;
-}
-
-function lunchNameKey(name: string): string {
-  return name.trim().toLowerCase();
 }
 
 /**

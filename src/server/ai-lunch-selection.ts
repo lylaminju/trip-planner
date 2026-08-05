@@ -322,7 +322,7 @@ function enrichedFromDetails(
   };
 }
 
-export function unverifiedLunch(
+function unverifiedLunch(
   slot: AiPlanLunchSlot,
   candidate: AiPlanLunchCandidate,
 ): EnrichedLunchStop {

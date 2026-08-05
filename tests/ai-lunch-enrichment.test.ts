@@ -26,7 +26,6 @@ import {
   lunchDisplayNotes,
   LUNCH_CANDIDATE_RESULT,
   LUNCH_VERIFICATION_STATUS,
-  unverifiedLunchStops,
   type EnrichedLunchStop,
 } from "@/server/ai-lunch-enrichment";
 import { GooglePlacesRateLimitError } from "@/server/errors";
@@ -458,42 +457,6 @@ describe("isOpenDuring", () => {
     expect(isOpenDuring(periods, WEDNESDAY_DATE, startTime, duration)).toBe(
       expected,
     );
-  });
-});
-
-describe("unverifiedLunchStops", () => {
-  it("keeps the top candidate per day without any Places spend", () => {
-    const lunches = unverifiedLunchStops(
-      planWithLunch(["2026-05-27", "2026-05-28"]),
-    );
-
-    expect(lunches.size).toBe(2);
-    expect(lunches.get("2026-05-27")).toMatchObject({
-      name: "Chez Janou",
-      start_time: "12:30",
-      duration_minutes: 60,
-      verification: LUNCH_VERIFICATION_STATUS.UNVERIFIED,
-    });
-    expect(searchPlaceId).not.toHaveBeenCalled();
-    expect(fetchLunchPlaceDetails).not.toHaveBeenCalled();
-  });
-
-  it("falls through to the next candidate when a day repeats a restaurant", () => {
-    const lunches = unverifiedLunchStops(
-      planWithLunch(["2026-05-27", "2026-05-28"]),
-    );
-
-    expect(lunches.get("2026-05-27")?.name).toBe("Chez Janou");
-    expect(lunches.get("2026-05-28")?.name).toBe("Le Backup");
-  });
-
-  it("drops a day whose every candidate repeats an earlier day", () => {
-    const lunches = unverifiedLunchStops(
-      planWithLunch(["2026-05-27", "2026-05-28", "2026-05-29"]),
-    );
-
-    expect(lunches.has("2026-05-29")).toBe(false);
-    expect(lunches.size).toBe(2);
   });
 });
 
