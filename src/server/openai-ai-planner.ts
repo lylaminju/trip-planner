@@ -20,13 +20,20 @@ import {
   openAiUsageTokens,
 } from "./openai-response";
 
-export type AiPlanLunchStop = {
+export type AiPlanLunchCandidate = {
   name: string;
   latitude: number;
   longitude: number;
+  notes: string | null;
+};
+
+// One shared time slot with the model's ranked venue options (best first).
+// Verification fetches Google details in rank order and stops at the first
+// candidate that passes its gates, so later entries are fallbacks.
+export type AiPlanLunchSlot = {
   start_time: string;
   duration_minutes: number;
-  notes: string | null;
+  candidates: AiPlanLunchCandidate[];
 };
 
 export type AiItineraryPlan = {
@@ -39,9 +46,9 @@ export type AiItineraryPlan = {
       notes: string | null;
     }>;
     // Present only when the trip's preferences enable lunch stops; null on a
-    // day the model found no workable pick. Unlike visits, a lunch stop is the
-    // model's own suggestion (name + coordinates), not a catalog candidate.
-    lunch?: AiPlanLunchStop | null;
+    // day the model found no workable pick. Unlike visits, lunch venues are the
+    // model's own suggestions (name + coordinates), not catalog candidates.
+    lunch?: AiPlanLunchSlot | null;
   }>;
 };
 
@@ -116,6 +123,10 @@ export const AI_LUNCH_EARLIEST_START_TIME = "12:00";
 export const AI_LUNCH_LATEST_START_TIME = "15:00";
 export const AI_LUNCH_MIN_DURATION_MINUTES = 30;
 export const AI_LUNCH_MAX_DURATION_MINUTES = 120;
+// Ranked venue options per lunch slot. Two covers the common failure (top pick
+// closed or unmatched) at minimal token cost; revisit against the
+// lunch_verification_log before expanding.
+export const AI_LUNCH_CANDIDATE_COUNT = 2;
 
 const SYSTEM_PROMPT_INTRO =
   "Create a timed attraction-only itinerary from the provided curated candidates.";
@@ -124,11 +135,12 @@ const NO_RESTAURANTS_RULE =
   "Do not add restaurants, meals, or places outside the candidate list.";
 
 const LUNCH_RULES = [
-  "preferences.include_lunch_stop is on: besides the attraction visits, schedule one lunch stop per planned day in that day's lunch field — a real, currently operating restaurant close to where the traveler is around midday. Set lunch to null only when a day has no workable option.",
-  "Pick restaurants matching preferences.dining_budget (budget = inexpensive local spots, moderate = mid-range, upscale = a notable dining experience; unset = use your judgment), suitable for every preferences.dietary_tags value, and consistent with preferences.dietary_notes.",
+  "preferences.include_lunch_stop is on: besides the attraction visits, schedule one lunch slot per planned day in that day's lunch field, close to where the traveler is around midday. Set lunch to null only when a day has no workable option.",
+  `Each lunch slot lists exactly ${AI_LUNCH_CANDIDATE_COUNT} candidate restaurants, your best pick first — real, currently operating, genuinely different venues (not two branches or near-clones), all reachable from the slot's location.`,
+  "Every candidate must match preferences.dining_budget (budget = inexpensive local spots, moderate = mid-range, upscale = a notable dining experience; unset = use your judgment), suit every preferences.dietary_tags value, and be consistent with preferences.dietary_notes.",
   `Lunch start_time must be between ${AI_LUNCH_EARLIEST_START_TIME} and ${AI_LUNCH_LATEST_START_TIME} on the same 10-minute grid, must not overlap attraction visits, and duration_minutes should be realistic (${AI_LUNCH_MIN_DURATION_MINUTES}-${AI_LUNCH_MAX_DURATION_MINUTES}).`,
-  "Give the restaurant's real coordinates and its exact commonly used name. In lunch notes, say briefly why it fits (signature dish or vibe).",
-  'When dietary_tags or dietary_notes are set, end the lunch notes with: "Confirm dietary needs with the restaurant."',
+  "Give each candidate's real coordinates and its exact commonly used name. In each candidate's notes, say briefly why it fits (signature dish or vibe).",
+  'When dietary_tags or dietary_notes are set, end each candidate\'s notes with: "Confirm dietary needs with the restaurant."',
   "Apart from the lunch field, do not add restaurants, meals, or places outside the candidate list.",
 ].join(" ");
 
@@ -263,21 +275,24 @@ const AI_PLAN_VISITS_SCHEMA = {
 const AI_PLAN_LUNCH_SCHEMA = {
   type: ["object", "null"],
   additionalProperties: false,
-  required: [
-    "name",
-    "latitude",
-    "longitude",
-    "start_time",
-    "duration_minutes",
-    "notes",
-  ],
+  required: ["start_time", "duration_minutes", "candidates"],
   properties: {
-    name: { type: "string" },
-    latitude: { type: "number" },
-    longitude: { type: "number" },
     start_time: { type: "string" },
     duration_minutes: { type: "integer" },
-    notes: { type: ["string", "null"] },
+    candidates: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "latitude", "longitude", "notes"],
+        properties: {
+          name: { type: "string" },
+          latitude: { type: "number" },
+          longitude: { type: "number" },
+          notes: { type: ["string", "null"] },
+        },
+      },
+    },
   },
 };
 

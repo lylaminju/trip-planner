@@ -2,12 +2,13 @@ import { isValid24HourTime, isValidIsoDate } from "@/lib/date-validation";
 import { parseVisitTime } from "@/lib/visit-time";
 
 import {
+  AI_LUNCH_CANDIDATE_COUNT,
   AI_LUNCH_EARLIEST_START_TIME,
   AI_LUNCH_LATEST_START_TIME,
   AI_LUNCH_MAX_DURATION_MINUTES,
   AI_LUNCH_MIN_DURATION_MINUTES,
   type AiItineraryPlan,
-  type AiPlanLunchStop,
+  type AiPlanLunchSlot,
 } from "./openai-ai-planner";
 
 export type AiPlanValidationResult =
@@ -179,17 +180,30 @@ export function validateAiItineraryPlan(
     : { status: "invalid", errors };
 }
 
-function lunchErrors(date: string, lunch: AiPlanLunchStop): string[] {
+function lunchErrors(date: string, lunch: AiPlanLunchSlot): string[] {
   const errors: string[] = [];
 
-  if (lunch.name.trim() === "") {
-    errors.push(`Day ${date} lunch must have a restaurant name.`);
-  }
-  if (!isFiniteInRange(lunch.latitude, -90, 90)) {
-    errors.push(`Day ${date} lunch latitude is invalid.`);
-  }
-  if (!isFiniteInRange(lunch.longitude, -180, 180)) {
-    errors.push(`Day ${date} lunch longitude is invalid.`);
+  if (
+    !Array.isArray(lunch.candidates) ||
+    lunch.candidates.length < 1 ||
+    lunch.candidates.length > AI_LUNCH_CANDIDATE_COUNT
+  ) {
+    errors.push(
+      `Day ${date} lunch must list 1-${AI_LUNCH_CANDIDATE_COUNT} candidate restaurants.`,
+    );
+  } else {
+    lunch.candidates.forEach((candidate, index) => {
+      const label = `Day ${date} lunch candidate ${index + 1}`;
+      if (candidate.name.trim() === "") {
+        errors.push(`${label} must have a restaurant name.`);
+      }
+      if (!isFiniteInRange(candidate.latitude, -90, 90)) {
+        errors.push(`${label} latitude is invalid.`);
+      }
+      if (!isFiniteInRange(candidate.longitude, -180, 180)) {
+        errors.push(`${label} longitude is invalid.`);
+      }
+    });
   }
   if (!isValid24HourTime(lunch.start_time)) {
     errors.push(`Day ${date} lunch time ${lunch.start_time} must be HH:MM.`);

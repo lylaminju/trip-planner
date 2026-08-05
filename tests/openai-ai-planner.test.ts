@@ -99,7 +99,17 @@ describe("OpenAI AI planner adapter", () => {
     const lunchDaySchema = lunchBody.text.format.schema.properties.days.items;
     expect(lunchDaySchema.required).toEqual(["date", "visits", "lunch"]);
     expect(lunchDaySchema.properties.lunch.type).toEqual(["object", "null"]);
-    expect(lunchBody.input[0].content[0].text).toContain("lunch stop per planned day");
+    expect(lunchDaySchema.properties.lunch.required).toEqual([
+      "start_time",
+      "duration_minutes",
+      "candidates",
+    ]);
+    expect(lunchBody.input[0].content[0].text).toContain(
+      "lunch slot per planned day",
+    );
+    expect(lunchBody.input[0].content[0].text).toContain(
+      "candidate restaurants",
+    );
     expect(lunchBody.input[0].content[0].text).toContain(
       "Confirm dietary needs with the restaurant.",
     );

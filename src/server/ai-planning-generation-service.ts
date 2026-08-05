@@ -22,6 +22,7 @@ import {
   enrichLunchStops,
   unverifiedLunchStops,
   type EnrichedLunchStop,
+  type LunchDayLog,
 } from "./ai-lunch-enrichment";
 import { promptContext } from "./ai-planner-prompt-context";
 import { validateAiItineraryPlan } from "./ai-plan-validation";
@@ -65,7 +66,10 @@ import { getTripById } from "./trip-service";
 //     catalog (must-see picks exempt), so the model never sees them.
 // v6: opt-in lunch stops — one model-picked restaurant per day honoring
 //     budget/dietary preferences, verified via Google Places after validation.
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v6";
+// v7: each lunch slot carries 2 ranked candidates; selection resolves them via
+//     free IDs-only search, fetches Place Details Enterprise in rank order,
+//     and gates on operational status, lunch-window hours, and budget tier.
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v7";
 
 const CATALOG_NOT_READY_MESSAGE =
   "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";
@@ -302,20 +306,27 @@ export async function generateAiItineraryForRequest(
       };
     }
 
-    // Lunch verification is the run's only Places spend (one Text Search per
-    // lunch); guests skip it and keep unverified model picks, mirroring the
-    // web-search split above. Every failure inside degrades to "unverified"
-    // rather than failing an already-validated generation.
-    const lunchByDate: Map<string, EnrichedLunchStop> =
-      savedPreferences.include_lunch_stop
-        ? isGuest
-          ? unverifiedLunchStops(finalPlan)
-          : await enrichLunchStops({
-              plan: finalPlan,
-              destination: trip.destination,
-              userId,
-            })
-        : new Map();
+    // Lunch selection is the run's only Places spend (free id resolution plus
+    // short-circuited Place Details Enterprise fetches); guests skip it and
+    // keep unverified model picks, mirroring the web-search split above. Every
+    // failure inside degrades down the fallback ladder rather than failing an
+    // already-validated generation.
+    let lunchByDate: Map<string, EnrichedLunchStop> = new Map();
+    let lunchVerificationLog: LunchDayLog[] | null = null;
+    if (savedPreferences.include_lunch_stop) {
+      if (isGuest) {
+        lunchByDate = unverifiedLunchStops(finalPlan);
+      } else {
+        const enrichment = await enrichLunchStops({
+          plan: finalPlan,
+          destination: trip.destination,
+          userId,
+          diningBudget: savedPreferences.dining_budget,
+        });
+        lunchByDate = enrichment.lunchByDate;
+        lunchVerificationLog = enrichment.log;
+      }
+    }
 
     const plannerSnapshot = await replaceAiGeneratedBatch(
       tripId,
@@ -339,6 +350,7 @@ export async function generateAiItineraryForRequest(
       repair_validation_status: repairValidationStatus,
       repair_validation_errors: repairValidationErrors,
       generated_place_count: countGeneratedVisits(finalPlan) + lunchByDate.size,
+      lunch_verification_log: lunchVerificationLog,
       generated_day_count: finalPlan.days.length,
       duration_ms: Date.now() - startedAt,
       token_input_count: finalUsage.inputTokens,

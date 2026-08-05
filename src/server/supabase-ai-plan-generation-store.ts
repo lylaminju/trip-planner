@@ -1,3 +1,4 @@
+import type { LunchDayLog } from "./ai-lunch-enrichment";
 import { recordGuestEvent } from "./guest-events";
 import { GUEST_USAGE_KIND, recordGuestCall } from "./guest-usage-store";
 import { guestIdFromPrincipalId } from "./principal";
@@ -30,6 +31,9 @@ type GenerationUpdate = {
   token_input_count?: number | null;
   token_output_count?: number | null;
   failure_reason?: string | null;
+  // Per-day lunch verification outcomes; null when lunch was off or the run
+  // was a guest generation (no verification happens there).
+  lunch_verification_log?: LunchDayLog[] | null;
 };
 
 export async function createAiPlanGeneration(

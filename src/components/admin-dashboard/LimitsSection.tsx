@@ -7,7 +7,7 @@ import {
   GUEST_GOOGLE_ROUTES_GLOBAL_DAILY_CAP,
   PLACES_AUTOCOMPLETE_MONTHLY_LIMIT,
   PLACES_DETAILS_MONTHLY_LIMIT,
-  PLACES_TEXT_SEARCH_ENTERPRISE_MONTHLY_LIMIT,
+  PLACES_PLACE_DETAILS_ENTERPRISE_MONTHLY_LIMIT,
   PLACES_PER_USER_DAILY_LIMIT,
   PLACES_PHOTO_MONTHLY_LIMIT,
 } from "@/lib/api-limits";
@@ -57,7 +57,7 @@ const LIMIT_GROUPS: LimitGroup[] = [
       { label: "Autocomplete", value: PLACES_AUTOCOMPLETE_MONTHLY_LIMIT },
       { label: "Place Details", value: PLACES_DETAILS_MONTHLY_LIMIT },
       { label: "Place Photo", value: PLACES_PHOTO_MONTHLY_LIMIT },
-      { label: "Text search (Enterprise)", value: PLACES_TEXT_SEARCH_ENTERPRISE_MONTHLY_LIMIT },
+      { label: "Place details (Enterprise)", value: PLACES_PLACE_DETAILS_ENTERPRISE_MONTHLY_LIMIT },
     ],
   },
 ];

@@ -84,12 +84,22 @@ describe("AI itinerary plan validation", () => {
             {
               ...day,
               lunch: {
-                name: "Chez Janou",
-                latitude: 48.856,
-                longitude: 2.365,
                 start_time: "12:30",
                 duration_minutes: 60,
-                notes: null,
+                candidates: [
+                  {
+                    name: "Chez Janou",
+                    latitude: 48.856,
+                    longitude: 2.365,
+                    notes: null,
+                  },
+                  {
+                    name: "Le Backup",
+                    latitude: 48.857,
+                    longitude: 2.366,
+                    notes: null,
+                  },
+                ],
               },
             },
           ],
@@ -103,7 +113,7 @@ describe("AI itinerary plan validation", () => {
     ).toEqual({ status: "valid", errors: [] });
   });
 
-  it("rejects a lunch with a blank name, bad coordinates, off-window time, or bad duration", () => {
+  it("rejects a lunch with a bad candidate, off-window time, or bad duration", () => {
     const result = validateAiItineraryPlan(
       {
         days: [
@@ -118,12 +128,16 @@ describe("AI itinerary plan validation", () => {
               },
             ],
             lunch: {
-              name: "  ",
-              latitude: 148.856,
-              longitude: -200,
               start_time: "10:00",
               duration_minutes: 10,
-              notes: null,
+              candidates: [
+                {
+                  name: "  ",
+                  latitude: 148.856,
+                  longitude: -200,
+                  notes: null,
+                },
+              ],
             },
           },
         ],
@@ -139,12 +153,53 @@ describe("AI itinerary plan validation", () => {
 
     expect(result.status).toBe("invalid");
     expect(result.errors).toEqual([
-      "Day 2026-05-27 lunch must have a restaurant name.",
-      "Day 2026-05-27 lunch latitude is invalid.",
-      "Day 2026-05-27 lunch longitude is invalid.",
+      "Day 2026-05-27 lunch candidate 1 must have a restaurant name.",
+      "Day 2026-05-27 lunch candidate 1 latitude is invalid.",
+      "Day 2026-05-27 lunch candidate 1 longitude is invalid.",
       "Day 2026-05-27 lunch must start between 12:00 and 15:00.",
       "Day 2026-05-27 lunch duration must be 30-120 minutes.",
     ]);
+  });
+
+  it("rejects a lunch listing more candidates than the cap", () => {
+    const tooMany = validateAiItineraryPlan(
+      {
+        days: [
+          {
+            date: "2026-05-27",
+            visits: [
+              {
+                candidate_id: 10,
+                start_time: "09:00",
+                duration_minutes: 120,
+                notes: null,
+              },
+            ],
+            lunch: {
+              start_time: "12:30",
+              duration_minutes: 60,
+              candidates: [
+                { name: "A", latitude: 48.8, longitude: 2.3, notes: null },
+                { name: "B", latitude: 48.8, longitude: 2.3, notes: null },
+                { name: "C", latitude: 48.8, longitude: 2.3, notes: null },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        candidateIds: new Set([10]),
+        tripDates: ["2026-05-27"],
+        visitsPerDayMin: 1,
+        visitsPerDayMax: 3,
+        mustSeeCandidateIds: [],
+      },
+    );
+
+    expect(tooMany.status).toBe("invalid");
+    expect(tooMany.errors).toContain(
+      "Day 2026-05-27 lunch must list 1-2 candidate restaurants.",
+    );
   });
 
   it("rejects plans that omit required trip days", () => {
