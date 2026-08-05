@@ -71,11 +71,15 @@ export async function enrichLunchStops(input: {
     }
 
     try {
-      await assertPlacesBudget(input.userId, PLACES_SKU.LUNCH_SEARCH);
+      await assertPlacesBudget(input.userId, PLACES_SKU.TEXT_SEARCH_ENTERPRISE);
     } catch (error) {
       if (error instanceof GooglePlacesRateLimitError) {
         budgetExhausted = true;
       }
+      console.warn("AI lunch verification skipped: budget check failed", {
+        date: day.date,
+        error,
+      });
       enriched.set(day.date, unverifiedLunch(day.lunch));
       continue;
     }
@@ -89,14 +93,25 @@ export async function enrichLunchStops(input: {
           longitude: day.lunch.longitude,
         },
       });
-      await recordPlacesCall(input.userId, PLACES_SKU.LUNCH_SEARCH);
+      // A metering failure must not discard a verification Google already
+      // answered; log and keep the result, like Routes usage recording does.
+      try {
+        await recordPlacesCall(input.userId, PLACES_SKU.TEXT_SEARCH_ENTERPRISE);
+      } catch (error) {
+        console.warn("Failed to record Places text_search_enterprise usage", error);
+      }
       enriched.set(
         day.date,
         details
           ? enrichedFromDetails(day.lunch, day.date, details)
           : unverifiedLunch(day.lunch),
       );
-    } catch {
+    } catch (error) {
+      console.warn("AI lunch verification failed", {
+        date: day.date,
+        lunchName: day.lunch.name,
+        error,
+      });
       enriched.set(day.date, unverifiedLunch(day.lunch));
     }
   }

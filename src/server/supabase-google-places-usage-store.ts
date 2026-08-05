@@ -1,7 +1,7 @@
 import {
   PLACES_AUTOCOMPLETE_MONTHLY_LIMIT,
   PLACES_DETAILS_MONTHLY_LIMIT,
-  PLACES_LUNCH_SEARCH_MONTHLY_LIMIT,
+  PLACES_TEXT_SEARCH_ENTERPRISE_MONTHLY_LIMIT,
   PLACES_PHOTO_MONTHLY_LIMIT,
 } from "@/lib/api-limits";
 
@@ -13,7 +13,7 @@ export const PLACES_SKU = {
   DETAILS: "details",
   PHOTO: "photo",
   // Text Search with the Enterprise field mask, used to verify AI lunch picks.
-  LUNCH_SEARCH: "lunch_search",
+  TEXT_SEARCH_ENTERPRISE: "text_search_enterprise",
 } as const;
 
 export type PlacesSku = (typeof PLACES_SKU)[keyof typeof PLACES_SKU];
@@ -22,7 +22,7 @@ const MONTHLY_LIMIT_BY_SKU: Record<PlacesSku, number> = {
   [PLACES_SKU.AUTOCOMPLETE]: PLACES_AUTOCOMPLETE_MONTHLY_LIMIT,
   [PLACES_SKU.DETAILS]: PLACES_DETAILS_MONTHLY_LIMIT,
   [PLACES_SKU.PHOTO]: PLACES_PHOTO_MONTHLY_LIMIT,
-  [PLACES_SKU.LUNCH_SEARCH]: PLACES_LUNCH_SEARCH_MONTHLY_LIMIT,
+  [PLACES_SKU.TEXT_SEARCH_ENTERPRISE]: PLACES_TEXT_SEARCH_ENTERPRISE_MONTHLY_LIMIT,
 };
 
 export function monthlyLimitForSku(sku: PlacesSku): number {

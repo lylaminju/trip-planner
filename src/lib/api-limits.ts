@@ -36,7 +36,7 @@ export const PLACES_AUTOCOMPLETE_MONTHLY_LIMIT = 9000;
 export const PLACES_PHOTO_MONTHLY_LIMIT = 900;
 // Text Search Enterprise also has the small 1,000/month free allotment; the
 // ceiling keeps a dev-loop spike from ever reaching billed lunch lookups.
-export const PLACES_LUNCH_SEARCH_MONTHLY_LIMIT = 800;
+export const PLACES_TEXT_SEARCH_ENTERPRISE_MONTHLY_LIMIT = 800;
 
 // Per-user daily soft cap so one user cannot drain the shared monthly budget.
 // Counted across all Places SKUs combined, not per SKU.

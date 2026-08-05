@@ -13,7 +13,7 @@ vi.mock("@/server/google-places-search-service", () => ({
   assertPlacesBudget: (...args: unknown[]) => assertPlacesBudget(...args),
 }));
 vi.mock("@/server/supabase-google-places-usage-store", () => ({
-  PLACES_SKU: { LUNCH_SEARCH: "lunch_search" },
+  PLACES_SKU: { TEXT_SEARCH_ENTERPRISE: "text_search_enterprise" },
   recordPlacesCall: (...args: unknown[]) => recordPlacesCall(...args),
 }));
 
@@ -100,8 +100,8 @@ describe("enrichLunchStops", () => {
         locationBias: { latitude: 48.856, longitude: 2.365 },
       }),
     );
-    expect(assertPlacesBudget).toHaveBeenCalledWith("user-1", "lunch_search");
-    expect(recordPlacesCall).toHaveBeenCalledWith("user-1", "lunch_search");
+    expect(assertPlacesBudget).toHaveBeenCalledWith("user-1", "text_search_enterprise");
+    expect(recordPlacesCall).toHaveBeenCalledWith("user-1", "text_search_enterprise");
   });
 
   it("keeps the model's pick as unverified when Google finds nothing", async () => {
@@ -175,6 +175,27 @@ describe("enrichLunchStops", () => {
     expect(assertPlacesBudget).toHaveBeenCalledTimes(1);
     expect(fetchLunchRestaurantDetails).not.toHaveBeenCalled();
     expect(recordPlacesCall).not.toHaveBeenCalled();
+  });
+
+  it("keeps a successful verification when only the usage insert fails", async () => {
+    fetchLunchRestaurantDetails.mockResolvedValue(googleDetails());
+    recordPlacesCall.mockRejectedValue(new Error("sku check violation"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const enriched = await enrichLunchStops({
+      plan: planWithLunches([WEDNESDAY_DATE]),
+      destination: "Paris",
+      userId: "user-1",
+    });
+
+    expect(enriched.get(WEDNESDAY_DATE)?.verification).toBe(
+      LUNCH_VERIFICATION_STATUS.VERIFIED,
+    );
+    expect(warn).toHaveBeenCalledWith(
+      "Failed to record Places text_search_enterprise usage",
+      expect.any(Error),
+    );
+    warn.mockRestore();
   });
 
   it("degrades an upstream failure to unverified instead of throwing", async () => {
