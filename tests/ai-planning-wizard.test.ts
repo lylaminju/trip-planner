@@ -787,4 +787,22 @@ describe("DiningStep", () => {
     expect(markup).toContain('href="/profile"');
     expect(markup).toContain('target="_blank"');
   });
+
+  it("locks the lunch switch for guests and points them at sign-in", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DiningStep, {
+        // A saved "on" must not survive into the guest view: the API drops the
+        // preference, so the step may not offer a lunch it cannot deliver.
+        draft: { ...preferenceDraft(), include_lunch_stop: true },
+        isGuest: true,
+        onChange: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("disabled");
+    expect(markup).toContain('aria-checked="false"');
+    expect(markup).toContain('href="/sign-in"');
+    // The budget and dietary controls belong to a lunch a guest cannot plan.
+    expect(markup).not.toContain("Cheap eats");
+  });
 });

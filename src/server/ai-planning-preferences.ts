@@ -17,6 +17,7 @@ import type {
 } from "@/lib/types";
 
 import { TripValidationError } from "./errors";
+import { isGuestPrincipalId } from "./principal";
 
 const INTEREST_TAG_VALUES = new Set<string>(
   AI_INTEREST_TAG_OPTIONS.map((option) => option.value),
@@ -80,6 +81,22 @@ export function parseAiPlanningPreferenceInput(
     dietary_tags: dietaryTags(body.dietary_tags),
     dietary_notes: dietaryNotes(body.dietary_notes),
   };
+}
+
+/**
+ * Lunch stops are a member-only feature: picking one leans on the Google Places
+ * verification that only runs for invited accounts, so a guest plan would carry
+ * restaurants nobody checked. The wizard locks the dining step for guests, and
+ * this drops the preference server-side so a hand-rolled request can't opt in
+ * either.
+ */
+export function withGuestPreferenceLimits(
+  input: AiPlanningPreferenceInput,
+  principalId: string,
+): AiPlanningPreferenceInput {
+  if (!isGuestPrincipalId(principalId)) return input;
+
+  return { ...input, include_lunch_stop: false };
 }
 
 export function parseAiPlanningGenerationInput(

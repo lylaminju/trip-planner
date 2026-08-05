@@ -35,6 +35,40 @@
   outline: none;
 }
 
+/* Guests see the switch, but locked: it names the feature they are missing
+   while the note underneath says how to unlock it. */
+.ai-dining-toggle:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.ai-dining-toggle:disabled:hover {
+  border-color: var(--line);
+}
+
+.ai-dining-locked-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: -12px 0 0;
+}
+
+.ai-dining-locked-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ai-dining-locked-link:hover {
+  text-decoration: underline;
+}
+
+.ai-dining-locked-link:focus-visible {
+  border-radius: 4px;
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
 .ai-dining-toggle-track {
   background: var(--line);
   border-radius: 999px;

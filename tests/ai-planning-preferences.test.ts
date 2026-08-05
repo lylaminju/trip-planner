@@ -8,7 +8,11 @@ import {
   buildAiPlanningPreferenceDraft,
   isAiCoverageTrip,
 } from "@/lib/ai-planning-preferences";
-import { parseAiPlanningGenerationInput } from "@/server/ai-planning-preferences";
+import {
+  parseAiPlanningGenerationInput,
+  withGuestPreferenceLimits,
+} from "@/server/ai-planning-preferences";
+import { guestPrincipalId } from "@/server/principal";
 import type { AiPlanningSetup } from "@/lib/types";
 
 describe("ai planning preference defaults", () => {
@@ -406,6 +410,24 @@ describe("ai planning preference defaults", () => {
     expect(() => parseAiPlanningGenerationInput(payload, new Set())).toThrow(
       message,
     );
+  });
+});
+
+describe("withGuestPreferenceLimits", () => {
+  const requested = {
+    ...AI_DEFAULT_PLANNING_PREFERENCES,
+    include_lunch_stop: true,
+    dining_budget: "moderate" as const,
+  };
+
+  it("drops the lunch stop a guest asked for", () => {
+    expect(
+      withGuestPreferenceLimits(requested, guestPrincipalId("guest-1")),
+    ).toEqual({ ...requested, include_lunch_stop: false });
+  });
+
+  it("leaves a signed-in user's preferences untouched", () => {
+    expect(withGuestPreferenceLimits(requested, "user-1")).toEqual(requested);
   });
 });
 

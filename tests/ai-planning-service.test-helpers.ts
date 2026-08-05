@@ -78,6 +78,14 @@ export async function withMockedAiPlanningService(
     replaceAiGeneratedBatch: vi.fn(),
     ...mocks.aiPlanApplication,
   }));
+  // Guest generations are quota-checked against the guest usage store; keep the
+  // real kind constants so the production call sites stay honest.
+  vi.doMock("@/server/guest-usage-store", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/server/guest-usage-store")>()),
+    countGuestCallsToday: vi.fn().mockResolvedValue(0),
+    countAllGuestCallsToday: vi.fn().mockResolvedValue(0),
+    recordGuestCall: vi.fn().mockResolvedValue(undefined),
+  }));
   vi.doMock("@/server/supabase-google-routes-usage-store", () => ({
     GOOGLE_ROUTES_DAILY_LIMIT: 200,
     assertGoogleRoutesQuota: vi.fn().mockResolvedValue(undefined),
@@ -101,6 +109,7 @@ export async function withMockedAiPlanningService(
     vi.doUnmock("@/server/openai-destination-catalog");
     vi.doUnmock("@/server/google-candidate-images");
     vi.doUnmock("@/server/supabase-ai-plan-application-service");
+    vi.doUnmock("@/server/guest-usage-store");
     vi.doUnmock("@/server/supabase-google-routes-usage-store");
     vi.doUnmock("@/server/trip-access");
     vi.doUnmock("@/server/trip-service");

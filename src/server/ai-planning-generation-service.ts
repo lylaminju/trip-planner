@@ -20,13 +20,15 @@ import {
 
 import {
   enrichLunchStops,
-  unverifiedLunchStops,
   type EnrichedLunchStop,
   type LunchDayLog,
 } from "./ai-lunch-enrichment";
 import { promptContext } from "./ai-planner-prompt-context";
 import { validateAiItineraryPlan } from "./ai-plan-validation";
-import { parseAiPlanningGenerationInput } from "./ai-planning-preferences";
+import {
+  parseAiPlanningGenerationInput,
+  withGuestPreferenceLimits,
+} from "./ai-planning-preferences";
 import {
   assertAiGenerationQuota,
   candidateIdSet,
@@ -153,7 +155,7 @@ export async function generateAiItineraryForRequest(
   const lastDayLatestEndTime = lastDayLatestEndFromDeparture(departurePoint);
   const savedPreferences = await upsertPlanningPreferences(
     tripId,
-    generationInput.preferences,
+    withGuestPreferenceLimits(generationInput.preferences, userId),
   );
   // Avoided interests are enforced by construction: matching candidates are
   // removed from the catalog the model sees (and from the validation ID set),
@@ -308,25 +310,21 @@ export async function generateAiItineraryForRequest(
     }
 
     // Lunch selection is the run's only Places spend (free id resolution plus
-    // short-circuited Place Details Enterprise fetches); guests skip it and
-    // keep unverified model picks, mirroring the web-search split above. Every
-    // failure inside degrades down the fallback ladder rather than failing an
-    // already-validated generation.
+    // short-circuited Place Details Enterprise fetches). Guests never reach it:
+    // the preference is dropped for them before it is saved, mirroring the
+    // web-search split above. Every failure inside degrades down the fallback
+    // ladder rather than failing an already-validated generation.
     let lunchByDate: Map<string, EnrichedLunchStop> = new Map();
     let lunchVerificationLog: LunchDayLog[] | null = null;
     if (savedPreferences.include_lunch_stop) {
-      if (isGuest) {
-        lunchByDate = unverifiedLunchStops(finalPlan);
-      } else {
-        const enrichment = await enrichLunchStops({
-          plan: finalPlan,
-          destination: trip.destination,
-          userId,
-          diningBudget: savedPreferences.dining_budget,
-        });
-        lunchByDate = enrichment.lunchByDate;
-        lunchVerificationLog = enrichment.log;
-      }
+      const enrichment = await enrichLunchStops({
+        plan: finalPlan,
+        destination: trip.destination,
+        userId,
+        diningBudget: savedPreferences.dining_budget,
+      });
+      lunchByDate = enrichment.lunchByDate;
+      lunchVerificationLog = enrichment.log;
     }
 
     const plannerSnapshot = await replaceAiGeneratedBatch(

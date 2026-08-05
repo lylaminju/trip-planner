@@ -62,7 +62,8 @@ type Props = {
   error: string | null;
   isGenerating: boolean;
   // Guests can't run live place search (the places routes are user-only), so
-  // the location fields fall back to pasting a Google Maps link.
+  // the location fields fall back to pasting a Google Maps link, and the
+  // dining step's lunch stops stay locked behind sign-in.
   isGuest?: boolean;
   onCancel: () => void;
   onCreateItinerary: (draft: AiPlanningGenerationInput) => void | Promise<void>;
@@ -70,9 +71,10 @@ type Props = {
 };
 
 export function AiPlanningWizard(props: Props) {
+  const isGuest = props.isGuest ?? false;
   const initialDraft = useMemo(
-    () => buildAiPlanningPreferenceDraft(props.setup),
-    [props.setup],
+    () => guestLimitedDraft(buildAiPlanningPreferenceDraft(props.setup), isGuest),
+    [props.setup, isGuest],
   );
   const [draft, setDraft] = useState<AiPlanningPreferenceInput>(initialDraft);
   const [lodgingGoogleMapsUrl, setLodgingGoogleMapsUrl] = useState("");
@@ -102,11 +104,11 @@ export function AiPlanningWizard(props: Props) {
   useEffect(() => {
     if (!setup || hasInitializedFromSetupRef.current) return;
     hasInitializedFromSetupRef.current = true;
-    setDraft(buildAiPlanningPreferenceDraft(setup));
+    setDraft(guestLimitedDraft(buildAiPlanningPreferenceDraft(setup), isGuest));
     setLodgingGoogleMapsUrl("");
     setTransitDraft(buildTransitStopDraft(setup));
     setStepIndex(0);
-  }, [setup]);
+  }, [setup, isGuest]);
 
   const tripId = props.setup?.trip.id ?? 0;
   const lodgingPreview = useResolvedPlaceName(tripId, lodgingGoogleMapsUrl);
@@ -454,7 +456,11 @@ export function AiPlanningWizard(props: Props) {
                     <InterestStep draft={draft} onChange={setDraft} />
                   )}
                   {currentStep.key === "dining" && (
-                    <DiningStep draft={draft} onChange={setDraft} />
+                    <DiningStep
+                      draft={draft}
+                      isGuest={isGuest}
+                      onChange={setDraft}
+                    />
                   )}
                   {currentStep.key === "startend" && (
                     <TransitStopsStep
@@ -464,7 +470,7 @@ export function AiPlanningWizard(props: Props) {
                       destinationBias={destinationBias}
                       destinationCountryCodes={destinationCountryCodes}
                       hubsStatus={props.hubsStatus}
-                      isGuest={props.isGuest ?? false}
+                      isGuest={isGuest}
                       lodgingGoogleMapsUrl={lodgingGoogleMapsUrl}
                       onLodgingGoogleMapsUrlChange={setLodgingGoogleMapsUrl}
                       onRetryPrepare={props.onRetryCatalogPrepare}
@@ -581,6 +587,18 @@ export function AiPlanningWizard(props: Props) {
       </div>
     </ModalShell>
   );
+}
+
+// The API drops a guest's lunch preference before saving it, so a trip that
+// still carries an older "on" must not reach the review brief promising a
+// lunch the generation will not produce.
+function guestLimitedDraft(
+  draft: AiPlanningPreferenceInput,
+  isGuest: boolean,
+): AiPlanningPreferenceInput {
+  return isGuest && draft.include_lunch_stop
+    ? { ...draft, include_lunch_stop: false }
+    : draft;
 }
 
 function compactVisitsRange(draft: AiPlanningPreferenceInput): string {

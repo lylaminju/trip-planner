@@ -1,14 +1,53 @@
 import { AI_DINING_BUDGET_OPTIONS } from "@/lib/ai-planning-preferences";
+import { sendGuestEvent } from "@/lib/guest-api";
 import type { AiPlanningPreferenceInput } from "@/lib/types";
 
 import { DietaryPreferenceFields } from "../DietaryPreferenceFields";
 
+const LUNCH_TOGGLE_LABEL = "Add a lunch stop to each day";
+const GUEST_LOCKED_NOTE_ID = "ai-dining-guest-locked";
+
 type Props = {
   draft: AiPlanningPreferenceInput;
   onChange: (draft: AiPlanningPreferenceInput) => void;
+  // Lunch stops rely on member-only restaurant verification, so guests see the
+  // switch locked with a way in rather than a control that plans nothing.
+  isGuest?: boolean;
 };
 
-export function DiningStep({ draft, onChange }: Props) {
+export function DiningStep({ draft, onChange, isGuest = false }: Props) {
+  if (isGuest) {
+    return (
+      <div className="ai-dining-step">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={false}
+          aria-describedby={GUEST_LOCKED_NOTE_ID}
+          className="ai-dining-toggle"
+          disabled
+        >
+          <span className="ai-dining-toggle-track" aria-hidden="true">
+            <span className="ai-dining-toggle-thumb" />
+          </span>
+          {LUNCH_TOGGLE_LABEL}
+        </button>
+        <p className="ai-dining-locked-note" id={GUEST_LOCKED_NOTE_ID}>
+          Lunch stops are a member feature.{" "}
+          <a
+            className="ai-dining-locked-link"
+            href="/sign-in"
+            onClick={() => sendGuestEvent("upsell_clicked")}
+          >
+            Sign in
+          </a>{" "}
+          to add a verified restaurant to each day. The rest of your plan is
+          unaffected.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="ai-dining-step">
       <button
@@ -30,7 +69,7 @@ export function DiningStep({ draft, onChange }: Props) {
         <span className="ai-dining-toggle-track" aria-hidden="true">
           <span className="ai-dining-toggle-thumb" />
         </span>
-        Add a lunch stop to each day
+        {LUNCH_TOGGLE_LABEL}
       </button>
 
       {draft.include_lunch_stop && (

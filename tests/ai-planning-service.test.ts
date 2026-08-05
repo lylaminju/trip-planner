@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { guestPrincipalId } from "@/server/principal";
+
 import {
   aiPlannerResult,
   candidateRecord,
@@ -256,6 +258,98 @@ describe("ai-planning-service request boundary", () => {
           "Must-see selections must come from the curated candidate list.",
         );
       },
+    );
+  });
+
+  it("drops a guest's lunch stop when saving preferences", async () => {
+    const upsertPlanningPreferences = vi
+      .fn()
+      .mockResolvedValue(savedPreferenceRecord());
+
+    await withMockedAiPlanningService(
+      {
+        getTripById: vi
+          .fn()
+          .mockResolvedValue(tripRecord({ destination_slug: "new-york-city" })),
+        supabaseAiPlanningService: {
+          listDestinationCandidates: vi
+            .fn()
+            .mockResolvedValue([candidateRecord(10)]),
+          upsertPlanningPreferences,
+        },
+      },
+      async ({ service }) => {
+        await service.saveAiPlanningPreferencesForRequest(
+          1,
+          guestPrincipalId("guest-1"),
+          {
+            visits_per_day_min: 1,
+            visits_per_day_max: 3,
+            preferred_travel_modes: ["walking"],
+            include_lunch_stop: true,
+          },
+        );
+      },
+    );
+
+    expect(upsertPlanningPreferences).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ include_lunch_stop: false }),
+    );
+  });
+
+  it("generates without a lunch stop for a guest that asked for one", async () => {
+    const getTripById = vi.fn().mockResolvedValue(
+      tripRecord({ start_date: "2026-05-27", end_date: "2026-05-27" }),
+    );
+    const listDestinationCandidates = vi
+      .fn()
+      .mockResolvedValue([candidateRecord(10)]);
+    const upsertPlanningPreferences = vi
+      .fn()
+      .mockResolvedValue(savedPreferenceRecord({ must_see_candidate_ids: [] }));
+    const requestAiItineraryPlan = vi
+      .fn()
+      .mockResolvedValue(aiPlannerResult(10, 10, 20));
+    const plannerSnapshot = { places: [], itineraryItems: [], routeSegments: [] };
+
+    await withMockedAiPlanningService(
+      {
+        getTripById,
+        supabaseAiPlanningService: {
+          listDestinationCandidates,
+          getPrimaryLodging: vi.fn().mockResolvedValue(null),
+          upsertPlanningPreferences,
+        },
+        aiPlanner: { requestAiItineraryPlan },
+        aiPlanApplication: {
+          createAiPlanGeneration: vi.fn().mockResolvedValue({ id: 61 }),
+          updateAiPlanGeneration: vi.fn(),
+          replaceAiGeneratedBatch: vi.fn().mockResolvedValue(plannerSnapshot),
+        },
+      },
+      async ({ service }) => {
+        await expect(
+          service.generateAiItineraryForRequest(
+            1,
+            guestPrincipalId("guest-1"),
+            {
+              visits_per_day_min: 1,
+              visits_per_day_max: 3,
+              preferred_travel_modes: ["walking"],
+              include_lunch_stop: true,
+            },
+          ),
+        ).resolves.toEqual({ generationId: 61, plannerSnapshot });
+      },
+      { openAiApiKey: "test-key", openAiModel: "gpt-5-mini-test" },
+    );
+
+    // Lunch selection is the run's only Google Places spend, so the preference
+    // must be off before it is saved rather than filtered downstream.
+    expect(upsertPlanningPreferences).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ include_lunch_stop: false }),
     );
   });
 

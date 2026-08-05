@@ -4,7 +4,10 @@ import type {
   AiPlanningPreferences,
 } from "@/lib/types";
 
-import { parseAiPlanningPreferenceInput } from "./ai-planning-preferences";
+import {
+  parseAiPlanningPreferenceInput,
+  withGuestPreferenceLimits,
+} from "./ai-planning-preferences";
 import {
   candidateIdSet,
   DESTINATION_NOT_PLANNABLE_MESSAGE,
@@ -53,9 +56,9 @@ export async function saveAiPlanningPreferencesForRequest(
   }
 
   const candidates = await listDestinationCandidates(candidateKey);
-  const input = parseAiPlanningPreferenceInput(
-    payload,
-    candidateIdSet(candidates),
+  const input = withGuestPreferenceLimits(
+    parseAiPlanningPreferenceInput(payload, candidateIdSet(candidates)),
+    userId,
   );
 
   return upsertPlanningPreferences(tripId, input);
