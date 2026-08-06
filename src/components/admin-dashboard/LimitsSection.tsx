@@ -62,6 +62,19 @@ const LIMIT_GROUPS: LimitGroup[] = [
   },
 ];
 
+// Google's own pricing pages, kept here so the free-tier figures above can be
+// rechecked against the source when Google revises a SKU.
+const REFERENCE_LINKS: { label: string; href: string }[] = [
+  {
+    label: "Place Details (Enterprise) SKU",
+    href: "https://developers.google.com/maps/billing-and-pricing/sku-details#place-details-ent-plus-sku",
+  },
+  {
+    label: "Places pricing",
+    href: "https://developers.google.com/maps/billing-and-pricing/pricing#places-pricing",
+  },
+];
+
 // The enforced ceilings behind every chart below. Static: these come from the
 // source constants, not from the usage tables, so there is nothing to refresh.
 export function LimitsSection() {
@@ -91,6 +104,20 @@ export function LimitsSection() {
           </div>
         ))}
       </div>
+
+      <p className="admin-limits-links">
+        {REFERENCE_LINKS.map((link) => (
+          <a
+            key={link.href}
+            className="admin-limits-link"
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {link.label}
+          </a>
+        ))}
+      </p>
     </div>
   );
 }

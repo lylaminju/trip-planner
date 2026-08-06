@@ -175,6 +175,27 @@
   white-space: nowrap;
 }
 
+/* Source references for the free-tier figures. Wraps rather than truncates so a
+   long SKU name stays readable on narrow screens. */
+.admin-limits-links {
+  color: var(--text-tertiary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.admin-limits-link {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.admin-limits-link:hover {
+  color: var(--text);
+}
+
 @media (max-width: 640px) {
   .admin-page {
     padding: 16px;
@@ -227,7 +248,8 @@
     font-size: 16px;
   }
 
-  .admin-limits-group-title span {
+  .admin-limits-group-title span,
+  .admin-limits-link {
     font-size: 13px;
   }
 
