@@ -73,7 +73,9 @@ import { getTripById } from "./trip-service";
 // v7: each lunch slot carries 2 ranked candidates; selection resolves them via
 //     free IDs-only search, fetches Place Details Enterprise in rank order,
 //     and gates on operational status, lunch-window hours, and budget tier.
-const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v7";
+// v8: same-day visits must not overlap — each start clears the previous visit's
+//     duration plus travel, so a long visit keeps its full time.
+const AI_PLANNER_PROMPT_VERSION = "ai-itinerary-v8";
 
 const CATALOG_NOT_READY_MESSAGE =
   "This destination's attraction catalog hasn't been prepared yet. Reopen the AI planning wizard to prepare it.";

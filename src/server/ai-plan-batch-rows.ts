@@ -14,11 +14,14 @@ import { buildGoogleMapsPlaceLinkUrl } from "@/lib/maps-url";
 import { arrivalBufferMinutes } from "@/lib/transit-buffers";
 import {
   formatVisitTime,
-  nextVisitGridMinuteAfter,
   parseVisitTime,
   roundVisitMinutesUpToGrid,
 } from "@/lib/visit-time";
 import type { AiItineraryPlan } from "./openai-ai-planner";
+import {
+  createDayScheduleCursor,
+  NO_DWELL_TIME,
+} from "./ai-plan-day-schedule";
 import {
   lunchDisplayNotes,
   type EnrichedLunchStop,
@@ -231,9 +234,9 @@ export function buildGeneratedScheduleEntries(input: {
     const firstOfDayTravelSeconds =
       input.firstVisitTravelDurationsByDate?.get(day.date) ?? null;
     let lastVisitEndTime: string | null = null;
-    // Running start time of the last item placed on this day, so each following
-    // item can be forced onto a later grid slot and no two items share a time.
-    let previousStartMinutes: number | null = null;
+    // Spaces the day's items: no two share a start time, and none begins before
+    // the one before it has finished.
+    const cursor = createDayScheduleCursor();
     // How the day's first attraction is reached once anchors are placed: the
     // time to leave from and the measured travel to add. Null means no measured
     // leg, so the model's own start time is trusted (rounded to the grid).
@@ -243,13 +246,12 @@ export function buildGeneratedScheduleEntries(input: {
     if (dayStartsAtArrival && arrivalPlaceId !== null) {
       entries.push({
         date: day.date,
-        startTime: dayAnchorStartTime,
+        startTime: cursor.place(dayAnchorStartTime, NO_DWELL_TIME),
         placeId: arrivalPlaceId,
         notes: null,
         location: arrivalPoint,
         order,
       });
-      previousStartMinutes = parseVisitTime(dayAnchorStartTime);
       order += 1;
 
       if (input.lodging && input.lodgingPlaceId !== null) {
@@ -261,17 +263,15 @@ export function buildGeneratedScheduleEntries(input: {
           dayAnchorStartTime,
           arrivalPoint.hub_type,
           firstOfDayTravelSeconds,
-          previousStartMinutes,
         );
         entries.push({
           date: day.date,
-          startTime: lodgingStopTime,
+          startTime: cursor.place(lodgingStopTime, NO_DWELL_TIME),
           placeId: input.lodgingPlaceId,
           notes: null,
           location: input.lodging,
           order,
         });
-        previousStartMinutes = parseVisitTime(lodgingStopTime);
         order += 1;
       } else {
         // No lodging: the first attraction is reached straight from the hub.
@@ -281,13 +281,12 @@ export function buildGeneratedScheduleEntries(input: {
     } else if (input.lodging && input.lodgingPlaceId !== null) {
       entries.push({
         date: day.date,
-        startTime: input.lodgingStartTime,
+        startTime: cursor.place(input.lodgingStartTime, NO_DWELL_TIME),
         placeId: input.lodgingPlaceId,
         notes: null,
         location: input.lodging,
         order,
       });
-      previousStartMinutes = parseVisitTime(input.lodgingStartTime);
       order += 1;
       firstVisitAnchorTime = input.lodgingStartTime;
       firstVisitTravelSeconds = firstOfDayTravelSeconds;
@@ -311,22 +310,12 @@ export function buildGeneratedScheduleEntries(input: {
       lunchPushed = true;
 
       const parsedMinutes = parseVisitTime(lunch.start_time);
-      let startTime =
+      const startTime = cursor.place(
         parsedMinutes === null
           ? lunch.start_time
-          : formatVisitTime(roundVisitMinutesUpToGrid(parsedMinutes));
-      let startMinutes = parseVisitTime(startTime);
-      if (
-        startMinutes !== null &&
-        previousStartMinutes !== null &&
-        startMinutes <= previousStartMinutes
-      ) {
-        startMinutes = nextVisitGridMinuteAfter(previousStartMinutes);
-        startTime = formatVisitTime(startMinutes);
-      }
-      if (startMinutes !== null) {
-        previousStartMinutes = startMinutes;
-      }
+          : formatVisitTime(roundVisitMinutesUpToGrid(parsedMinutes)),
+        lunch.duration_minutes,
+      );
       entries.push({
         date: day.date,
         startTime,
@@ -353,23 +342,14 @@ export function buildGeneratedScheduleEntries(input: {
         throw new Error("Inserted candidate place was not returned.");
       }
 
-      let startTime = scheduleAfterAnchorTravel(
-        visit.start_time,
-        visitIndex === 0 ? firstVisitAnchorTime : null,
-        visitIndex === 0 ? firstVisitTravelSeconds : null,
+      const startTime = cursor.place(
+        scheduleAfterAnchorTravel(
+          visit.start_time,
+          visitIndex === 0 ? firstVisitAnchorTime : null,
+          visitIndex === 0 ? firstVisitTravelSeconds : null,
+        ),
+        visit.duration_minutes,
       );
-      let startMinutes = parseVisitTime(startTime);
-      if (
-        startMinutes !== null &&
-        previousStartMinutes !== null &&
-        startMinutes <= previousStartMinutes
-      ) {
-        startMinutes = nextVisitGridMinuteAfter(previousStartMinutes);
-        startTime = formatVisitTime(startMinutes);
-      }
-      if (startMinutes !== null) {
-        previousStartMinutes = startMinutes;
-      }
       entries.push({
         date: day.date,
         startTime,
@@ -456,7 +436,6 @@ function lodgingStopAfterArrival(
   arrivalTime: string,
   hubType: AiTransitHubType | null,
   travelDurationSeconds: number | null,
-  arrivalStartMinutes: number | null,
 ): string {
   const arrivalMinutes = parseVisitTime(arrivalTime);
   if (arrivalMinutes === null) {
@@ -469,13 +448,13 @@ function lodgingStopAfterArrival(
     travelDurationSeconds >= 0
       ? Math.ceil(travelDurationSeconds / 60)
       : 0;
-  let lodgingMinutes = roundVisitMinutesUpToGrid(
-    arrivalMinutes + arrivalBufferMinutes(hubType) + travelMinutes,
+  // Spacing against the arrival stop is the day cursor's job; this only has to
+  // add the hub's egress buffer and the measured ride.
+  return formatVisitTime(
+    roundVisitMinutesUpToGrid(
+      arrivalMinutes + arrivalBufferMinutes(hubType) + travelMinutes,
+    ),
   );
-  if (arrivalStartMinutes !== null && lodgingMinutes <= arrivalStartMinutes) {
-    lodgingMinutes = nextVisitGridMinuteAfter(arrivalStartMinutes);
-  }
-  return formatVisitTime(lodgingMinutes);
 }
 
 function scheduleAfterAnchorTravel(

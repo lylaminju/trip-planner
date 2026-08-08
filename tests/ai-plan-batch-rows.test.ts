@@ -245,9 +245,11 @@ describe("AI plan batch rows", () => {
         startTime: entry.startTime,
       })),
     ).toEqual([
+      // The lodging is left rather than dwelt at, so the first attraction only
+      // needs the next slot; the second waits out the first's two hours.
       { placeId: 101, startTime: "09:00" },
       { placeId: 102, startTime: "09:10" },
-      { placeId: 103, startTime: "09:20" },
+      { placeId: 103, startTime: "11:10" },
     ]);
   });
 
@@ -261,7 +263,7 @@ describe("AI plan batch rows", () => {
               {
                 candidate_id: 10,
                 start_time: "09:27",
-                duration_minutes: 120,
+                duration_minutes: 60,
                 notes: null,
               },
               {
