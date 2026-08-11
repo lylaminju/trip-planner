@@ -65,6 +65,12 @@ const PHOTO_REFERENCE_FIELD_MASK = "id,photos";
 // field mask bills at its highest tier — one Pro call yields both the name and
 // the photo reference, instead of a free lookup plus a separate Pro one.
 const NAME_AND_PHOTO_FIELD_MASK = "id,displayName,photos";
+// Catalog candidates arrive with a model-authored name and estimated
+// coordinates, so resolving one needs the display name to verify the match and
+// the location to replace the estimate; `photos` rides along for the thumbnail
+// rather than costing a second lookup. `displayName` makes this Place Details
+// Pro, the same tier as the mask above.
+const CANDIDATE_PLACE_FIELD_MASK = "id,displayName,location,photos";
 // Text Search masked to the place id alone stays in the free IDs-Only SKU;
 // any richer field would escalate the whole request to a billed tier.
 const SEARCH_TEXT_FIELD_MASK = "places.id";
@@ -325,6 +331,55 @@ export type PlacePhotoReference = {
   photo_name: string | null;
   photo_attribution: string | null;
 };
+
+export type CandidatePlace = {
+  place_id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+} & PlacePhotoReference;
+
+/**
+ * Resolves an AI catalog candidate's place: `displayName` verifies the search
+ * matched the place the model named, `location` replaces the model's estimated
+ * coordinates, and `photos` supplies the thumbnail reference in the same call.
+ * `displayName` puts this at the Place Details Pro tier — the caller must
+ * budget-gate and record it. Returns null on an unusable response.
+ */
+export async function fetchCandidatePlace(input: {
+  apiKey: string;
+  placeId: string;
+}): Promise<CandidatePlace | null> {
+  const payload = await placesFetch({
+    url: `${DETAILS_ENDPOINT}/${encodeURIComponent(input.placeId)}`,
+    apiKey: input.apiKey,
+    fieldMask: CANDIDATE_PLACE_FIELD_MASK,
+    method: "GET",
+  });
+
+  return parseCandidatePlace(payload);
+}
+
+export function parseCandidatePlace(payload: unknown): CandidatePlace | null {
+  const record = asRecord(payload);
+  const placeId = asString(record.id);
+  const name = asString(asRecord(record.displayName).text);
+  const location = asRecord(record.location);
+  const latitude = asNumber(location.latitude);
+  const longitude = asNumber(location.longitude);
+
+  if (!placeId || !name || latitude === null || longitude === null) {
+    return null;
+  }
+
+  return {
+    place_id: placeId,
+    name,
+    latitude,
+    longitude,
+    ...parsePhotoReference(payload),
+  };
+}
 
 export async function fetchPlacePhotoReference(input: {
   apiKey: string;
