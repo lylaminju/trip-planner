@@ -5,9 +5,16 @@ import { pathToFileURL } from "node:url";
 
 // One-time / re-runnable backfill: resolve a Google place id for each AI
 // destination candidate via Places Text Search, anchored to the candidate's
-// curated coordinates. The dropdown dedup in the Add Place search matches
+// generated coordinates. The dropdown dedup in the Add Place search matches
 // saved places by place id, so filled ids close the duplicate gap for places
 // added through live Google search.
+//
+// The resolved place's own location is written alongside the id. A candidate's
+// coordinates start as model estimates, which name the right city but can miss
+// the place by kilometres, and the search response already carries the true
+// point — matching reads it to measure the distance below. Storing it costs no
+// extra request and keeps a row's coordinates and place id describing one
+// place.
 //
 // Runs as a dry run by default; pass --apply to write.
 
@@ -143,7 +150,9 @@ export function sharesDistinctiveToken(
 
 // Pick the result that best matches the candidate by name, using distance
 // only as a cap and a tiebreaker. Returns { placeId, displayName, score,
-// distanceMeters } or null when nothing qualifies.
+// distanceMeters, latitude, longitude } or null when nothing qualifies. The
+// location is the matched place's own, so callers can store it instead of the
+// generated estimate the distance was measured against.
 export function pickPlaceMatch(
   responseJson,
   candidate,
@@ -194,7 +203,7 @@ export function pickPlaceMatch(
       score > best.score ||
       (score === best.score && distanceMeters < best.distanceMeters)
     ) {
-      best = { placeId, displayName, score, distanceMeters };
+      best = { placeId, displayName, score, distanceMeters, latitude, longitude };
     }
   }
   return best;
@@ -245,6 +254,30 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Place ids already held by rows in the catalogs about to be resolved. One
+// catalog must not carry the same Google place twice: two differently named
+// rows for one place ("HMCS Haida National Historic Site" and "HMCS Haida
+// waterfront surroundings") satisfy the name uniqueness index while describing
+// a single stop, which lets the planner schedule it twice in one trip.
+async function loadPlaceIdsInUse(supabase, destinationSlugs) {
+  const inUse = new Map(destinationSlugs.map((slug) => [slug, new Set()]));
+  if (destinationSlugs.length === 0) return inUse;
+
+  const { data, error } = await supabase
+    .from("ai_destination_candidates")
+    .select("destination_slug, google_place_id")
+    .in("destination_slug", destinationSlugs)
+    .not("google_place_id", "is", null);
+  if (error) {
+    throw new Error(`Could not load existing place ids: ${error.message}`);
+  }
+
+  for (const row of data) {
+    inUse.get(row.destination_slug)?.add(row.google_place_id);
+  }
+  return inUse;
+}
+
 // ---------------------------------------------------------------------------
 // Orchestration
 // ---------------------------------------------------------------------------
@@ -268,7 +301,16 @@ export async function backfillCandidatePlaceIds({
   const { data: candidates, error } = await query;
   if (error) throw new Error(`Could not load candidates: ${error.message}`);
 
-  const summary = { total: candidates.length, matched: 0, skipped: 0, failed: 0 };
+  const summary = {
+    total: candidates.length,
+    matched: 0,
+    skipped: 0,
+    duplicate: 0,
+    failed: 0,
+  };
+  const placeIdsInUse = await loadPlaceIdsInUse(supabase, [
+    ...new Set(candidates.map((candidate) => candidate.destination_slug)),
+  ]);
   console.log(
     `${apply ? "Applying" : "Dry run"}: ${candidates.length} candidates without a place id.\n`,
   );
@@ -284,20 +326,32 @@ export async function backfillCandidatePlaceIds({
         continue;
       }
 
+      const catalogPlaceIds = placeIdsInUse.get(candidate.destination_slug);
+      if (catalogPlaceIds.has(match.placeId)) {
+        summary.duplicate += 1;
+        console.log(
+          `- dup   ${candidate.destination_slug} · ${candidate.name} → "${match.displayName}" is already held by another candidate in this catalog`,
+        );
+        continue;
+      }
+
       if (apply) {
         const { error: updateError } = await supabase
           .from("ai_destination_candidates")
           .update({
             google_place_id: match.placeId,
+            latitude: match.latitude,
+            longitude: match.longitude,
             updated_at: new Date().toISOString(),
           })
           .eq("id", candidate.id);
         if (updateError) throw new Error(updateError.message);
       }
 
+      catalogPlaceIds.add(match.placeId);
       summary.matched += 1;
       console.log(
-        `✓ ${apply ? "write" : "match"} ${candidate.destination_slug} · ${candidate.name} → "${match.displayName}" (${Math.round(match.distanceMeters)}m, score ${match.score.toFixed(2)})`,
+        `✓ ${apply ? "write" : "match"} ${candidate.destination_slug} · ${candidate.name} → "${match.displayName}" (${Math.round(match.distanceMeters)}m from the generated point, score ${match.score.toFixed(2)})`,
       );
     } catch (candidateError) {
       summary.failed += 1;
@@ -310,7 +364,7 @@ export async function backfillCandidatePlaceIds({
   }
 
   console.log(
-    `\nDone. ${summary.matched} ${apply ? "written" : "matched"}, ${summary.skipped} skipped, ${summary.failed} failed of ${summary.total}.`,
+    `\nDone. ${summary.matched} ${apply ? "written" : "matched"}, ${summary.skipped} skipped, ${summary.duplicate} duplicate, ${summary.failed} failed of ${summary.total}.`,
   );
   return summary;
 }

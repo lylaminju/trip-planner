@@ -87,6 +87,17 @@ describe("pickPlaceMatch", () => {
     ).toBeNull();
   });
 
+  it("returns the matched place's own location, not the generated point", () => {
+    const match = pickPlaceMatch(
+      { places: [placeResult("right-beach", "Reynisfjara Beach", 63.4021, -19.0454)] },
+      REYNISFJARA,
+    );
+
+    expect(match?.latitude).toBe(63.4021);
+    expect(match?.longitude).toBe(-19.0454);
+    expect(match?.distanceMeters).toBeGreaterThan(0);
+  });
+
   it("rejects results below the name-score floor", () => {
     expect(nameMatchScore("Myvatn Nature Baths", "Earth Lagoon Mývatn")).toBeCloseTo(1 / 3);
     const match = pickPlaceMatch(
