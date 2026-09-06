@@ -11,6 +11,8 @@ import type {
   TravelMode,
 } from "@/lib/types";
 
+import { todayIsoDate } from "@/lib/trip-classification";
+
 import { TrashIcon } from "../Icons";
 import { ItineraryDayBlock } from "./ItineraryDayBlock";
 import { UnscheduledBlock } from "./UnscheduledBlock";
@@ -75,6 +77,23 @@ type Props = {
 
 export function ItinerarySection(props: Props) {
   const exportMenuRef = useRef<HTMLDetailsElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const today = todayIsoDate();
+    const hasToday = props.itinerary.days.some((day) => day.date === today);
+    if (!hasToday || !boardRef.current) return;
+
+    const frame = requestAnimationFrame(() => {
+      const todayBlock = boardRef.current?.querySelector(
+        `[data-day-date="${today}"]`,
+      );
+      todayBlock?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [props.itinerary.days]);
 
   useEffect(() => {
     function closeExportMenuOnOutsidePointerDown(event: PointerEvent) {
@@ -181,7 +200,10 @@ export function ItinerarySection(props: Props) {
           </button>
         </div>
       </div>
-      <div className={`itinerary-board ${props.isExpanded ? "expanded" : ""}`}>
+      <div
+        ref={boardRef}
+        className={`itinerary-board ${props.isExpanded ? "expanded" : ""}`}
+      >
         {props.itinerary.days.map((day, dayIndex) => (
           <ItineraryDayBlock
             key={day.date}
