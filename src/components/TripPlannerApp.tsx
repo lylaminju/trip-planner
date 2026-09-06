@@ -23,7 +23,10 @@ import {
   exceedsAiPlanningTripLength,
   hasAiPlanningDateRange,
 } from "@/lib/ai-planning-preferences";
-import { toggleCollapsedDate } from "@/lib/date-collapse";
+import {
+  expandOrCollapseAllDates,
+  toggleCollapsedDate,
+} from "@/lib/date-collapse";
 import {
   DEFAULT_DESTINATION_ZOOM,
   findDestinationFocus,
@@ -275,6 +278,15 @@ export function TripPlannerApp({
     setCollapsedDates((current) => toggleCollapsedDate(current, date));
   }
 
+  function toggleAllDaysCollapsed() {
+    setCollapsedDates((current) =>
+      expandOrCollapseAllDates(
+        current,
+        itinerary.days.map((day) => day.date),
+      ),
+    );
+  }
+
   async function openAiPlanningSetup() {
     if (!canPlanWithAi) return;
 
@@ -485,6 +497,7 @@ export function TripPlannerApp({
         onCopyMarkdownExport={copyMarkdownExport}
         onDownloadMarkdownExport={downloadMarkdownExport}
         onToggleDateCollapsed={toggleDateCollapsed}
+        onToggleAllDaysCollapsed={toggleAllDaysCollapsed}
         onSubmitEditTrip={submitEditTrip}
         onCloseAiPlanningWizard={closeAiPlanningWizard}
         onRetryAiPlanningLoad={openAiPlanningSetup}

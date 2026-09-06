@@ -107,6 +107,7 @@ type Props = {
   onCopyExport: () => void;
   onDownloadExport: () => void;
   onToggleDateCollapsed: (date: string) => void;
+  onToggleAllDaysCollapsed: () => void;
   resizeHandle?: ReactNode;
 };
 
@@ -340,6 +341,7 @@ export function PlannerPanel(props: Props) {
             onSelectCanonicalPlace={props.selection.selectCanonicalPlace}
             onSelectSegment={props.selection.toggleSegmentSelection}
             onToggleDateCollapsed={props.onToggleDateCollapsed}
+            onToggleAllDaysCollapsed={props.onToggleAllDaysCollapsed}
             onSelectDate={props.selection.selectDate}
             onAddVisit={props.modals.openAddVisitModal}
             onEdit={props.modals.openEditModal}

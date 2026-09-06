@@ -178,6 +178,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     onCopyMarkdownExport: vi.fn(),
     onDownloadMarkdownExport: vi.fn(),
     onToggleDateCollapsed: vi.fn(),
+    onToggleAllDaysCollapsed: vi.fn(),
     onDismissAiGenerationToast: vi.fn(),
     onSubmitEditTrip: vi.fn(),
     onCloseAiPlanningWizard: vi.fn(),

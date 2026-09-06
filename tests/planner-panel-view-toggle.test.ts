@@ -118,6 +118,7 @@ function plannerPanelProps(overrides: {
     onCopyExport: vi.fn(),
     onDownloadExport: vi.fn(),
     onToggleDateCollapsed: vi.fn(),
+    onToggleAllDaysCollapsed: vi.fn(),
   };
 }
 

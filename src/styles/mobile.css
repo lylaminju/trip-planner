@@ -122,6 +122,14 @@
     opacity: 1;
   }
 
+  .collapse-all-label-full {
+    display: none;
+  }
+
+  .collapse-all-label-short {
+    display: inline;
+  }
+
   .places-tray {
     bottom: auto;
     box-shadow: none;

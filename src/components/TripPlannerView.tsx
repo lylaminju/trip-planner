@@ -89,6 +89,7 @@ type Props = {
   onCopyMarkdownExport: () => void;
   onDownloadMarkdownExport: () => void;
   onToggleDateCollapsed: (date: string) => void;
+  onToggleAllDaysCollapsed: () => void;
   onDismissAiGenerationToast: () => void;
   onSubmitEditTrip: (event: SubmitEvent<HTMLFormElement>) => void;
   onCloseAiPlanningWizard: () => void;
@@ -143,6 +144,7 @@ export function TripPlannerView(props: Props) {
         onCopyExport={props.onCopyMarkdownExport}
         onDownloadExport={props.onDownloadMarkdownExport}
         onToggleDateCollapsed={props.onToggleDateCollapsed}
+        onToggleAllDaysCollapsed={props.onToggleAllDaysCollapsed}
         resizeHandle={
           <PlannerResizeHandle handleProps={panelResize.handleProps} />
         }

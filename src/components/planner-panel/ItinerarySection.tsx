@@ -58,6 +58,7 @@ type Props = {
   onSelectCanonicalPlace: (id: number | null) => void;
   onSelectSegment: (id: number | null) => void;
   onToggleDateCollapsed: (date: string) => void;
+  onToggleAllDaysCollapsed: () => void;
   onSelectDate: (date: string) => void;
   onAddVisit: (place: Place) => void;
   onEdit: (place: Place) => void;
@@ -134,6 +135,11 @@ export function ItinerarySection(props: Props) {
   const hasScheduledItems = props.itinerary.days.some(
     (day) => day.items.length > 0,
   );
+  const allDaysCollapsed =
+    props.itinerary.days.length > 0 &&
+    props.itinerary.days.every((day) =>
+      props.collapsedDates.has(day.date),
+    );
 
   return (
     <section className="section-block">
@@ -149,6 +155,21 @@ export function ItinerarySection(props: Props) {
               onClick={deleteAllItems}
             >
               <TrashIcon />
+            </button>
+          )}
+          {props.itinerary.days.length > 1 && (
+            <button
+              type="button"
+              className="collapse-all-button"
+              aria-pressed={allDaysCollapsed}
+              onClick={props.onToggleAllDaysCollapsed}
+            >
+              <span className="collapse-all-label-full">
+                {allDaysCollapsed ? "Expand all" : "Collapse all"}
+              </span>
+              <span className="collapse-all-label-short">
+                {allDaysCollapsed ? "Expand" : "Collapse"}
+              </span>
             </button>
           )}
         </div>

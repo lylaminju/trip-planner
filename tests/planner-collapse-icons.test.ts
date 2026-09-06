@@ -13,6 +13,37 @@ import {
 import { renderItinerarySection } from "./helpers/itinerary-section-markup";
 
 describe("planner collapse controls", () => {
+  it("places the delete button before the collapse-all toggle", () => {
+    const markup = itinerarySectionMarkup(new Set(), {
+      itinerary: multiDayItinerary(),
+    });
+
+    expect(markup.indexOf("Itineraries</h2>")).toBeLessThan(
+      markup.indexOf('class="section-clear-button"'),
+    );
+    expect(markup.indexOf('class="section-clear-button"')).toBeLessThan(
+      markup.indexOf('class="collapse-all-button"'),
+    );
+  });
+
+  it("switches the collapse-all label and pressed state when every day is collapsed", () => {
+    const openMarkup = itinerarySectionMarkup(new Set(), {
+      itinerary: multiDayItinerary(),
+    });
+    const collapsedMarkup = itinerarySectionMarkup(
+      new Set(["2026-06-01", "2026-06-02"]),
+      { itinerary: multiDayItinerary() },
+    );
+
+    expect(openMarkup).toContain('aria-pressed="false"');
+    expect(openMarkup).toContain("Collapse all");
+    expect(openMarkup).not.toContain("Expand all");
+
+    expect(collapsedMarkup).toContain('aria-pressed="true"');
+    expect(collapsedMarkup).toContain("Expand all");
+    expect(collapsedMarkup).not.toContain("Collapse all");
+  });
+
   it("renders section toggles with an svg chevron instead of text glyphs", () => {
     const markup = renderToStaticMarkup(
       createElement(SectionToggle, {
@@ -185,6 +216,34 @@ function itineraryWithSegment(): ItineraryView {
             segment,
           },
         ],
+      },
+    ],
+    unscheduled: [],
+  };
+}
+
+function multiDayItinerary(): ItineraryView {
+  const cafe = buildPlace({ id: 1, name: "Cafe" });
+  return {
+    days: [
+      {
+        date: "2026-06-01",
+        color: "var(--accent)",
+        items: [
+          buildItineraryItem({
+            id: 10,
+            place_id: cafe.id,
+            place: cafe,
+            visit_time: "09:00",
+          }),
+        ],
+        segments: [],
+      },
+      {
+        date: "2026-06-02",
+        color: "var(--accent)",
+        items: [],
+        segments: [],
       },
     ],
     unscheduled: [],

@@ -57,6 +57,7 @@ export function renderItinerarySection(
       onSelectCanonicalPlace: vi.fn(),
       onSelectSegment: vi.fn(),
       onToggleDateCollapsed: vi.fn(),
+      onToggleAllDaysCollapsed: vi.fn(),
       onSelectDate: vi.fn(),
       onAddVisit: vi.fn(),
       onEdit: vi.fn(),
