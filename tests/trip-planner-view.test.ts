@@ -77,6 +77,7 @@ function tripPlannerViewProps(overrides: Record<string, unknown> = {}) {
     mobileSheetState: "half" as const,
     isPlannerPanelExpanded: false,
     tripTitle: "New York City",
+    tripDates: { start_date: "2026-05-27", end_date: "2026-05-28" },
     tripPeriodLabel: "May 27 - 28, 2026",
     members: [],
     currentUserId: "user-1",

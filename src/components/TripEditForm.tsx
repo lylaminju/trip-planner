@@ -1,5 +1,6 @@
 import { useId, type SubmitEvent } from "react";
 
+import { useTripDateEditValidation } from "@/hooks/useTripDateEditValidation";
 import { getTripCoverImage } from "@/lib/city-covers";
 import type { TripSummary } from "@/lib/types";
 import {
@@ -7,6 +8,7 @@ import {
   type GoogleDestinationSelection,
 } from "./DestinationSearch";
 import { TripDateRangePicker } from "./TripDateRangePicker";
+import { TripDateChangeNotice } from "./TripDateChangeNotice";
 import {
   tripDestinationFormChange,
   updateTripFormField,
@@ -25,6 +27,21 @@ export function TripEditForm(props: {
 }) {
   const nameId = useId();
   const destinationId = useId();
+  const dateNoticeId = useId();
+  const dateValidation = useTripDateEditValidation(props.trip, {
+    start_date: props.form.startDate || null,
+    end_date: props.form.endDate || null,
+  });
+  const dateDescription =
+    dateValidation.error ||
+    dateValidation.isChecking ||
+    dateValidation.willShift
+      ? dateNoticeId
+      : undefined;
+  const saveDisabled =
+    props.isSaving ||
+    dateValidation.isChecking ||
+    Boolean(dateValidation.error);
   const coverImage = getTripCoverImage({
     destination: props.form.destination || props.trip.destination,
     destinationSlug: props.form.destinationSlug,
@@ -38,7 +55,16 @@ export function TripEditForm(props: {
     .join(" ");
 
   return (
-    <form className={className} onSubmit={props.onSubmit}>
+    <form
+      className={className}
+      onSubmit={(event) => {
+        if (saveDisabled) {
+          event.preventDefault();
+          return;
+        }
+        props.onSubmit(event);
+      }}
+    >
       <div
         className="trip-edit-cover"
         aria-hidden="true"
@@ -76,7 +102,12 @@ export function TripEditForm(props: {
           onSelectGoogle={props.onSelectGoogle}
         />
 
-        <div className="trip-edit-date-row">
+        <div
+          className="trip-edit-date-row"
+          role="group"
+          aria-label="Trip dates"
+          aria-describedby={dateDescription}
+        >
           <TripDateRangePicker
             startDate={props.form.startDate}
             endDate={props.form.endDate}
@@ -87,6 +118,13 @@ export function TripEditForm(props: {
                 endDate: range.endDate,
               })
             }
+          />
+          <TripDateChangeNotice
+            id={dateNoticeId}
+            error={dateValidation.error}
+            isChecking={dateValidation.isChecking}
+            willShift={dateValidation.willShift}
+            onRetry={dateValidation.retry}
           />
         </div>
       </div>
@@ -102,7 +140,8 @@ export function TripEditForm(props: {
         <button
           type="submit"
           className="trip-edit-submit"
-          disabled={props.isSaving}
+          disabled={saveDisabled}
+          aria-describedby={dateDescription}
         >
           Save
         </button>

@@ -9,6 +9,7 @@ import type { TripPlannerMutations } from "@/hooks/useTripPlannerMutations";
 import type { TripPlannerSelection } from "@/hooks/useTripPlannerSelection";
 import type { DestinationFocus } from "@/lib/destination-options";
 import type { MobileSheetState } from "@/lib/mobile-sheet";
+import type { TripDateRange } from "@/lib/trip-date-shift";
 import type {
   AiCatalogPrepStatus,
   AiPlanningGenerationInput,
@@ -58,6 +59,7 @@ type Props = {
   mobileSheetState: MobileSheetState;
   isPlannerPanelExpanded: boolean;
   tripTitle: string;
+  tripDates: TripDateRange;
   tripPeriodLabel: string | null;
   members: TripMemberSummary[];
   currentUserId: string;
@@ -244,6 +246,8 @@ export function TripPlannerView(props: Props) {
       {modals.editingTripForm && (
         <EditTripModal
           form={modals.editingTripForm}
+          tripDates={props.tripDates}
+          scheduledVisits={props.plannerSnapshot.itineraryItems}
           isGuest={props.isGuest}
           error={props.editTripError}
           isSaving={props.isSavingTrip}

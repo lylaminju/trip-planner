@@ -1,4 +1,8 @@
-import type { TripMetadataPayload } from "@/lib/trips-api";
+import type {
+  TripMetadataPayload,
+  TripMetadataUpdatePayload,
+} from "@/lib/trips-api";
+import type { TripDateRange } from "@/lib/trip-date-shift";
 import { findDestinationOption } from "@/lib/destination-options";
 
 import type { GoogleDestinationSelection } from "./DestinationSearch";
@@ -30,6 +34,19 @@ export function tripMetadataPayloadFromForm(
     start_date: form.startDate || null,
     end_date: form.endDate || null,
   };
+}
+
+export function tripUpdatePayloadFromForm(
+  form: TripFormState,
+  previous: TripDateRange,
+): TripMetadataUpdatePayload {
+  const { start_date, end_date, ...metadata } =
+    tripMetadataPayloadFromForm(form);
+  // An unchanged range is not a date edit: don't overwrite dates another tab
+  // may have moved since this editor opened.
+  return start_date === previous.start_date && end_date === previous.end_date
+    ? metadata
+    : { ...metadata, start_date, end_date };
 }
 
 export function tripDestinationFormChange(

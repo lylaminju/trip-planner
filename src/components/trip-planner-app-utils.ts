@@ -1,5 +1,4 @@
 import { buildItinerary, type ItineraryDateRange } from "@/lib/itinerary";
-import type { TripMetadataPayload } from "@/lib/trips-api";
 import type { PlannerSnapshot, Trip } from "@/lib/types";
 
 import type { TripFormState } from "./trip-form-types";
@@ -26,19 +25,6 @@ export function toTripDateRange(
   return {
     startDate: trip.start_date,
     endDate: trip.end_date,
-  };
-}
-
-export function formPayload(form: TripFormState): TripMetadataPayload {
-  return {
-    name: form.name,
-    destination: form.destination,
-    destination_slug: form.destinationSlug,
-    destination_latitude: form.destinationLatitude,
-    destination_longitude: form.destinationLongitude,
-    destination_country_codes: form.destinationCountryCodes,
-    start_date: form.startDate || null,
-    end_date: form.endDate || null,
   };
 }
 

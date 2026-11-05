@@ -2,173 +2,173 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyTripDateShift,
+  getTripDateChangeError,
   planTripDateShift,
   type ScheduledVisit,
   type TripDateRange,
-  type VisitDateChange,
 } from "@/lib/trip-date-shift";
 
-const TRIP: TripDateRange = { start_date: "2027-07-12", end_date: "2027-07-18" };
-
-/** One visit per day of the seven-day trip, in trip order. */
+const TRIP: TripDateRange = {
+  start_date: "2027-07-12",
+  end_date: "2027-07-18",
+};
 const VISITS: ScheduledVisit[] = [
   { id: 1, visit_date: "2027-07-12" },
-  { id: 2, visit_date: "2027-07-13" },
-  { id: 3, visit_date: "2027-07-14" },
-  { id: 4, visit_date: "2027-07-15" },
-  { id: 5, visit_date: "2027-07-16" },
-  { id: 6, visit_date: "2027-07-17" },
-  { id: 7, visit_date: "2027-07-18" },
+  { id: 2, visit_date: "2027-07-14" },
+  { id: 3, visit_date: "2027-07-18" },
+  { id: 4, visit_date: null },
 ];
 
-function shift(next: TripDateRange): VisitDateChange[] {
-  const plan = planTripDateShift(TRIP, next);
+function shift(next: TripDateRange, visits = VISITS, previous = TRIP) {
+  const plan = planTripDateShift(previous, next);
   if (plan === null) throw new Error("expected a shift plan");
-  return applyTripDateShift(VISITS, plan);
+  return applyTripDateShift(visits, plan);
 }
 
 describe("trip-date-shift", () => {
-  const cases: Array<{
-    name: string;
-    next: TripDateRange;
-    deltaDays: number;
-    changes: VisitDateChange[];
-  }> = [
-    {
-      name: "both edges move by the same amount: every visit slides with the trip",
-      next: { start_date: "2027-08-01", end_date: "2027-08-07" },
-      deltaDays: 20,
-      changes: [
-        { id: 1, visit_date: "2027-08-01" },
-        { id: 2, visit_date: "2027-08-02" },
-        { id: 3, visit_date: "2027-08-03" },
-        { id: 4, visit_date: "2027-08-04" },
-        { id: 5, visit_date: "2027-08-05" },
-        { id: 6, visit_date: "2027-08-06" },
-        { id: 7, visit_date: "2027-08-07" },
-      ],
+  it.each([
+    ["forward", "2027-08-01", "2027-08-07", 20, "2027-08-03"],
+    ["backward", "2027-07-05", "2027-07-11", -7, "2027-07-07"],
+    ["earlier while end holds", "2027-07-10", "2027-07-18", -2, "2027-07-12"],
+    ["expanded on both ends", "2027-07-10", "2027-07-25", -2, "2027-07-12"],
+  ])(
+    "preserves day numbers when moving %s",
+    (_name, start, end, delta, middle) => {
+      const next = { start_date: start as string, end_date: end as string };
+      expect(planTripDateShift(TRIP, next)?.deltaDays).toBe(delta);
+      expect(getTripDateChangeError(TRIP, next, VISITS)).toBeNull();
+      const changes = shift(next);
+      expect(changes).toHaveLength(3);
+      expect(changes[0]).toEqual({ id: 1, visit_date: start });
+      expect(changes[1]).toEqual({ id: 2, visit_date: middle });
+      // The scheduled last day stays Day 7, even when the new trip is longer.
+      expect(changes[2]).toEqual({
+        id: 3,
+        visit_date: new Date(Date.parse(`${start}T00:00:00Z`) + 6 * 86_400_000)
+          .toISOString()
+          .slice(0, 10),
+      });
     },
-    {
-      name: "end extends while start holds: nothing moves, the new days are blank",
-      next: { start_date: "2027-07-12", end_date: "2027-07-20" },
-      deltaDays: 0,
-      changes: [],
-    },
-    {
-      name: "end pulls in while start holds: the tail unschedules",
-      next: { start_date: "2027-07-12", end_date: "2027-07-16" },
-      deltaDays: 0,
-      changes: [
-        { id: 6, visit_date: null },
-        { id: 7, visit_date: null },
-      ],
-    },
-    {
-      name: "start moves later while end holds: the front unschedules",
-      next: { start_date: "2027-07-14", end_date: "2027-07-18" },
-      deltaDays: 0,
-      changes: [
-        { id: 1, visit_date: null },
-        { id: 2, visit_date: null },
-      ],
-    },
-    {
-      name: "start moves earlier while end holds: nothing moves, the new days are blank",
-      next: { start_date: "2027-07-10", end_date: "2027-07-18" },
-      deltaDays: 0,
-      changes: [],
-    },
-    {
-      name: "both edges grow: nothing moves, the new days are blank at each end",
-      next: { start_date: "2027-07-10", end_date: "2027-07-25" },
-      deltaDays: 0,
-      changes: [],
-    },
-  ];
+  );
 
-  for (const testCase of cases) {
-    it(testCase.name, () => {
-      const plan = planTripDateShift(TRIP, testCase.next);
+  it.each([
+    ["unchanged", "2027-07-18"],
+    ["extended at the end", "2027-07-25"],
+  ])("keeps calendar dates when the start is %s", (_name, end) => {
+    const next = { ...TRIP, end_date: end };
+    expect(getTripDateChangeError(TRIP, next, VISITS)).toBeNull();
+    expect(shift(next)).toEqual([]);
+  });
 
-      expect(plan).not.toBeNull();
-      expect(plan?.deltaDays).toBe(testCase.deltaDays);
-      expect(shift(testCase.next)).toEqual(testCase.changes);
-    });
-  }
+  it.each([
+    { start_date: "2027-07-12", end_date: "2027-07-16" },
+    { start_date: "2027-07-14", end_date: "2027-07-18" },
+    { start_date: "2027-08-01", end_date: "2027-08-03" },
+  ])("rejects a shorter trip that cannot hold scheduled days: %j", (next) => {
+    expect(getTripDateChangeError(TRIP, next, VISITS)).toContain("Day 7");
+    expect(() => shift(next)).toThrow("outside the new trip dates");
+    expect(VISITS[2].visit_date).toBe("2027-07-18");
+  });
 
-  it("anchors to the start when both edges move and the trip also shortens", () => {
-    expect(shift({ start_date: "2027-08-01", end_date: "2027-08-03" })).toEqual([
+  it("allows shortening when only empty trailing days are removed", () => {
+    const visits = VISITS.slice(0, 2);
+    const next = { start_date: "2027-08-01", end_date: "2027-08-03" };
+    expect(getTripDateChangeError(TRIP, next, visits)).toBeNull();
+    expect(shift(next, visits)).toEqual([
       { id: 1, visit_date: "2027-08-01" },
-      { id: 2, visit_date: "2027-08-02" },
-      { id: 3, visit_date: "2027-08-03" },
-      { id: 4, visit_date: null },
-      { id: 5, visit_date: null },
-      { id: 6, visit_date: null },
-      { id: 7, visit_date: null },
+      { id: 2, visit_date: "2027-08-03" },
     ]);
   });
 
-  it("reports no changes when the dates are resaved untouched", () => {
-    expect(shift(TRIP)).toEqual([]);
-  });
+  it.each([
+    ["2028-02-28", "2028-03-01", "2028-03-10", "2028-03-12", 11],
+    ["2027-03-13", "2027-03-15", "2027-11-06", "2027-11-08", 238],
+    ["2027-12-31", "2028-01-02", "2026-12-31", "2027-01-02", -365],
+  ])(
+    "uses calendar days across leap years, DST and year boundaries",
+    (start, end, nextStart, nextEnd, delta) => {
+      const previous = { start_date: start as string, end_date: end as string };
+      const next = {
+        start_date: nextStart as string,
+        end_date: nextEnd as string,
+      };
+      const visits = [
+        { id: 1, visit_date: start as string },
+        { id: 2, visit_date: end as string },
+      ];
+      expect(planTripDateShift(previous, next)?.deltaDays).toBe(delta);
+      expect(shift(next, visits, previous)).toEqual([
+        { id: 1, visit_date: nextStart },
+        { id: 2, visit_date: nextEnd },
+      ]);
+    },
+  );
 
-  it("leaves already-unscheduled visits alone", () => {
-    const plan = planTripDateShift(TRIP, {
-      start_date: "2027-08-01",
-      end_date: "2027-08-07",
-    });
-
-    expect(
-      applyTripDateShift([{ id: 9, visit_date: null }], plan!),
-    ).toEqual([]);
-  });
-
-  it("restores a plan that drifted away from its trip", () => {
-    // The Iceland regression: a seven-day plan left stranded a year behind the
-    // trip after its dates moved.
-    const stranded: ScheduledVisit[] = [
-      { id: 1, visit_date: "2026-07-16" },
-      { id: 2, visit_date: "2026-07-22" },
-    ];
-    const plan = planTripDateShift(
-      { start_date: "2026-07-16", end_date: "2026-07-22" },
-      TRIP,
+  it.each([
+    { start_date: null, end_date: null },
+    { start_date: "2027-07-12", end_date: null },
+    { start_date: null, end_date: "2027-07-18" },
+  ])("requires complete dates only when visits are scheduled: %j", (next) => {
+    expect(getTripDateChangeError(TRIP, next, VISITS)).toContain(
+      "both trip dates",
     );
-
-    expect(plan?.deltaDays).toBe(361);
-    expect(applyTripDateShift(stranded, plan!)).toEqual([
-      { id: 1, visit_date: "2027-07-12" },
-      { id: 2, visit_date: "2027-07-18" },
-    ]);
+    expect(getTripDateChangeError(TRIP, next, [])).toBeNull();
+    expect(
+      getTripDateChangeError(TRIP, next, [{ id: 1, visit_date: null }]),
+    ).toBeNull();
+    expect(planTripDateShift(TRIP, next)).toBeNull();
   });
 
-  const incomplete: Array<{ name: string; previous: TripDateRange; next: TripDateRange }> =
-    [
-      {
-        name: "the trip had no dates to offset from",
-        previous: { start_date: null, end_date: null },
-        next: TRIP,
-      },
-      {
-        name: "the dates are being cleared",
-        previous: TRIP,
-        next: { start_date: null, end_date: null },
-      },
-      {
-        name: "only one edge is set",
-        previous: TRIP,
-        next: { start_date: "2027-07-12", end_date: null },
-      },
-      {
-        name: "a date is malformed",
-        previous: TRIP,
-        next: { start_date: "2027-13-45", end_date: "2027-07-18" },
-      },
-    ];
+  it.each([
+    { start_date: "2027-02-29", end_date: "2027-03-01" },
+    { start_date: "2027-13-01", end_date: "2027-13-07" },
+    { start_date: "2027-7-12", end_date: "2027-07-18" },
+    { start_date: "", end_date: "2027-07-18" },
+    { start_date: "2027-07-18", end_date: "2027-07-12" },
+  ])("fails closed on malformed or reversed dates: %j", (next) => {
+    expect(getTripDateChangeError(TRIP, next, VISITS)).toBeTruthy();
+    expect(getTripDateChangeError(TRIP, next, [])).toBeTruthy();
+    expect(planTripDateShift(TRIP, next)).toBeNull();
+  });
 
-  for (const testCase of incomplete) {
-    it(`plans no shift when ${testCase.name}`, () => {
-      expect(planTripDateShift(testCase.previous, testCase.next)).toBeNull();
-    });
-  }
+  it("leaves existing calendar dates when a trip previously had no complete range", () => {
+    const previous = { start_date: null, end_date: null };
+    expect(planTripDateShift(previous, TRIP)).toBeNull();
+    expect(getTripDateChangeError(previous, TRIP, VISITS)).toBeNull();
+    expect(
+      getTripDateChangeError(
+        previous,
+        {
+          start_date: "2027-07-13",
+          end_date: "2027-07-19",
+        },
+        VISITS,
+      ),
+    ).toContain("before the new trip dates");
+    expect(
+      getTripDateChangeError(
+        previous,
+        {
+          start_date: "2027-07-11",
+          end_date: "2027-07-17",
+        },
+        VISITS,
+      ),
+    ).toContain("after the new trip dates");
+  });
+
+  it("allows metadata-only saves without rewriting legacy out-of-range visits", () => {
+    expect(
+      getTripDateChangeError(TRIP, TRIP, [{ id: 1, visit_date: "2026-07-12" }]),
+    ).toBeNull();
+  });
+
+  it("rejects malformed scheduled dates rather than omitting their changes", () => {
+    const visits = [{ id: 1, visit_date: "2027-02-30" }];
+    const next = { start_date: "2027-08-01", end_date: "2027-08-07" };
+    expect(getTripDateChangeError(TRIP, next, visits)).toContain(
+      "invalid date",
+    );
+    expect(() => shift(next, visits)).toThrow("invalid date");
+  });
 });

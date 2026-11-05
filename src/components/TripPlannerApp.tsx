@@ -1,18 +1,12 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type SubmitEvent,
-} from "react";
+import { useMemo, useRef, useState, type SubmitEvent } from "react";
 
 import { useCurrentLocationControl } from "@/hooks/useCurrentLocationControl";
 import { useItineraryExport } from "@/hooks/useItineraryExport";
 import { useRouteGeometries } from "@/hooks/useRouteGeometries";
 import { useTripPlannerMutations } from "@/hooks/useTripPlannerMutations";
+import { useTripPlannerData } from "@/hooks/useTripPlannerData";
 import { useTripPlannerModals } from "@/hooks/useTripPlannerModals";
 import { useTripPlannerSelection } from "@/hooks/useTripPlannerSelection";
 import {
@@ -37,7 +31,6 @@ import type { MobileSheetState } from "@/lib/mobile-sheet";
 import {
   generateAiItinerary,
   loadAiPlanningSetup,
-  loadTripPlannerInitialData,
   prepareAiDestinationCatalog,
   prepareAiDestinationTransitHubs,
 } from "@/lib/planner-api";
@@ -45,35 +38,24 @@ import { SERVICE_TITLE } from "@/lib/service-brand";
 import { isTripOngoing } from "@/lib/trip-classification";
 import { tripDurationDays } from "@/lib/trip-day-metrics";
 import { formatTripPeriodLabel } from "@/lib/trip-period-label";
-import { updateTrip } from "@/lib/trips-api";
 import type {
   AiCatalogPrepStatus,
   AiPlanningGenerationInput,
   AiPlanningSetup,
-  PlannerSnapshot,
-  Trip,
-  TripMemberSummary,
   TripPlannerInitialData,
-  TripRole,
 } from "@/lib/types";
 
 import {
   buildItineraryForTrip,
-  formPayload,
   toTripDateRange,
 } from "./trip-planner-app-utils";
+import { tripUpdatePayloadFromForm } from "./trip-form-state";
 import {
   AI_PLAN_NEEDS_DATES_HINT,
   AI_PLAN_TRIP_TOO_LONG_HINT,
 } from "./PlanWithAiButton";
 import { TripMembersModal } from "./TripMembersModal";
 import { TripPlannerView } from "./TripPlannerView";
-
-const EMPTY_SNAPSHOT: PlannerSnapshot = {
-  places: [],
-  itineraryItems: [],
-  routeSegments: [],
-};
 
 type AiPlanningWizardState = {
   isOpen: boolean;
@@ -98,20 +80,17 @@ export function TripPlannerApp({
   currentUserId,
   initialData,
 }: TripPlannerAppProps) {
-  const [trip, setTrip] = useState<Trip | null>(
-    () => initialData?.trip ?? null,
-  );
-  const [role, setRole] = useState<TripRole>(
-    () => initialData?.role ?? "viewer",
-  );
-  const [members, setMembers] = useState<TripMemberSummary[]>(
-    () => initialData?.members ?? [],
-  );
-  const [isGuest, setIsGuest] = useState(() => initialData?.isGuest ?? false);
-  const [plannerSnapshot, setPlannerSnapshot] = useState<PlannerSnapshot>(
-    () => initialData?.plannerSnapshot ?? EMPTY_SNAPSHOT,
-  );
-  const didUseInitialDataRef = useRef(Boolean(initialData));
+  const [error, setError] = useState<string | null>(null);
+  const {
+    trip,
+    role,
+    members,
+    setMembers,
+    isGuest,
+    plannerSnapshot,
+    setPlannerSnapshot,
+    saveTrip,
+  } = useTripPlannerData(tripId, initialData, setError);
   const selection = useTripPlannerSelection();
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(
     () => new Set(),
@@ -121,7 +100,6 @@ export function TripPlannerApp({
     useState<MobileSheetState>("half");
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [editTripError, setEditTripError] = useState<string | null>(null);
   const [aiPlanningWizard, setAiPlanningWizard] =
     useState<AiPlanningWizardState>({
@@ -229,42 +207,17 @@ export function TripPlannerApp({
       selection.clearDeletedItineraryItemSelection,
     clearSelection: selection.clearSelection,
   });
-  const reload = useCallback(async () => {
-    const next = await loadTripPlannerInitialData(tripId);
-    setTrip(next.trip);
-    setRole(next.role);
-    setMembers(next.members);
-    setIsGuest(next.isGuest ?? false);
-    setPlannerSnapshot(next.plannerSnapshot);
-    setError(null);
-  }, [tripId]);
-
-  useEffect(() => {
-    if (didUseInitialDataRef.current) {
-      didUseInitialDataRef.current = false;
-      return;
-    }
-
-    reload().catch((reason) => {
-      setError(
-        reason instanceof Error ? reason.message : "Failed to load places.",
-      );
-    });
-  }, [reload]);
-
   async function submitEditTrip(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!modals.editingTripForm || !canEditTripMetadata) return;
+    if (!modals.editingTripForm || !canEditTripMetadata || !trip) return;
 
     setIsSavingTrip(true);
     setEditTripError(null);
 
     try {
-      const updatedTrip = await updateTrip(
-        tripId,
-        formPayload(modals.editingTripForm),
-      );
-      setTrip(updatedTrip);
+      await saveTrip(tripUpdatePayloadFromForm(modals.editingTripForm, trip));
+      setCollapsedDates(new Set());
+      selection.clearSelection();
       modals.setEditingTripForm(null);
       setEditTripError(null);
     } catch (reason) {
@@ -459,6 +412,7 @@ export function TripPlannerApp({
         mobileSheetState={mobileSheetState}
         isPlannerPanelExpanded={isPlannerPanelExpanded}
         tripTitle={tripTitle}
+        tripDates={trip ?? { start_date: null, end_date: null }}
         tripPeriodLabel={tripMetaLabel}
         members={members}
         currentUserId={currentUserId}

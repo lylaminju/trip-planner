@@ -1,18 +1,22 @@
 "use client";
 
-import type { SubmitEvent } from "react";
+import { useId, type SubmitEvent } from "react";
 
 import { getTripCoverImage } from "@/lib/city-covers";
 import { countryLabelForDestination } from "@/lib/destination-options";
+import { GUEST_DESTINATION_SLUGS, GUEST_TRIP_MAX_DAYS } from "@/lib/guest-mode";
 import {
-  GUEST_DESTINATION_SLUGS,
-  GUEST_TRIP_MAX_DAYS,
-} from "@/lib/guest-mode";
+  getTripDateChangeError,
+  planTripDateShift,
+  type ScheduledVisit,
+  type TripDateRange,
+} from "@/lib/trip-date-shift";
 
 import { DestinationCombobox } from "./DestinationCombobox";
 import { CloseIcon, MapPinIcon } from "./Icons";
 import { ModalShell } from "./ModalShell";
 import { TripDateRangePicker } from "./TripDateRangePicker";
+import { TripDateChangeNotice } from "./TripDateChangeNotice";
 import {
   tripDestinationFormChange,
   updateTripFormField,
@@ -21,6 +25,8 @@ import type { TripFormState } from "./trip-form-types";
 
 type Props = {
   form: TripFormState;
+  tripDates: TripDateRange;
+  scheduledVisits: readonly ScheduledVisit[];
   isGuest?: boolean;
   error: string | null;
   isSaving: boolean;
@@ -30,6 +36,20 @@ type Props = {
 };
 
 export function EditTripModal(props: Props) {
+  const dateNoticeId = useId();
+  const nextDates = {
+    start_date: props.form.startDate || null,
+    end_date: props.form.endDate || null,
+  };
+  const dateError = getTripDateChangeError(
+    props.tripDates,
+    nextDates,
+    props.scheduledVisits,
+  );
+  const willShift =
+    Boolean(planTripDateShift(props.tripDates, nextDates)?.deltaDays) &&
+    props.scheduledVisits.some((visit) => visit.visit_date !== null);
+  const dateDescription = dateError || willShift ? dateNoticeId : undefined;
   const hasDestination = Boolean(props.form.destination.trim());
   const countryLabel = countryLabelForDestination(props.form.destinationSlug);
   const coverImage = getTripCoverImage({
@@ -45,7 +65,13 @@ export function EditTripModal(props: Props) {
         className="modal trip-create-modal"
         id="edit-trip-modal"
         role="dialog"
-        onSubmit={props.onSubmit}
+        onSubmit={(event) => {
+          if (dateError || props.isSaving || !hasDestination) {
+            event.preventDefault();
+            return;
+          }
+          props.onSubmit(event);
+        }}
       >
         <div
           className="trip-create-hero"
@@ -130,7 +156,12 @@ export function EditTripModal(props: Props) {
             />
           </div>
 
-          <div className="trip-create-field trip-create-dates-field">
+          <div
+            className="trip-create-field trip-create-dates-field"
+            role="group"
+            aria-label="Trip dates"
+            aria-describedby={dateDescription}
+          >
             <TripDateRangePicker
               startDate={props.form.startDate}
               endDate={props.form.endDate}
@@ -142,10 +173,15 @@ export function EditTripModal(props: Props) {
                 })
               }
             />
+            <TripDateChangeNotice
+              id={dateNoticeId}
+              error={dateError}
+              willShift={willShift}
+            />
             {props.isGuest && (
               <p className="trip-create-field-note">
-                Guest trips use the curated destination list and are limited
-                to {GUEST_TRIP_MAX_DAYS} days.
+                Guest trips use the curated destination list and are limited to{" "}
+                {GUEST_TRIP_MAX_DAYS} days.
                 <br />
                 <a href="/sign-in">Sign in</a> to plan anywhere, for longer
                 trips.
@@ -166,7 +202,8 @@ export function EditTripModal(props: Props) {
           <button
             type="submit"
             className="trip-form-submit"
-            disabled={props.isSaving || !hasDestination}
+            disabled={props.isSaving || !hasDestination || Boolean(dateError)}
+            aria-describedby={dateDescription}
           >
             {props.isSaving ? "Saving..." : "Save changes"}
           </button>

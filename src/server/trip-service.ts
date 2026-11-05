@@ -6,8 +6,10 @@ import {
 } from "@/lib/guest-mode";
 import {
   applyTripDateShift,
+  getTripDateChangeError,
   planTripDateShift,
   type TripDateRange,
+  type VisitDateChange,
 } from "@/lib/trip-date-shift";
 import type { Trip, TripMembership, TripSummary } from "@/lib/types";
 
@@ -145,7 +147,11 @@ export async function createTripForRequest(
   }
 
   const membersByTripId = await listTripMembers([trip.id]);
-  return { ...trip, role: "owner", members: membersByTripId.get(trip.id) ?? [] };
+  return {
+    ...trip,
+    role: "owner",
+    members: membersByTripId.get(trip.id) ?? [],
+  };
 }
 
 export async function updateTripForRequest(
@@ -163,6 +169,17 @@ export async function updateTripForRequest(
   };
   validateTripDateRange(nextDates);
   validateGuestTripUpdate(userId, currentTrip, input, nextDates);
+  const datesChanged =
+    currentTrip.start_date !== nextDates.start_date ||
+    currentTrip.end_date !== nextDates.end_date;
+  let visitChanges: VisitDateChange[] = [];
+  if (datesChanged) {
+    const visits = await listScheduledVisits(tripId);
+    const dateError = getTripDateChangeError(currentTrip, nextDates, visits);
+    if (dateError) throw new TripValidationError(dateError);
+    const plan = planTripDateShift(currentTrip, nextDates);
+    if (plan) visitChanges = applyTripDateShift(visits, plan);
+  }
 
   // Date columns never go through this update: they must commit atomically
   // with the visit realignment below, or a failure in between strands the
@@ -176,8 +193,13 @@ export async function updateTripForRequest(
     if (error) throwSupabaseError(error);
   }
 
-  if (datesTouched) {
-    await commitTripDatesAndRealignVisits(tripId, currentTrip, nextDates);
+  if (datesChanged) {
+    await commitTripDatesAndRealignVisits(
+      tripId,
+      currentTrip,
+      nextDates,
+      visitChanges,
+    );
   }
 
   const [trip, membersByTripId] = await Promise.all([
@@ -203,13 +225,8 @@ async function commitTripDatesAndRealignVisits(
   tripId: number,
   currentTrip: Trip,
   nextDates: TripDateRange,
+  changes: VisitDateChange[],
 ): Promise<void> {
-  const plan = planTripDateShift(currentTrip, nextDates);
-  const changes =
-    plan === null
-      ? []
-      : applyTripDateShift(await listScheduledVisits(tripId), plan);
-
   const { error } = await getSupabaseClient().rpc(
     "update_trip_dates_and_realign_visits",
     {

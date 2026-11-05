@@ -24,7 +24,9 @@ import { TripSection } from "./TripSection";
 import {
   tripGoogleDestinationChange,
   tripMetadataPayloadFromForm,
+  tripUpdatePayloadFromForm,
 } from "./trip-form-state";
+import { formFromTrip } from "./trip-planner-app-utils";
 import type { TripFormState } from "./trip-form-types";
 
 export { TripSection };
@@ -161,6 +163,8 @@ export function TripsDashboard(props: {
   async function submitEdit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!editing) return;
+    const previous = trips.find((trip) => trip.id === editing.tripId);
+    if (!previous) return;
 
     setIsSaving(true);
     setError(null);
@@ -168,7 +172,7 @@ export function TripsDashboard(props: {
     try {
       const trip = await updateTrip(
         editing.tripId,
-        tripMetadataPayloadFromForm(editing.form),
+        tripUpdatePayloadFromForm(editing.form, previous),
       );
       setTrips((current) =>
         current.map((entry) => (entry.id === trip.id ? trip : entry)),
@@ -459,23 +463,6 @@ export function TripsDashboard(props: {
     setForm(emptyTripForm());
     setInvite(emptyTripInvite());
   }
-}
-
-function formFromTrip(trip: TripSummary): TripFormState {
-  return {
-    name: trip.name,
-    destination: trip.destination,
-    destinationSlug: trip.destination_slug,
-    destinationLatitude: trip.destination_latitude,
-    destinationLongitude: trip.destination_longitude,
-    destinationCountryCodes: trip.destination_country_codes,
-    // Editing never re-fetches a photo, so the form carries no cover image;
-    // the stored cover on the trip is left untouched by updates.
-    destinationPhotoData: null,
-    destinationPhotoAttribution: null,
-    startDate: trip.start_date ?? "",
-    endDate: trip.end_date ?? "",
-  };
 }
 
 function emptyTripForm(): TripFormState {

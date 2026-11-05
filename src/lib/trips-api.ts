@@ -1,4 +1,9 @@
-import type { TripSummary } from "./types";
+import type { PlannerSnapshot, TripSummary } from "./types";
+
+export type TripUpdateResult = {
+  trip: TripSummary;
+  plannerSnapshot: PlannerSnapshot;
+};
 
 export type TripMetadataPayload = {
   name: string;
@@ -14,6 +19,12 @@ export type TripMetadataPayload = {
   start_date: string | null;
   end_date: string | null;
 };
+
+export type TripMetadataUpdatePayload = Omit<
+  TripMetadataPayload,
+  "start_date" | "end_date"
+> &
+  Partial<Pick<TripMetadataPayload, "start_date" | "end_date">>;
 
 export async function loadTrips(): Promise<TripSummary[]> {
   const response = await fetch("/api/trips");
@@ -37,10 +48,20 @@ export async function createTrip(
 
 export async function updateTrip(
   tripId: number,
-  payload: TripMetadataPayload,
+  payload: TripMetadataUpdatePayload,
 ): Promise<TripSummary> {
+  return (await updateTripWithPlanner(tripId, payload)).trip;
+}
+
+export async function updateTripWithPlanner(
+  tripId: number,
+  payload: TripMetadataUpdatePayload,
+): Promise<TripUpdateResult> {
   const data = await tripJsonRequest(`/api/trips/${tripId}`, "PATCH", payload);
-  return data.trip as TripSummary;
+  return {
+    trip: data.trip as TripSummary,
+    plannerSnapshot: data.plannerSnapshot as PlannerSnapshot,
+  };
 }
 
 export async function deleteTrip(tripId: number): Promise<void> {
@@ -57,7 +78,7 @@ export async function deleteTrip(tripId: number): Promise<void> {
 async function tripJsonRequest(
   path: string,
   method: "PATCH" | "POST",
-  payload: TripMetadataPayload,
+  payload: TripMetadataUpdatePayload,
 ): Promise<Record<string, unknown>> {
   const response = await fetch(path, {
     method,

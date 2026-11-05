@@ -18,6 +18,7 @@ import {
   type TripUpdateInput,
 } from "@/server/trip-service";
 import { findDestinationOption } from "@/lib/destination-options";
+import { getPlannerSnapshot } from "@/server/place-service";
 
 import { readTripIdParam, type TripParams } from "./_utils";
 
@@ -43,10 +44,16 @@ export async function PATCH(request: Request, { params }: TripParams) {
   }
 
   try {
+    const trip = await updateTripForRequest(
+      tripId,
+      auth.principal.principalId,
+      parsedInput,
+    );
+    // Read after the date transaction so clients receive the realigned visits
+    // together with the trip, rather than rendering new dates with old visits.
+    const plannerSnapshot = await getPlannerSnapshot(tripId);
     return withRefreshedSession(
-      NextResponse.json({
-        trip: await updateTripForRequest(tripId, auth.principal.principalId, parsedInput),
-      }),
+      NextResponse.json({ trip, plannerSnapshot }),
       auth.refreshedSession,
     );
   } catch (error) {
