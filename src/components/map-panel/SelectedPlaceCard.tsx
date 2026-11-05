@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import { placeThumbGlyph } from "@/lib/place-display";
 import type { ItineraryItem, ItineraryView, Place } from "@/lib/types";
 
-import { CloseIcon, ExternalLinkIcon } from "../Icons";
+import { CloseIcon, ExternalLinkIcon, PencilIcon } from "../Icons";
+import { observeDescriptionLines } from "./observe-description-lines";
 
 type SelectedVisit = { kind: "visit"; item: ItineraryItem; dayNumber: number };
 type SelectedPlace = { kind: "place"; place: Place };
@@ -54,6 +57,17 @@ export function SelectedPlaceCard(props: {
   onEditPlace: (place: Place) => void;
   onClose: () => void;
 }) {
+  const descriptionViewportRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const viewport = descriptionViewportRef.current;
+    const description = descriptionRef.current;
+    if (!viewport || !description) return;
+
+    return observeDescriptionLines(viewport, description);
+  }, []);
+
   const target = props.target;
   const place = target.kind === "visit" ? target.item.place : target.place;
   const notes =
@@ -82,9 +96,53 @@ export function SelectedPlaceCard(props: {
           )}
         </span>
         <div className="map-selected-card-info">
-          <strong className="map-selected-card-name">{place.name}</strong>
-          <span className="map-selected-card-context">{contextLabel}</span>
-          {notes && <span className="map-selected-card-notes">{notes}</span>}
+          <strong className="map-selected-card-name" title={place.name}>
+            {place.name}
+          </strong>
+          <div className="map-selected-card-context-row">
+            <span className="map-selected-card-context">{contextLabel}</span>
+            {props.canEdit && target.kind === "visit" && (
+              <button
+                type="button"
+                className="icon-button map-selected-card-edit"
+                aria-label="Edit visit"
+                title="Edit visit"
+                onClick={() => props.onEditVisit(target.item)}
+              >
+                <PencilIcon />
+              </button>
+            )}
+            {props.canEdit && target.kind === "place" && (
+              <button
+                type="button"
+                className="icon-button map-selected-card-edit"
+                aria-label="Edit place"
+                title="Edit place"
+                onClick={() => props.onEditPlace(target.place)}
+              >
+                <PencilIcon />
+              </button>
+            )}
+          </div>
+          <div
+            className="map-selected-card-notes-viewport"
+            ref={descriptionViewportRef}
+          >
+            <span className="map-selected-card-notes" ref={descriptionRef}>
+              {notes}
+            </span>
+          </div>
+          <div className="map-selected-card-actions">
+            <a
+              className="map-selected-card-action map-selected-card-maps-link"
+              href={place.google_maps_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Google Maps</span>
+              <ExternalLinkIcon />
+            </a>
+          </div>
         </div>
         <button
           type="button"
@@ -95,35 +153,6 @@ export function SelectedPlaceCard(props: {
         >
           <CloseIcon />
         </button>
-      </div>
-      <div className="map-selected-card-actions">
-        {props.canEdit && target.kind === "visit" && (
-          <button
-            type="button"
-            className="map-selected-card-action"
-            onClick={() => props.onEditVisit(target.item)}
-          >
-            Edit visit
-          </button>
-        )}
-        {props.canEdit && target.kind === "place" && (
-          <button
-            type="button"
-            className="map-selected-card-action"
-            onClick={() => props.onEditPlace(target.place)}
-          >
-            Edit place
-          </button>
-        )}
-        <a
-          className="map-selected-card-action map-selected-card-maps-link"
-          href={place.google_maps_url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span>Google Maps</span>
-          <ExternalLinkIcon />
-        </a>
       </div>
     </div>
   );
